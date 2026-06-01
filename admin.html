@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 페이지 - 우리동네커피</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8; --espresso: #2C1A0E; --caramel: #C8873A; --latte: #D4A96A;
+    --foam: #FBF7F0; --mid: #6B4226; --text: #8B7355; --danger: #c0392b;
+    --bg: #f8f4ef; --white: #ffffff; --border: rgba(44,26,14,0.12); --sidebar-w: 240px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--espresso); }
+
+  /* ─── LOGIN SCREEN ─── */
+  #loginScreen { position: fixed; inset: 0; z-index: 999; background: var(--espresso); display: flex; align-items: center; justify-content: center; }
+  .login-box { background: var(--cream); padding: 56px 48px; width: 420px; text-align: center; }
+  .login-logo { font-size: 1.8rem; font-weight: 900; color: var(--espresso); margin-bottom: 8px; }
+  .login-logo span { color: var(--caramel); }
+  .login-subtitle { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); margin-bottom: 40px; }
+  .login-label { display: block; text-align: left; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--text); margin-bottom: 8px; font-weight: 600; }
+  .login-input { width: 100%; padding: 14px 16px; border: 1.5px solid var(--border); background: var(--white); font-size: 1rem; color: var(--espresso); outline: none; transition: border-color 0.2s; margin-bottom: 24px; }
+  .login-input:focus { border-color: var(--caramel); }
+  .login-btn { width: 100%; padding: 15px; background: var(--espresso); color: var(--cream); border: none; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: background 0.2s; }
+  .login-btn:hover { background: var(--mid); }
+  .login-error { color: var(--danger); font-size: 0.82rem; margin-top: 14px; display: none; }
+
+  /* ─── ADMIN LAYOUT ─── */
+  #adminApp { display: none; min-height: 100vh; }
+  .admin-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--espresso); display: flex; flex-direction: column; z-index: 10; }
+  .sidebar-logo { padding: 28px 24px; font-size: 1.3rem; font-weight: 900; color: var(--cream); border-bottom: 1px solid rgba(245,240,232,0.1); }
+  .sidebar-logo span { color: var(--caramel); }
+  .sidebar-nav { flex: 1; padding: 20px 0; overflow-y: auto; }
+  .sidebar-section { font-size: 0.62rem; letter-spacing: 0.18em; color: rgba(245,240,232,0.3); padding: 12px 24px 6px; font-weight: 700; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 11px 24px; cursor: pointer; color: rgba(245,240,232,0.55); font-size: 0.85rem; border-left: 3px solid transparent; transition: all 0.2s; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.05); color: var(--cream); }
+  .sidebar-item.active { background: rgba(200,135,58,0.15); color: var(--latte); border-left-color: var(--caramel); }
+  .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(245,240,232,0.1); }
+  .sidebar-logout { color: rgba(245,240,232,0.35); font-size: 0.8rem; cursor: pointer; background: none; border: none; width: 100%; text-align: left; }
+  .sidebar-logout:hover { color: var(--danger); }
+
+  .admin-main { margin-left: var(--sidebar-w); padding: 40px 48px; min-height: 100vh; }
+  .admin-page { display: none; }
+  .admin-page.active { display: block; }
+  .page-title { font-size: 1.8rem; font-weight: 700; color: var(--espresso); margin-bottom: 6px; }
+  .page-subtitle { font-size: 0.85rem; color: var(--text); margin-bottom: 36px; }
+
+  /* ─── CARDS & FORMS ─── */
+  .card { background: var(--white); border: 1px solid var(--border); padding: 28px 32px; margin-bottom: 24px; }
+  .card-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  
+  .form-row { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--espresso); margin-bottom: 7px; }
+  .form-input, .form-select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); font-size: 0.9rem; background: var(--foam); outline: none; }
+  .form-input:focus, .form-select:focus { border-color: var(--caramel); }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ─── BUTTONS ─── */
+  .btn { padding: 10px 22px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: var(--caramel); color: #fff; }
+  .btn-primary:hover { background: var(--mid); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); padding: 7px 14px; }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 6px 14px; font-size: 0.72rem; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+
+  /* ─── IMAGE UPLOAD ZONE (16:9 권장) ─── */
+  .img-upload-zone { border: 2px dashed var(--border); padding: 32px; text-align: center; cursor: pointer; position: relative; background: var(--foam); transition: all 0.2s; }
+  .img-upload-zone:hover { border-color: var(--caramel); background: rgba(200,135,58,0.04); }
+  .img-upload-zone.has-img { padding: 0; border-style: solid; }
+  .img-upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .img-upload-zone img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+  .img-upload-text { font-size: 0.82rem; color: var(--text); margin-top: 10px; }
+  .img-upload-hint { font-size: 0.72rem; color: rgba(139,115,85,0.6); margin-top: 4px; }
+  .img-overlay { position: absolute; inset: 0; background: rgba(44,26,14,0.5); display: flex; align-items: center; justify-content: center; gap: 10px; opacity: 0; transition: opacity 0.2s; }
+  .img-upload-zone.has-img:hover .img-overlay { opacity: 1; }
+  .img-overlay-btn { padding: 8px 16px; font-size: 0.75rem; cursor: pointer; font-weight: 600; border: none; }
+
+  /* ─── MENU TABS & LIST ─── */
+  .menu-admin-tabs { display: flex; gap: 0; margin-bottom: 24px; border: 1.5px solid var(--border); width: fit-content; }
+  .menu-admin-tab { padding: 9px 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text); transition: all 0.2s; }
+  .menu-admin-tab.active { background: var(--espresso); color: var(--cream); }
+
+  .menu-item-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .menu-item-row { display: grid; grid-template-columns: 80px 1fr 1fr auto auto; gap: 14px; align-items: center; padding: 14px 16px; background: var(--foam); border: 1px solid var(--border); }
+  .menu-item-thumb { width: 80px; height: 45px; background: #e8dfd4; position: relative; flex-shrink: 0; }
+  .menu-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .menu-item-thumb-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: rgba(107,66,38,0.3); }
+  .menu-item-name { font-size: 0.92rem; font-weight: 600; }
+  .menu-item-price { font-size: 0.85rem; color: var(--caramel); font-weight: 600; }
+
+  /* ─── GALLERY ─── */
+  .gallery-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .gallery-admin-item { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #e8dfd4; }
+  .gallery-admin-item img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-admin-delete { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(192,57,43,0.85); color: #fff; border: none; cursor: pointer; font-weight: 700; opacity: 0; transition: opacity 0.2s; }
+  .gallery-admin-item:hover .gallery-admin-delete { opacity: 1; }
+  .gallery-add-btn { aspect-ratio: 16/9; border: 2px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; background: var(--foam); color: var(--text); font-size: 0.78rem; position: relative; }
+  .gallery-add-btn input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  /* ─── NOTICE ─── */
+  .notice-admin-list { margin-bottom: 20px; }
+  .notice-admin-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--foam); border: 1px solid var(--border); margin-bottom: 8px; }
+  .notice-admin-badge { font-size: 0.68rem; padding: 3px 9px; font-weight: 700; color: #fff; background: var(--caramel); flex-shrink: 0; }
+  .notice-admin-badge.event { background: var(--espresso); }
+  .notice-admin-title { flex: 1; font-size: 0.88rem; }
+
+  /* ─── MODALS & TOAST ─── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(44,26,14,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); width: 560px; max-width: 90vw; max-height: 90vh; overflow-y: auto; padding: 36px 40px; }
+  .modal-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 28px; }
+  .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; }
+
+  .toast { position: fixed; bottom: 32px; right: 32px; z-index: 9999; background: var(--espresso); color: var(--cream); padding: 14px 24px; font-size: 0.85rem; transform: translateY(20px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">우리동네<span>커피</span></div>
+    <div class="login-subtitle">Admin Dashboard</div>
+    <label class="login-label">비밀번호 (2414)</label>
+    <input class="login-input" type="password" id="pwInput" placeholder="••••">
+    <button class="login-btn" onclick="tryLogin()">로그인</button>
+    <div class="login-error" id="loginError">비밀번호가 올바르지 않습니다.</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">우리동네<span>커피</span></div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">콘텐츠 관리</div>
+      <div class="sidebar-item active" data-page="menu">메뉴 관리</div>
+      <div class="sidebar-item" data-page="gallery">갤러리 관리</div>
+      <div class="sidebar-item" data-page="notice">공지사항 관리</div>
+      <div class="sidebar-section">사이트 설정</div>
+      <div class="sidebar-item" data-page="settings">배경 및 이미지 설정</div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout" onclick="location.reload()">로그아웃</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <!-- MENU -->
+    <div class="admin-page active" id="page-menu">
+      <div class="page-title">메뉴 관리</div>
+      <div class="page-subtitle">카테고리별 메뉴를 추가·수정·삭제합니다.</div>
+      <div class="menu-admin-tabs" id="menuAdminTabs">
+        <button class="menu-admin-tab active" data-cat="coffee">커피</button>
+        <button class="menu-admin-tab" data-cat="nonCoffee">논커피</button>
+        <button class="menu-admin-tab" data-cat="adeTea">에이드/티/스무디</button>
+        <button class="menu-admin-tab" data-cat="dessert">디저트</button>
+      </div>
+      <div class="card">
+        <div class="card-title">메뉴 목록</div>
+        <div class="menu-item-list" id="menuItemList"></div>
+        <button class="btn btn-primary" onclick="openMenuModal()">+ 메뉴 추가</button>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="admin-page" id="page-gallery">
+      <div class="page-title">갤러리 관리</div>
+      <div class="page-subtitle">매장 전경 사진을 업로드·삭제합니다.</div>
+      <div class="card">
+        <div class="gallery-admin-grid" id="galleryAdminGrid"></div>
+      </div>
+    </div>
+
+    <!-- NOTICE -->
+    <div class="admin-page" id="page-notice">
+      <div class="page-title">공지사항 관리</div>
+      <div class="page-subtitle">공지 및 이벤트를 등록합니다.</div>
+      <div class="card">
+        <div class="notice-admin-list" id="noticeAdminList"></div>
+        <button class="btn btn-primary" onclick="openNoticeModal()">+ 공지 추가</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="admin-page" id="page-settings">
+      <div class="page-title">사이트 이미지 설정</div>
+      <div class="page-subtitle">메인 화면 및 소개 섹션의 이미지를 관리합니다.</div>
+
+      <div class="card">
+        <div class="card-title">메인 히어로 이미지</div>
+        <div class="img-upload-zone" id="heroZone">
+          <input type="file" accept="image/*" onchange="handleSingleUpload(event, 'cafe_hero_img', 'heroZone', 'heroOverlay')">
+          <div class="img-upload-text">클릭하여 이미지 업로드</div>
+          <div class="img-upload-hint">16:9 가로형 이미지를 권장합니다.</div>
+          <div class="img-overlay" id="heroOverlay">
+            <button class="img-overlay-btn" style="background:var(--caramel);color:#fff;" onclick="event.stopPropagation(); document.querySelector('#heroZone input').click()">교체</button>
+            <button class="img-overlay-btn" style="background:rgba(192,57,43,0.9);color:#fff;" onclick="event.stopPropagation(); removeSingleImg('cafe_hero_img', 'heroZone', 'heroOverlay')">삭제</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">소개 이미지 (About 섹션)</div>
+        <div class="form-row-2">
+          <div>
+            <label class="form-label">메인 소개 이미지 (큰 사진)</label>
+            <div class="img-upload-zone" id="aboutMainZone">
+              <input type="file" accept="image/*" onchange="handleSingleUpload(event, 'cafe_about_main', 'aboutMainZone', 'aboutMainOverlay')">
+              <div class="img-upload-text">업로드</div>
+              <div class="img-overlay" id="aboutMainOverlay">
+                <button class="img-overlay-btn" style="background:var(--caramel);color:#fff;" onclick="event.stopPropagation(); document.querySelector('#aboutMainZone input').click()">교체</button>
+                <button class="img-overlay-btn" style="background:rgba(192,57,43,0.9);color:#fff;" onclick="event.stopPropagation(); removeSingleImg('cafe_about_main', 'aboutMainZone', 'aboutMainOverlay')">삭제</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">보조 소개 이미지 (작은 사진)</label>
+            <div class="img-upload-zone" id="aboutAccentZone">
+              <input type="file" accept="image/*" onchange="handleSingleUpload(event, 'cafe_about_accent', 'aboutAccentZone', 'aboutAccentOverlay')">
+              <div class="img-upload-text">업로드</div>
+              <div class="img-overlay" id="aboutAccentOverlay">
+                <button class="img-overlay-btn" style="background:var(--caramel);color:#fff;" onclick="event.stopPropagation(); document.querySelector('#aboutAccentZone input').click()">교체</button>
+                <button class="img-overlay-btn" style="background:rgba(192,57,43,0.9);color:#fff;" onclick="event.stopPropagation(); removeSingleImg('cafe_about_accent', 'aboutAccentZone', 'aboutAccentOverlay')">삭제</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MENU MODAL -->
+<div class="modal-overlay" id="menuModal">
+  <div class="modal">
+    <div class="modal-title" id="menuModalTitle">메뉴 추가/수정</div>
+    <div class="form-row"><label class="form-label">메뉴 이름</label><input class="form-input" type="text" id="m_name" placeholder="예: 아메리카노"></div>
+    <div class="form-row"><label class="form-label">설명 및 옵션</label><input class="form-input" type="text" id="m_sub" placeholder="예: <span class='best-badge'>⭐ BEST</span> | Hot / Ice"></div>
+    <div class="form-row"><label class="form-label">가격</label><input class="form-input" type="text" id="m_price" placeholder="예: 3,500원"></div>
+    <div class="form-row">
+      <label class="form-label">메뉴 이미지 (16:9 가로형 권장)</label>
+      <div class="img-upload-zone" id="menuImgZone">
+        <input type="file" accept="image/*" onchange="handleMenuImgUpload(event)">
+        <div class="img-upload-text">클릭하여 업로드</div>
+        <div class="img-overlay" id="menuImgOverlay">
+          <button class="img-overlay-btn" style="background:var(--caramel);color:#fff;" onclick="event.stopPropagation(); document.querySelector('#menuImgZone input').click()">교체</button>
+          <button class="img-overlay-btn" style="background:rgba(192,57,43,0.9);color:#fff;" onclick="event.stopPropagation(); clearMenuImg()">삭제</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('menuModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveMenu()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTICE MODAL -->
+<div class="modal-overlay" id="noticeModal">
+  <div class="modal">
+    <div class="modal-title">공지 추가</div>
+    <div class="form-row"><label class="form-label">유형</label><select class="form-select" id="n_type"><option value="공지">공지</option><option value="이벤트">이벤트</option></select></div>
+    <div class="form-row"><label class="form-label">제목</label><input class="form-input" type="text" id="n_title"></div>
+    <div class="form-row"><label class="form-label">날짜</label><input class="form-input" type="date" id="n_date"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('noticeModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveNotice()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_PW = '2414';
+let currentMenuCat = 'coffee';
+let menuEditIndex = -1;
+let pendingMenuImg = '';
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// LOGIN & NAV
+function tryLogin() {
+  if (document.getElementById('pwInput').value === ADMIN_PW) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'block';
+    initAdmin();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.admin-page').forEach(pg => pg.classList.remove('active'));
+    document.getElementById('page-' + item.dataset.page).classList.add('active');
+  });
+});
+
+// DEFAULT DATA
+function getMenus() {
+  return JSON.parse(localStorage.getItem('cafe_menus')) || {
+    coffee: [
+      { name: '아메리카노', sub: '<span class="best-badge">⭐ BEST</span> | 테이크아웃 1,000원', price: '1,500원', img: '' },
+      { name: '카페라떼', sub: 'Hot / Ice', price: '2,500원', img: '' },
+      { name: '다방커피', sub: 'Hot / Ice', price: '2,500원', img: '' },
+      { name: '바닐라라떼', sub: 'Hot / Ice', price: '3,000원', img: '' },
+      { name: '카라멜마끼야또', sub: 'Hot / Ice', price: '3,300원', img: '' },
+      { name: '카페모카', sub: 'Hot / Ice', price: '3,300원', img: '' },
+    ],
+    nonCoffee: [
+      { name: '초코라떼', sub: 'Hot / Ice', price: '3,000원', img: '' },
+      { name: '녹차라떼', sub: 'Hot / Ice', price: '3,000원', img: '' },
+      { name: '고구마라떼', sub: 'Hot / Ice', price: '3,000원', img: '' },
+      { name: '딸기라떼', sub: 'Hot / Ice', price: '3,500원', img: '' },
+      { name: '우리동네 크림라떼', sub: '<span class="best-badge">⭐ BEST</span> | Hot / Ice', price: '3,500원', img: '' },
+    ],
+    adeTea: [
+      { name: '자몽에이드', sub: 'Ice', price: '3,200원', img: '' },
+      { name: '레몬에이드', sub: 'Ice', price: '3,200원', img: '' },
+      { name: '유자차', sub: 'Hot / Ice', price: '3,300원', img: '' },
+      { name: '자몽차', sub: 'Hot / Ice', price: '3,300원', img: '' },
+      { name: '레몬차', sub: 'Hot / Ice', price: '3,300원', img: '' },
+      { name: '복숭아 아이스티', sub: 'Ice', price: '3,300원', img: '' },
+      { name: '쌍화차', sub: '<span class="best-badge">⭐ BEST</span> | Hot / Ice', price: '4,000원', img: '' },
+      { name: '리치 캐모마일 티', sub: '<span class="best-badge">⭐ BEST</span> | Hot / Ice', price: '4,000원', img: '' },
+      { name: '분다버그', sub: 'Ice', price: '3,900원', img: '' },
+      { name: '플레인요거트 스무디', sub: 'Ice', price: '3,700원', img: '' },
+      { name: '딸기요거트 스무디', sub: 'Ice', price: '4,300원', img: '' },
+      { name: '꿀복숭아 슬러시', sub: 'Ice', price: '3,700원', img: '' },
+    ],
+    dessert: [
+      { name: '바스크치즈케이크', sub: '<span class="best-badge">⭐ BEST</span>', price: '5,500원', img: '' },
+      { name: '브라우니 바스크치즈케이크', sub: '디저트', price: '6,000원', img: '' },
+      { name: '초코범벅 (초코쿠키)', sub: '<span class="best-badge">⭐ BEST</span>', price: '1,500원', img: '' },
+      { name: '소금빵', sub: '디저트', price: '3,000원', img: '' },
+      { name: '크로와상', sub: '디저트', price: '3,000원', img: '' },
+    ]
+  };
+}
+
+// MENU ADMIN
+document.getElementById('menuAdminTabs').addEventListener('click', e => {
+  if (!e.target.classList.contains('menu-admin-tab')) return;
+  document.querySelectorAll('.menu-admin-tab').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentMenuCat = e.target.dataset.cat;
+  renderMenuAdmin();
+});
+
+function renderMenuAdmin() {
+  const menus = getMenus();
+  const list = document.getElementById('menuItemList');
+  list.innerHTML = '';
+  (menus[currentMenuCat] || []).forEach((item, i) => {
+    list.innerHTML += `<div class="menu-item-row">
+      <div class="menu-item-thumb">${item.img ? `<img src="${item.img}">` : '<div class="menu-item-thumb-empty">없음</div>'}</div>
+      <div><div class="menu-item-name">${item.name}</div><div style="font-size:0.78rem;color:var(--text);margin-top:2px;">${item.sub}</div></div>
+      <div class="menu-item-price">${item.price}</div>
+      <button class="btn btn-ghost btn-sm" onclick="openMenuModal(${i})">수정</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteMenu(${i})">삭제</button>
+    </div>`;
+  });
+}
+
+function openMenuModal(idx = -1) {
+  menuEditIndex = idx;
+  pendingMenuImg = '';
+  clearMenuImg();
+  if (idx >= 0) {
+    const item = getMenus()[currentMenuCat][idx];
+    document.getElementById('m_name').value = item.name;
+    document.getElementById('m_sub').value = item.sub;
+    document.getElementById('m_price').value = item.price;
+    if (item.img) setMenuImgPreview(item.img);
+  } else {
+    document.getElementById('m_name').value = '';
+    document.getElementById('m_sub').value = '';
+    document.getElementById('m_price').value = '';
+  }
+  document.getElementById('menuModal').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function handleMenuImgUpload(e) {
+  if (!e.target.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = ev => setMenuImgPreview(ev.target.result);
+  reader.readAsDataURL(e.target.files[0]);
+}
+function setMenuImgPreview(src) {
+  pendingMenuImg = src;
+  const zone = document.getElementById('menuImgZone');
+  zone.classList.add('has-img');
+  zone.querySelector('img')?.remove();
+  const img = document.createElement('img'); img.src = src;
+  zone.insertBefore(img, zone.firstChild);
+  document.getElementById('menuImgOverlay').style.display = 'flex';
+}
+function clearMenuImg() {
+  pendingMenuImg = '';
+  const zone = document.getElementById('menuImgZone');
+  zone.classList.remove('has-img');
+  zone.querySelector('img')?.remove();
+  document.getElementById('menuImgOverlay').style.display = 'none';
+}
+
+function saveMenu() {
+  const menus = getMenus();
+  const item = { name: document.getElementById('m_name').value, sub: document.getElementById('m_sub').value, price: document.getElementById('m_price').value, img: pendingMenuImg };
+  if (menuEditIndex >= 0) menus[currentMenuCat][menuEditIndex] = item;
+  else menus[currentMenuCat].push(item);
+  localStorage.setItem('cafe_menus', JSON.stringify(menus));
+  closeModal('menuModal'); renderMenuAdmin(); showToast('저장되었습니다.');
+}
+function deleteMenu(i) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  const menus = getMenus(); menus[currentMenuCat].splice(i, 1);
+  localStorage.setItem('cafe_menus', JSON.stringify(menus));
+  renderMenuAdmin(); showToast('삭제되었습니다.');
+}
+
+// GALLERY ADMIN
+function renderGalleryAdmin() {
+  const gallery = JSON.parse(localStorage.getItem('cafe_gallery') || '[]');
+  const grid = document.getElementById('galleryAdminGrid');
+  grid.innerHTML = '';
+  gallery.forEach((item, i) => {
+    grid.innerHTML += `<div class="gallery-admin-item"><img src="${item.url}"><button class="gallery-admin-delete" onclick="deleteGallery(${i})">×</button></div>`;
+  });
+  grid.innerHTML += `<div class="gallery-add-btn"><input type="file" multiple accept="image/*" onchange="uploadGallery(event)">+ 사진 추가</div>`;
+}
+function uploadGallery(e) {
+  const files = Array.from(e.target.files);
+  const gallery = JSON.parse(localStorage.getItem('cafe_gallery') || '[]');
+  let loaded = 0;
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = ev => {
+      gallery.push({url: ev.target.result});
+      loaded++;
+      if (loaded === files.length) { localStorage.setItem('cafe_gallery', JSON.stringify(gallery)); renderGalleryAdmin(); showToast('업로드 완료'); }
+    };
+    r.readAsDataURL(f);
+  });
+}
+function deleteGallery(i) {
+  const gallery = JSON.parse(localStorage.getItem('cafe_gallery') || '[]');
+  gallery.splice(i, 1);
+  localStorage.setItem('cafe_gallery', JSON.stringify(gallery));
+  renderGalleryAdmin(); showToast('삭제되었습니다.');
+}
+
+// NOTICE ADMIN
+function renderNoticeAdmin() {
+  const notices = JSON.parse(localStorage.getItem('cafe_notices') || 'null') || [{ type: '공지', title: '우리동네커피 홈페이지가 새롭게 오픈했습니다.', date: '2026.06.01' }];
+  const list = document.getElementById('noticeAdminList');
+  list.innerHTML = '';
+  notices.forEach((n, i) => {
+    list.innerHTML += `<div class="notice-admin-row"><span class="notice-admin-badge ${n.type==='이벤트'?'event':''}">${n.type}</span><span class="notice-admin-title">${n.title}</span><span style="font-size:0.75rem;color:var(--text);">${n.date}</span><button class="btn btn-danger btn-sm" onclick="deleteNotice(${i})">삭제</button></div>`;
+  });
+}
+function openNoticeModal() { document.getElementById('n_date').value = new Date().toISOString().split('T')[0]; document.getElementById('noticeModal').classList.add('open'); }
+function saveNotice() {
+  const notices = JSON.parse(localStorage.getItem('cafe_notices') || 'null') || [{ type: '공지', title: '우리동네커피 홈페이지가 새롭게 오픈했습니다.', date: '2026.06.01' }];
+  notices.unshift({ type: document.getElementById('n_type').value, title: document.getElementById('n_title').value, date: document.getElementById('n_date').value.replaceAll('-','.') });
+  localStorage.setItem('cafe_notices', JSON.stringify(notices));
+  closeModal('noticeModal'); renderNoticeAdmin(); showToast('등록되었습니다.');
+}
+function deleteNotice(i) {
+  const notices = JSON.parse(localStorage.getItem('cafe_notices') || '[]'); notices.splice(i,1);
+  localStorage.setItem('cafe_notices', JSON.stringify(notices)); renderNoticeAdmin(); showToast('삭제되었습니다.');
+}
+
+// SETTINGS (SINGLE IMAGES)
+function initSettings() {
+  setSingleImgPreview('cafe_hero_img', 'heroZone', 'heroOverlay');
+  setSingleImgPreview('cafe_about_main', 'aboutMainZone', 'aboutMainOverlay');
+  setSingleImgPreview('cafe_about_accent', 'aboutAccentZone', 'aboutAccentOverlay');
+}
+function setSingleImgPreview(key, zoneId, overId) {
+  const src = localStorage.getItem(key);
+  const zone = document.getElementById(zoneId);
+  zone.classList.remove('has-img'); zone.querySelector('img')?.remove();
+  if (src) {
+    zone.classList.add('has-img');
+    const img = document.createElement('img'); img.src = src; zone.insertBefore(img, zone.firstChild);
+    document.getElementById(overId).style.display = 'flex';
+  } else { document.getElementById(overId).style.display = 'none'; }
+}
+function handleSingleUpload(e, key, zoneId, overId) {
+  if (!e.target.files[0]) return;
+  const r = new FileReader();
+  r.onload = ev => { localStorage.setItem(key, ev.target.result); setSingleImgPreview(key, zoneId, overId); showToast('저장되었습니다.'); };
+  r.readAsDataURL(e.target.files[0]);
+}
+function removeSingleImg(key, zoneId, overId) {
+  localStorage.removeItem(key); setSingleImgPreview(key, zoneId, overId); showToast('삭제되었습니다.');
+}
+
+// INIT
+function initAdmin() { renderMenuAdmin(); renderGalleryAdmin(); renderNoticeAdmin(); initSettings(); }
+</script>
+</body>
+</html>
