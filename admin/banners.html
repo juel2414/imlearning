@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>배너 관리 — 아이엠러닝 관리자</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #F8F9FA; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
+    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
+    .admin-logo span { color: #2D9B6F; }
+    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
+    .admin-nav { padding: 1rem 0; }
+    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all 0.2s; text-decoration: none; }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
+    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
+    .admin-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
+    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
+    .admin-card-desc { font-size: 12px; color: #6B6B6B; margin-top: 3px; }
+    .admin-card-body { padding: 1.5rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
+    .form-input:focus, .form-select:focus { outline: none; border-color: #2D9B6F; }
+    .form-hint { font-size: 11px; color: #6B6B6B; margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+    .btn-save:hover { background: #1A7A4A; }
+
+    /* 슬라이드 설정 카드 */
+    .slide-settings { display: flex; flex-direction: column; gap: 16px; }
+    .slide-setting-item { border: 1px solid rgba(0,0,0,0.07); border-radius: 10px; overflow: hidden; }
+    .slide-setting-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #F8F9FA; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
+    .slide-setting-title { font-size: 13px; font-weight: 700; color: var(--black); display: flex; align-items: center; gap: 8px; }
+    .slide-color-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .slide-setting-body { padding: 16px; display: none; }
+    .slide-setting-body.open { display: block; }
+
+    /* 배너 미리보기 */
+    .banner-preview { border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+    .banner-preview-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+    .banner-preview-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .banner-preview-desc { font-size: 13px; color: rgba(255,255,255,0.7); }
+
+    .success-toast { display: none; position: fixed; top: 1.5rem; right: 1.5rem; background: #2D9B6F; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; }
+    .success-toast.show { display: block; }
+
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #C4C4C4; border-radius: 24px; transition: 0.3s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+    input:checked + .toggle-slider { background: #2D9B6F; }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">메인</div>
+      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
+      <div class="admin-nav-section">강좌 관리</div>
+      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
+      <a href="instructors.html" class="admin-nav-item"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
+      <div class="admin-nav-section">프로모션</div>
+      <a href="promotions.html" class="admin-nav-item"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
+      <div class="admin-nav-section">콘텐츠</div>
+      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
+      <a href="banners.html" class="admin-nav-item active"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
+      <div class="admin-nav-section">설정</div>
+      <a href="settings.html" class="admin-nav-item"><span class="admin-nav-icon">⚙️</span> 사이트 설정</a>
+      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
+      <a href="login.html" class="admin-nav-item" onclick="logout();return false;"><span class="admin-nav-icon">🚪</span> 로그아웃</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>🎨 배너 관리</h1>
+    </div>
+
+    <!-- 히어로 캐러셀 슬라이드 설정 -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">히어로 캐러셀 슬라이드 설정</div>
+        <div class="admin-card-desc">메인 홈페이지 상단에서 5초마다 자동 전환되는 슬라이드 내용을 수정해요</div>
+      </div>
+      <div class="admin-card-body">
+        <div class="slide-settings">
+
+          <div class="slide-setting-item">
+            <div class="slide-setting-header" onclick="toggleSlide(1)">
+              <div class="slide-setting-title"><div class="slide-color-dot" style="background:#2D9B6F;"></div> 슬라이드 1 — 신앙</div>
+              <span style="font-size:12px;color:#6B6B6B;">클릭해서 수정</span>
+            </div>
+            <div class="slide-setting-body" id="slide-body-1">
+              <div class="form-row">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">뱃지 텍스트</label>
+                  <input class="form-input" id="s1-badge" value="✝️ 신앙 · 트리플 스쿨">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">버튼 링크</label>
+                  <input class="form-input" id="s1-link" value="courses.html?cat=faith">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px;">
+                <label class="form-label">제목</label>
+                <input class="form-input" id="s1-title" value="배움이 시작되는 곳에서 달려가세요">
+              </div>
+              <div class="form-group">
+                <label class="form-label">설명</label>
+                <input class="form-input" id="s1-desc" value="성경과 신앙을 깊이 있게 배우고 싶은 분들을 위한 트리플 스쿨 과정입니다.">
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-setting-item">
+            <div class="slide-setting-header" onclick="toggleSlide(2)">
+              <div class="slide-setting-title"><div class="slide-color-dot" style="background:#4B6FD4;"></div> 슬라이드 2 — 교사·부모</div>
+              <span style="font-size:12px;color:#6B6B6B;">클릭해서 수정</span>
+            </div>
+            <div class="slide-setting-body" id="slide-body-2">
+              <div class="form-row">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">뱃지 텍스트</label>
+                  <input class="form-input" id="s2-badge" value="👨‍👩‍👧 교사 · 부모 교육">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">버튼 링크</label>
+                  <input class="form-input" id="s2-link" value="courses.html?cat=edu">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px;">
+                <label class="form-label">제목</label>
+                <input class="form-input" id="s2-title" value="다음 세대를 함께 세워가요">
+              </div>
+              <div class="form-group">
+                <label class="form-label">설명</label>
+                <input class="form-input" id="s2-desc" value="교회학교 교사와 부모를 위한 전문 교육 과정입니다.">
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-setting-item">
+            <div class="slide-setting-header" onclick="toggleSlide(3)">
+              <div class="slide-setting-title"><div class="slide-color-dot" style="background:#D4822D;"></div> 슬라이드 3 — 캠프·사역</div>
+              <span style="font-size:12px;color:#6B6B6B;">클릭해서 수정</span>
+            </div>
+            <div class="slide-setting-body" id="slide-body-3">
+              <div class="form-row">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">뱃지 텍스트</label>
+                  <input class="form-input" id="s3-badge" value="🏕️ 캠프 · 사역">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">버튼 링크</label>
+                  <input class="form-input" id="s3-link" value="courses.html?cat=mission">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px;">
+                <label class="form-label">제목</label>
+                <input class="form-input" id="s3-title" value="선교의 열정을 현장으로">
+              </div>
+              <div class="form-group">
+                <label class="form-label">설명</label>
+                <input class="form-input" id="s3-desc" value="캠프 행정부터 선교 훈련까지. 사역 현장에서 필요한 모든 것을 담았습니다.">
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-setting-item">
+            <div class="slide-setting-header" onclick="toggleSlide(4)">
+              <div class="slide-setting-title"><div class="slide-color-dot" style="background:#2D9B7A;"></div> 슬라이드 4 — 영어·시험</div>
+              <span style="font-size:12px;color:#6B6B6B;">클릭해서 수정</span>
+            </div>
+            <div class="slide-setting-body" id="slide-body-4">
+              <div class="form-row">
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">뱃지 텍스트</label>
+                  <input class="form-input" id="s4-badge" value="📖 영어 · 시험">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label class="form-label">버튼 링크</label>
+                  <input class="form-input" id="s4-link" value="courses.html?cat=english">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:12px;">
+                <label class="form-label">제목</label>
+                <input class="form-input" id="s4-title" value="영어로 기도하고 시험도 합격하세요">
+              </div>
+              <div class="form-group">
+                <label class="form-label">설명</label>
+                <input class="form-input" id="s4-desc" value="신앙과 연결된 영어 학습부터 검정고시까지 함께합니다.">
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <button class="btn-save" onclick="saveSlides()">슬라이드 내용 저장하기</button>
+        <div id="slide-success" style="display:none;color:#2D9B6F;font-size:12px;font-weight:600;margin-top:8px;">✅ 저장되었습니다!</div>
+      </div>
+    </div>
+
+    <!-- 전환 속도 설정 -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">캐러셀 전환 설정</div>
+      </div>
+      <div class="admin-card-body">
+        <div class="form-row">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">자동 전환 간격</label>
+            <select class="form-select" id="carousel-interval">
+              <option value="3000">3초</option>
+              <option value="5000" selected>5초</option>
+              <option value="7000">7초</option>
+              <option value="10000">10초</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">자동 전환</label>
+            <div style="display:flex;align-items:center;gap:10px;padding-top:10px;">
+              <label class="toggle-switch">
+                <input type="checkbox" id="carousel-auto" checked>
+                <span class="toggle-slider"></span>
+              </label>
+              <span style="font-size:13px;color:#3D3D3D;">자동 전환 켜기</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-save" onclick="saveCarousel()">저장하기</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="success-toast" id="toast"></div>
+
+<script src="../js/main.js"></script>
+<script>
+if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
+function logout() { sessionStorage.removeItem('admin_auth'); window.location.href = 'login.html'; }
+
+function toggleSlide(n) {
+  const body = document.getElementById('slide-body-' + n);
+  body.classList.toggle('open');
+}
+
+function saveSlides() {
+  const slides = [];
+  for (let i = 1; i <= 4; i++) {
+    slides.push({
+      badge: document.getElementById('s' + i + '-badge').value,
+      title: document.getElementById('s' + i + '-title').value,
+      desc: document.getElementById('s' + i + '-desc').value,
+      link: document.getElementById('s' + i + '-link').value,
+    });
+  }
+  localStorage.setItem('hero_slides', JSON.stringify(slides));
+  const el = document.getElementById('slide-success');
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function saveCarousel() {
+  localStorage.setItem('carousel_interval', document.getElementById('carousel-interval').value);
+  localStorage.setItem('carousel_auto', document.getElementById('carousel-auto').checked);
+  showToast('캐러셀 설정이 저장되었습니다!');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ ' + msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// 저장된 설정 불러오기
+const savedInterval = localStorage.getItem('carousel_interval');
+if (savedInterval) document.getElementById('carousel-interval').value = savedInterval;
+</script>
+</body>
+</html>

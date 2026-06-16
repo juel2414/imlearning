@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강사 관리 — 아이엠러닝 관리자</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #F8F9FA; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
+    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
+    .admin-logo span { color: #2D9B6F; }
+    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
+    .admin-nav { padding: 1rem 0; }
+    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all 0.2s; text-decoration: none; }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
+    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
+    .admin-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
+    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
+    .admin-card-body { padding: 1.5rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #2D9B6F; }
+    .form-textarea { height: 80px; resize: vertical; }
+    .form-actions { grid-column: 1/-1; display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-save:hover { background: #1A7A4A; }
+    .btn-cancel { padding: 10px 20px; background: #fff; color: #6B6B6B; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .toggle-form-btn { padding: 8px 18px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+    /* 사진 업로드 */
+    .photo-upload { width: 120px; height: 120px; border-radius: 50%; background: #E8F5EE; border: 2px dashed #2D9B6F; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.2s; }
+    .photo-upload:hover { background: #d4eddf; }
+    .photo-upload img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .photo-upload-icon { font-size: 32px; }
+    .photo-upload-text { font-size: 10px; color: #2D9B6F; margin-top: 4px; font-weight: 600; }
+
+    /* 강사 카드 그리드 */
+    .instructors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .instructor-item { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 1.5rem; text-align: center; transition: all 0.2s; }
+    .instructor-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .instructor-avatar-lg { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; overflow: hidden; background: #E8F5EE; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .instructor-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+    .instructor-item-name { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
+    .instructor-item-role { font-size: 12px; color: #2D9B6F; font-weight: 600; margin-bottom: 8px; }
+    .instructor-item-desc { font-size: 12px; color: #6B6B6B; line-height: 1.5; margin-bottom: 12px; }
+    .instructor-item-actions { display: flex; gap: 6px; justify-content: center; }
+    .btn-sm-edit { padding: 5px 12px; font-size: 11px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; color: #3D3D3D; background: #fff; cursor: pointer; }
+    .btn-sm-edit:hover { border-color: #2D9B6F; color: #2D9B6F; }
+    .btn-sm-del { padding: 5px 12px; font-size: 11px; border: 1px solid #FCA5A5; border-radius: 6px; color: #EF4444; background: #fff; cursor: pointer; }
+    .btn-sm-del:hover { background: #FEE2E2; }
+    .empty-state { text-align: center; padding: 3rem; color: #6B6B6B; }
+
+    .success-toast { display: none; position: fixed; top: 1.5rem; right: 1.5rem; background: #2D9B6F; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .success-toast.show { display: block; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from{transform:translateX(100px);opacity:0} to{transform:translateX(0);opacity:1} }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">메인</div>
+      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
+      <div class="admin-nav-section">강좌 관리</div>
+      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
+      <a href="instructors.html" class="admin-nav-item active"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
+      <div class="admin-nav-section">프로모션</div>
+      <a href="promotions.html" class="admin-nav-item"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
+      <div class="admin-nav-section">콘텐츠</div>
+      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
+      <a href="banners.html" class="admin-nav-item"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
+      <div class="admin-nav-section">설정</div>
+      <a href="settings.html" class="admin-nav-item"><span class="admin-nav-icon">⚙️</span> 사이트 설정</a>
+      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
+      <a href="login.html" class="admin-nav-item" onclick="logout();return false;"><span class="admin-nav-icon">🚪</span> 로그아웃</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>👨‍🏫 강사 관리</h1>
+      <button class="toggle-form-btn" onclick="toggleForm()">+ 강사 추가</button>
+    </div>
+
+    <!-- 강사 추가 폼 -->
+    <div class="admin-card" id="instructor-form" style="display:none;">
+      <div class="admin-card-header">
+        <span class="admin-card-title" id="form-title">새 강사 추가</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="form-grid">
+          <div class="form-group full" style="display:flex;align-items:center;gap:1.5rem;">
+            <div>
+              <div class="photo-upload" onclick="document.getElementById('photo-input').click()" id="photo-preview">
+                <div class="photo-upload-icon">👤</div>
+                <div class="photo-upload-text">사진 업로드</div>
+                <img id="photo-img" src="" style="display:none;">
+              </div>
+              <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="previewPhoto(this)">
+            </div>
+            <div style="flex:1;">
+              <div class="form-group" style="margin-bottom:12px;">
+                <label class="form-label">이름</label>
+                <input class="form-input" type="text" id="instructor-name" placeholder="강사 이름">
+              </div>
+              <div class="form-group">
+                <label class="form-label">역할 / 담당 과목</label>
+                <input class="form-input" type="text" id="instructor-role" placeholder="예: 신앙·사역 강사">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">강사 소개</label>
+            <textarea class="form-textarea" id="instructor-bio" placeholder="강사 소개를 입력해주세요"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">이메일 (선택)</label>
+            <input class="form-input" type="email" id="instructor-email" placeholder="이메일 주소">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SNS / 링크 (선택)</label>
+            <input class="form-input" type="url" id="instructor-link" placeholder="https://...">
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-cancel" onclick="toggleForm()">취소</button>
+            <button class="btn-save" onclick="saveInstructor()">강사 저장하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 강사 목록 -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">강사 목록 <span id="instructor-count" style="color:#2D9B6F;"></span></span>
+      </div>
+      <div class="admin-card-body">
+        <div class="instructors-grid" id="instructors-grid">
+          <div class="empty-state">강사를 추가해보세요!</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="success-toast" id="toast"></div>
+
+<script src="../js/main.js"></script>
+<script>
+if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
+function logout() { sessionStorage.removeItem('admin_auth'); window.location.href = 'login.html'; }
+
+let instructors = JSON.parse(localStorage.getItem('instructors') || '[]');
+let editingId = null;
+let photoData = null;
+
+function toggleForm() {
+  const form = document.getElementById('instructor-form');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    resetForm();
+    form.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    form.style.display = 'none';
+    resetForm();
+  }
+}
+
+function resetForm() {
+  editingId = null;
+  photoData = null;
+  document.getElementById('form-title').textContent = '새 강사 추가';
+  document.getElementById('instructor-name').value = '';
+  document.getElementById('instructor-role').value = '';
+  document.getElementById('instructor-bio').value = '';
+  document.getElementById('instructor-email').value = '';
+  document.getElementById('instructor-link').value = '';
+  document.getElementById('photo-img').style.display = 'none';
+  document.getElementById('photo-img').src = '';
+}
+
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoData = e.target.result;
+    document.getElementById('photo-img').src = photoData;
+    document.getElementById('photo-img').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveInstructor() {
+  const name = document.getElementById('instructor-name').value.trim();
+  if (!name) { alert('강사 이름을 입력해주세요'); return; }
+
+  const instructor = {
+    id: editingId || Date.now(),
+    name,
+    role: document.getElementById('instructor-role').value,
+    bio: document.getElementById('instructor-bio').value,
+    email: document.getElementById('instructor-email').value,
+    link: document.getElementById('instructor-link').value,
+    photo: photoData || null,
+  };
+
+  if (editingId) {
+    const idx = instructors.findIndex(i => i.id === editingId);
+    if (idx !== -1) instructors[idx] = instructor;
+  } else {
+    instructors.push(instructor);
+  }
+
+  localStorage.setItem('instructors', JSON.stringify(instructors));
+  renderInstructors();
+  toggleForm();
+  showToast(editingId ? '강사 정보가 수정되었습니다!' : '새 강사가 추가되었습니다!');
+}
+
+function editInstructor(id) {
+  const i = instructors.find(i => i.id === id);
+  if (!i) return;
+  editingId = id;
+  document.getElementById('form-title').textContent = '강사 수정';
+  document.getElementById('instructor-name').value = i.name;
+  document.getElementById('instructor-role').value = i.role || '';
+  document.getElementById('instructor-bio').value = i.bio || '';
+  document.getElementById('instructor-email').value = i.email || '';
+  document.getElementById('instructor-link').value = i.link || '';
+  if (i.photo) {
+    photoData = i.photo;
+    document.getElementById('photo-img').src = i.photo;
+    document.getElementById('photo-img').style.display = 'block';
+  }
+  document.getElementById('instructor-form').style.display = 'block';
+  document.getElementById('instructor-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function deleteInstructor(id) {
+  if (!confirm('정말 이 강사를 삭제할까요?')) return;
+  instructors = instructors.filter(i => i.id !== id);
+  localStorage.setItem('instructors', JSON.stringify(instructors));
+  renderInstructors();
+  showToast('강사가 삭제되었습니다');
+}
+
+function renderInstructors() {
+  const grid = document.getElementById('instructors-grid');
+  document.getElementById('instructor-count').textContent = `(${instructors.length}명)`;
+  if (instructors.length === 0) {
+    grid.innerHTML = '<div class="empty-state">강사를 추가해보세요!</div>';
+    return;
+  }
+  grid.innerHTML = instructors.map(i => `
+    <div class="instructor-item">
+      <div class="instructor-avatar-lg">
+        ${i.photo ? `<img src="${i.photo}">` : '👤'}
+      </div>
+      <div class="instructor-item-name">${i.name}</div>
+      <div class="instructor-item-role">${i.role || ''}</div>
+      <div class="instructor-item-desc">${i.bio || ''}</div>
+      <div class="instructor-item-actions">
+        <button class="btn-sm-edit" onclick="editInstructor(${i.id})">수정</button>
+        <button class="btn-sm-del" onclick="deleteInstructor(${i.id})">삭제</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ ' + msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+renderInstructors();
+</script>
+</body>
+</html>
