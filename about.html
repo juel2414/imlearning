@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — 아이엠러닝</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .about-hero { padding: 6rem 0; background: linear-gradient(160deg,#f0faf5,#fff); text-align: center; }
+    .about-hero-title { font-size: clamp(36px,5vw,60px); font-weight: 900; color: var(--black); letter-spacing: -2px; line-height: 1.15; margin-bottom: 1.5rem; }
+    .about-hero-title em { color: var(--green); font-style: normal; }
+    .about-hero-desc { font-size: 18px; color: var(--gray-500); line-height: 1.8; max-width: 580px; margin: 0 auto; }
+    .about-values { padding: 6rem 0; background: var(--gray-100); }
+    .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 3rem; }
+    .value-card { background: var(--white); border-radius: var(--radius-lg); padding: 2rem; }
+    .value-icon { font-size: 36px; margin-bottom: 1rem; }
+    .value-title { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 8px; }
+    .value-desc { font-size: 14px; color: var(--gray-500); line-height: 1.7; }
+    .about-story { padding: 6rem 0; }
+    .story-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .story-text h2 { font-size: 32px; font-weight: 800; color: var(--black); margin-bottom: 1.5rem; letter-spacing: -0.5px; }
+    .story-text p { font-size: 15px; color: var(--gray-500); line-height: 1.85; margin-bottom: 1rem; }
+    .story-text strong { color: var(--black); font-weight: 700; }
+    .story-visual { background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-xl); padding: 3rem; text-align: center; font-size: 80px; }
+    @media(max-width:768px){.values-grid,.story-inner{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo"><span class="navbar-logo-text">아이엠<span>러닝</span></span></a>
+    <ul class="navbar-menu">
+      <li><a href="courses.html">강좌</a></li>
+      <li><a href="instructor.html">강사 소개</a></li>
+      <li><a href="about.html" class="active">About</a></li>
+      <li><a href="contact.html">문의</a></li>
+    </ul>
+    <div class="navbar-right">
+      <a href="#" class="btn btn-outline btn-sm">로그인</a>
+      <a href="#" class="btn btn-primary btn-sm">회원가입</a>
+    </div>
+  </div>
+</nav>
+
+<section class="about-hero">
+  <div class="container">
+    <div class="hero-badge reveal" style="justify-content:center;">🏃 I'M Learning, I'M Running!</div>
+    <h1 class="about-hero-title reveal">배움이<br><em>삶이 되는</em> 곳</h1>
+    <p class="about-hero-desc reveal">아이엠러닝은 신앙과 교육이 하나로 연결되는 온라인 강의 플랫폼입니다. 배운 것이 현장에서 살아있는 변화가 되도록 함께합니다.</p>
+  </div>
+</section>
+
+<section class="about-values">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-eyebrow">Our Values</p>
+      <h2 class="section-title">아이엠러닝이 추구하는 가치</h2>
+    </div>
+    <div class="values-grid">
+      <div class="value-card reveal">
+        <div class="value-icon">✝️</div>
+        <div class="value-title">신앙 중심</div>
+        <div class="value-desc">모든 강의는 성경적 세계관을 바탕으로 설계됩니다. 배움이 신앙과 분리되지 않도록 합니다.</div>
+      </div>
+      <div class="value-card reveal reveal-delay-1">
+        <div class="value-icon">🎯</div>
+        <div class="value-title">현장 적용</div>
+        <div class="value-desc">이론에 그치지 않고 실제 현장에서 바로 쓸 수 있는 실용적인 내용을 담습니다.</div>
+      </div>
+      <div class="value-card reveal reveal-delay-2">
+        <div class="value-icon">🤝</div>
+        <div class="value-title">함께 성장</div>
+        <div class="value-desc">같은 가치관을 가진 교사, 부모, 사역자들이 함께 배우고 성장하는 공동체입니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="about-story">
+  <div class="container">
+    <div class="story-inner">
+      <div class="story-text reveal">
+        <p class="section-eyebrow">Our Story</p>
+        <h2>왜 아이엠러닝인가</h2>
+        <p>아이엠러닝은 <strong>"I'M Learning, I'M Running!"</strong>이라는 슬로건처럼, 배움에 머무르지 않고 배운 것을 들고 현장으로 달려가는 사람들을 위해 만들어졌습니다.</p>
+        <p>교회학교 교사, 부모, 선교사, 그리고 신앙 안에서 자신의 삶을 세워가는 모든 분들이 <strong>더 깊이 배우고, 더 잘 섬길 수 있도록</strong> 돕고 싶었습니다.</p>
+        <p>2021년 시작된 아이엠러닝은 현재 1,200명 이상의 수강생과 함께 성장하고 있습니다.</p>
+        <a href="courses.html" class="btn btn-primary" style="margin-top:1rem;">강좌 둘러보기 →</a>
+      </div>
+      <div class="story-visual reveal reveal-delay-2">🏃‍♂️</div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">아이엠<span>러닝</span></div>
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열<br>사업자등록번호: 664-17-01515 · 전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html">전체 강좌</a><a href="courses.html?cat=freepass">프리패스</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="instructor.html">강사 소개</a><a href="contact.html">문의하기</a></div>
+      <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a><a href="#">이용약관</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+<script src="js/main.js"></script>
+</body>
+</html>

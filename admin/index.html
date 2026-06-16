@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 대시보드 — 아이엠러닝</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #F8F9FA; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+    /* 사이드바 */
+    .admin-sidebar {
+      background: var(--black);
+      padding: 0;
+      position: fixed;
+      top: 0; left: 0;
+      width: 220px;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .admin-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .admin-logo span { color: var(--green); }
+    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
+    .admin-nav { padding: 1rem 0; }
+    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 1.25rem;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      transition: all var(--transition);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: var(--green); font-weight: 600; border-right: 2px solid var(--green); }
+    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* 메인 */
+    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
+    .admin-header-right { display: flex; align-items: center; gap: 12px; }
+    .admin-date { font-size: 13px; color: var(--gray-500); }
+
+    /* 통계 카드 */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .stat-card-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-card-value { font-size: 32px; font-weight: 900; color: var(--black); letter-spacing: -1px; }
+    .stat-card-change { font-size: 12px; margin-top: 4px; }
+    .stat-card-change.up { color: var(--green); }
+    .stat-card-change.down { color: #EF4444; }
+
+    /* 테이블 */
+    .admin-card { background: var(--white); border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
+    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
+    .admin-table { width: 100%; border-collapse: collapse; }
+    .admin-table th { padding: 10px 1.25rem; text-align: left; font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; background: var(--gray-100); border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .admin-table td { padding: 12px 1.25rem; font-size: 13px; color: var(--gray-700); border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: rgba(45,155,111,0.03); }
+    .badge-status { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-active { background: #DCFCE7; color: #16A34A; }
+    .badge-promo { background: #FEF3C7; color: #D97706; }
+    .badge-end { background: var(--gray-100); color: var(--gray-500); }
+
+    /* 빠른 실행 */
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+    .quick-action {
+      background: var(--white);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+    .quick-action:hover { border-color: var(--green); background: var(--green-light); transform: translateY(-2px); }
+    .quick-action-icon { font-size: 28px; margin-bottom: 8px; }
+    .quick-action-label { font-size: 13px; font-weight: 600; color: var(--black); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    @media(max-width:1024px){ .stats-grid{grid-template-columns:repeat(2,1fr);} .quick-actions{grid-template-columns:repeat(2,1fr);} }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      아이엠<span>러닝</span>
+      <div class="admin-logo-sub">관리자 페이지</div>
+    </div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">메인</div>
+      <a href="index.html" class="admin-nav-item active">
+        <span class="admin-nav-icon">📊</span> 대시보드
+      </a>
+
+      <div class="admin-nav-section">강좌 관리</div>
+      <a href="courses.html" class="admin-nav-item">
+        <span class="admin-nav-icon">📚</span> 강좌 관리
+      </a>
+      <a href="instructors.html" class="admin-nav-item">
+        <span class="admin-nav-icon">👨‍🏫</span> 강사 관리
+      </a>
+
+      <div class="admin-nav-section">프로모션</div>
+      <a href="promotions.html" class="admin-nav-item">
+        <span class="admin-nav-icon">🎯</span> 프로모션 관리
+      </a>
+
+      <div class="admin-nav-section">콘텐츠</div>
+      <a href="notices.html" class="admin-nav-item">
+        <span class="admin-nav-icon">📢</span> 공지사항
+      </a>
+      <a href="#" class="admin-nav-item">
+        <span class="admin-nav-icon">🎨</span> 배너 관리
+      </a>
+
+      <div class="admin-nav-section">설정</div>
+      <a href="#" class="admin-nav-item">
+        <span class="admin-nav-icon">⚙️</span> 사이트 설정
+      </a>
+      <a href="../index.html" class="admin-nav-item">
+        <span class="admin-nav-icon">🌐</span> 사이트 보기
+      </a>
+    </nav>
+  </aside>
+
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>대시보드</h1>
+      <div class="admin-header-right">
+        <span class="admin-date" id="today-date"></span>
+        <a href="courses.html" class="btn btn-primary btn-sm">+ 새 강좌 추가</a>
+      </div>
+    </div>
+
+    <!-- 통계 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-label">총 수강생</div>
+        <div class="stat-card-value">1,243</div>
+        <div class="stat-card-change up">▲ 12% 지난달 대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">총 강좌 수</div>
+        <div class="stat-card-value">52</div>
+        <div class="stat-card-change up">▲ 3개 신규</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">이달 매출</div>
+        <div class="stat-card-value">₩4.2M</div>
+        <div class="stat-card-change up">▲ 8% 전월 대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">진행 중 프로모션</div>
+        <div class="stat-card-value">2</div>
+        <div class="stat-card-change">이달의 강의 · 겨울 할인</div>
+      </div>
+    </div>
+
+    <!-- 빠른 실행 -->
+    <div class="quick-actions">
+      <a href="courses.html" class="quick-action">
+        <div class="quick-action-icon">➕</div>
+        <div class="quick-action-label">강좌 추가</div>
+      </a>
+      <a href="promotions.html" class="quick-action">
+        <div class="quick-action-icon">🎯</div>
+        <div class="quick-action-label">프로모션 설정</div>
+      </a>
+      <a href="instructors.html" class="quick-action">
+        <div class="quick-action-icon">👨‍🏫</div>
+        <div class="quick-action-label">강사 추가</div>
+      </a>
+      <a href="notices.html" class="quick-action">
+        <div class="quick-action-icon">📢</div>
+        <div class="quick-action-label">공지사항 작성</div>
+      </a>
+    </div>
+
+    <div class="grid-2">
+      <!-- 최근 강좌 -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">강좌 목록</span>
+          <a href="courses.html" style="font-size:12px;color:var(--green);font-weight:600;">전체 보기 →</a>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>강좌명</th><th>카테고리</th><th>가격</th><th>상태</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>[4세대] CBUP 수료과정</td>
+              <td>교사교육</td>
+              <td>₩450,000</td>
+              <td><span class="badge-status badge-promo">🎯 할인중</span></td>
+            </tr>
+            <tr>
+              <td>부모대안학교 1학년</td>
+              <td>부모교육</td>
+              <td>₩300,000</td>
+              <td><span class="badge-status badge-active">✅ 판매중</span></td>
+            </tr>
+            <tr>
+              <td>교회학교 지원센터</td>
+              <td>교사교육</td>
+              <td>₩350,000</td>
+              <td><span class="badge-status badge-active">✅ 판매중</span></td>
+            </tr>
+            <tr>
+              <td>영단속 영어기도</td>
+              <td>영어·시험</td>
+              <td>₩40,000</td>
+              <td><span class="badge-status badge-active">✅ 판매중</span></td>
+            </tr>
+            <tr>
+              <td>구약여행 14일</td>
+              <td>신앙</td>
+              <td>₩14,000</td>
+              <td><span class="badge-status badge-active">✅ 판매중</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 프로모션 현황 -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <span class="admin-card-title">진행 중 프로모션</span>
+          <a href="promotions.html" style="font-size:12px;color:var(--green);font-weight:600;">관리 →</a>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>프로모션명</th><th>할인율</th><th>종료일</th><th>상태</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>🎯 이달의 강의</td>
+              <td style="color:var(--green);font-weight:700;">-31%</td>
+              <td>2024.11.30</td>
+              <td><span class="badge-status badge-promo">진행중</span></td>
+            </tr>
+            <tr>
+              <td>❄️ 겨울 특별 할인</td>
+              <td style="color:var(--green);font-weight:700;">-20%</td>
+              <td>2024.12.25</td>
+              <td><span class="badge-status badge-promo">예약됨</span></td>
+            </tr>
+            <tr>
+              <td>🖤 블랙프라이데이</td>
+              <td style="color:var(--gray-300);">-30%</td>
+              <td>2024.11.29</td>
+              <td><span class="badge-status badge-end">종료</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+  const d = new Date();
+  document.getElementById('today-date').textContent =
+    `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+</script>
+</body>
+</html>

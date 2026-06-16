@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로모션 관리 — 아이엠러닝 관리자</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #F8F9FA; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .admin-sidebar { background: var(--black); padding: 0; position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
+    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: var(--white); }
+    .admin-logo span { color: var(--green); }
+    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
+    .admin-nav { padding: 1rem 0; }
+    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all var(--transition); cursor: pointer; text-decoration: none; }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: var(--green); font-weight: 600; border-right: 2px solid var(--green); }
+    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
+    .admin-card { background: var(--white); border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
+    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
+    .admin-card-body { padding: 1.5rem; }
+
+    /* 프로모션 폼 */
+    .promo-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; transition: border-color var(--transition); }
+    .form-input:focus, .form-select:focus { outline: none; border-color: var(--green); }
+    .form-hint { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+    /* 프로모션 카드 목록 */
+    .promo-list { display: flex; flex-direction: column; gap: 12px; }
+    .promo-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: var(--radius-md);
+      background: var(--white);
+      transition: all var(--transition);
+    }
+    .promo-item:hover { box-shadow: var(--shadow-sm); }
+    .promo-item.active { border-color: var(--green); background: rgba(45,155,111,0.02); }
+    .promo-emoji { font-size: 28px; }
+    .promo-name { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
+    .promo-course { font-size: 12px; color: var(--gray-500); }
+    .promo-date { font-size: 12px; color: var(--gray-500); text-align: right; }
+    .promo-date strong { display: block; font-size: 13px; color: var(--black); font-weight: 600; }
+    .promo-discount { font-size: 22px; font-weight: 900; color: var(--green); }
+    .promo-actions { display: flex; gap: 6px; }
+    .btn-edit { padding: 6px 14px; font-size: 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); color: var(--gray-700); background: var(--white); cursor: pointer; transition: all var(--transition); }
+    .btn-edit:hover { border-color: var(--green); color: var(--green); }
+    .btn-delete { padding: 6px 14px; font-size: 12px; border: 1px solid #FCA5A5; border-radius: var(--radius-sm); color: #EF4444; background: var(--white); cursor: pointer; transition: all var(--transition); }
+    .btn-delete:hover { background: #FEE2E2; }
+    .badge-status { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-active { background: #DCFCE7; color: #16A34A; }
+    .badge-scheduled { background: #FEF3C7; color: #D97706; }
+    .badge-end { background: var(--gray-100); color: var(--gray-500); }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">메인</div>
+      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
+      <div class="admin-nav-section">강좌 관리</div>
+      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
+      <a href="instructors.html" class="admin-nav-item"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
+      <div class="admin-nav-section">프로모션</div>
+      <a href="promotions.html" class="admin-nav-item active"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
+      <div class="admin-nav-section">콘텐츠</div>
+      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
+      <a href="#" class="admin-nav-item"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
+      <div class="admin-nav-section">설정</div>
+      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>🎯 프로모션 관리</h1>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('new-promo').scrollIntoView({behavior:'smooth'})">+ 새 프로모션 만들기</button>
+    </div>
+
+    <!-- 현재 프로모션 목록 -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">프로모션 목록</span>
+        <span style="font-size:12px;color:var(--gray-500);">할인 기간이 지나면 자동으로 원래 가격으로 돌아와요</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="promo-list">
+          <div class="promo-item active">
+            <div class="promo-emoji">🎯</div>
+            <div>
+              <div class="promo-name">이달의 강의</div>
+              <div class="promo-course">[4세대] CBUP 수료과정 · ₩650,000 → ₩450,000</div>
+            </div>
+            <span class="badge-status badge-active">진행중</span>
+            <div class="promo-date">
+              <strong>-31%</strong>
+              2024.11.01 ~ 11.30
+            </div>
+            <div class="promo-actions">
+              <button class="btn-edit">수정</button>
+              <button class="btn-delete">삭제</button>
+            </div>
+          </div>
+          <div class="promo-item">
+            <div class="promo-emoji">❄️</div>
+            <div>
+              <div class="promo-name">겨울 특별 할인</div>
+              <div class="promo-course">부모대안학교 1학년 · ₩300,000 → ₩240,000</div>
+            </div>
+            <span class="badge-status badge-scheduled">예약됨</span>
+            <div class="promo-date">
+              <strong>-20%</strong>
+              2024.12.01 ~ 12.25
+            </div>
+            <div class="promo-actions">
+              <button class="btn-edit">수정</button>
+              <button class="btn-delete">삭제</button>
+            </div>
+          </div>
+          <div class="promo-item" style="opacity:0.5;">
+            <div class="promo-emoji">🖤</div>
+            <div>
+              <div class="promo-name">블랙프라이데이</div>
+              <div class="promo-course">전 강좌 · 최대 30% 할인</div>
+            </div>
+            <span class="badge-status badge-end">종료</span>
+            <div class="promo-date">
+              <strong>-30%</strong>
+              2024.11.25 ~ 11.29
+            </div>
+            <div class="promo-actions">
+              <button class="btn-edit">복사</button>
+              <button class="btn-delete">삭제</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 새 프로모션 만들기 -->
+    <div class="admin-card" id="new-promo">
+      <div class="admin-card-header">
+        <span class="admin-card-title">새 프로모션 만들기</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="promo-form">
+          <div class="form-group full">
+            <label class="form-label">프로모션 이름</label>
+            <input class="form-input" type="text" placeholder="예: 이달의 강의, 블랙프라이데이, 신학기 특가">
+          </div>
+          <div class="form-group">
+            <label class="form-label">대상 강좌</label>
+            <select class="form-select">
+              <option>강좌 선택</option>
+              <option>[4세대] CBUP 수료과정</option>
+              <option>부모대안학교 1학년</option>
+              <option>교회학교 지원센터</option>
+              <option>영단속 영어기도</option>
+              <option>전 강좌 적용</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">할인 방식</label>
+            <select class="form-select">
+              <option>% 할인 (퍼센트)</option>
+              <option>원 할인 (정액)</option>
+              <option>고정 가격으로 변경</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">할인율 / 금액</label>
+            <input class="form-input" type="number" placeholder="예: 30 (30% 할인)">
+            <div class="form-hint">숫자만 입력하세요. % 또는 원은 위 선택에 따라 자동 적용됩니다.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">할인 시작일</label>
+            <input class="form-input" type="datetime-local">
+            <div class="form-hint">설정한 시간에 자동으로 할인가로 바뀝니다</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">할인 종료일</label>
+            <input class="form-input" type="datetime-local">
+            <div class="form-hint">종료일이 지나면 자동으로 원래 가격으로 돌아옵니다</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">메인 노출 이모지</label>
+            <input class="form-input" type="text" placeholder="예: 🎯 🖤 ❄️ 🎉">
+          </div>
+          <div class="form-group">
+            <label class="form-label">홈페이지 배너 노출</label>
+            <select class="form-select">
+              <option>메인 프로모션 배너에 표시</option>
+              <option>표시 안 함 (강좌 카드에만)</option>
+            </select>
+          </div>
+          <div class="form-group full" style="display:flex;gap:10px;justify-content:flex-end;margin-top:0.5rem;">
+            <button class="btn btn-outline">미리보기</button>
+            <button class="btn btn-primary" onclick="alert('프로모션이 저장되었습니다!\n설정한 날짜에 자동으로 적용됩니다.')">프로모션 저장하기 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 안내 -->
+    <div style="background:var(--green-light);border-radius:var(--radius-md);padding:1.25rem 1.5rem;border:1px solid rgba(45,155,111,0.2);">
+      <p style="font-size:13px;color:var(--green-dark);line-height:1.7;">
+        💡 <strong>자동화 안내</strong> — 할인 시작일과 종료일을 설정하면 별도로 수동으로 바꿀 필요 없이 자동으로 적용·해제됩니다. 프로모션을 미리 예약해두고 잊어버려도 돼요!
+      </p>
+    </div>
+  </main>
+</div>
+
+<script src="../js/main.js"></script>
+</body>
+</html>
