@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { background: #F8F9FA; }
+    body { background: #F8F9FA; word-break: keep-all; overflow-wrap: normal; }
+    h1, h2, h3, .stat-card-value, .admin-header h1 { word-break: keep-all; white-space: normal; }
     .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
     .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
     .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
