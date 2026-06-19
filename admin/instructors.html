@@ -1,203 +1,146 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>강사 관리 — 아이엠러닝 관리자</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { background: #F8F9FA; word-break: keep-all; overflow-wrap: normal; }
-    h1, h2, h3, .stat-card-value, .admin-header h1 { word-break: keep-all; white-space: normal; }
-    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
-    .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
-    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
-    .admin-logo span { color: #2D9B6F; }
-    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
-    .admin-nav { padding: 1rem 0; }
-    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
-    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all 0.2s; text-decoration: none; }
-    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
-    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
-    .admin-main { margin-left: 220px; padding: 2rem; max-width: 1200px; }
-    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
-    .admin-header-desc { font-size: 13px; color: #6B6B6B; margin-top: 2px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>강사 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; word-break: keep-all; }
+  body { margin: 0; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #F8F9FA; color: #111; }
+  a { text-decoration: none; color: inherit; }
 
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-    .stat-card { background: #fff; border-radius: 12px; padding: 1.25rem; border: 1px solid rgba(0,0,0,0.06); min-width: 0; overflow: hidden; }
-    .stat-card-label { font-size: 12px; color: #6B6B6B; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .stat-card-value { font-size: 24px; font-weight: 800; color: var(--black); }
-    .stat-card-value.green { color: #2D9B6F; }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; flex-shrink: 0; background: #111318; color: #fff; }
+  .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo-text { font-size: 16px; font-weight: 800; white-space: nowrap; }
+  .sidebar-logo-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 4px; white-space: nowrap; }
+  .nav-section { padding: 16px 20px 6px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; color: rgba(255,255,255,0.65); white-space: nowrap; }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; }
 
-    .admin-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
-    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
-    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
-    .admin-card-body { padding: 1.5rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .form-group { margin-bottom: 0; }
-    .form-group.full { grid-column: 1 / -1; }
-    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; }
-    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #2D9B6F; }
-    .form-textarea { height: 80px; resize: vertical; }
-    .form-hint { font-size: 11px; color: #6B6B6B; margin-top: 4px; }
-    .form-actions { grid-column: 1/-1; display: flex; gap: 10px; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.06); margin-top: 0.5rem; }
-    .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-save:hover { background: #1A7A4A; }
-    .btn-save:disabled { background: #C4C4C4; cursor: not-allowed; }
-    .btn-cancel { padding: 10px 20px; background: #fff; color: #6B6B6B; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; }
-    .toggle-form-btn { padding: 8px 18px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .main { flex: 1; padding: 32px; min-width: 0; }
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+  .page-title { font-size: 26px; font-weight: 800; white-space: nowrap; margin: 0; }
+  .page-desc { font-size: 13px; color: #6B6B6B; margin-top: 4px; white-space: nowrap; }
+  .add-btn { padding: 10px 20px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 
-    .photo-upload { width: 110px; height: 110px; border-radius: 50%; background: #E8F5EE; border: 2px dashed #2D9B6F; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.2s; flex-shrink: 0; }
-    .photo-upload:hover { background: #d4eddf; }
-    .photo-upload img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-    .photo-upload-icon { font-size: 28px; }
-    .photo-upload-text { font-size: 10px; color: #2D9B6F; margin-top: 4px; font-weight: 600; text-align: center; }
+  .stats-row { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+  .stat-card { flex: 1 1 200px; min-width: 160px; background: #fff; border-radius: 12px; padding: 20px; border: 1px solid rgba(0,0,0,0.06); }
+  .stat-label { font-size: 13px; color: #6B6B6B; margin-bottom: 8px; white-space: nowrap; }
+  .stat-value { font-size: 26px; font-weight: 800; white-space: nowrap; }
+  .stat-value.green { color: #2D9B6F; }
 
-    .instructors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-    .instructor-item { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 1.5rem; text-align: center; transition: all 0.2s; position: relative; }
-    .instructor-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    .instructor-avatar-lg { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; overflow: hidden; background: #E8F5EE; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    .instructor-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
-    .instructor-item-name { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
-    .instructor-item-role { font-size: 12px; color: #2D9B6F; font-weight: 600; margin-bottom: 8px; }
-    .instructor-item-desc { font-size: 12px; color: #6B6B6B; line-height: 1.5; margin-bottom: 10px; min-height: 36px; }
-    .instructor-stat-row { display: flex; justify-content: center; gap: 14px; font-size: 11px; color: #6B6B6B; margin-bottom: 12px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05); }
-    .instructor-stat-row b { color: var(--black); font-size: 13px; }
-    .instructor-item-actions { display: flex; gap: 6px; justify-content: center; }
-    .btn-sm-edit { padding: 5px 12px; font-size: 11px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; color: #3D3D3D; background: #fff; cursor: pointer; }
-    .btn-sm-edit:hover { border-color: #2D9B6F; color: #2D9B6F; }
-    .btn-sm-del { padding: 5px 12px; font-size: 11px; border: 1px solid #FCA5A5; border-radius: 6px; color: #EF4444; background: #fff; cursor: pointer; }
-    .btn-sm-del:hover { background: #FEE2E2; }
-    .empty-tip { text-align: center; padding: 3rem 1.5rem; color: #6B6B6B; grid-column: 1/-1; }
-    .empty-tip-icon { font-size: 40px; margin-bottom: 12px; }
+  .card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 20px; }
+  .card-header { padding: 18px 24px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
+  .card-title { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .card-body { padding: 24px; }
 
-    .success-toast { display: none; position: fixed; top: 1.5rem; right: 1.5rem; background: #2D9B6F; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .success-toast.show { display: block; }
-    .success-toast.error { background: #EF4444; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .full { grid-column: 1/-1; }
+  .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  .form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; }
+  .form-group textarea { height: 80px; resize: vertical; }
+  .form-actions { grid-column: 1/-1; display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); }
+  .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .btn-cancel { padding: 10px 20px; background: #fff; color: #6B6B6B; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 
-    /* 모바일 반응형 */
-    .mobile-menu-btn { display: none; }
-    @media (max-width: 768px) {
-      .mobile-menu-btn {
-        display: flex; align-items: center; justify-content: center;
-        position: fixed; top: 1rem; left: 1rem; z-index: 200;
-        width: 40px; height: 40px; border-radius: 8px;
-        background: var(--black); color: #fff; border: none;
-        font-size: 18px; cursor: pointer;
-      }
-      .admin-layout { grid-template-columns: 1fr; }
-      .admin-sidebar {
-        transform: translateX(-100%); transition: transform 0.25s ease;
-        width: 240px;
-      }
-      .admin-sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.2); }
-      .admin-main { margin-left: 0; padding: 1.25rem; padding-top: 4rem; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .quick-actions { grid-template-columns: repeat(2, 1fr); }
-      .form-grid { grid-template-columns: 1fr; }
-      .price-grid { grid-template-columns: 1fr; }
-      .admin-header { flex-direction: column; align-items: stretch; }
-      .admin-card-header { flex-direction: column; align-items: stretch; }
-      .search-input { width: 100%; }
-      .view-toggle { width: 100%; }
-      .view-toggle button { flex: 1; }
-    }
-  </style>
+  .photo-box { width: 110px; height: 110px; border-radius: 50%; background: #E8F5EE; border: 2px dashed #2D9B6F; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; flex-shrink: 0; }
+  .photo-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  .instructors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .instructor-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 24px; text-align: center; }
+  .instructor-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; overflow: hidden; background: #E8F5EE; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .instructor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .instructor-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; white-space: nowrap; }
+  .instructor-role { font-size: 12px; color: #2D9B6F; font-weight: 600; margin-bottom: 8px; }
+  .instructor-desc { font-size: 12px; color: #6B6B6B; line-height: 1.5; margin-bottom: 10px; min-height: 36px; }
+  .instructor-stats { display: flex; justify-content: center; gap: 14px; font-size: 11px; color: #6B6B6B; margin-bottom: 12px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05); white-space: nowrap; }
+  .instructor-stats b { color: #111; font-size: 13px; }
+  .action-btns { display: flex; gap: 6px; justify-content: center; }
+  .btn-sm { padding: 5px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  .btn-sm.edit { border: 1px solid rgba(0,0,0,0.1); background: #fff; }
+  .btn-sm.del { border: 1px solid #FCA5A5; background: #fff; color: #EF4444; }
+
+  .empty { text-align: center; padding: 40px; color: #6B6B6B; grid-column: 1/-1; }
+  .toast { display: none; position: fixed; top: 20px; right: 20px; background: #2D9B6F; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; white-space: nowrap; }
+  .toast.show { display: block; }
+  .toast.error { background: #EF4444; }
+
+  .menu-btn { display: none; }
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; position: fixed; top: 0; left: 0; height: 100vh; z-index: 200; transform: translateX(-100%); transition: 0.25s; overflow-y: auto; }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding: 16px; padding-top: 64px; }
+    .menu-btn { display: flex; align-items: center; justify-content: center; position: fixed; top: 14px; left: 14px; z-index: 250; width: 38px; height: 38px; border-radius: 8px; background: #111318; color: #fff; border: none; font-size: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
 
-<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-<div class="admin-layout">
-  <aside class="admin-sidebar" id="sidebar">
-    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
-    <nav class="admin-nav">
-      <div class="admin-nav-section">메인</div>
-      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
-      <div class="admin-nav-section">강좌 관리</div>
-      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
-      <a href="instructors.html" class="admin-nav-item active"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
-      <div class="admin-nav-section">프로모션</div>
-      <a href="promotions.html" class="admin-nav-item"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
-      <div class="admin-nav-section">콘텐츠</div>
-      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
-      <a href="banners.html" class="admin-nav-item"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
-      <div class="admin-nav-section">설정</div>
-      <a href="settings.html" class="admin-nav-item"><span class="admin-nav-icon">⚙️</span> 사이트 설정</a>
-      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
-      <a href="login.html" class="admin-nav-item" onclick="logout();return false;"><span class="admin-nav-icon">🚪</span> 로그아웃</a>
-    </nav>
+<button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">아이엠<span style="color:#2D9B6F;">러닝</span></div>
+      <div class="sidebar-logo-sub">관리자 페이지</div>
+    </div>
+    <div class="nav-section">메인</div>
+    <a href="index.html" class="nav-item">📊 대시보드</a>
+    <div class="nav-section">강좌 관리</div>
+    <a href="courses.html" class="nav-item">📚 강좌 관리</a>
+    <a href="instructors.html" class="nav-item active">👨‍🏫 강사 관리</a>
+    <div class="nav-section">프로모션</div>
+    <a href="promotions.html" class="nav-item">🎯 프로모션 관리</a>
+    <div class="nav-section">콘텐츠</div>
+    <a href="notices.html" class="nav-item">📢 공지사항</a>
+    <a href="banners.html" class="nav-item">🎨 배너 관리</a>
+    <div class="nav-section">설정</div>
+    <a href="settings.html" class="nav-item">⚙️ 사이트 설정</a>
+    <a href="../index.html" class="nav-item">🌐 사이트 보기</a>
+    <a href="login.html" class="nav-item" onclick="sessionStorage.removeItem('admin_auth')">🚪 로그아웃</a>
   </aside>
 
-  <main class="admin-main">
-    <div class="admin-header">
+  <main class="main">
+    <div class="page-header">
       <div>
-        <h1>👨‍🏫 강사 관리</h1>
-        <div class="admin-header-desc">강사 프로필을 추가, 수정하고 담당 강좌 현황을 확인해요</div>
+        <h1 class="page-title">👨‍🏫 강사 관리</h1>
+        <div class="page-desc">강사 프로필을 추가, 수정하고 담당 강좌 현황을 확인해요</div>
       </div>
-      <button class="toggle-form-btn" onclick="toggleForm()">+ 강사 추가</button>
+      <button class="add-btn" onclick="toggleForm()">+ 강사 추가</button>
     </div>
 
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-card-label">전체 강사</div>
-        <div class="stat-card-value" id="stat-total">-</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-label">담당 강좌 합계</div>
-        <div class="stat-card-value green" id="stat-courses">-</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-label">총 수강생</div>
-        <div class="stat-card-value" id="stat-students">-</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">전체 강사</div><div class="stat-value" id="stat-total">-</div></div>
+      <div class="stat-card"><div class="stat-label">담당 강좌 합계</div><div class="stat-value green" id="stat-courses">-</div></div>
+      <div class="stat-card"><div class="stat-label">총 수강생</div><div class="stat-value" id="stat-students">-</div></div>
     </div>
 
-    <!-- 강사 추가 폼 -->
-    <div class="admin-card" id="instructor-form" style="display:none;">
-      <div class="admin-card-header">
-        <span class="admin-card-title" id="form-title">새 강사 추가</span>
-      </div>
-      <div class="admin-card-body">
+    <div class="card" id="instructor-form" style="display:none;">
+      <div class="card-header"><span class="card-title" id="form-title">새 강사 추가</span></div>
+      <div class="card-body">
         <div class="form-grid">
           <div class="form-group full" style="display:flex;align-items:center;gap:1.5rem;">
             <div>
-              <div class="photo-upload" onclick="document.getElementById('photo-input').click()" id="photo-preview">
-                <div class="photo-upload-icon">👤</div>
-                <div class="photo-upload-text">사진 업로드</div>
+              <div class="photo-box" onclick="document.getElementById('photo-input').click()">
+                <div style="font-size:28px;">👤</div>
+                <div style="font-size:10px;color:#2D9B6F;margin-top:4px;font-weight:600;">사진 업로드</div>
                 <img id="photo-img" src="" style="display:none;">
               </div>
               <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="previewPhoto(this)">
             </div>
             <div style="flex:1;">
-              <div class="form-group" style="margin-bottom:12px;">
-                <label class="form-label">이름</label>
-                <input class="form-input" type="text" id="instructor-name" placeholder="강사 이름">
-              </div>
-              <div class="form-group">
-                <label class="form-label">역할 / 담당 과목</label>
-                <input class="form-input" type="text" id="instructor-role" placeholder="예: 신앙·사역 강사">
-              </div>
+              <div class="form-group" style="margin-bottom:12px;"><label>이름</label><input type="text" id="instructor-name" placeholder="강사 이름"></div>
+              <div class="form-group"><label>역할 / 담당 과목</label><input type="text" id="instructor-role" placeholder="예: 신앙·사역 강사"></div>
             </div>
           </div>
-
-          <div class="form-group full">
-            <label class="form-label">강사 소개</label>
-            <textarea class="form-textarea" id="instructor-bio" placeholder="강사 소개를 입력해주세요"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">이메일 (선택)</label>
-            <input class="form-input" type="email" id="instructor-email" placeholder="이메일 주소">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">SNS / 링크 (선택)</label>
-            <input class="form-input" type="url" id="instructor-link" placeholder="https://...">
-          </div>
-
+          <div class="form-group full"><label>강사 소개</label><textarea id="instructor-bio" placeholder="강사 소개를 입력해주세요"></textarea></div>
+          <div class="form-group"><label>이메일 (선택)</label><input type="email" id="instructor-email" placeholder="이메일 주소"></div>
+          <div class="form-group"><label>SNS / 링크 (선택)</label><input type="url" id="instructor-link" placeholder="https://..."></div>
           <div class="form-actions">
             <button class="btn-cancel" onclick="toggleForm()">취소</button>
             <button class="btn-save" id="save-btn" onclick="saveInstructor()">강사 저장하기</button>
@@ -206,38 +149,31 @@
       </div>
     </div>
 
-    <!-- 강사 목록 -->
-    <div class="admin-card">
-      <div class="admin-card-header">
-        <span class="admin-card-title">강사 목록 <span id="instructor-count" style="color:#2D9B6F;"></span></span>
-      </div>
-      <div class="admin-card-body">
-        <div class="instructors-grid" id="instructors-grid">
-          <div class="empty-tip"><div class="empty-tip-icon">👨‍🏫</div>불러오는 중...</div>
-        </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">강사 목록 <span id="instructor-count" style="color:#2D9B6F;"></span></span></div>
+      <div class="card-body">
+        <div class="instructors-grid" id="instructors-grid"><div class="empty">불러오는 중...</div></div>
       </div>
     </div>
   </main>
 </div>
 
-<div class="success-toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
-<script src="../js/main.js"></script>
 <script>
-function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }
-</script>
-<script src="../js/supabase-client.js"></script>
-<script>
-if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
-function logout() { sessionStorage.removeItem('admin_auth'); window.location.href = 'login.html'; }
+if (!sessionStorage.getItem('admin_auth')) { window.location.href = 'login.html'; }
 
-let instructors = [];
-let allCourses = [];
-let editingId = null;
-let photoData = null;
+var SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+var instructors = [];
+var allCourses = [];
+var editingId = null;
+var photoData = null;
 
 function toggleForm() {
-  const form = document.getElementById('instructor-form');
+  var form = document.getElementById('instructor-form');
   if (form.style.display === 'none') {
     form.style.display = 'block';
     resetForm();
@@ -252,16 +188,16 @@ function resetForm() {
   editingId = null;
   photoData = null;
   document.getElementById('form-title').textContent = '새 강사 추가';
-  ['instructor-name','instructor-role','instructor-bio','instructor-email','instructor-link'].forEach(id => document.getElementById(id).value = '');
+  ['instructor-name','instructor-role','instructor-bio','instructor-email','instructor-link'].forEach(function(id){ document.getElementById(id).value = ''; });
   document.getElementById('photo-img').style.display = 'none';
   document.getElementById('photo-img').src = '';
 }
 
 function previewPhoto(input) {
-  const file = input.files[0];
+  var file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  var reader = new FileReader();
+  reader.onload = function(e) {
     photoData = e.target.result;
     document.getElementById('photo-img').src = photoData;
     document.getElementById('photo-img').style.display = 'block';
@@ -270,33 +206,31 @@ function previewPhoto(input) {
 }
 
 async function saveInstructor() {
-  const name = document.getElementById('instructor-name').value.trim();
+  var name = document.getElementById('instructor-name').value.trim();
   if (!name) { alert('강사 이름을 입력해주세요'); return; }
 
-  const btn = document.getElementById('save-btn');
+  var btn = document.getElementById('save-btn');
   btn.disabled = true;
   btn.textContent = '저장 중...';
 
-  const instructorData = {
-    name,
+  var instructorData = {
+    name: name,
     role: document.getElementById('instructor-role').value,
     bio: document.getElementById('instructor-bio').value,
     email: document.getElementById('instructor-email').value,
     link: document.getElementById('instructor-link').value,
-    photo_url: photoData || null,
+    photo_url: photoData || null
   };
 
   try {
-    let error;
+    var result;
     if (editingId) {
-      const result = await supabaseClient.from('instructors').update(instructorData).eq('id', editingId);
-      error = result.error;
+      result = await sb.from('instructors').update(instructorData).eq('id', editingId);
     } else {
-      const result = await supabaseClient.from('instructors').insert(instructorData);
-      error = result.error;
+      result = await sb.from('instructors').insert(instructorData);
     }
-    if (error) {
-      showToast('저장 중 오류: ' + error.message, true);
+    if (result.error) {
+      showToast('저장 중 오류: ' + result.error.message, true);
       btn.disabled = false; btn.textContent = '강사 저장하기';
       return;
     }
@@ -310,7 +244,8 @@ async function saveInstructor() {
 }
 
 function editInstructor(id) {
-  const i = instructors.find(i => i.id === id);
+  var i = null;
+  for (var k = 0; k < instructors.length; k++) { if (instructors[k].id === id) { i = instructors[k]; break; } }
   if (!i) return;
   editingId = id;
   document.getElementById('form-title').textContent = '강사 수정';
@@ -331,8 +266,8 @@ function editInstructor(id) {
 async function deleteInstructor(id) {
   if (!confirm('정말 이 강사를 삭제할까요?')) return;
   try {
-    const { error } = await supabaseClient.from('instructors').delete().eq('id', id);
-    if (error) { showToast('삭제 중 오류가 발생했습니다', true); return; }
+    var result = await sb.from('instructors').delete().eq('id', id);
+    if (result.error) { showToast('삭제 중 오류가 발생했습니다', true); return; }
     await loadAll();
     showToast('강사가 삭제되었습니다');
   } catch (err) {
@@ -341,70 +276,56 @@ async function deleteInstructor(id) {
 }
 
 function courseStatsFor(name) {
-  const list = allCourses.filter(c => c.instructor === name);
-  const students = list.reduce((sum, c) => sum + (c.students || 0), 0);
-  return { count: list.length, students };
+  var list = allCourses.filter(function(c){ return c.instructor === name; });
+  var students = 0;
+  list.forEach(function(c){ students += (c.students || 0); });
+  return { count: list.length, students: students };
 }
 
 function renderInstructors() {
-  const grid = document.getElementById('instructors-grid');
-  document.getElementById('instructor-count').textContent = `(${instructors.length}명)`;
+  var grid = document.getElementById('instructors-grid');
+  document.getElementById('instructor-count').textContent = '(' + instructors.length + '명)';
 
   document.getElementById('stat-total').textContent = instructors.length;
   document.getElementById('stat-courses').textContent = allCourses.length;
-  document.getElementById('stat-students').textContent = allCourses.reduce((s,c) => s + (c.students||0), 0).toLocaleString();
+  var totalStudents = 0;
+  allCourses.forEach(function(c){ totalStudents += (c.students||0); });
+  document.getElementById('stat-students').textContent = totalStudents.toLocaleString();
 
   if (instructors.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-tip">
-        <div class="empty-tip-icon">👨‍🏫</div>
-        <div style="font-weight:600;margin-bottom:6px;">아직 등록된 강사가 없어요</div>
-        <div style="font-size:13px;">상단의 "+ 강사 추가" 버튼을 눌러 첫 강사를 등록해보세요!</div>
-      </div>`;
+    grid.innerHTML = '<div class="empty"><div style="font-size:40px;margin-bottom:12px;">👨‍🏫</div><div style="font-weight:600;margin-bottom:6px;">아직 등록된 강사가 없어요</div><div style="font-size:13px;">상단의 "+ 강사 추가" 버튼을 눌러 첫 강사를 등록해보세요!</div></div>';
     return;
   }
 
-  grid.innerHTML = instructors.map(i => {
-    const stats = courseStatsFor(i.name);
-    return `
-    <div class="instructor-item">
-      <div class="instructor-avatar-lg">
-        ${i.photo_url ? `<img src="${i.photo_url}">` : '👤'}
-      </div>
-      <div class="instructor-item-name">${i.name}</div>
-      <div class="instructor-item-role">${i.role || ''}</div>
-      <div class="instructor-item-desc">${i.bio || ''}</div>
-      <div class="instructor-stat-row">
-        <div>담당 강좌<br><b>${stats.count}개</b></div>
-        <div>총 수강생<br><b>${stats.students.toLocaleString()}명</b></div>
-      </div>
-      <div class="instructor-item-actions">
-        <button class="btn-sm-edit" onclick="editInstructor('${i.id}')">수정</button>
-        <button class="btn-sm-del" onclick="deleteInstructor('${i.id}')">삭제</button>
-      </div>
-    </div>
-  `;
+  grid.innerHTML = instructors.map(function(i) {
+    var stats = courseStatsFor(i.name);
+    return '<div class="instructor-card">' +
+      '<div class="instructor-avatar">' + (i.photo_url ? '<img src="' + i.photo_url + '">' : '👤') + '</div>' +
+      '<div class="instructor-name">' + i.name + '</div>' +
+      '<div class="instructor-role">' + (i.role || '') + '</div>' +
+      '<div class="instructor-desc">' + (i.bio || '') + '</div>' +
+      '<div class="instructor-stats"><div>담당 강좌<br><b>' + stats.count + '개</b></div><div>총 수강생<br><b>' + stats.students.toLocaleString() + '명</b></div></div>' +
+      '<div class="action-btns"><button class="btn-sm edit" onclick="editInstructor(\'' + i.id + '\')">수정</button><button class="btn-sm del" onclick="deleteInstructor(\'' + i.id + '\')">삭제</button></div>' +
+      '</div>';
   }).join('');
 }
 
 function showToast(msg, isError) {
-  const toast = document.getElementById('toast');
+  var toast = document.getElementById('toast');
   toast.textContent = (isError ? '❌ ' : '✅ ') + msg;
-  toast.className = 'success-toast show' + (isError ? ' error' : '');
-  setTimeout(() => toast.classList.remove('show'), 3000);
+  toast.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(function(){ toast.classList.remove('show'); }, 3000);
 }
 
 async function loadAll() {
   try {
-    const [instructorsRes, coursesRes] = await Promise.all([
-      supabaseClient.from('instructors').select('*').order('created_at', { ascending: true }),
-      supabaseClient.from('courses').select('instructor, students')
-    ]);
+    var instructorsRes = await sb.from('instructors').select('*').order('created_at', { ascending: true });
+    var coursesRes = await sb.from('courses').select('instructor, students');
     instructors = instructorsRes.data || [];
     allCourses = coursesRes.data || [];
     renderInstructors();
   } catch (err) {
-    document.getElementById('instructors-grid').innerHTML = '<div class="empty-tip">불러오기 중 오류가 발생했습니다</div>';
+    document.getElementById('instructors-grid').innerHTML = '<div class="empty">불러오기 중 오류가 발생했습니다</div>';
   }
 }
 
