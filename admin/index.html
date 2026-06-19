@@ -49,12 +49,41 @@
     .badge-active { background: #DCFCE7; color: #16A34A; }
     .badge-hidden { background: #F5F5F5; color: #6B6B6B; }
     .empty-tip { text-align: center; padding: 2rem; color: #6B6B6B; font-size: 13px; }
+
+    /* 모바일 반응형 */
+    .mobile-menu-btn { display: none; }
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: flex; align-items: center; justify-content: center;
+        position: fixed; top: 1rem; left: 1rem; z-index: 200;
+        width: 40px; height: 40px; border-radius: 8px;
+        background: var(--black); color: #fff; border: none;
+        font-size: 18px; cursor: pointer;
+      }
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar {
+        transform: translateX(-100%); transition: transform 0.25s ease;
+        width: 240px;
+      }
+      .admin-sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.2); }
+      .admin-main { margin-left: 0; padding: 1.25rem; padding-top: 4rem; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .quick-actions { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .price-grid { grid-template-columns: 1fr; }
+      .admin-header { flex-direction: column; align-items: stretch; }
+      .admin-card-header { flex-direction: column; align-items: stretch; }
+      .search-input { width: 100%; }
+      .view-toggle { width: 100%; }
+      .view-toggle button { flex: 1; }
+    }
   </style>
 </head>
 <body>
 
+<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
 <div class="admin-layout">
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="sidebar">
     <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
     <nav class="admin-nav">
       <div class="admin-nav-section">메인</div>
@@ -138,6 +167,9 @@
 </div>
 
 <script src="../js/main.js"></script>
+<script>
+function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); }
+</script>
 <script src="../js/supabase-client.js"></script>
 <script>
 if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
