@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사이트 설정 — 아이엠러닝 관리자</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #F8F9FA; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
+    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
+    .admin-logo span { color: #2D9B6F; }
+    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
+    .admin-nav { padding: 1rem 0; }
+    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all 0.2s; text-decoration: none; }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
+    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .settings-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; }
+    .settings-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .settings-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
+    .settings-card-desc { font-size: 12px; color: #6B6B6B; margin-top: 3px; }
+    .settings-card-body { padding: 1.5rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; }
+    .form-input:focus { outline: none; border-color: #2D9B6F; }
+    .form-hint { font-size: 11px; color: #6B6B6B; margin-top: 4px; }
+    .save-btn { padding: 10px 20px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .save-btn:hover { background: #1A7A4A; }
+    .danger-btn { padding: 10px 20px; background: #fff; color: #EF4444; border: 1.5px solid #FCA5A5; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .danger-btn:hover { background: #FEE2E2; }
+
+    /* 로고 업로드 */
+    .logo-preview {
+      width: 100%; height: 80px;
+      background: #F5F5F5; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px; border: 2px dashed #C4C4C4;
+      overflow: hidden; position: relative;
+    }
+    .logo-preview img { max-height: 60px; max-width: 100%; object-fit: contain; }
+    .logo-preview-text { font-size: 13px; color: #6B6B6B; }
+    .logo-upload-btn {
+      width: 100%; padding: 10px;
+      background: #F5F5F5; border: 1.5px solid #C4C4C4;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      color: var(--black); cursor: pointer; font-family: inherit;
+      transition: all 0.2s; margin-bottom: 8px;
+    }
+    .logo-upload-btn:hover { border-color: #2D9B6F; color: #2D9B6F; background: #E8F5EE; }
+    .success-msg { display: none; color: #2D9B6F; font-size: 12px; margin-top: 8px; font-weight: 600; }
+    .success-msg.show { display: block; }
+
+    .full { grid-column: 1 / -1; }
+    @media(max-width:768px){ .settings-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">메인</div>
+      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
+      <div class="admin-nav-section">강좌 관리</div>
+      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
+      <a href="instructors.html" class="admin-nav-item"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
+      <div class="admin-nav-section">프로모션</div>
+      <a href="promotions.html" class="admin-nav-item"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
+      <div class="admin-nav-section">콘텐츠</div>
+      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
+      <a href="#" class="admin-nav-item"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
+      <div class="admin-nav-section">설정</div>
+      <a href="settings.html" class="admin-nav-item active"><span class="admin-nav-icon">⚙️</span> 사이트 설정</a>
+      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
+      <a href="login.html" class="admin-nav-item" onclick="logout()"><span class="admin-nav-icon">🚪</span> 로그아웃</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>⚙️ 사이트 설정</h1>
+    </div>
+
+    <div class="settings-grid">
+
+      <!-- 로고 설정 -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-title">🖼️ 로고 설정</div>
+          <div class="settings-card-desc">홈페이지 상단에 표시되는 로고를 변경해요</div>
+        </div>
+        <div class="settings-card-body">
+          <div class="form-group">
+            <label class="form-label">현재 로고 미리보기</label>
+            <div class="logo-preview" id="logo-preview">
+              <span class="logo-preview-text" id="logo-preview-text">로고를 업로드해주세요</span>
+              <img id="logo-preview-img" src="" style="display:none;">
+            </div>
+            <input type="file" id="logo-file" accept="image/*" style="display:none;" onchange="previewLogo(this)">
+            <button class="logo-upload-btn" onclick="document.getElementById('logo-file').click()">📁 로고 이미지 선택</button>
+            <div class="form-hint">PNG, JPG, SVG 권장 · 가로 200px 이상</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">로고 텍스트 (이미지 없을 때)</label>
+            <input class="form-input" type="text" id="logo-text" placeholder="아이엠러닝">
+            <div class="form-hint">로고 이미지가 없을 때 표시되는 텍스트예요</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">포인트 컬러 텍스트</label>
+            <input class="form-input" type="text" id="logo-highlight" placeholder="러닝">
+            <div class="form-hint">초록색으로 강조될 부분의 텍스트예요</div>
+          </div>
+          <button class="save-btn" onclick="saveLogo()">로고 저장하기</button>
+          <div class="success-msg" id="logo-success">✅ 로고가 저장되었습니다!</div>
+        </div>
+      </div>
+
+      <!-- 비밀번호 변경 -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-title">🔐 비밀번호 변경</div>
+          <div class="settings-card-desc">관리자 페이지 로그인 비밀번호를 변경해요</div>
+        </div>
+        <div class="settings-card-body">
+          <div class="form-group">
+            <label class="form-label">현재 비밀번호</label>
+            <input class="form-input" type="password" id="current-pw" placeholder="현재 비밀번호 입력">
+          </div>
+          <div class="form-group">
+            <label class="form-label">새 비밀번호</label>
+            <input class="form-input" type="password" id="new-pw" placeholder="새 비밀번호 입력">
+          </div>
+          <div class="form-group">
+            <label class="form-label">새 비밀번호 확인</label>
+            <input class="form-input" type="password" id="new-pw-confirm" placeholder="새 비밀번호 다시 입력">
+          </div>
+          <button class="save-btn" onclick="changePw()">비밀번호 변경하기</button>
+          <div class="success-msg" id="pw-success">✅ 비밀번호가 변경되었습니다!</div>
+          <div class="success-msg" id="pw-error" style="color:#EF4444;">❌ <span id="pw-error-msg"></span></div>
+        </div>
+      </div>
+
+      <!-- 사이트 기본 정보 -->
+      <div class="settings-card full">
+        <div class="settings-card-header">
+          <div class="settings-card-title">🌐 사이트 기본 정보</div>
+          <div class="settings-card-desc">홈페이지에 표시되는 기본 정보를 관리해요</div>
+        </div>
+        <div class="settings-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+          <div class="form-group">
+            <label class="form-label">사이트 이름</label>
+            <input class="form-input" type="text" id="site-name" value="아이엠러닝">
+          </div>
+          <div class="form-group">
+            <label class="form-label">슬로건</label>
+            <input class="form-input" type="text" id="site-slogan" value="I'M Learning, I'M Running!">
+          </div>
+          <div class="form-group">
+            <label class="form-label">대표 전화</label>
+            <input class="form-input" type="text" id="site-phone" value="010-5307-6139">
+          </div>
+          <div class="form-group">
+            <label class="form-label">인스타그램</label>
+            <input class="form-input" type="text" id="site-insta" value="@im_learning2414">
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">주소</label>
+            <input class="form-input" type="text" id="site-address" value="충청남도 논산시 해월로144번길 1, 101-비02호">
+          </div>
+          <div style="grid-column:1/-1;">
+            <button class="save-btn" onclick="saveSiteInfo()">사이트 정보 저장하기</button>
+            <div class="success-msg" id="site-success">✅ 저장되었습니다!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 로그아웃 / 위험 구역 -->
+      <div class="settings-card full" style="border-color:#FCA5A5;">
+        <div class="settings-card-header" style="background:#FFF5F5;">
+          <div class="settings-card-title" style="color:#EF4444;">⚠️ 위험 구역</div>
+          <div class="settings-card-desc">신중하게 사용해주세요</div>
+        </div>
+        <div class="settings-card-body" style="display:flex;gap:12px;align-items:center;">
+          <button class="danger-btn" onclick="resetAll()">🗑️ 모든 설정 초기화</button>
+          <button class="danger-btn" onclick="logout()">🚪 로그아웃</button>
+          <span style="font-size:12px;color:#6B6B6B;">초기화하면 비밀번호가 0008로 돌아가요</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+// 인증 체크
+if (!sessionStorage.getItem('admin_auth')) {
+  window.location.href = 'login.html';
+}
+
+// 저장된 설정 불러오기
+window.addEventListener('DOMContentLoaded', () => {
+  const logoText = localStorage.getItem('logo_text') || '아이엠러닝';
+  const logoHighlight = localStorage.getItem('logo_highlight') || '러닝';
+  const logoImg = localStorage.getItem('logo_img');
+
+  document.getElementById('logo-text').value = logoText;
+  document.getElementById('logo-highlight').value = logoHighlight;
+
+  if (logoImg) {
+    document.getElementById('logo-preview-img').src = logoImg;
+    document.getElementById('logo-preview-img').style.display = 'block';
+    document.getElementById('logo-preview-text').style.display = 'none';
+  }
+
+  document.getElementById('site-name').value = localStorage.getItem('site_name') || '아이엠러닝';
+  document.getElementById('site-slogan').value = localStorage.getItem('site_slogan') || "I'M Learning, I'M Running!";
+  document.getElementById('site-phone').value = localStorage.getItem('site_phone') || '010-5307-6139';
+  document.getElementById('site-insta').value = localStorage.getItem('site_insta') || '@im_learning2414';
+  document.getElementById('site-address').value = localStorage.getItem('site_address') || '충청남도 논산시 해월로144번길 1, 101-비02호';
+});
+
+// 로고 미리보기
+function previewLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('logo-preview-img').src = e.target.result;
+    document.getElementById('logo-preview-img').style.display = 'block';
+    document.getElementById('logo-preview-text').style.display = 'none';
+    localStorage.setItem('logo_img', e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+// 로고 저장
+function saveLogo() {
+  localStorage.setItem('logo_text', document.getElementById('logo-text').value);
+  localStorage.setItem('logo_highlight', document.getElementById('logo-highlight').value);
+  showSuccess('logo-success');
+}
+
+// 비밀번호 변경
+function changePw() {
+  const current = document.getElementById('current-pw').value;
+  const newPw = document.getElementById('new-pw').value;
+  const confirm = document.getElementById('new-pw-confirm').value;
+  const saved = localStorage.getItem('admin_pw') || '0008';
+
+  document.getElementById('pw-success').classList.remove('show');
+  document.getElementById('pw-error').classList.remove('show');
+
+  if (current !== saved) {
+    document.getElementById('pw-error-msg').textContent = '현재 비밀번호가 틀렸습니다';
+    document.getElementById('pw-error').classList.add('show');
+    return;
+  }
+  if (newPw.length < 4) {
+    document.getElementById('pw-error-msg').textContent = '비밀번호는 4자리 이상이어야 해요';
+    document.getElementById('pw-error').classList.add('show');
+    return;
+  }
+  if (newPw !== confirm) {
+    document.getElementById('pw-error-msg').textContent = '새 비밀번호가 일치하지 않아요';
+    document.getElementById('pw-error').classList.add('show');
+    return;
+  }
+
+  localStorage.setItem('admin_pw', newPw);
+  document.getElementById('current-pw').value = '';
+  document.getElementById('new-pw').value = '';
+  document.getElementById('new-pw-confirm').value = '';
+  showSuccess('pw-success');
+}
+
+// 사이트 정보 저장
+function saveSiteInfo() {
+  localStorage.setItem('site_name', document.getElementById('site-name').value);
+  localStorage.setItem('site_slogan', document.getElementById('site-slogan').value);
+  localStorage.setItem('site_phone', document.getElementById('site-phone').value);
+  localStorage.setItem('site_insta', document.getElementById('site-insta').value);
+  localStorage.setItem('site_address', document.getElementById('site-address').value);
+  showSuccess('site-success');
+}
+
+// 초기화
+function resetAll() {
+  if (confirm('정말 모든 설정을 초기화할까요? 비밀번호도 0008로 돌아가요.')) {
+    localStorage.clear();
+    alert('초기화 완료! 비밀번호: 0008');
+    logout();
+  }
+}
+
+// 로그아웃
+function logout() {
+  sessionStorage.removeItem('admin_auth');
+  window.location.href = 'login.html';
+}
+
+// 성공 메시지 표시
+function showSuccess(id) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

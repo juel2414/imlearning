@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 로그인 — 아이엠러닝</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #0F1117; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-wrap { width: 100%; max-width: 380px; padding: 2rem; }
+    .login-logo { text-align: center; margin-bottom: 2.5rem; }
+    .login-logo-text { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .login-logo-text span { color: #2D9B6F; }
+    .login-logo-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 6px; }
+    .login-card { background: #1A1A2E; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 2rem; }
+    .login-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .login-desc { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 1.75rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 8px; letter-spacing: 0.5px; }
+    .form-input {
+      width: 100%; padding: 12px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px; font-size: 16px;
+      color: #fff; font-family: inherit;
+      letter-spacing: 4px; text-align: center;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { outline: none; border-color: #2D9B6F; }
+    .form-input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.2); font-size: 13px; }
+    .login-btn {
+      width: 100%; padding: 13px;
+      background: #2D9B6F; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s; margin-top: 0.5rem;
+    }
+    .login-btn:hover { background: #1A7A4A; }
+    .error-msg { display: none; color: #EF4444; font-size: 12px; text-align: center; margin-top: 10px; }
+    .error-msg.show { display: block; }
+    .shake { animation: shake 0.4s ease; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)}
+      60%{transform:translateX(-6px)}
+      80%{transform:translateX(6px)}
+    }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-logo">
+    <div class="login-logo-text">아이엠<span>러닝</span></div>
+    <div class="login-logo-sub">관리자 페이지</div>
+  </div>
+  <div class="login-card" id="login-card">
+    <div class="login-title">🔐 관리자 로그인</div>
+    <div class="login-desc">관리자 비밀번호를 입력해주세요</div>
+    <div class="form-group">
+      <label class="form-label">비밀번호</label>
+      <input class="form-input" type="password" id="pw-input" placeholder="비밀번호 입력" maxlength="20" onkeydown="if(event.key==='Enter')tryLogin()">
+    </div>
+    <button class="login-btn" onclick="tryLogin()">로그인 →</button>
+    <div class="error-msg" id="error-msg">❌ 비밀번호가 틀렸습니다</div>
+  </div>
+</div>
+
+<script>
+function tryLogin() {
+  const input = document.getElementById('pw-input').value;
+  const saved = localStorage.getItem('admin_pw') || '0008';
+  const card = document.getElementById('login-card');
+  const err = document.getElementById('error-msg');
+
+  if (input === saved) {
+    sessionStorage.setItem('admin_auth', 'true');
+    window.location.href = 'index.html';
+  } else {
+    err.classList.add('show');
+    card.classList.remove('shake');
+    void card.offsetWidth;
+    card.classList.add('shake');
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+</script>
+</body>
+</html>
