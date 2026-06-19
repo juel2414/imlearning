@@ -19,11 +19,20 @@
     .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
     .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
     .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
-    .admin-main { margin-left: 220px; padding: 2rem; }
-    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-main { margin-left: 220px; padding: 2rem; max-width: 1200px; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
     .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
+    .admin-header-desc { font-size: 13px; color: #6B6B6B; margin-top: 2px; }
+
+    /* 통계 요약 카드 */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 1.25rem; border: 1px solid rgba(0,0,0,0.06); }
+    .stat-card-label { font-size: 12px; color: #6B6B6B; margin-bottom: 6px; }
+    .stat-card-value { font-size: 24px; font-weight: 800; color: var(--black); }
+    .stat-card-value.green { color: #2D9B6F; }
+
     .admin-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
-    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
     .admin-card-body { padding: 1.5rem; }
 
@@ -33,13 +42,18 @@
     .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
     .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; color: var(--black); }
     .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #2D9B6F; }
-    .form-textarea { height: 100px; resize: vertical; }
+    .form-textarea { height: 90px; resize: vertical; }
     .form-hint { font-size: 11px; color: #6B6B6B; margin-top: 4px; }
-    .form-actions { grid-column: 1/-1; display: flex; gap: 10px; justify-content: flex-end; padding-top: 0.5rem; }
+    .form-actions { grid-column: 1/-1; display: flex; gap: 10px; justify-content: flex-end; padding-top: 0.5rem; border-top: 1px solid rgba(0,0,0,0.06); margin-top: 0.5rem; }
     .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .btn-save:hover { background: #1A7A4A; }
     .btn-save:disabled { background: #C4C4C4; cursor: not-allowed; }
     .btn-cancel { padding: 10px 20px; background: #fff; color: #6B6B6B; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+    /* 가격/할인 섹션 강조 */
+    .price-section { background: #F8FBF9; border: 1px solid #D4EDDF; border-radius: 10px; padding: 1rem 1.25rem; grid-column: 1/-1; }
+    .price-section-title { font-size: 13px; font-weight: 700; color: #1A7A4A; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
 
     .thumb-upload { width: 100%; aspect-ratio: 16/9; background: #F5F5F5; border: 2px dashed #C4C4C4; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
     .thumb-upload:hover { border-color: #2D9B6F; background: #E8F5EE; }
@@ -47,16 +61,27 @@
     .thumb-upload-text { font-size: 13px; color: #6B6B6B; margin-top: 8px; }
     .thumb-upload-icon { font-size: 28px; }
 
+    /* 섹션별 그룹 보기 */
+    .section-group { margin-bottom: 1.5rem; }
+    .section-group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; padding: 0 0.25rem; }
+    .section-group-title { font-size: 14px; font-weight: 700; color: var(--black); }
+    .section-group-count { font-size: 12px; color: #6B6B6B; background: #F0F0F0; padding: 2px 10px; border-radius: 20px; }
+    .section-dot { width: 8px; height: 8px; border-radius: 50%; background: #2D9B6F; }
+
     .admin-table { width: 100%; border-collapse: collapse; }
     .admin-table th { padding: 10px 1rem; text-align: left; font-size: 11px; font-weight: 700; color: #6B6B6B; text-transform: uppercase; letter-spacing: 0.5px; background: #F8F9FA; border-bottom: 1px solid rgba(0,0,0,0.06); }
     .admin-table td { padding: 12px 1rem; font-size: 13px; color: #3D3D3D; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: middle; }
     .admin-table tr:last-child td { border-bottom: none; }
     .admin-table tr:hover td { background: rgba(45,155,111,0.02); }
-    .course-thumb-sm { width: 60px; height: 38px; border-radius: 6px; object-fit: cover; background: #E8F5EE; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .course-thumb-sm { width: 60px; height: 38px; border-radius: 6px; object-fit: cover; background: #E8F5EE; display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden; }
+    .course-thumb-sm img { width: 100%; height: 100%; object-fit: cover; }
     .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
     .badge-active { background: #DCFCE7; color: #16A34A; }
     .badge-hidden { background: #F5F5F5; color: #6B6B6B; }
     .badge-promo { background: #FEF3C7; color: #D97706; }
+    .badge-level { background: #EEF2FF; color: #4B6FD4; }
+    .price-discount { color: #EF4444; font-weight: 700; font-size: 12px; }
+    .price-original { text-decoration: line-through; color: #9CA3AF; font-size: 11px; }
     .action-btns { display: flex; gap: 6px; }
     .btn-sm-edit { padding: 5px 12px; font-size: 11px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; color: #3D3D3D; background: #fff; cursor: pointer; transition: all 0.2s; }
     .btn-sm-edit:hover { border-color: #2D9B6F; color: #2D9B6F; }
@@ -69,10 +94,14 @@
     @keyframes slideIn { from{transform:translateX(100px);opacity:0} to{transform:translateX(0);opacity:1} }
 
     .toggle-form-btn { padding: 8px 18px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .search-bar { display: flex; gap: 10px; margin-bottom: 1rem; }
-    .search-input { flex: 1; padding: 8px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; font-family: inherit; }
+    .view-toggle { display: flex; gap: 4px; background: #F0F0F0; border-radius: 8px; padding: 3px; }
+    .view-toggle button { padding: 6px 14px; font-size: 12px; font-weight: 600; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #6B6B6B; }
+    .view-toggle button.active { background: #fff; color: #2D9B6F; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .search-input { padding: 8px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; font-family: inherit; width: 200px; }
     .search-input:focus { outline: none; border-color: #2D9B6F; }
     .loading-row { text-align: center; padding: 2rem; color: #6B6B6B; }
+    .empty-tip { text-align: center; padding: 3rem 1.5rem; color: #6B6B6B; }
+    .empty-tip-icon { font-size: 40px; margin-bottom: 12px; }
   </style>
 </head>
 <body>
@@ -100,11 +129,34 @@
 
   <main class="admin-main">
     <div class="admin-header">
-      <h1>📚 강좌 관리</h1>
+      <div>
+        <h1>📚 강좌 관리</h1>
+        <div class="admin-header-desc">강좌를 추가, 수정, 삭제하고 노출 섹션을 관리해요</div>
+      </div>
       <button class="toggle-form-btn" onclick="toggleForm()">+ 새 강좌 추가</button>
     </div>
 
-    <!-- 강좌 추가 폼 -->
+    <!-- 통계 요약 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-label">전체 강좌</div>
+        <div class="stat-card-value" id="stat-total">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">판매중</div>
+        <div class="stat-card-value green" id="stat-active">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">추천 강좌</div>
+        <div class="stat-card-value" id="stat-featured">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">총 수강생</div>
+        <div class="stat-card-value" id="stat-students">-</div>
+      </div>
+    </div>
+
+    <!-- 강좌 추가/수정 폼 -->
     <div class="admin-card" id="course-form" style="display:none;">
       <div class="admin-card-header">
         <span class="admin-card-title" id="form-title">새 강좌 추가</span>
@@ -146,6 +198,19 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label">노출 섹션</label>
+            <select class="form-select" id="course-section">
+              <option value="">섹션 선택 안 함</option>
+              <option value="신입생 추천">🌱 신입생 추천</option>
+              <option value="이번달 인기">🔥 이번달 인기</option>
+              <option value="심화 과정">🎯 심화 과정</option>
+              <option value="신규 오픈">✨ 신규 오픈</option>
+              <option value="마감 임박">⏰ 마감 임박</option>
+            </select>
+            <div class="form-hint">강좌 목록 페이지에서 묶어서 보여줄 그룹이에요</div>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">담당 강사</label>
             <select class="form-select" id="course-instructor">
               <option value="">강사 선택</option>
@@ -153,14 +218,52 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">정가</label>
-            <input class="form-input" type="number" id="course-price" placeholder="예: 650000">
-            <div class="form-hint">숫자만 입력 (원 단위)</div>
+            <label class="form-label">난이도</label>
+            <select class="form-select" id="course-level">
+              <option value="">난이도 선택 안 함</option>
+              <option value="입문">입문</option>
+              <option value="초급">초급</option>
+              <option value="중급">중급</option>
+              <option value="고급">고급</option>
+            </select>
           </div>
 
           <div class="form-group">
             <label class="form-label">강의 수</label>
             <input class="form-input" type="number" id="course-lessons" placeholder="예: 44">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">현재 수강생 수</label>
+            <input class="form-input" type="number" id="course-students" placeholder="예: 279">
+            <div class="form-hint">목록 화면에 "👥 N명"으로 표시돼요</div>
+          </div>
+
+          <!-- 가격 섹션 -->
+          <div class="price-section">
+            <div class="price-section-title">💰 가격 및 할인 설정</div>
+            <div class="price-grid">
+              <div class="form-group">
+                <label class="form-label">정가 (원)</label>
+                <input class="form-input" type="number" id="course-price" placeholder="예: 650000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">할인가 (선택)</label>
+                <input class="form-input" type="number" id="course-discount-price" placeholder="예: 450000">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="visibility:hidden;">.</label>
+                <div style="font-size:11px;color:#6B6B6B;padding-top:10px;">할인가 입력 시 자동으로 할인 뱃지가 표시돼요</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">할인 시작일</label>
+                <input class="form-input" type="date" id="course-discount-start">
+              </div>
+              <div class="form-group">
+                <label class="form-label">할인 종료일</label>
+                <input class="form-input" type="date" id="course-discount-end">
+              </div>
+            </div>
           </div>
 
           <div class="form-group full">
@@ -178,7 +281,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">추천 강좌 표시</label>
+            <label class="form-label">추천 강좌 (메인 노출)</label>
             <select class="form-select" id="course-featured">
               <option value="false">표시 안 함</option>
               <option value="true">메인에 표시</option>
@@ -197,28 +300,16 @@
     <div class="admin-card">
       <div class="admin-card-header">
         <span class="admin-card-title">강좌 목록 <span id="course-count" style="color:#2D9B6F;"></span></span>
-        <div class="search-bar" style="margin:0;">
-          <input class="search-input" type="text" placeholder="강좌 검색..." oninput="filterCourses(this.value)" style="width:200px;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input class="search-input" type="text" placeholder="강좌 검색..." oninput="filterCourses(this.value)">
+          <div class="view-toggle">
+            <button id="view-section-btn" class="active" onclick="setView('section')">섹션별</button>
+            <button id="view-table-btn" onclick="setView('table')">전체 목록</button>
+          </div>
         </div>
       </div>
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>썸네일</th>
-              <th>강좌명</th>
-              <th>카테고리</th>
-              <th>강사</th>
-              <th>가격</th>
-              <th>Vimeo</th>
-              <th>상태</th>
-              <th>관리</th>
-            </tr>
-          </thead>
-          <tbody id="courses-tbody">
-            <tr><td colspan="8" class="loading-row">강좌 목록을 불러오는 중...</td></tr>
-          </tbody>
-        </table>
+      <div class="admin-card-body" id="course-content-area">
+        <div class="loading-row">강좌 목록을 불러오는 중...</div>
       </div>
     </div>
   </main>
@@ -236,12 +327,14 @@ const CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사�
 let courses = [];
 let editingId = null;
 let thumbData = null;
+let currentView = 'section';
+let currentQuery = '';
 
-function toggleForm(id) {
+function toggleForm() {
   const form = document.getElementById('course-form');
   if (form.style.display === 'none') {
     form.style.display = 'block';
-    if (!id) resetForm();
+    resetForm();
     form.scrollIntoView({ behavior: 'smooth' });
   } else {
     form.style.display = 'none';
@@ -253,13 +346,9 @@ function resetForm() {
   editingId = null;
   thumbData = null;
   document.getElementById('form-title').textContent = '새 강좌 추가';
-  document.getElementById('course-title').value = '';
-  document.getElementById('course-desc').value = '';
-  document.getElementById('course-cat').value = '';
-  document.getElementById('course-instructor').value = '';
-  document.getElementById('course-price').value = '';
-  document.getElementById('course-lessons').value = '';
-  document.getElementById('course-vimeo').value = '';
+  ['course-title','course-desc','course-cat','course-section','course-instructor','course-level',
+   'course-lessons','course-students','course-price','course-discount-price','course-discount-start',
+   'course-discount-end','course-vimeo'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('course-status').value = 'active';
   document.getElementById('course-featured').value = 'false';
   document.getElementById('thumb-img').style.display = 'none';
@@ -286,16 +375,25 @@ async function saveCourse() {
   btn.disabled = true;
   btn.textContent = '저장 중...';
 
+  const val = id => document.getElementById(id).value;
+  const numOrNull = v => v ? Number(v) : null;
+
   const courseData = {
     title,
-    description: document.getElementById('course-desc').value,
-    category: document.getElementById('course-cat').value,
-    instructor: document.getElementById('course-instructor').value,
-    price: document.getElementById('course-price').value ? Number(document.getElementById('course-price').value) : null,
-    lessons: document.getElementById('course-lessons').value ? Number(document.getElementById('course-lessons').value) : null,
-    vimeo_url: document.getElementById('course-vimeo').value,
-    status: document.getElementById('course-status').value,
-    featured: document.getElementById('course-featured').value === 'true',
+    description: val('course-desc'),
+    category: val('course-cat'),
+    section: val('course-section') || null,
+    instructor: val('course-instructor'),
+    level: val('course-level') || null,
+    price: numOrNull(val('course-price')),
+    discount_price: numOrNull(val('course-discount-price')),
+    discount_start: val('course-discount-start') || null,
+    discount_end: val('course-discount-end') || null,
+    lessons: numOrNull(val('course-lessons')),
+    students: numOrNull(val('course-students')) || 0,
+    vimeo_url: val('course-vimeo'),
+    status: val('course-status'),
+    featured: val('course-featured') === 'true',
     thumbnail_url: thumbData || null,
   };
 
@@ -310,8 +408,7 @@ async function saveCourse() {
     }
 
     if (error) {
-      console.error(error);
-      showToast('저장 중 오류가 발생했습니다: ' + error.message, true);
+      showToast('저장 중 오류: ' + error.message, true);
       btn.disabled = false;
       btn.textContent = '강좌 저장하기';
       return;
@@ -321,7 +418,6 @@ async function saveCourse() {
     toggleForm();
     showToast(editingId ? '강좌가 수정되었습니다!' : '새 강좌가 추가되었습니다!');
   } catch (err) {
-    console.error(err);
     showToast('저장 중 오류가 발생했습니다', true);
   }
 
@@ -337,9 +433,15 @@ function editCourse(id) {
   document.getElementById('course-title').value = c.title || '';
   document.getElementById('course-desc').value = c.description || '';
   document.getElementById('course-cat').value = c.category || '';
+  document.getElementById('course-section').value = c.section || '';
   document.getElementById('course-instructor').value = c.instructor || '';
-  document.getElementById('course-price').value = c.price || '';
+  document.getElementById('course-level').value = c.level || '';
   document.getElementById('course-lessons').value = c.lessons || '';
+  document.getElementById('course-students').value = c.students || '';
+  document.getElementById('course-price').value = c.price || '';
+  document.getElementById('course-discount-price').value = c.discount_price || '';
+  document.getElementById('course-discount-start').value = c.discount_start ? c.discount_start.split('T')[0] : '';
+  document.getElementById('course-discount-end').value = c.discount_end ? c.discount_end.split('T')[0] : '';
   document.getElementById('course-vimeo').value = c.vimeo_url || '';
   document.getElementById('course-status').value = c.status || 'active';
   document.getElementById('course-featured').value = c.featured ? 'true' : 'false';
@@ -356,10 +458,7 @@ async function deleteCourse(id) {
   if (!confirm('정말 이 강좌를 삭제할까요?')) return;
   try {
     const { error } = await supabaseClient.from('courses').delete().eq('id', id);
-    if (error) {
-      showToast('삭제 중 오류가 발생했습니다', true);
-      return;
-    }
+    if (error) { showToast('삭제 중 오류가 발생했습니다', true); return; }
     await loadCourses();
     showToast('강좌가 삭제되었습니다');
   } catch (err) {
@@ -368,60 +467,161 @@ async function deleteCourse(id) {
 }
 
 function filterCourses(q) {
-  const rows = document.querySelectorAll('#courses-tbody tr[data-id]');
-  rows.forEach(row => {
-    row.style.display = row.dataset.title.includes(q) ? '' : 'none';
-  });
+  currentQuery = q.trim();
+  render();
+}
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('view-section-btn').classList.toggle('active', view === 'section');
+  document.getElementById('view-table-btn').classList.toggle('active', view === 'table');
+  render();
 }
 
 async function loadCourses() {
-  const tbody = document.getElementById('courses-tbody');
   try {
     const { data, error } = await supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
     if (error) {
-      tbody.innerHTML = `<tr><td colspan="8" class="loading-row">불러오기 실패: ${error.message}</td></tr>`;
+      document.getElementById('course-content-area').innerHTML = `<div class="loading-row">불러오기 실패: ${error.message}</div>`;
       return;
     }
     courses = data || [];
-    renderCourses();
+    updateStats();
+    render();
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">불러오기 중 오류가 발생했습니다</td></tr>';
+    document.getElementById('course-content-area').innerHTML = '<div class="loading-row">불러오기 중 오류가 발생했습니다</div>';
   }
 }
 
-function renderCourses() {
-  const tbody = document.getElementById('courses-tbody');
+function updateStats() {
+  document.getElementById('stat-total').textContent = courses.length;
+  document.getElementById('stat-active').textContent = courses.filter(c => c.status === 'active').length;
+  document.getElementById('stat-featured').textContent = courses.filter(c => c.featured).length;
+  document.getElementById('stat-students').textContent = courses.reduce((sum, c) => sum + (c.students || 0), 0).toLocaleString();
+}
+
+function getFiltered() {
+  if (!currentQuery) return courses;
+  return courses.filter(c => c.title && c.title.toLowerCase().includes(currentQuery.toLowerCase()));
+}
+
+function render() {
   document.getElementById('course-count').textContent = `(${courses.length}개)`;
+  const area = document.getElementById('course-content-area');
+  const filtered = getFiltered();
+
   if (courses.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">저장된 강좌가 없어요. 위에서 강좌를 추가해보세요!</td></tr>';
+    area.innerHTML = `
+      <div class="empty-tip">
+        <div class="empty-tip-icon">📚</div>
+        <div style="font-weight:600;margin-bottom:6px;">아직 등록된 강좌가 없어요</div>
+        <div style="font-size:13px;">상단의 "+ 새 강좌 추가" 버튼을 눌러 첫 강좌를 등록해보세요!</div>
+      </div>`;
     return;
   }
-  tbody.innerHTML = courses.map(c => `
-    <tr data-id="${c.id}" data-title="${c.title}">
-      <td>
-        <div class="course-thumb-sm">
-          ${c.thumbnail_url ? `<img src="${c.thumbnail_url}" style="width:60px;height:38px;object-fit:cover;border-radius:6px;">` : '📚'}
+
+  if (filtered.length === 0) {
+    area.innerHTML = `<div class="empty-tip"><div class="empty-tip-icon">🔍</div>검색 결과가 없어요</div>`;
+    return;
+  }
+
+  if (currentView === 'table') {
+    area.innerHTML = renderTable(filtered);
+  } else {
+    area.innerHTML = renderBySections(filtered);
+  }
+}
+
+function renderBySections(list) {
+  const groups = {};
+  const noSection = [];
+  list.forEach(c => {
+    if (c.section) {
+      if (!groups[c.section]) groups[c.section] = [];
+      groups[c.section].push(c);
+    } else {
+      noSection.push(c);
+    }
+  });
+
+  let html = '';
+  Object.keys(groups).forEach(sectionName => {
+    html += `
+      <div class="section-group">
+        <div class="section-group-header">
+          <span class="section-dot"></span>
+          <span class="section-group-title">${sectionName}</span>
+          <span class="section-group-count">${groups[sectionName].length}개</span>
         </div>
-      </td>
-      <td style="font-weight:600;max-width:200px;">${c.title}</td>
-      <td>${CAT_LABELS[c.category] || '-'}</td>
-      <td>${c.instructor || '-'}</td>
-      <td>${c.price ? '₩' + Number(c.price).toLocaleString() : '-'}</td>
-      <td>${c.vimeo_url ? `<a href="${c.vimeo_url}" target="_blank" style="color:#2D9B6F;font-size:12px;">링크 ↗</a>` : '-'}</td>
-      <td>
-        <span class="badge ${c.status === 'active' ? 'badge-active' : 'badge-hidden'}">
-          ${c.status === 'active' ? '판매중' : '비공개'}
-        </span>
-        ${c.featured ? '<span class="badge badge-promo" style="margin-left:4px;">추천</span>' : ''}
-      </td>
-      <td>
-        <div class="action-btns">
-          <button class="btn-sm-edit" onclick="editCourse('${c.id}')">수정</button>
-          <button class="btn-sm-del" onclick="deleteCourse('${c.id}')">삭제</button>
+        ${renderTable(groups[sectionName])}
+      </div>`;
+  });
+
+  if (noSection.length > 0) {
+    html += `
+      <div class="section-group">
+        <div class="section-group-header">
+          <span class="section-dot" style="background:#C4C4C4;"></span>
+          <span class="section-group-title">섹션 미지정</span>
+          <span class="section-group-count">${noSection.length}개</span>
         </div>
-      </td>
-    </tr>
-  `).join('');
+        ${renderTable(noSection)}
+      </div>`;
+  }
+
+  return html || renderTable(list);
+}
+
+function renderTable(list) {
+  return `
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>썸네일</th>
+          <th>강좌명</th>
+          <th>카테고리</th>
+          <th>난이도</th>
+          <th>강사</th>
+          <th>가격</th>
+          <th>강의수</th>
+          <th>상태</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(c => `
+          <tr data-id="${c.id}">
+            <td>
+              <div class="course-thumb-sm">
+                ${c.thumbnail_url ? `<img src="${c.thumbnail_url}">` : '📚'}
+              </div>
+            </td>
+            <td style="font-weight:600;max-width:220px;">${c.title}</td>
+            <td>${CAT_LABELS[c.category] || '-'}</td>
+            <td>${c.level ? `<span class="badge badge-level">${c.level}</span>` : '-'}</td>
+            <td>${c.instructor || '-'}</td>
+            <td>
+              ${c.discount_price
+                ? `<span class="price-original">₩${Number(c.price||0).toLocaleString()}</span><br><span class="price-discount">₩${Number(c.discount_price).toLocaleString()}</span>`
+                : (c.price ? '₩' + Number(c.price).toLocaleString() : '-')}
+            </td>
+            <td>${c.lessons ? c.lessons + '강' : '-'}</td>
+            <td>
+              <span class="badge ${c.status === 'active' ? 'badge-active' : 'badge-hidden'}">
+                ${c.status === 'active' ? '판매중' : '비공개'}
+              </span>
+              ${c.featured ? '<span class="badge badge-promo" style="margin-left:4px;">추천</span>' : ''}
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm-edit" onclick="editCourse('${c.id}')">수정</button>
+                <button class="btn-sm-del" onclick="deleteCourse('${c.id}')">삭제</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
 }
 
 function showToast(msg, isError) {
