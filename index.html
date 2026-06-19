@@ -6,163 +6,51 @@
   <title>아이엠러닝 — I'M Learning, I'M Running!</title>
   <meta name="description" content="신앙과 삶이 하나 되는 온라인 강의 플랫폼. 신앙, 교사·부모 교육, 선교·캠프, 영어·시험까지.">
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ───── 히어로 캐러셀 ───── */
-    .hero {
-      position: relative;
-      min-height: calc(100vh - 64px);
-      overflow: hidden;
-    }
-    .hero-slide {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      opacity: 0;
-      transition: opacity 1s ease;
-      pointer-events: none;
-    }
-    .hero-slide.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .hero-slide-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      transition: transform 6s ease;
-    }
-    .hero-slide.active .hero-slide-bg {
-      transform: scale(1.04);
-    }
-
-    /* 슬라이드별 배경 */
+    .hero { position: relative; min-height: calc(100vh - 64px); overflow: hidden; }
+    .hero-slide { position: absolute; inset: 0; display: flex; align-items: center; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+    .hero-slide.active { opacity: 1; pointer-events: all; }
+    .hero-slide-bg { position: absolute; inset: 0; z-index: 0; transition: transform 6s ease; }
+    .hero-slide.active .hero-slide-bg { transform: scale(1.04); }
     .slide-faith .hero-slide-bg { background: linear-gradient(160deg, #e8f5ee 0%, #f5fff8 40%, #d4eddf 100%); }
     .slide-edu .hero-slide-bg   { background: linear-gradient(160deg, #eef5ff 0%, #f5f0ff 40%, #e0e8ff 100%); }
     .slide-mission .hero-slide-bg { background: linear-gradient(160deg, #fff5e8 0%, #fff8f0 40%, #ffe8cc 100%); }
     .slide-english .hero-slide-bg { background: linear-gradient(160deg, #f0fff5 0%, #e8f8ff 40%, #d4f0e8 100%); }
-
-    .hero-inner {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
-      gap: 4rem;
-      max-width: 1160px;
-      margin: 0 auto;
-      padding: 4rem 2rem;
-      width: 100%;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 1.5rem;
-      letter-spacing: 0.5px;
-      transition: background 0.5s, color 0.5s;
-    }
+    .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 4rem; max-width: 1160px; margin: 0 auto; padding: 4rem 2rem; width: 100%; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 1.5rem; letter-spacing: 0.5px; transition: background 0.5s, color 0.5s; }
     .slide-faith .hero-badge   { background: #d4eddf; color: #1A7A4A; }
     .slide-edu .hero-badge     { background: #e0e8ff; color: #3B4FA8; }
     .slide-mission .hero-badge { background: #ffe8cc; color: #B05E0A; }
     .slide-english .hero-badge { background: #d4f0e8; color: #0A7A5A; }
-
-    .hero-title {
-      font-size: clamp(36px, 5vw, 56px);
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -1.5px;
-      color: #111;
-      margin-bottom: 1.25rem;
-    }
+    .hero-title { font-size: clamp(36px, 5vw, 56px); font-weight: 800; line-height: 1.15; letter-spacing: -1.5px; color: #111; margin-bottom: 1.25rem; }
     .hero-title em { font-style: normal; }
     .slide-faith .hero-title em   { color: #2D9B6F; }
     .slide-edu .hero-title em     { color: #4B6FD4; }
     .slide-mission .hero-title em { color: #D4822D; }
     .slide-english .hero-title em { color: #2D9B7A; }
-
-    .hero-desc {
-      font-size: 17px;
-      color: #6B6B6B;
-      line-height: 1.75;
-      margin-bottom: 2rem;
-      max-width: 440px;
-    }
+    .hero-desc { font-size: 17px; color: #6B6B6B; line-height: 1.75; margin-bottom: 2rem; max-width: 440px; }
     .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-    .hero-btn-main {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 14px 28px; border-radius: 8px;
-      font-size: 15px; font-weight: 700;
-      transition: all 0.2s; border: none; cursor: pointer; font-family: inherit;
-      color: #fff;
-    }
+    .hero-btn-main { display: inline-flex; align-items: center; gap: 6px; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 700; transition: all 0.2s; border: none; cursor: pointer; font-family: inherit; color: #fff; }
     .slide-faith .hero-btn-main   { background: #2D9B6F; }
     .slide-edu .hero-btn-main     { background: #4B6FD4; }
     .slide-mission .hero-btn-main { background: #D4822D; }
     .slide-english .hero-btn-main { background: #2D9B7A; }
     .hero-btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .hero-btn-sub {
-      display: inline-flex; align-items: center;
-      padding: 14px 28px; border-radius: 8px;
-      font-size: 15px; font-weight: 600; cursor: pointer;
-      background: transparent; border: 1.5px solid rgba(0,0,0,0.15);
-      color: #3D3D3D; transition: all 0.2s; font-family: inherit;
-    }
+    .hero-btn-sub { display: inline-flex; align-items: center; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; background: transparent; border: 1.5px solid rgba(0,0,0,0.15); color: #3D3D3D; transition: all 0.2s; font-family: inherit; }
     .hero-btn-sub:hover { border-color: #2D9B6F; color: #2D9B6F; }
-
-    .hero-stats {
-      display: flex; gap: 2rem;
-      margin-top: 3rem; padding-top: 2rem;
-      border-top: 1px solid rgba(0,0,0,0.07);
-    }
+    .hero-stats { display: flex; gap: 2rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.07); }
     .stat-num { font-size: 28px; font-weight: 800; color: #111; letter-spacing: -1px; }
     .stat-num span { color: #2D9B6F; }
     .stat-label { font-size: 12px; color: #6B6B6B; margin-top: 2px; }
-
-    /* 히어로 우측 — 이미지 영역 */
-    .hero-visual {
-      position: relative;
-      height: 480px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .hero-visual-main {
-      width: 280px;
-      height: 280px;
-      border-radius: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 100px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.12);
-      transition: all 1s cubic-bezier(.4,0,.2,1);
-      position: relative;
-      z-index: 2;
-    }
+    .hero-visual { position: relative; height: 480px; display: flex; align-items: center; justify-content: center; }
+    .hero-visual-main { width: 280px; height: 280px; border-radius: 32px; display: flex; align-items: center; justify-content: center; font-size: 100px; box-shadow: 0 24px 64px rgba(0,0,0,0.12); transition: all 1s cubic-bezier(.4,0,.2,1); position: relative; z-index: 2; }
     .slide-faith .hero-visual-main   { background: linear-gradient(135deg, #c8eada, #e8f5ee); }
     .slide-edu .hero-visual-main     { background: linear-gradient(135deg, #c8d4ff, #e8eeff); }
     .slide-mission .hero-visual-main { background: linear-gradient(135deg, #ffd4a8, #fff0e0); }
     .slide-english .hero-visual-main { background: linear-gradient(135deg, #a8e8d4, #d4f8ee); }
-
-    /* 떠있는 서브 카드들 */
-    .hero-float-card {
-      position: absolute;
-      background: #fff;
-      border-radius: 14px;
-      padding: 10px 14px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.10);
-      font-size: 12px;
-      font-weight: 600;
-      color: #111;
-      white-space: nowrap;
-      transition: all 0.8s cubic-bezier(.4,0,.2,1);
-    }
+    .hero-float-card { position: absolute; background: #fff; border-radius: 14px; padding: 10px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.10); font-size: 12px; font-weight: 600; color: #111; white-space: nowrap; transition: all 0.8s cubic-bezier(.4,0,.2,1); }
     .hero-float-card span { display: block; font-size: 10px; font-weight: 400; color: #6B6B6B; margin-top: 2px; }
     .fc-tl { top: 60px; left: -20px; animation: float1 4s ease-in-out infinite; }
     .fc-tr { top: 40px; right: -10px; animation: float2 4.5s ease-in-out infinite; }
@@ -172,40 +60,11 @@
     @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes float3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
     @keyframes float4 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-
-    /* 캐러셀 컨트롤 */
-    .carousel-controls {
-      position: absolute;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .carousel-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.2);
-      cursor: pointer;
-      transition: all 0.3s;
-      border: none;
-    }
-    .carousel-dot.active {
-      width: 24px;
-      border-radius: 4px;
-      background: #2D9B6F;
-    }
-    .carousel-progress {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      background: #2D9B6F;
-      transition: width 5s linear;
-      z-index: 10;
-    }
+    .carousel-controls { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px; align-items: center; }
+    .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.2); cursor: pointer; transition: all 0.3s; border: none; }
+    .carousel-dot.active { width: 24px; border-radius: 4px; background: #2D9B6F; }
+    .carousel-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #2D9B6F; transition: width 5s linear; z-index: 10; }
+    .loading-text { color: var(--gray-500); font-size: 13px; grid-column: 1/-1; text-align: center; padding: 2rem; }
   </style>
 </head>
 <body>
@@ -225,16 +84,14 @@
       <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
     </ul>
     <div class="navbar-right">
-      <a href="#" class="btn btn-outline btn-sm">로그인</a>
-      <a href="#" class="btn btn-primary btn-sm">회원가입</a>
+      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
     </div>
   </div>
 </nav>
 
 <!-- ───── 히어로 캐러셀 ───── -->
 <section class="hero">
-
-  <!-- 슬라이드 1: 신앙 -->
   <div class="hero-slide slide-faith active">
     <div class="hero-slide-bg"></div>
     <div class="hero-inner">
@@ -262,7 +119,6 @@
     </div>
   </div>
 
-  <!-- 슬라이드 2: 교사·부모 -->
   <div class="hero-slide slide-edu">
     <div class="hero-slide-bg"></div>
     <div class="hero-inner">
@@ -290,7 +146,6 @@
     </div>
   </div>
 
-  <!-- 슬라이드 3: 캠프·사역 -->
   <div class="hero-slide slide-mission">
     <div class="hero-slide-bg"></div>
     <div class="hero-inner">
@@ -318,7 +173,6 @@
     </div>
   </div>
 
-  <!-- 슬라이드 4: 영어·시험 -->
   <div class="hero-slide slide-english">
     <div class="hero-slide-bg"></div>
     <div class="hero-inner">
@@ -346,7 +200,6 @@
     </div>
   </div>
 
-  <!-- 캐러셀 도트 & 프로그레스 -->
   <div class="carousel-controls">
     <button class="carousel-dot active" onclick="goSlide(0)"></button>
     <button class="carousel-dot" onclick="goSlide(1)"></button>
@@ -392,7 +245,7 @@
   </div>
 </section>
 
-<!-- ───── 추천 강좌 ───── -->
+<!-- ───── 추천 강좌 (Supabase 연동) ───── -->
 <section class="section">
   <div class="container">
     <div class="section-header reveal">
@@ -410,39 +263,8 @@
       <button class="cat-tab" data-cat="mission">캠프·사역</button>
       <button class="cat-tab" data-cat="english">영어·시험</button>
     </div>
-    <div class="courses-grid">
-      <a href="course-detail.html" class="course-card reveal" data-cat="faith">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);">✝️<span class="course-badge">🔥 인기</span></div>
-        <div class="course-body"><div class="course-cat">신앙</div><div class="course-title">[4세대] CBUP 수료과정</div><div class="course-instructor">강사: 트리티움</div><div class="course-footer"><span class="course-students">👥 279명</span><span class="course-price">₩650,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-1" data-cat="edu">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#d4eddf,#a8d5bc);">👨‍👩‍👧<span class="course-badge">⭐ 추천</span></div>
-        <div class="course-body"><div class="course-cat">부모교육</div><div class="course-title">부모대안학교 1학년</div><div class="course-instructor">강사: 그레이스</div><div class="course-footer"><span class="course-students">👥 145명</span><span class="course-price">₩300,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-2" data-cat="edu">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#c8eada,#e8f5ee);">📚<span class="course-badge">교사 추천</span></div>
-        <div class="course-body"><div class="course-cat">교사교육</div><div class="course-title">교회학교 지원센터</div><div class="course-instructor">강사: 그레이스</div><div class="course-footer"><span class="course-students">👥 82명</span><span class="course-price">₩350,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-3" data-cat="english">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#f0f9f4,#d0eadd);">🙏</div>
-        <div class="course-body"><div class="course-cat">영어·시험</div><div class="course-title">영단속 영어기도</div><div class="course-instructor">강사: 에이스</div><div class="course-footer"><span class="course-students">👥 34명</span><span class="course-price">₩40,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-1" data-cat="faith">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);">🌿</div>
-        <div class="course-body"><div class="course-cat">신앙</div><div class="course-title">그리스도인의 12가지 질문</div><div class="course-instructor">강사: 플라티나</div><div class="course-footer"><span class="course-students">👥 61명</span><span class="course-price">₩24,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-2" data-cat="mission">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#d4eddf,#a8d5bc);">🏕️</div>
-        <div class="course-body"><div class="course-cat">캠프·사역</div><div class="course-title">초등 가치관 교육 (3C)</div><div class="course-instructor">강사: 트리티움</div><div class="course-footer"><span class="course-students">👥 48명</span><span class="course-price">₩21,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-3" data-cat="english">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#f0f9f4,#d0eadd);">📝</div>
-        <div class="course-body"><div class="course-cat">영어·시험</div><div class="course-title">고졸 검정고시 국어·최신반</div><div class="course-instructor">강사: 에이스</div><div class="course-footer"><span class="course-students">👥 27명</span><span class="course-price">₩100,000</span></div></div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-4" data-cat="edu">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#c8eada,#e8f5ee);">💑</div>
-        <div class="course-body"><div class="course-cat">부모교육</div><div class="course-title">예비결혼학교</div><div class="course-instructor">강사: 그레이스</div><div class="course-footer"><span class="course-students">👥 19명</span><span class="course-price">₩70,000</span></div></div>
-      </a>
+    <div class="courses-grid" id="featured-courses-grid">
+      <p class="loading-text">강좌를 불러오는 중...</p>
     </div>
   </div>
 </section>
@@ -482,7 +304,7 @@
   </div>
 </section>
 
-<!-- ───── 강사 소개 ───── -->
+<!-- ───── 강사 소개 (Supabase 연동) ───── -->
 <section class="section" style="background:var(--gray-100);">
   <div class="container">
     <div class="section-header reveal">
@@ -493,11 +315,8 @@
       </div>
       <a href="instructor.html" class="see-all">전체 보기 →</a>
     </div>
-    <div class="instructors-grid">
-      <div class="instructor-card reveal"><div class="instructor-avatar">👨‍🏫</div><div class="instructor-name">이수열</div><div class="instructor-role">대표 · 신앙 강사</div><div class="instructor-desc">아이엠러닝 대표. CBUP 및 트리플 스쿨 총괄 강사.</div></div>
-      <div class="instructor-card reveal reveal-delay-1"><div class="instructor-avatar">👩‍🏫</div><div class="instructor-name">트리티움</div><div class="instructor-role">신앙·사역 강사</div><div class="instructor-desc">트리플 스쿨 전문 강사. 그리스도인의 삶과 직업관 교육.</div></div>
-      <div class="instructor-card reveal reveal-delay-2"><div class="instructor-avatar">👩‍💼</div><div class="instructor-name">그레이스</div><div class="instructor-role">부모·교사 교육 강사</div><div class="instructor-desc">부모대안학교 및 예비결혼학교 전담 강사.</div></div>
-      <div class="instructor-card reveal reveal-delay-3"><div class="instructor-avatar">👨‍💻</div><div class="instructor-name">에이스</div><div class="instructor-role">영어·검정고시 강사</div><div class="instructor-desc">영단속 영어 시리즈 및 검정고시 전문 강사.</div></div>
+    <div class="instructors-grid" id="instructors-grid">
+      <p class="loading-text">강사 정보를 불러오는 중...</p>
     </div>
   </div>
 </section>
@@ -520,18 +339,15 @@
   </div>
 </section>
 
-<!-- ───── 공지사항 ───── -->
+<!-- ───── 공지사항 (Supabase 연동) ───── -->
 <section class="section-sm" style="background:var(--gray-100);">
   <div class="container">
     <div class="section-header reveal">
       <div><p class="section-eyebrow">Notice</p><h2 class="section-title">공지사항</h2></div>
       <a href="notice.html" class="see-all">전체 보기 →</a>
     </div>
-    <div class="notice-list reveal">
-      <div class="notice-item"><span class="notice-badge">공지</span><span class="notice-title">2024년 하반기 신규 강좌 오픈 안내</span><span class="notice-date">2024.11.01</span></div>
-      <div class="notice-item"><span class="notice-badge">이벤트</span><span class="notice-title">겨울 특별 할인 프로모션 — 최대 30% 할인</span><span class="notice-date">2024.11.15</span></div>
-      <div class="notice-item"><span class="notice-badge">공지</span><span class="notice-title">사이트 리뉴얼 오픈 안내</span><span class="notice-date">2024.10.20</span></div>
-      <div class="notice-item"><span class="notice-badge">안내</span><span class="notice-title">CBUP 4세대 수료과정 모집 마감 임박</span><span class="notice-date">2024.10.10</span></div>
+    <div class="notice-list reveal" id="notice-list">
+      <p class="loading-text">공지사항을 불러오는 중...</p>
     </div>
   </div>
 </section>
@@ -575,6 +391,7 @@
 </footer>
 
 <script src="js/main.js"></script>
+<script src="js/supabase-client.js"></script>
 <script>
 // ───── 캐러셀 ─────
 const slides = document.querySelectorAll('.hero-slide');
@@ -582,7 +399,6 @@ const dots = document.querySelectorAll('.carousel-dot');
 const progress = document.getElementById('carousel-progress');
 let current = 0;
 let timer = null;
-let progTimer = null;
 
 function goSlide(n) {
   slides[current].classList.remove('active');
@@ -592,23 +408,84 @@ function goSlide(n) {
   dots[current].classList.add('active');
   startProgress();
 }
-
-function nextSlide() {
-  goSlide((current + 1) % slides.length);
-}
-
+function nextSlide() { goSlide((current + 1) % slides.length); }
 function startProgress() {
   clearInterval(timer);
   progress.style.transition = 'none';
   progress.style.width = '0%';
-  setTimeout(() => {
-    progress.style.transition = 'width 5s linear';
-    progress.style.width = '100%';
-  }, 50);
+  setTimeout(() => { progress.style.transition = 'width 5s linear'; progress.style.width = '100%'; }, 50);
   timer = setInterval(nextSlide, 5000);
 }
-
 startProgress();
+
+// ───── Supabase: 추천 강좌 불러오기 ─────
+async function loadFeaturedCourses() {
+  const grid = document.getElementById('featured-courses-grid');
+  try {
+    const courses = await fetchCourses({ featured: true });
+    if (!courses || courses.length === 0) {
+      grid.innerHTML = '<p class="loading-text">아직 등록된 추천 강좌가 없어요. 관리자 페이지에서 강좌를 추가하고 "메인에 표시"로 설정해주세요!</p>';
+      return;
+    }
+    grid.innerHTML = courses.map(renderCourseCard).join('');
+    initCatTabs();
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = '<p class="loading-text">강좌를 불러오지 못했어요.</p>';
+  }
+}
+
+// ───── Supabase: 강사 목록 불러오기 ─────
+async function loadInstructors() {
+  const grid = document.getElementById('instructors-grid');
+  try {
+    const instructors = await fetchInstructors();
+    if (!instructors || instructors.length === 0) {
+      grid.innerHTML = '<p class="loading-text">아직 등록된 강사가 없어요. 관리자 페이지에서 강사를 추가해주세요!</p>';
+      return;
+    }
+    grid.innerHTML = instructors.map(i => `
+      <div class="instructor-card reveal">
+        <div class="instructor-avatar" style="overflow:hidden;">
+          ${i.photo_url ? `<img src="${i.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
+        </div>
+        <div class="instructor-name">${i.name}</div>
+        <div class="instructor-role">${i.role || ''}</div>
+        <div class="instructor-desc">${i.bio || ''}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = '<p class="loading-text">강사 정보를 불러오지 못했어요.</p>';
+  }
+}
+
+// ───── Supabase: 공지사항 불러오기 ─────
+async function loadNotices() {
+  const list = document.getElementById('notice-list');
+  try {
+    const notices = await fetchNotices(4);
+    if (!notices || notices.length === 0) {
+      list.innerHTML = '<p class="loading-text">아직 등록된 공지사항이 없어요.</p>';
+      return;
+    }
+    const TYPE_LABELS = { notice: '공지', event: '이벤트', info: '안내' };
+    list.innerHTML = notices.map(n => `
+      <div class="notice-item">
+        <span class="notice-badge">${TYPE_LABELS[n.type] || '공지'}</span>
+        <span class="notice-title">${n.title}</span>
+        <span class="notice-date">${n.notice_date}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = '<p class="loading-text">공지사항을 불러오지 못했어요.</p>';
+  }
+}
+
+loadFeaturedCourses();
+loadInstructors();
+loadNotices();
 </script>
 </body>
 </html>
