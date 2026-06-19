@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강좌 관리 — 아이엠러닝 관리자</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background: #F8F9FA; }
+    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
+    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
+    .admin-logo span { color: #2D9B6F; }
+    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
+    .admin-nav { padding: 1rem 0; }
+    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
+    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all 0.2s; text-decoration: none; }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
+    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
+    .admin-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
+    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
+    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
+    .admin-card-body { padding: 1.5rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; background: #fff; color: var(--black); }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #2D9B6F; }
+    .form-textarea { height: 100px; resize: vertical; }
+    .form-hint { font-size: 11px; color: #6B6B6B; margin-top: 4px; }
+    .form-actions { grid-column: 1/-1; display: flex; gap: 10px; justify-content: flex-end; padding-top: 0.5rem; }
+    .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-save:hover { background: #1A7A4A; }
+    .btn-save:disabled { background: #C4C4C4; cursor: not-allowed; }
+    .btn-cancel { padding: 10px 20px; background: #fff; color: #6B6B6B; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+    .thumb-upload { width: 100%; aspect-ratio: 16/9; background: #F5F5F5; border: 2px dashed #C4C4C4; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+    .thumb-upload:hover { border-color: #2D9B6F; background: #E8F5EE; }
+    .thumb-upload img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .thumb-upload-text { font-size: 13px; color: #6B6B6B; margin-top: 8px; }
+    .thumb-upload-icon { font-size: 28px; }
+
+    .admin-table { width: 100%; border-collapse: collapse; }
+    .admin-table th { padding: 10px 1rem; text-align: left; font-size: 11px; font-weight: 700; color: #6B6B6B; text-transform: uppercase; letter-spacing: 0.5px; background: #F8F9FA; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .admin-table td { padding: 12px 1rem; font-size: 13px; color: #3D3D3D; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: middle; }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: rgba(45,155,111,0.02); }
+    .course-thumb-sm { width: 60px; height: 38px; border-radius: 6px; object-fit: cover; background: #E8F5EE; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-active { background: #DCFCE7; color: #16A34A; }
+    .badge-hidden { background: #F5F5F5; color: #6B6B6B; }
+    .badge-promo { background: #FEF3C7; color: #D97706; }
+    .action-btns { display: flex; gap: 6px; }
+    .btn-sm-edit { padding: 5px 12px; font-size: 11px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; color: #3D3D3D; background: #fff; cursor: pointer; transition: all 0.2s; }
+    .btn-sm-edit:hover { border-color: #2D9B6F; color: #2D9B6F; }
+    .btn-sm-del { padding: 5px 12px; font-size: 11px; border: 1px solid #FCA5A5; border-radius: 6px; color: #EF4444; background: #fff; cursor: pointer; transition: all 0.2s; }
+    .btn-sm-del:hover { background: #FEE2E2; }
+
+    .success-toast { display: none; position: fixed; top: 1.5rem; right: 1.5rem; background: #2D9B6F; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .success-toast.show { display: block; animation: slideIn 0.3s ease; }
+    .success-toast.error { background: #EF4444; }
+    @keyframes slideIn { from{transform:translateX(100px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    .toggle-form-btn { padding: 8px 18px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 1rem; }
+    .search-input { flex: 1; padding: 8px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #2D9B6F; }
+    .loading-row { text-align: center; padding: 2rem; color: #6B6B6B; }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">메인</div>
+      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
+      <div class="admin-nav-section">강좌 관리</div>
+      <a href="courses.html" class="admin-nav-item active"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
+      <a href="instructors.html" class="admin-nav-item"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
+      <div class="admin-nav-section">프로모션</div>
+      <a href="promotions.html" class="admin-nav-item"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
+      <div class="admin-nav-section">콘텐츠</div>
+      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
+      <a href="banners.html" class="admin-nav-item"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
+      <div class="admin-nav-section">설정</div>
+      <a href="settings.html" class="admin-nav-item"><span class="admin-nav-icon">⚙️</span> 사이트 설정</a>
+      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
+      <a href="login.html" class="admin-nav-item" onclick="logout();return false;"><span class="admin-nav-icon">🚪</span> 로그아웃</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <h1>📚 강좌 관리</h1>
+      <button class="toggle-form-btn" onclick="toggleForm()">+ 새 강좌 추가</button>
+    </div>
+
+    <!-- 강좌 추가 폼 -->
+    <div class="admin-card" id="course-form" style="display:none;">
+      <div class="admin-card-header">
+        <span class="admin-card-title" id="form-title">새 강좌 추가</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="form-grid">
+
+          <div class="form-group full">
+            <label class="form-label">강좌 썸네일</label>
+            <div class="thumb-upload" onclick="document.getElementById('thumb-input').click()" id="thumb-preview">
+              <div class="thumb-upload-icon">🖼️</div>
+              <div class="thumb-upload-text">클릭해서 이미지 업로드</div>
+              <img id="thumb-img" src="" style="display:none;">
+            </div>
+            <input type="file" id="thumb-input" accept="image/*" style="display:none;" onchange="previewThumb(this)">
+            <div class="form-hint">권장 사이즈: 1280×720px (16:9)</div>
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">강좌 제목</label>
+            <input class="form-input" type="text" id="course-title" placeholder="예: [4세대] CBUP 수료과정">
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">강좌 설명</label>
+            <textarea class="form-textarea" id="course-desc" placeholder="강좌에 대한 간단한 설명을 입력해주세요"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">카테고리</label>
+            <select class="form-select" id="course-cat">
+              <option value="">카테고리 선택</option>
+              <option value="faith">신앙</option>
+              <option value="edu">교사·부모</option>
+              <option value="mission">캠프·사역</option>
+              <option value="english">영어·시험</option>
+              <option value="freepass">전강좌 무제한</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">담당 강사</label>
+            <select class="form-select" id="course-instructor">
+              <option value="">강사 선택</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">정가</label>
+            <input class="form-input" type="number" id="course-price" placeholder="예: 650000">
+            <div class="form-hint">숫자만 입력 (원 단위)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">강의 수</label>
+            <input class="form-input" type="number" id="course-lessons" placeholder="예: 44">
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">Vimeo 강의 링크</label>
+            <input class="form-input" type="url" id="course-vimeo" placeholder="예: https://vimeo.com/123456789">
+            <div class="form-hint">Vimeo 영상 URL을 입력해주세요. 강의 상세 페이지에 자동으로 표시됩니다.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">공개 상태</label>
+            <select class="form-select" id="course-status">
+              <option value="active">판매중</option>
+              <option value="hidden">비공개</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">추천 강좌 표시</label>
+            <select class="form-select" id="course-featured">
+              <option value="false">표시 안 함</option>
+              <option value="true">메인에 표시</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-cancel" onclick="toggleForm()">취소</button>
+            <button class="btn-save" id="save-btn" onclick="saveCourse()">강좌 저장하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 강좌 목록 -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">강좌 목록 <span id="course-count" style="color:#2D9B6F;"></span></span>
+        <div class="search-bar" style="margin:0;">
+          <input class="search-input" type="text" placeholder="강좌 검색..." oninput="filterCourses(this.value)" style="width:200px;">
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>썸네일</th>
+              <th>강좌명</th>
+              <th>카테고리</th>
+              <th>강사</th>
+              <th>가격</th>
+              <th>Vimeo</th>
+              <th>상태</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="courses-tbody">
+            <tr><td colspan="8" class="loading-row">강좌 목록을 불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="success-toast" id="toast"></div>
+
+<script src="../js/main.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script>
+if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
+function logout() { sessionStorage.removeItem('admin_auth'); window.location.href = 'login.html'; }
+
+const CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+let courses = [];
+let editingId = null;
+let thumbData = null;
+
+function toggleForm(id) {
+  const form = document.getElementById('course-form');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    if (!id) resetForm();
+    form.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    form.style.display = 'none';
+    resetForm();
+  }
+}
+
+function resetForm() {
+  editingId = null;
+  thumbData = null;
+  document.getElementById('form-title').textContent = '새 강좌 추가';
+  document.getElementById('course-title').value = '';
+  document.getElementById('course-desc').value = '';
+  document.getElementById('course-cat').value = '';
+  document.getElementById('course-instructor').value = '';
+  document.getElementById('course-price').value = '';
+  document.getElementById('course-lessons').value = '';
+  document.getElementById('course-vimeo').value = '';
+  document.getElementById('course-status').value = 'active';
+  document.getElementById('course-featured').value = 'false';
+  document.getElementById('thumb-img').style.display = 'none';
+  document.getElementById('thumb-img').src = '';
+}
+
+function previewThumb(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    thumbData = e.target.result;
+    document.getElementById('thumb-img').src = thumbData;
+    document.getElementById('thumb-img').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveCourse() {
+  const title = document.getElementById('course-title').value.trim();
+  if (!title) { alert('강좌 제목을 입력해주세요'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  const courseData = {
+    title,
+    description: document.getElementById('course-desc').value,
+    category: document.getElementById('course-cat').value,
+    instructor: document.getElementById('course-instructor').value,
+    price: document.getElementById('course-price').value ? Number(document.getElementById('course-price').value) : null,
+    lessons: document.getElementById('course-lessons').value ? Number(document.getElementById('course-lessons').value) : null,
+    vimeo_url: document.getElementById('course-vimeo').value,
+    status: document.getElementById('course-status').value,
+    featured: document.getElementById('course-featured').value === 'true',
+    thumbnail_url: thumbData || null,
+  };
+
+  try {
+    let error;
+    if (editingId) {
+      const result = await supabaseClient.from('courses').update(courseData).eq('id', editingId);
+      error = result.error;
+    } else {
+      const result = await supabaseClient.from('courses').insert(courseData);
+      error = result.error;
+    }
+
+    if (error) {
+      console.error(error);
+      showToast('저장 중 오류가 발생했습니다: ' + error.message, true);
+      btn.disabled = false;
+      btn.textContent = '강좌 저장하기';
+      return;
+    }
+
+    await loadCourses();
+    toggleForm();
+    showToast(editingId ? '강좌가 수정되었습니다!' : '새 강좌가 추가되었습니다!');
+  } catch (err) {
+    console.error(err);
+    showToast('저장 중 오류가 발생했습니다', true);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '강좌 저장하기';
+}
+
+function editCourse(id) {
+  const c = courses.find(c => c.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('form-title').textContent = '강좌 수정';
+  document.getElementById('course-title').value = c.title || '';
+  document.getElementById('course-desc').value = c.description || '';
+  document.getElementById('course-cat').value = c.category || '';
+  document.getElementById('course-instructor').value = c.instructor || '';
+  document.getElementById('course-price').value = c.price || '';
+  document.getElementById('course-lessons').value = c.lessons || '';
+  document.getElementById('course-vimeo').value = c.vimeo_url || '';
+  document.getElementById('course-status').value = c.status || 'active';
+  document.getElementById('course-featured').value = c.featured ? 'true' : 'false';
+  if (c.thumbnail_url) {
+    thumbData = c.thumbnail_url;
+    document.getElementById('thumb-img').src = c.thumbnail_url;
+    document.getElementById('thumb-img').style.display = 'block';
+  }
+  document.getElementById('course-form').style.display = 'block';
+  document.getElementById('course-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteCourse(id) {
+  if (!confirm('정말 이 강좌를 삭제할까요?')) return;
+  try {
+    const { error } = await supabaseClient.from('courses').delete().eq('id', id);
+    if (error) {
+      showToast('삭제 중 오류가 발생했습니다', true);
+      return;
+    }
+    await loadCourses();
+    showToast('강좌가 삭제되었습니다');
+  } catch (err) {
+    showToast('삭제 중 오류가 발생했습니다', true);
+  }
+}
+
+function filterCourses(q) {
+  const rows = document.querySelectorAll('#courses-tbody tr[data-id]');
+  rows.forEach(row => {
+    row.style.display = row.dataset.title.includes(q) ? '' : 'none';
+  });
+}
+
+async function loadCourses() {
+  const tbody = document.getElementById('courses-tbody');
+  try {
+    const { data, error } = await supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="8" class="loading-row">불러오기 실패: ${error.message}</td></tr>`;
+      return;
+    }
+    courses = data || [];
+    renderCourses();
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">불러오기 중 오류가 발생했습니다</td></tr>';
+  }
+}
+
+function renderCourses() {
+  const tbody = document.getElementById('courses-tbody');
+  document.getElementById('course-count').textContent = `(${courses.length}개)`;
+  if (courses.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-row">저장된 강좌가 없어요. 위에서 강좌를 추가해보세요!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = courses.map(c => `
+    <tr data-id="${c.id}" data-title="${c.title}">
+      <td>
+        <div class="course-thumb-sm">
+          ${c.thumbnail_url ? `<img src="${c.thumbnail_url}" style="width:60px;height:38px;object-fit:cover;border-radius:6px;">` : '📚'}
+        </div>
+      </td>
+      <td style="font-weight:600;max-width:200px;">${c.title}</td>
+      <td>${CAT_LABELS[c.category] || '-'}</td>
+      <td>${c.instructor || '-'}</td>
+      <td>${c.price ? '₩' + Number(c.price).toLocaleString() : '-'}</td>
+      <td>${c.vimeo_url ? `<a href="${c.vimeo_url}" target="_blank" style="color:#2D9B6F;font-size:12px;">링크 ↗</a>` : '-'}</td>
+      <td>
+        <span class="badge ${c.status === 'active' ? 'badge-active' : 'badge-hidden'}">
+          ${c.status === 'active' ? '판매중' : '비공개'}
+        </span>
+        ${c.featured ? '<span class="badge badge-promo" style="margin-left:4px;">추천</span>' : ''}
+      </td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-sm-edit" onclick="editCourse('${c.id}')">수정</button>
+          <button class="btn-sm-del" onclick="deleteCourse('${c.id}')">삭제</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function showToast(msg, isError) {
+  const toast = document.getElementById('toast');
+  toast.textContent = (isError ? '❌ ' : '✅ ') + msg;
+  toast.className = 'success-toast show' + (isError ? ' error' : '');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+async function loadInstructors() {
+  try {
+    const { data, error } = await supabaseClient.from('instructors').select('*');
+    if (error) return;
+    const sel = document.getElementById('course-instructor');
+    (data || []).forEach(i => {
+      const opt = document.createElement('option');
+      opt.value = i.name;
+      opt.textContent = i.name;
+      sel.appendChild(opt);
+    });
+  } catch (err) { console.error(err); }
+}
+
+loadInstructors();
+loadCourses();
+</script>
+</body>
+</html>
