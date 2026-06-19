@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원가입 — 아이엠러닝</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    body { background: var(--gray-100); min-height: 100vh; }
+    .auth-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .auth-card { width: 100%; max-width: 420px; background: #fff; border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+    .auth-logo { text-align: center; margin-bottom: 1.5rem; }
+    .auth-logo-text { font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
+    .auth-logo-text span { color: #2D9B6F; }
+    .auth-title { font-size: 20px; font-weight: 700; color: var(--black); text-align: center; margin-bottom: 6px; }
+    .auth-desc { font-size: 13px; color: var(--gray-500); text-align: center; margin-bottom: 2rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 12px 14px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s; }
+    .form-input:focus { outline: none; border-color: #2D9B6F; }
+    .form-hint { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+    .submit-btn { width: 100%; padding: 13px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; margin-top: 0.5rem; }
+    .submit-btn:hover { background: #1A7A4A; }
+    .submit-btn:disabled { background: #C4C4C4; cursor: not-allowed; }
+
+    .divider { display: flex; align-items: center; gap: 10px; margin: 1.5rem 0; }
+    .divider-line { flex: 1; height: 1px; background: rgba(0,0,0,0.08); }
+    .divider-text { font-size: 12px; color: var(--gray-500); white-space: nowrap; }
+
+    .social-btn {
+      width: 100%; padding: 12px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; display: flex; align-items: center;
+      justify-content: center; gap: 10px; margin-bottom: 10px;
+      transition: all 0.2s; border: 1.5px solid rgba(0,0,0,0.1);
+      background: #fff; color: #3D3D3D;
+    }
+    .social-btn:hover { background: #F8F9FA; border-color: rgba(0,0,0,0.18); }
+    .social-btn.kakao { background: #FEE500; border-color: #FEE500; color: #191919; }
+    .social-btn.kakao:hover { background: #FDD835; }
+    .social-icon { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .social-icon svg { width: 100%; height: 100%; }
+
+    .auth-footer { text-align: center; margin-top: 1.5rem; font-size: 13px; color: var(--gray-500); }
+    .auth-footer a { color: #2D9B6F; font-weight: 600; text-decoration: none; }
+
+    .error-msg { display: none; background: #FEE2E2; color: #EF4444; font-size: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 1rem; }
+    .error-msg.show { display: block; }
+    .success-msg { display: none; background: #DCFCE7; color: #16A34A; font-size: 13px; padding: 14px; border-radius: 8px; margin-bottom: 1rem; text-align: center; line-height: 1.6; }
+    .success-msg.show { display: block; }
+
+    .terms-check { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 1.25rem; font-size: 12px; color: var(--gray-600); }
+    .terms-check input { margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <span class="navbar-logo-text">아이엠<span>러닝</span></span>
+    </a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-text">아이엠<span>러닝</span></div>
+    </div>
+    <div class="auth-title">회원가입</div>
+    <div class="auth-desc">아이엠러닝과 함께 배움을 시작해보세요</div>
+
+    <div class="error-msg" id="error-msg"></div>
+    <div class="success-msg" id="success-msg">
+      ✅ 회원가입이 완료되었습니다!<br>
+      <span style="font-size:12px;">인증 메일을 확인해주세요. 잠시 후 로그인 페이지로 이동합니다.</span>
+    </div>
+
+    <!-- 이메일 회원가입 폼 -->
+    <form id="signup-form" onsubmit="handleSignup(event)">
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input class="form-input" type="text" id="name" placeholder="홍길동" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input class="form-input" type="email" id="email" placeholder="example@email.com" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">전화번호</label>
+        <input class="form-input" type="tel" id="phone" placeholder="010-1234-5678" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <input class="form-input" type="password" id="password" placeholder="8자 이상 입력해주세요" minlength="8" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호 확인</label>
+        <input class="form-input" type="password" id="password-confirm" placeholder="비밀번호를 다시 입력해주세요" minlength="8" required>
+      </div>
+
+      <div class="terms-check">
+        <input type="checkbox" id="terms" required>
+        <label for="terms">이용약관 및 개인정보처리방침에 동의합니다 (필수)</label>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">회원가입하기</button>
+    </form>
+
+    <div class="divider" id="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">또는 소셜 계정으로 가입</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- 소셜 회원가입 -->
+    <button class="social-btn" id="google-btn" onclick="signupWithGoogle()">
+      <span class="social-icon">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+          <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+          <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+          <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+        </svg>
+      </span>
+      구글로 가입하기
+    </button>
+    <button class="social-btn kakao" id="kakao-btn" onclick="signupWithKakao()">
+      <span class="social-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#191919" d="M12 3C6.477 3 2 6.477 2 10.8c0 2.764 1.827 5.197 4.572 6.6-.2.74-.726 2.69-.832 3.107-.13.516.19.51.4.37.165-.11 2.62-1.78 3.687-2.5.7.103 1.426.156 2.173.156 5.523 0 10-3.477 10-7.733C22 6.477 17.523 3 12 3z"/>
+        </svg>
+      </span>
+      카카오로 가입하기
+    </button>
+
+    <div class="auth-footer">
+      이미 계정이 있으신가요? <a href="login.html">로그인</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase-client.js"></script>
+<script>
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = '❌ ' + msg;
+  el.classList.add('show');
+}
+
+async function handleSignup(e) {
+  e.preventDefault();
+  document.getElementById('error-msg').classList.remove('show');
+
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const password = document.getElementById('password').value;
+  const passwordConfirm = document.getElementById('password-confirm').value;
+
+  if (password !== passwordConfirm) {
+    showError('비밀번호가 일치하지 않습니다');
+    return;
+  }
+  if (password.length < 8) {
+    showError('비밀번호는 8자 이상이어야 합니다');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '가입 처리 중...';
+
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+
+    if (error) {
+      showError(error.message === 'User already registered' ? '이미 가입된 이메일입니다' : error.message);
+      btn.disabled = false;
+      btn.textContent = '회원가입하기';
+      return;
+    }
+
+    if (data.user) {
+      const { error: profileError } = await supabaseClient.from('profiles').insert({
+        id: data.user.id,
+        email: email,
+        name: name,
+        phone: phone,
+      });
+      if (profileError) console.error('프로필 저장 실패:', profileError);
+    }
+
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('divider').style.display = 'none';
+    document.getElementById('google-btn').style.display = 'none';
+    document.getElementById('kakao-btn').style.display = 'none';
+    document.getElementById('success-msg').classList.add('show');
+
+    setTimeout(() => { window.location.href = 'login.html'; }, 2500);
+
+  } catch (err) {
+    showError('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+    btn.disabled = false;
+    btn.textContent = '회원가입하기';
+  }
+}
+
+async function signupWithGoogle() {
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname.replace('signup.html', 'index.html') }
+  });
+  if (error) showError('구글 로그인 중 오류가 발생했습니다');
+}
+
+async function signupWithKakao() {
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'kakao',
+    options: { redirectTo: window.location.origin + window.location.pathname.replace('signup.html', 'index.html') }
+  });
+  if (error) showError('카카오 로그인 중 오류가 발생했습니다');
+}
+</script>
+</body>
+</html>
