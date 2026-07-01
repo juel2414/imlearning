@@ -211,14 +211,8 @@ const PORTONE_CHANNEL_KEY = 'channel-key-5a9eefc4-62a6-4e47-adf1-544cd44f14c2';
 // ───── 현재 강좌 정보 ─────
 let currentCourse = null;
 
-// ───── 카테고리 한글 변환 ─────
-const CATEGORY_LABELS = {
-  faith: '신앙',
-  edu: '교사·부모',
-  mission: '캠프·사역',
-  english: '영어·시험',
-  freepass: '전강좌 무제한',
-};
+// ───── 카테고리 한글 변환 (supabase-client.js에서 공유) ─────
+// CATEGORY_LABELS는 supabase-client.js에 이미 선언되어 있음
 
 // ───── 강좌 데이터 불러오기 ─────
 async function loadCourse() {
