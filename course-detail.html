@@ -1,65 +1,60 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBUP 수료과정 — 아이엠러닝</title>
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    .detail-hero { background: linear-gradient(160deg, #f0faf5 0%, #fff 100%); padding: 3rem 0; }
-    .detail-inner { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
-    .detail-breadcrumb { font-size: 12px; color: var(--gray-500); margin-bottom: 1rem; }
-    .detail-breadcrumb a { color: var(--green); }
-    .detail-cat { font-size: 12px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-    .detail-title { font-size: 32px; font-weight: 800; color: var(--black); line-height: 1.3; letter-spacing: -0.5px; margin-bottom: 14px; }
-    .detail-desc { font-size: 16px; color: var(--gray-500); line-height: 1.75; margin-bottom: 1.5rem; }
-    .detail-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .detail-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray-700); }
-    .detail-meta-icon { font-size: 16px; }
-    .detail-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 2.5rem; }
-    .detail-tab { padding: 12px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; cursor: pointer; transition: all var(--transition); }
-    .detail-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* 커리큘럼 */
-    .curriculum-section { margin-bottom: 2rem; }
-    .curriculum-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 10px; }
-    .curriculum-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 14px; color: var(--gray-700); }
-    .curriculum-num { width: 24px; height: 24px; background: var(--green-light); color: var(--green-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-    .curriculum-lock { margin-left: auto; font-size: 14px; color: var(--gray-300); }
-
-    /* 구매 카드 */
-    .purchase-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); position: sticky; top: 80px; }
-    .purchase-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 1.25rem; }
-    .purchase-original { font-size: 14px; color: var(--gray-300); text-decoration: line-through; margin-bottom: 4px; }
-    .purchase-price { font-size: 32px; font-weight: 900; color: var(--black); letter-spacing: -1px; margin-bottom: 4px; }
-    .purchase-discount { display: inline-flex; align-items: center; gap: 4px; background: #FEF3C7; color: #D97706; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 1.25rem; }
-    .purchase-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
-    .purchase-option { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--gray-700); }
-    .purchase-option span:last-child { font-weight: 600; color: var(--black); }
-    .purchase-btns { display: flex; flex-direction: column; gap: 8px; }
-    .purchase-btns .btn { justify-content: center; }
-    .purchase-includes { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(0,0,0,0.06); }
-    .purchase-includes-title { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-    .purchase-include-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-700); margin-bottom: 6px; }
-    .purchase-include-item::before { content: '✓'; color: var(--green); font-weight: 700; }
-
-    /* 강사 카드 */
-    .instructor-detail { display: flex; gap: 1.25rem; align-items: flex-start; padding: 1.5rem; background: var(--gray-100); border-radius: var(--radius-md); }
-    .instructor-detail-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
-    .instructor-detail-name { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
-    .instructor-detail-role { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: 8px; }
-    .instructor-detail-bio { font-size: 13px; color: var(--gray-500); line-height: 1.7; }
-
-    @media (max-width: 768px) {
-      .detail-inner { grid-template-columns: 1fr; }
-      .purchase-card { position: static; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>강좌 상세 — 아이엠러닝</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.detail-hero { background: linear-gradient(160deg, #f0faf5 0%, #fff 100%); padding: 3rem 0; }
+.detail-inner { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
+.detail-breadcrumb { font-size: 12px; color: var(--gray-500); margin-bottom: 1rem; }
+.detail-breadcrumb a { color: var(--green); }
+.detail-cat { font-size: 12px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.detail-title { font-size: 32px; font-weight: 800; color: var(--black); line-height: 1.3; letter-spacing: -0.5px; margin-bottom: 14px; }
+.detail-desc { font-size: 16px; color: var(--gray-500); line-height: 1.75; margin-bottom: 1.5rem; }
+.detail-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.detail-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray-700); }
+.detail-meta-icon { font-size: 16px; }
+.detail-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 2.5rem; }
+.detail-tab { padding: 12px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; cursor: pointer; transition: all var(--transition); }
+.detail-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.curriculum-section { margin-bottom: 2rem; }
+.curriculum-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 10px; }
+.curriculum-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 14px; color: var(--gray-700); }
+.curriculum-num { width: 24px; height: 24px; background: var(--green-light); color: var(--green-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.curriculum-lock { margin-left: auto; font-size: 14px; color: var(--gray-300); }
+.purchase-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); position: sticky; top: 80px; }
+.purchase-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 1.25rem; }
+.purchase-original { font-size: 14px; color: var(--gray-300); text-decoration: line-through; margin-bottom: 4px; }
+.purchase-price { font-size: 32px; font-weight: 900; color: var(--black); letter-spacing: -1px; margin-bottom: 4px; }
+.purchase-discount { display: inline-flex; align-items: center; gap: 4px; background: #FEF3C7; color: #D97706; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 1.25rem; }
+.purchase-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+.purchase-option { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--gray-700); }
+.purchase-option span:last-child { font-weight: 600; color: var(--black); }
+.purchase-btns { display: flex; flex-direction: column; gap: 8px; }
+.purchase-btns .btn { justify-content: center; }
+.purchase-includes { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(0,0,0,0.06); }
+.purchase-includes-title { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.purchase-include-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray-700); margin-bottom: 6px; }
+.purchase-include-item::before { content: '✓'; color: var(--green); font-weight: 700; }
+.instructor-detail { display: flex; gap: 1.25rem; align-items: flex-start; padding: 1.5rem; background: var(--gray-100); border-radius: var(--radius-md); }
+.instructor-detail-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+.instructor-detail-name { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
+.instructor-detail-role { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: 8px; }
+.instructor-detail-bio { font-size: 13px; color: var(--gray-500); line-height: 1.7; }
+/* 로딩 상태 */
+.loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (max-width: 768px) {
+  .detail-inner { grid-template-columns: 1fr; }
+  .purchase-card { position: static; }
+}
+</style>
 </head>
 <body>
-
 <nav class="navbar">
   <div class="navbar-inner">
     <a href="index.html" class="navbar-logo">
@@ -74,8 +69,8 @@
       <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
     </ul>
     <div class="navbar-right">
-      <a href="#" class="btn btn-outline btn-sm">로그인</a>
-      <a href="#" class="btn btn-primary btn-sm">회원가입</a>
+      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
     </div>
   </div>
 </nav>
@@ -83,30 +78,25 @@
 <section class="detail-hero">
   <div class="container">
     <div class="detail-breadcrumb">
-      <a href="index.html">홈</a> / <a href="courses.html">강좌</a> / <a href="courses.html?cat=edu">교사교육</a> / CBUP 수료과정
+      <a href="index.html">홈</a> / <a href="courses.html">강좌</a> / <span id="breadcrumb-cat">강좌</span> / <span id="breadcrumb-title">불러오는 중...</span>
     </div>
     <div class="detail-inner">
       <div>
-        <div class="detail-cat">교사교육 · CBUP</div>
-        <h1 class="detail-title">[4세대] CBUP 수료과정</h1>
-        <p class="detail-desc">교회학교 교사를 위한 핵심 사역 훈련 과정. 성경적 세계관과 실전 교수법을 통해 진정한 교사로 세워집니다.</p>
+        <div class="detail-cat" id="course-category">불러오는 중...</div>
+        <h1 class="detail-title" id="course-title">불러오는 중...</h1>
+        <p class="detail-desc" id="course-desc"></p>
         <div class="detail-meta">
-          <div class="detail-meta-item"><span class="detail-meta-icon">👥</span> 수강생 279명</div>
+          <div class="detail-meta-item"><span class="detail-meta-icon">👥</span> <span id="course-students">-</span>명</div>
           <div class="detail-meta-item"><span class="detail-meta-icon">⭐</span> 4.9점</div>
-          <div class="detail-meta-item"><span class="detail-meta-icon">📹</span> 강의 44개</div>
           <div class="detail-meta-item"><span class="detail-meta-icon">♾️</span> 무제한 재수강</div>
           <div class="detail-meta-item"><span class="detail-meta-icon">📱</span> 모바일 수강 가능</div>
         </div>
-
-        <!-- 탭 -->
         <div class="detail-tabs">
           <div class="detail-tab active" onclick="switchTab('intro', this)">강좌 소개</div>
           <div class="detail-tab" onclick="switchTab('curriculum', this)">커리큘럼</div>
           <div class="detail-tab" onclick="switchTab('instructor', this)">강사 소개</div>
           <div class="detail-tab" onclick="switchTab('review', this)">수강 후기</div>
         </div>
-
-        <!-- 강좌 소개 -->
         <div class="tab-content active" id="tab-intro">
           <h3 style="font-size:18px;font-weight:800;margin-bottom:1rem;color:var(--black);">이런 분들에게 추천해요</h3>
           <ul style="margin-bottom:2rem;">
@@ -122,8 +112,6 @@
             <li style="padding:8px 0;font-size:14px;color:var(--gray-700);">🎯 교회학교 커리큘럼을 직접 설계할 수 있어요</li>
           </ul>
         </div>
-
-        <!-- 커리큘럼 -->
         <div class="tab-content" id="tab-curriculum">
           <div class="curriculum-section">
             <div class="curriculum-title">1강 ~ 10강 · 성경적 세계관 기초</div>
@@ -143,38 +131,21 @@
             🔓 첫 2강은 무료로 미리 볼 수 있어요
           </div>
         </div>
-
-        <!-- 강사 소개 -->
         <div class="tab-content" id="tab-instructor">
           <div class="instructor-detail">
             <div class="instructor-detail-avatar">👨‍🏫</div>
             <div>
-              <div class="instructor-detail-name">트리티움</div>
+              <div class="instructor-detail-name" id="instructor-name">-</div>
               <div class="instructor-detail-role">신앙·사역 강사</div>
-              <div class="instructor-detail-bio">아이엠러닝 대표 강사. 20년 이상의 교회학교 사역 경험을 바탕으로 CBUP 및 트리플 스쿨 커리큘럼을 설계했습니다. 성경적 세계관 교육의 이론과 현장 적용을 전문으로 합니다.</div>
+              <div class="instructor-detail-bio">아이엠러닝 대표 강사. 20년 이상의 교회학교 사역 경험을 바탕으로 CBUP 및 트리플 스쿨 커리큘럼을 설계했습니다.</div>
             </div>
           </div>
         </div>
-
-        <!-- 수강 후기 -->
         <div class="tab-content" id="tab-review">
-          <div class="reviews-grid" style="grid-template-columns:1fr;">
-            <div class="review-card">
-              <div class="review-stars">★★★★★</div>
-              <p class="review-text">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 이론과 실제가 균형 있게 잘 짜여있어서 현장에 바로 적용할 수 있었습니다."</p>
-              <div class="review-author">
-                <div class="review-avatar">😊</div>
-                <div><div class="review-name">김○○ 집사</div><div class="review-course">2024년 4월 수강</div></div>
-              </div>
-            </div>
-            <div class="review-card">
-              <div class="review-stars">★★★★★</div>
-              <p class="review-text">"교사로서 어떤 마음을 가져야 하는지, 어떻게 가르쳐야 하는지 명확하게 배웠어요. 사역의 본질을 다시 붙잡게 해준 귀한 과정입니다."</p>
-              <div class="review-author">
-                <div class="review-avatar">🙂</div>
-                <div><div class="review-name">박○○ 교사</div><div class="review-course">2024년 6월 수강</div></div>
-              </div>
-            </div>
+          <div class="review-card" style="padding:1.5rem;background:var(--gray-100);border-radius:var(--radius-md);margin-bottom:1rem;">
+            <div style="color:#F59E0B;margin-bottom:8px;">★★★★★</div>
+            <p style="font-size:14px;color:var(--gray-700);margin-bottom:1rem;">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 이론과 실제가 균형 있게 잘 짜여있어서 현장에 바로 적용할 수 있었습니다."</p>
+            <div style="font-size:13px;font-weight:700;color:var(--black);">김○○ 집사 <span style="color:var(--gray-500);font-weight:400;">· 2024년 4월 수강</span></div>
           </div>
         </div>
       </div>
@@ -183,21 +154,21 @@
       <aside>
         <div class="purchase-card">
           <div class="purchase-thumb">✝️</div>
-          <div class="purchase-original">₩650,000</div>
-          <div class="purchase-price">₩450,000</div>
-          <div class="purchase-discount">🎯 이달의 강의 31% 할인</div>
+          <div id="purchase-original" class="purchase-original" style="display:none;"></div>
+          <div class="purchase-price" id="purchase-price">불러오는 중...</div>
+          <div class="purchase-discount" id="purchase-discount" style="display:none;">🎯 할인 중</div>
           <div class="purchase-options">
             <div class="purchase-option"><span>강의 수</span><span>44강</span></div>
             <div class="purchase-option"><span>수강 기간</span><span>무제한</span></div>
             <div class="purchase-option"><span>수강 방식</span><span>온라인 영상</span></div>
           </div>
           <div class="purchase-btns">
-            <a href="#" class="btn btn-primary btn-lg">지금 수강 신청하기</a>
-            <a href="#" class="btn btn-outline">장바구니 담기</a>
+            <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
+            <a href="#" class="btn btn-outline" style="text-align:center;">장바구니 담기</a>
           </div>
           <div class="purchase-includes">
             <div class="purchase-includes-title">수강 혜택</div>
-            <div class="purchase-include-item">44개 강의 영상 (HD)</div>
+            <div class="purchase-include-item">강의 영상 (HD)</div>
             <div class="purchase-include-item">강의 자료 PDF 제공</div>
             <div class="purchase-include-item">모바일·PC 어디서나</div>
             <div class="purchase-include-item">무제한 재수강</div>
@@ -205,39 +176,6 @@
           </div>
         </div>
       </aside>
-    </div>
-  </div>
-</section>
-
-<!-- 관련 강좌 -->
-<section class="section-sm">
-  <div class="container">
-    <h2 class="section-title reveal" style="margin-bottom:1.5rem;">이런 강좌도 있어요</h2>
-    <div class="courses-grid">
-      <a href="course-detail.html" class="course-card reveal">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#d4eddf,#a8d5bc);">👨‍👩‍👧</div>
-        <div class="course-body">
-          <div class="course-cat">부모교육</div>
-          <div class="course-title">부모대안학교 1학년</div>
-          <div class="course-footer"><span class="course-students">👥 145명</span><span class="course-price">₩300,000</span></div>
-        </div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-1">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#c8eada,#e8f5ee);">📚</div>
-        <div class="course-body">
-          <div class="course-cat">교사교육</div>
-          <div class="course-title">교회학교 지원센터</div>
-          <div class="course-footer"><span class="course-students">👥 82명</span><span class="course-price">₩350,000</span></div>
-        </div>
-      </a>
-      <a href="course-detail.html" class="course-card reveal reveal-delay-2">
-        <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);">✝️</div>
-        <div class="course-body">
-          <div class="course-cat">신앙</div>
-          <div class="course-title">그리스도인의 12가지 질문</div>
-          <div class="course-footer"><span class="course-students">👥 61명</span><span class="course-price">₩24,000</span></div>
-        </div>
-      </a>
     </div>
   </div>
 </section>
@@ -251,21 +189,143 @@
         <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
       </div>
       <div class="footer-col"><div class="footer-col-title">강좌</div><a href="#">신앙</a><a href="#">교사·부모</a><a href="#">영어·시험</a></div>
-      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="instructor.html">강사 소개</a><a href="contact.html">문의하기</a></div>
-      <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a><a href="#">이용약관</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+      <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a></div>
     </div>
     <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
   </div>
 </footer>
 
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 포트원 SDK -->
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script src="js/supabase-client.js"></script>
 <script src="js/main.js"></script>
+
 <script>
+// ───── 포트원 설정 ─────
+const PORTONE_STORE_ID = 'store-e42ea706-d26a-47af-a1c9-6b28a573d01e';
+const PORTONE_CHANNEL_KEY = 'channel-key-5a9eefc4-62a6-4e47-adf1-544cd44f14c2';
+
+// ───── 현재 강좌 정보 ─────
+let currentCourse = null;
+
+// ───── 카테고리 한글 변환 ─────
+const CATEGORY_LABELS = {
+  faith: '신앙',
+  edu: '교사·부모',
+  mission: '캠프·사역',
+  english: '영어·시험',
+  freepass: '전강좌 무제한',
+};
+
+// ───── 강좌 데이터 불러오기 ─────
+async function loadCourse() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const courseId = urlParams.get('id');
+
+  if (!courseId) {
+    document.getElementById('course-title').textContent = '강좌를 찾을 수 없습니다';
+    document.getElementById('buy-btn').disabled = true;
+    return;
+  }
+
+  const course = await fetchCourseById(courseId);
+  if (!course) {
+    document.getElementById('course-title').textContent = '강좌를 찾을 수 없습니다';
+    document.getElementById('buy-btn').disabled = true;
+    return;
+  }
+
+  currentCourse = course;
+
+  // 기본 정보
+  const catLabel = CATEGORY_LABELS[course.category] || course.category || '';
+  document.getElementById('course-category').textContent = catLabel;
+  document.getElementById('course-title').textContent = course.title;
+  document.getElementById('breadcrumb-title').textContent = course.title;
+  document.getElementById('breadcrumb-cat').textContent = catLabel;
+  document.getElementById('course-desc').textContent = course.description || '';
+  document.getElementById('course-students').textContent = course.students || 0;
+  document.getElementById('instructor-name').textContent = course.instructor || '미정';
+  document.title = course.title + ' — 아이엠러닝';
+
+  // 가격 정보
+  const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
+  document.getElementById('purchase-price').textContent = '₩' + Number(currentPrice).toLocaleString();
+
+  if (isDiscounted) {
+    const origEl = document.getElementById('purchase-original');
+    origEl.textContent = '₩' + Number(originalPrice).toLocaleString();
+    origEl.style.display = '';
+    document.getElementById('purchase-discount').style.display = 'inline-flex';
+  }
+}
+
+// ───── 결제 요청 ─────
+async function requestPayment() {
+  if (!currentCourse) {
+    alert('강좌 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  // 로그인 체크
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) {
+    alert('로그인이 필요합니다.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { isDiscounted, currentPrice } = getCurrentPrice(currentCourse);
+  const paymentId = 'payment-' + crypto.randomUUID();
+
+  try {
+    const payment = await PortOne.requestPayment({
+      storeId: PORTONE_STORE_ID,
+      channelKey: PORTONE_CHANNEL_KEY,
+      paymentId: paymentId,
+      orderName: currentCourse.title,
+      totalAmount: currentPrice,
+      currency: 'CURRENCY_KRW',
+      payMethod: 'CARD',
+      customer: {
+        email: user.email || '',
+        fullName: user.user_metadata?.full_name || '',
+      },
+    });
+
+    if (payment.code) {
+      // 결제 취소 또는 실패
+      if (payment.code !== 'FAILURE_TYPE_PG') {
+        alert('결제가 취소되었습니다.');
+      } else {
+        alert('결제에 실패했습니다: ' + payment.message);
+      }
+      return;
+    }
+
+    // 결제 성공 → 서버 검증 (추후 Supabase Edge Function 연결)
+    alert('결제가 완료되었습니다! (테스트)');
+    console.log('결제 완료 paymentId:', payment.paymentId);
+
+  } catch (error) {
+    console.error('결제 오류:', error);
+    alert('결제 중 오류가 발생했습니다.');
+  }
+}
+
+// ───── 탭 전환 ─────
 function switchTab(id, el) {
   document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-' + id).classList.add('active');
 }
+
+// ───── 초기 실행 ─────
+loadCourse();
 </script>
 </body>
 </html>
