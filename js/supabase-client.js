@@ -1,72 +1,67 @@
 // ───── Supabase 연동 설정 ─────
-// 이 파일은 모든 페이지에서 Supabase 데이터를 가져오는 공통 함수예요.
-
 const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
 
-// 주의: 변수명을 supabaseClient로 사용 (window.supabase 라이브러리 객체와 이름 충돌 방지)
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ───── 강좌 목록 가져오기 ─────
 async function fetchCourses(filter = {}) {
   let query = supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
-
   if (filter.category) query = query.eq('category', filter.category);
   if (filter.featured) query = query.eq('featured', true);
-  if (filter.status !== false) query = query.eq('status', 'active'); // 기본적으로 판매중만
-
+  if (filter.status !== false) query = query.eq('status', 'active');
   const { data, error } = await query;
-  if (error) {
-    console.error('강좌 불러오기 실패:', error);
-    return [];
-  }
-  return data;
+  if (error) { console.error('강좌 불러오기 실패:', error); return []; }
+  return data || [];
 }
 
 // ───── 강좌 1개 가져오기 ─────
 async function fetchCourseById(id) {
-  const { data, error } = await supabaseClient.from('courses').select('*').eq('id', id).single();
-  if (error) {
-    console.error('강좌 불러오기 실패:', error);
-    return null;
-  }
+  // id는 숫자 또는 문자열 모두 허용
+  const { data, error } = await supabaseClient
+    .from('courses')
+    .select('*')
+    .eq('id', Number(id))
+    .single();
+  if (error) { console.error('강좌 불러오기 실패:', error); return null; }
   return data;
 }
 
 // ───── 강사 목록 가져오기 ─────
 async function fetchInstructors() {
   const { data, error } = await supabaseClient.from('instructors').select('*').order('created_at', { ascending: true });
-  if (error) {
-    console.error('강사 불러오기 실패:', error);
-    return [];
-  }
-  return data;
+  if (error) { console.error('강사 불러오기 실패:', error); return []; }
+  return data || [];
 }
 
 // ───── 공지사항 목록 가져오기 ─────
 async function fetchNotices(limit = null) {
   let query = supabaseClient.from('notices').select('*').order('notice_date', { ascending: false });
   if (limit) query = query.limit(limit);
-
   const { data, error } = await query;
-  if (error) {
-    console.error('공지사항 불러오기 실패:', error);
-    return [];
-  }
-  return data;
+  if (error) { console.error('공지사항 불러오기 실패:', error); return []; }
+  return data || [];
 }
 
 // ───── 현재 가격 계산 (할인 기간 자동 체크) ─────
+// discount_start / discount_end 가 없어도 discount_price 만 있으면 할인 적용
 function getCurrentPrice(course) {
   const now = new Date();
-  const hasDiscount = course.discount_price &&
-    course.discount_start && course.discount_end &&
-    now >= new Date(course.discount_start) &&
-    now <= new Date(course.discount_end);
+  let isDiscounted = false;
+
+  if (course.discount_price) {
+    // discount_start/end 둘 다 있으면 기간 체크
+    if (course.discount_start && course.discount_end) {
+      isDiscounted = now >= new Date(course.discount_start) && now <= new Date(course.discount_end);
+    } else {
+      // 날짜 없이 discount_price만 있으면 항상 할인 적용
+      isDiscounted = true;
+    }
+  }
 
   return {
-    isDiscounted: hasDiscount,
-    currentPrice: hasDiscount ? course.discount_price : course.price,
+    isDiscounted,
+    currentPrice: isDiscounted ? course.discount_price : course.price,
     originalPrice: course.price,
   };
 }
@@ -80,18 +75,26 @@ const CATEGORY_LABELS = {
   freepass: '전강좌 무제한',
 };
 
-// ───── 강좌 카드 HTML 생성 ─────
+// ───── 강좌 카드 HTML 생성 (강좌 목록에서 사용) ─────
 function renderCourseCard(course) {
   const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
   const thumb = course.thumbnail_url
-    ? `<img src="${course.thumbnail_url}" style="width:100%;height:100%;object-fit:cover;">`
-    : '📚';
+    ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+    : '<span style="font-size:32px;position:relative;z-index:1;">📚</span>';
+
+  const badgeHtml = isDiscounted
+    ? '<span class="course-badge">🎯 할인중</span>'
+    : (course.featured ? '<span class="course-badge">🔥 인기</span>' : '');
+
+  const priceHtml = isDiscounted
+    ? `<span class="course-price"><span style="text-decoration:line-through;color:var(--gray-300);font-size:11px;margin-right:4px;">₩${Number(originalPrice).toLocaleString()}</span>₩${Number(currentPrice).toLocaleString()}</span>`
+    : `<span class="course-price">₩${Number(currentPrice || 0).toLocaleString()}</span>`;
 
   return `
     <a href="course-detail.html?id=${course.id}" class="course-card" data-cat="${course.category || ''}">
-      <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);overflow:hidden;">
+      <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);position:relative;overflow:hidden;">
         ${thumb}
-        ${isDiscounted ? '<span class="course-badge">🎯 할인중</span>' : ''}
+        ${badgeHtml}
       </div>
       <div class="course-body">
         <div class="course-cat">${CATEGORY_LABELS[course.category] || ''}</div>
@@ -99,10 +102,7 @@ function renderCourseCard(course) {
         <div class="course-instructor">강사: ${course.instructor || '미정'}</div>
         <div class="course-footer">
           <span class="course-students">👥 ${course.students || 0}명</span>
-          <span class="course-price">
-            ${isDiscounted ? `<span class="course-price-original">₩${Number(originalPrice).toLocaleString()}</span>` : ''}
-            ₩${Number(currentPrice || 0).toLocaleString()}
-          </span>
+          ${priceHtml}
         </div>
       </div>
     </a>
