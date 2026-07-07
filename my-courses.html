@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나의 강의실 — 아이엠러닝</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.my-page { padding: 2.5rem 0 5rem; }
+.my-header { background: linear-gradient(135deg, #1a5c3a 0%, #2D9B6F 100%); color: #fff; padding: 3rem 0 2rem; margin-bottom: 2rem; }
+.my-header-inner { display: flex; align-items: center; gap: 1.5rem; }
+.my-avatar { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; border: 3px solid rgba(255,255,255,0.4); }
+.my-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.my-email { font-size: 14px; opacity: 0.8; margin-bottom: 12px; }
+.my-stats { display: flex; gap: 1.5rem; }
+.my-stat { text-align: center; }
+.my-stat-value { font-size: 22px; font-weight: 900; }
+.my-stat-label { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+.my-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 2rem; background: #fff; }
+.my-tab { padding: 14px 24px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.my-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
+.my-tab:hover { color: var(--green); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* 강좌 카드 */
+.my-course-list { display: flex; flex-direction: column; gap: 16px; }
+.my-course-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 20px; display: grid; grid-template-columns: 120px 1fr auto; gap: 20px; align-items: center; transition: all 0.2s; }
+.my-course-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.my-course-thumb { width: 120px; height: 72px; border-radius: 10px; background: linear-gradient(135deg,#e8f5ee,#c8eada); display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; flex-shrink: 0; position: relative; }
+.my-course-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.my-course-info { min-width: 0; }
+.my-course-cat { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.my-course-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.my-course-instructor { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; }
+.progress-bar-wrap { background: #f0f0f0; border-radius: 20px; height: 6px; margin-bottom: 4px; }
+.progress-bar { background: linear-gradient(90deg, var(--green), #5cbf8a); border-radius: 20px; height: 6px; transition: width 0.5s ease; }
+.progress-text { font-size: 11px; color: var(--gray-500); }
+.my-course-action { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.btn-continue { padding: 10px 20px; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block; text-align: center; }
+.btn-continue:hover { background: var(--green-dark); }
+.badge-complete { padding: 6px 14px; background: #DCFCE7; color: #16A34A; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.badge-new { padding: 6px 14px; background: #FEF3C7; color: #D97706; border-radius: 20px; font-size: 12px; font-weight: 700; }
+
+/* 주문 내역 */
+.order-list { display: flex; flex-direction: column; gap: 12px; }
+.order-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 18px 20px; }
+.order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.order-date { font-size: 12px; color: var(--gray-500); }
+.order-id { font-size: 11px; color: var(--gray-400); font-family: monospace; }
+.order-status { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.order-status.paid { background: #DCFCE7; color: #16A34A; }
+.order-status.cancelled { background: #FEE2E2; color: #EF4444; }
+.order-body { display: flex; justify-content: space-between; align-items: center; }
+.order-course-name { font-size: 15px; font-weight: 700; color: var(--black); }
+.order-amount { font-size: 18px; font-weight: 800; color: var(--black); }
+.order-amount.discounted { color: #EF4444; }
+
+/* 빈 상태 */
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-state-icon { font-size: 56px; margin-bottom: 1rem; }
+.empty-state-title { font-size: 18px; font-weight: 700; color: var(--black); margin-bottom: 8px; }
+.empty-state-desc { font-size: 14px; color: var(--gray-500); margin-bottom: 1.5rem; line-height: 1.7; }
+
+/* 수료증 */
+.cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.cert-card { background: linear-gradient(135deg, #f0faf5, #fff); border: 1px solid #c8eada; border-radius: 16px; padding: 24px; text-align: center; }
+.cert-icon { font-size: 40px; margin-bottom: 12px; }
+.cert-title { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 6px; }
+.cert-date { font-size: 12px; color: var(--gray-500); margin-bottom: 16px; }
+.btn-cert { padding: 8px 20px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.loading-msg { text-align: center; padding: 3rem; color: var(--gray-500); }
+
+@media (max-width: 768px) {
+  .my-course-card { grid-template-columns: 80px 1fr; }
+  .my-course-action { grid-column: 1/-1; flex-direction: row; justify-content: flex-start; }
+  .my-header-inner { flex-direction: column; text-align: center; }
+  .my-stats { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <span class="navbar-logo-text">아이엠<span>러닝</span></span>
+    </a>
+    <ul class="navbar-menu">
+      <li><a href="courses.html">강좌</a></li>
+      <li><a href="courses.html?cat=faith">신앙</a></li>
+      <li><a href="courses.html?cat=edu">교사·부모</a></li>
+      <li><a href="courses.html?cat=mission">캠프·사역</a></li>
+      <li><a href="courses.html?cat=english">영어·시험</a></li>
+      <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
+    </ul>
+    <div class="navbar-right">
+      <a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>
+      <a href="login.html" class="btn btn-outline btn-sm" id="nav-login" style="display:none;">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm" id="nav-signup" style="display:none;">회원가입</a>
+      <button class="btn btn-outline btn-sm" id="nav-logout" style="display:none;" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</nav>
+
+<!-- 프로필 헤더 -->
+<div class="my-header">
+  <div class="container">
+    <div class="my-header-inner">
+      <div class="my-avatar" id="user-avatar">👤</div>
+      <div>
+        <div class="my-name" id="user-name">불러오는 중...</div>
+        <div class="my-email" id="user-email"></div>
+        <div class="my-stats">
+          <div class="my-stat">
+            <div class="my-stat-value" id="stat-enrolled">0</div>
+            <div class="my-stat-label">수강 중인 강좌</div>
+          </div>
+          <div class="my-stat">
+            <div class="my-stat-value" id="stat-completed">0</div>
+            <div class="my-stat-label">수료 완료</div>
+          </div>
+          <div class="my-stat">
+            <div class="my-stat-value" id="stat-progress">0%</div>
+            <div class="my-stat-label">평균 진행률</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 탭 -->
+<div class="container">
+  <div class="my-tabs">
+    <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
+    <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
+    <div class="my-tab" onclick="switchTab('certs', this)">🎓 수료증</div>
+  </div>
+</div>
+
+<div class="my-page">
+  <div class="container">
+
+    <!-- 수강 중인 강좌 탭 -->
+    <div class="tab-panel active" id="panel-courses">
+      <div id="courses-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+    <!-- 결제 내역 탭 -->
+    <div class="tab-panel" id="panel-orders">
+      <div id="orders-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+    <!-- 수료증 탭 -->
+    <div class="tab-panel" id="panel-certs">
+      <div id="certs-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">아이엠<span>러닝</span></div>
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="#">신앙</a><a href="#">교사·부모</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/main.js"></script>
+<script>
+const CATEGORY_LABELS_LOCAL = {
+  faith: '신앙', edu: '교사·부모', mission: '캠프·사역',
+  english: '영어·시험', freepass: '전강좌 무제한'
+};
+
+// ───── 탭 전환 ─────
+function switchTab(id, el) {
+  document.querySelectorAll('.my-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+// ───── 로그아웃 ─────
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+// ───── 진행률 랜덤 생성 (실제 연동 전 샘플) ─────
+function fakeProgress(courseId) {
+  const seed = courseId % 100;
+  return Math.min(seed + 10, 100);
+}
+
+// ───── 수강 중인 강좌 렌더 ─────
+function renderCourses(orders, coursesMap) {
+  const el = document.getElementById('courses-content');
+  if (orders.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <div class="empty-state-title">아직 수강 중인 강좌가 없어요</div>
+        <div class="empty-state-desc">원하는 강좌를 찾아 수강을 시작해보세요!<br>지금 바로 강좌 목록을 둘러보세요.</div>
+        <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+      </div>`;
+    return;
+  }
+
+  const cards = orders.map(order => {
+    const course = coursesMap[order.course_id];
+    if (!course) return '';
+    const progress = order.progress || fakeProgress(course.id);
+    const isComplete = progress >= 100;
+    const catLabel = CATEGORY_LABELS_LOCAL[course.category] || '';
+    const thumbContent = course.thumbnail_url
+      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+      : '';
+    const thumbEmoji = course.thumbnail_url ? '' : '📚';
+
+    return `
+      <div class="my-course-card">
+        <div class="my-course-thumb">
+          ${thumbContent}
+          ${thumbEmoji ? `<span>${thumbEmoji}</span>` : ''}
+        </div>
+        <div class="my-course-info">
+          <div class="my-course-cat">${catLabel}</div>
+          <div class="my-course-title">${course.title}</div>
+          <div class="my-course-instructor">강사: ${course.instructor || '미정'}</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" style="width:${progress}%"></div>
+          </div>
+          <div class="progress-text">${progress}% 완료${isComplete ? ' · ✅ 수료 완료' : ''}</div>
+        </div>
+        <div class="my-course-action">
+          ${isComplete
+            ? '<span class="badge-complete">✅ 수료 완료</span>'
+            : `<a href="course-detail.html?id=${course.id}" class="btn-continue">이어 보기 →</a>`}
+          ${progress === 0 ? '<span class="badge-new">🆕 시작 전</span>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="my-course-list">${cards}</div>`;
+}
+
+// ───── 결제 내역 렌더 ─────
+function renderOrders(orders, coursesMap) {
+  const el = document.getElementById('orders-content');
+  if (orders.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🧾</div>
+        <div class="empty-state-title">결제 내역이 없어요</div>
+        <div class="empty-state-desc">강좌를 구매하면 여기서 결제 내역을 확인할 수 있어요.</div>
+        <a href="courses.html" class="btn btn-primary">강좌 보러 가기</a>
+      </div>`;
+    return;
+  }
+
+  const cards = orders.map(order => {
+    const course = coursesMap[order.course_id];
+    const courseName = course ? course.title : order.course_name || '알 수 없는 강좌';
+    const date = new Date(order.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    const isDiscounted = order.original_amount && order.amount < order.original_amount;
+
+    return `
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="order-date">${date}</div>
+            <div class="order-id">주문번호: ${order.payment_id || order.id}</div>
+          </div>
+          <span class="order-status ${order.status === 'paid' ? 'paid' : 'cancelled'}">
+            ${order.status === 'paid' ? '✅ 결제 완료' : '❌ 취소됨'}
+          </span>
+        </div>
+        <div class="order-body">
+          <div class="order-course-name">${courseName}</div>
+          <div>
+            ${isDiscounted ? `<div style="text-decoration:line-through;color:var(--gray-400);font-size:12px;text-align:right;">₩${Number(order.original_amount).toLocaleString()}</div>` : ''}
+            <div class="order-amount ${isDiscounted ? 'discounted' : ''}">₩${Number(order.amount).toLocaleString()}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="order-list">${cards}</div>`;
+}
+
+// ───── 수료증 렌더 ─────
+function renderCerts(orders, coursesMap) {
+  const el = document.getElementById('certs-content');
+  const completed = orders.filter(o => (o.progress || 0) >= 100);
+
+  if (completed.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🎓</div>
+        <div class="empty-state-title">아직 수료증이 없어요</div>
+        <div class="empty-state-desc">강좌를 100% 완료하면 수료증을 발급받을 수 있어요.</div>
+        <a href="courses.html" class="btn btn-primary">강좌 시작하기</a>
+      </div>`;
+    return;
+  }
+
+  const cards = completed.map(order => {
+    const course = coursesMap[order.course_id];
+    if (!course) return '';
+    const date = new Date(order.updated_at || order.created_at).toLocaleDateString('ko-KR');
+    return `
+      <div class="cert-card">
+        <div class="cert-icon">🎓</div>
+        <div class="cert-title">${course.title}</div>
+        <div class="cert-date">수료일: ${date}</div>
+        <button class="btn-cert" onclick="downloadCert('${course.title}', '${date}')">수료증 다운로드</button>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="cert-grid">${cards}</div>`;
+}
+
+// ───── 수료증 다운로드 (간단 버전) ─────
+function downloadCert(title, date) {
+  alert(`"${title}" 수료증 다운로드 기능은 준비 중이에요!`);
+}
+
+// ───── 통계 업데이트 ─────
+function updateStats(orders) {
+  const enrolled = orders.length;
+  const completed = orders.filter(o => (o.progress || 0) >= 100).length;
+  const avgProgress = enrolled > 0
+    ? Math.round(orders.reduce((sum, o) => sum + (o.progress || 0), 0) / enrolled)
+    : 0;
+  document.getElementById('stat-enrolled').textContent = enrolled;
+  document.getElementById('stat-completed').textContent = completed;
+  document.getElementById('stat-progress').textContent = avgProgress + '%';
+}
+
+// ───── 메인 로드 함수 ─────
+async function loadMyPage() {
+  // 1. 로그인 체크
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+    // 로그인 안 된 경우
+    document.getElementById('user-name').textContent = '로그인이 필요해요';
+    document.getElementById('nav-login').style.display = '';
+    document.getElementById('nav-signup').style.display = '';
+    ['courses-content', 'orders-content', 'certs-content'].forEach(id => {
+      document.getElementById(id).innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔐</div>
+          <div class="empty-state-title">로그인이 필요해요</div>
+          <div class="empty-state-desc">나의 강의실을 이용하려면 로그인해주세요.</div>
+          <a href="login.html" class="btn btn-primary">로그인하기</a>
+        </div>`;
+    });
+    return;
+  }
+
+  // 2. 사용자 정보 표시
+  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '회원';
+  document.getElementById('user-name').textContent = userName + '님';
+  document.getElementById('user-email').textContent = user.email;
+  document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+  document.getElementById('nav-logout').style.display = '';
+
+  // 3. 주문 내역 조회
+  const { data: orders, error: orderError } = await supabaseClient
+    .from('orders')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('status', 'paid')
+    .order('created_at', { ascending: false });
+
+  if (orderError && orderError.code !== 'PGRST116') {
+    // orders 테이블이 아직 없는 경우 안내
+    ['courses-content', 'orders-content', 'certs-content'].forEach(id => {
+      document.getElementById(id).innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📚</div>
+          <div class="empty-state-title">아직 수강 중인 강좌가 없어요</div>
+          <div class="empty-state-desc">마음에 드는 강좌를 찾아 수강을 시작해보세요!</div>
+          <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+        </div>`;
+    });
+    updateStats([]);
+    return;
+  }
+
+  const myOrders = orders || [];
+
+  // 4. 수강 중인 강좌 정보 조회
+  const courseIds = [...new Set(myOrders.map(o => o.course_id))];
+  let coursesMap = {};
+
+  if (courseIds.length > 0) {
+    const { data: coursesData } = await supabaseClient
+      .from('courses')
+      .select('*')
+      .in('id', courseIds);
+    (coursesData || []).forEach(c => { coursesMap[c.id] = c; });
+  }
+
+  // 5. 렌더
+  updateStats(myOrders);
+  renderCourses(myOrders, coursesMap);
+  renderOrders(myOrders, coursesMap);
+  renderCerts(myOrders, coursesMap);
+}
+
+loadMyPage();
+</script>
+</body>
+</html>
