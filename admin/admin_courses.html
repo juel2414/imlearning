@@ -310,9 +310,12 @@ async function saveCourse() {
     students: numOrNull(val('course-students-count')) || 0,
     vimeo_url: val('course-vimeo'),
     status: val('course-status'),
-    featured: val('course-featured') === 'true',
-    thumbnail_url: thumbData || null
+    featured: val('course-featured') === 'true'
   };
+  // ✅ 썸네일: 새로 선택한 경우에만 업데이트 (수정 시 기존 썸네일 유지)
+  if (thumbData !== null) {
+    courseData.thumbnail_url = thumbData;
+  }
 
   try {
     var result;
