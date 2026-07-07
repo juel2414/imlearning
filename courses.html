@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강좌 목록 — 아이엠러닝</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .courses-page { padding: 2rem 0 5rem; }
+    .courses-page-inner { display: grid; grid-template-columns: 220px 1fr; gap: 2.5rem; align-items: start; }
+    .top-cat-bar { background: var(--white); border-bottom: 1px solid rgba(0,0,0,0.07); position: sticky; top: 64px; z-index: 50; }
+    .top-cat-inner { display: flex; gap: 0; max-width: 1160px; margin: 0 auto; padding: 0 2rem; overflow-x: auto; }
+    .top-cat-btn { padding: 14px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; white-space: nowrap; transition: all var(--transition); background: none; cursor: pointer; }
+    .top-cat-btn:hover { color: var(--green); }
+    .top-cat-btn.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
+    .sidebar { position: sticky; top: 120px; }
+    .sidebar-title { font-size: 20px; font-weight: 800; color: var(--black); margin-bottom: 1.25rem; letter-spacing: -0.5px; }
+    .sidebar-menu { display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-item { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; color: var(--gray-700); transition: all var(--transition); font-weight: 500; cursor: pointer; }
+    .sidebar-item:hover { background: var(--green-light); color: var(--green-dark); }
+    .sidebar-item.active { background: var(--green-light); color: var(--green); font-weight: 700; }
+    .courses-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .courses-list-title { font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
+    .courses-list-title span { color: var(--green); }
+    .courses-sort { font-size: 13px; color: var(--gray-700); border: 1px solid var(--gray-300); border-radius: var(--radius-sm); padding: 6px 12px; background: var(--white); }
+    .top10-section { margin-bottom: 3rem; }
+    .top10-title { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+    .top10-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .top10-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-md); overflow: hidden; position: relative; transition: all var(--transition); display: block; }
+    .top10-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .top10-thumb { width: 100%; aspect-ratio: 16/9; display: flex; align-items: flex-end; justify-content: flex-start; font-size: 48px; position: relative; padding: 12px; overflow: hidden; }
+    .top10-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .top10-num { position: absolute; top: 10px; left: 10px; font-size: 28px; font-weight: 900; color: rgba(255,255,255,0.9); text-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 1; }
+    .top10-body { padding: 12px 14px; }
+    .top10-cat { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
+    .top10-title-text { font-size: 14px; font-weight: 700; color: var(--black); line-height: 1.4; margin-bottom: 8px; }
+    .top10-instructor { font-size: 11px; color: var(--gray-500); margin-bottom: 6px; }
+    .top10-footer { display: flex; justify-content: space-between; align-items: center; }
+    .top10-price { font-size: 15px; font-weight: 800; color: var(--black); }
+    .top10-price-original { font-size: 11px; color: var(--gray-300); text-decoration: line-through; margin-right: 4px; }
+    .loading-placeholder { text-align: center; padding: 3rem; color: var(--gray-500); font-size: 14px; }
+    @media (max-width: 768px) {
+      .courses-page-inner { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .top10-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <span class="navbar-logo-text">아이엠<span>러닝</span></span>
+    </a>
+    <ul class="navbar-menu">
+      <li><a href="courses.html" class="active">강좌</a></li>
+      <li><a href="courses.html?cat=faith">신앙</a></li>
+      <li><a href="courses.html?cat=edu">교사·부모</a></li>
+      <li><a href="courses.html?cat=mission">캠프·사역</a></li>
+      <li><a href="courses.html?cat=english">영어·시험</a></li>
+      <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
+    </ul>
+    <div class="navbar-right">
+      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
+    </div>
+  </div>
+</nav>
+
+<div class="top-cat-bar">
+  <div class="top-cat-inner">
+    <button class="top-cat-btn active" onclick="switchCat('all', this)">전체</button>
+    <button class="top-cat-btn" onclick="switchCat('faith', this)">신앙</button>
+    <button class="top-cat-btn" onclick="switchCat('edu', this)">교사·부모</button>
+    <button class="top-cat-btn" onclick="switchCat('mission', this)">캠프·사역</button>
+    <button class="top-cat-btn" onclick="switchCat('english', this)">영어·시험</button>
+    <button class="top-cat-btn" onclick="switchCat('freepass', this)">전강좌 무제한</button>
+  </div>
+</div>
+
+<div class="courses-page">
+  <div class="container">
+    <div class="courses-page-inner">
+      <aside class="sidebar">
+        <div class="sidebar-title" id="sidebar-title">전체 강좌</div>
+        <nav class="sidebar-menu" id="sidebar-menu"></nav>
+      </aside>
+      <main>
+        <!-- Top3 인기 강좌 -->
+        <div class="top10-section" id="top10-section">
+          <div class="top10-title">🔥 인기 강좌 Top3</div>
+          <div class="top10-grid" id="top10-grid">
+            <div class="loading-placeholder">불러오는 중...</div>
+          </div>
+        </div>
+
+        <!-- 전체 강좌 목록 -->
+        <div class="courses-list-header">
+          <div>
+            <div class="courses-list-title">전체 강좌 <span id="course-count"></span></div>
+          </div>
+          <select class="courses-sort" onchange="sortCourses(this.value)">
+            <option value="default">추천순</option>
+            <option value="newest">최신순</option>
+            <option value="students">인기순</option>
+            <option value="price_asc">낮은가격순</option>
+          </select>
+        </div>
+
+        <div class="courses-grid" id="courses-grid">
+          <div class="loading-placeholder">강좌 목록을 불러오는 중...</div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">아이엠<span>러닝</span></div>
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열<br>사업자등록번호: 664-17-01515<br>전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="#">신앙</a><a href="#">교사·부모</a><a href="#">캠프·사역</a><a href="#">영어·시험</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+      <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/main.js"></script>
+<script>
+// ───── 카테고리 사이드바 데이터 ─────
+const catData = {
+  all:      { title: '전체 강좌',     subs: ['전체', '신앙', '교사·부모', '캠프·사역', '영어·시험', '전강좌 무제한'] },
+  faith:    { title: '신앙',          subs: ['전체', '트리플 스쿨 - 복음', '트리플 스쿨 - 제자', '트리플 스쿨 - 소명', '트리플 스쿨 패키지'] },
+  edu:      { title: '교사·부모',     subs: ['전체', '교사 - CAS', '교사 - CBUP', '교사 - 성교육', '교사 - 교사양성', '부모 - 부모학교', '부모 - 부모대안학교', '부모 - 강사과정'] },
+  mission:  { title: '캠프·사역',     subs: ['전체', '선교 - 3C', '캠프 행정 지원', 'CDG', 'IM의 비전과 사명'] },
+  english:  { title: '영어·시험',     subs: ['전체', '영단속 영어', 'ABS', '토익', '고졸 검정고시', '중졸 검정고시'] },
+  freepass: { title: '전강좌 무제한', subs: ['프리패스 안내', '포함 강좌 목록', '신청하기'] }
+};
+
+let allCourses = [];
+let currentCat = 'all';
+let currentSort = 'default';
+
+// ───── 사이드바 렌더 ─────
+function renderSidebar(cat) {
+  const data = catData[cat];
+  document.getElementById('sidebar-title').textContent = data.title;
+  const menu = document.getElementById('sidebar-menu');
+  menu.innerHTML = data.subs.map((sub, i) =>
+    `<div class="sidebar-item ${i === 0 ? 'active' : ''}" onclick="switchSub('${sub}', this)">${sub}</div>`
+  ).join('');
+}
+
+function switchSub(sub, el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ───── 카테고리 전환 ─────
+function switchCat(cat, btn) {
+  document.querySelectorAll('.top-cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = cat;
+  renderSidebar(cat);
+  renderCourseGrid();
+
+  // Top3 섹션 표시/숨김
+  const top10 = document.getElementById('top10-section');
+  top10.style.display = (cat === 'all') ? '' : 'none';
+}
+
+// ───── 정렬 ─────
+function sortCourses(val) {
+  currentSort = val;
+  renderCourseGrid();
+}
+
+function getSorted(list) {
+  const arr = [...list];
+  if (currentSort === 'newest') return arr.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  if (currentSort === 'students') return arr.sort((a, b) => (b.students || 0) - (a.students || 0));
+  if (currentSort === 'price_asc') return arr.sort((a, b) => {
+    const pa = getCurrentPrice(a).currentPrice || 0;
+    const pb = getCurrentPrice(b).currentPrice || 0;
+    return pa - pb;
+  });
+  // default: featured 먼저
+  return arr.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+}
+
+// ───── 강좌 카드 렌더 (Supabase 데이터 기반) ─────
+function renderCourseGrid() {
+  const grid = document.getElementById('courses-grid');
+  let filtered = allCourses.filter(c => c.status === 'active');
+  if (currentCat !== 'all') {
+    filtered = filtered.filter(c => c.category === currentCat);
+  }
+  const sorted = getSorted(filtered);
+  document.getElementById('course-count').textContent = sorted.length + '개';
+
+  if (sorted.length === 0) {
+    grid.innerHTML = '<div class="loading-placeholder">이 카테고리에 강좌가 없어요</div>';
+    return;
+  }
+
+  grid.innerHTML = sorted.map(course => {
+    const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
+    const catLabel = CATEGORY_LABELS[course.category] || '';
+
+    // 썸네일: 이미지가 있으면 img 태그, 없으면 이모지
+    const thumbContent = course.thumbnail_url
+      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+      : '';
+    const thumbEmoji = course.thumbnail_url ? '' : '📚';
+
+    const badgeHtml = isDiscounted ? '<span class="course-badge">🎯 할인중</span>' : (course.featured ? '<span class="course-badge">🔥 인기</span>' : '');
+
+    const priceHtml = isDiscounted
+      ? `<span class="course-price"><span style="text-decoration:line-through;color:var(--gray-300);font-size:11px;margin-right:4px;">₩${Number(originalPrice).toLocaleString()}</span>₩${Number(currentPrice).toLocaleString()}</span>`
+      : `<span class="course-price">₩${Number(currentPrice || 0).toLocaleString()}</span>`;
+
+    return `
+      <a href="course-detail.html?id=${course.id}" class="course-card" data-cat="${course.category || ''}">
+        <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);position:relative;overflow:hidden;">
+          ${thumbContent}
+          ${thumbEmoji ? `<span style="font-size:32px;position:relative;z-index:1;">${thumbEmoji}</span>` : ''}
+          ${badgeHtml}
+        </div>
+        <div class="course-body">
+          <div class="course-cat">${catLabel}</div>
+          <div class="course-title">${course.title}</div>
+          <div class="course-instructor">강사: ${course.instructor || '미정'}</div>
+          <div class="course-footer">
+            <span class="course-students">👥 ${course.students || 0}명</span>
+            ${priceHtml}
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+// ───── Top3 인기 강좌 렌더 ─────
+function renderTop3() {
+  const grid = document.getElementById('top10-grid');
+  const top3 = allCourses
+    .filter(c => c.status === 'active')
+    .sort((a, b) => (b.students || 0) - (a.students || 0))
+    .slice(0, 3);
+
+  if (top3.length === 0) {
+    grid.innerHTML = '<div class="loading-placeholder">등록된 강좌가 없어요</div>';
+    return;
+  }
+
+  const gradients = [
+    'linear-gradient(135deg,#e8f5ee,#a8d5bc)',
+    'linear-gradient(135deg,#d4eddf,#c8eada)',
+    'linear-gradient(135deg,#c8eada,#e8f5ee)'
+  ];
+
+  grid.innerHTML = top3.map((course, idx) => {
+    const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
+    const catLabel = CATEGORY_LABELS[course.category] || '';
+    const thumbContent = course.thumbnail_url
+      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+      : `<span style="font-size:48px;position:absolute;right:16px;bottom:12px;z-index:1;">📚</span>`;
+
+    const priceHtml = isDiscounted
+      ? `<span class="top10-price-original">₩${Number(originalPrice).toLocaleString()}</span><span class="top10-price" style="color:#EF4444;">₩${Number(currentPrice).toLocaleString()}</span>`
+      : `<span class="top10-price">₩${Number(currentPrice || 0).toLocaleString()}</span>`;
+
+    return `
+      <a href="course-detail.html?id=${course.id}" class="top10-card">
+        <div class="top10-thumb" style="background:${gradients[idx]};position:relative;overflow:hidden;">
+          <span class="top10-num">${idx + 1}</span>
+          ${thumbContent}
+        </div>
+        <div class="top10-body">
+          <div class="top10-cat">${catLabel}</div>
+          <div class="top10-title-text">${course.title}</div>
+          <div class="top10-instructor">강사: ${course.instructor || '미정'}</div>
+          <div class="top10-footer">
+            <span style="font-size:11px;color:var(--gray-500);">👥 ${course.students || 0}명</span>
+            <div style="display:flex;align-items:center;gap:4px;">${priceHtml}</div>
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+// ───── 데이터 로드 ─────
+async function loadAll() {
+  try {
+    allCourses = await fetchCourses({ status: true });
+    renderTop3();
+    renderCourseGrid();
+  } catch (err) {
+    document.getElementById('courses-grid').innerHTML = '<div class="loading-placeholder">강좌를 불러오지 못했어요. 새로고침 해주세요.</div>';
+  }
+}
+
+// ───── 초기화 ─────
+renderSidebar('all');
+
+// URL 파라미터로 카테고리 자동 선택
+const urlParams = new URLSearchParams(window.location.search);
+const catParam = urlParams.get('cat');
+if (catParam && catData[catParam]) {
+  const btn = document.querySelector(`.top-cat-btn[onclick*="'${catParam}'"]`);
+  if (btn) switchCat(catParam, btn);
+}
+
+loadAll();
+</script>
+</body>
+</html>
