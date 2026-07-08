@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>테마 관리 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g: #2D9B6F; --gd: #1A7A4A; --gl: #E8F5EE;
+      --dark: #111318; --dark2: #1a1f26; --dark3: #22282f;
+      --border: rgba(255,255,255,.08);
+      --text: #e2e8f0; --muted: #8b9ab0;
+    }
+    body { font-family: 'Pretendard','Apple SD Gothic Neo',sans-serif; background: #0f1318; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── 상단 바 ── */
+    .top-bar {
+      height: 56px; background: var(--dark); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 20px; gap: 16px; position: sticky; top: 0; z-index: 100;
+    }
+    .top-bar-logo { font-size: 15px; font-weight: 800; color: var(--g); margin-right: auto; }
+    .top-bar-logo a { color: var(--muted); text-decoration: none; font-weight: 400; font-size: 12px; margin-left: 8px; }
+    .btn-save { padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--dark3); color: var(--text); transition: all .2s; }
+    .btn-save:hover { background: #2d3340; }
+    .btn-pub  { padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; background: var(--g); color: #fff; transition: all .2s; }
+    .btn-pub:hover  { background: var(--gd); }
+    .status-msg { font-size: 12px; color: var(--muted); min-width: 140px; text-align: right; }
+
+    /* ── 레이아웃 ── */
+    .page-layout { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 56px); }
+
+    /* ── 사이드바 ── */
+    .sidebar {
+      width: 220px; background: var(--dark); border-right: 1px solid var(--border);
+      padding: 16px 10px; flex-shrink: 0; overflow-y: auto;
+    }
+    .sidebar-section { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px; }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px;
+      font-size: 13px; color: var(--muted); text-decoration: none; transition: all .2s; cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+    }
+    .sidebar-link:hover { background: var(--dark3); color: var(--text); }
+    .sidebar-link.active { background: rgba(45,155,111,.12); color: var(--g); font-weight: 600; }
+
+    /* ── 메인 콘텐츠 ── */
+    .main-content { flex: 1; overflow-y: auto; padding: 32px; }
+    .main-content::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-thumb { background: var(--dark3); border-radius: 3px; }
+    .page-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .page-desc  { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
+
+    /* 프리셋 카드들 */
+    .preset-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 2.5rem; }
+    .preset-card {
+      border-radius: 12px; overflow: hidden; cursor: pointer;
+      border: 2px solid transparent; transition: all .2s;
+    }
+    .preset-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.15); }
+    .preset-card.active { border-color: var(--g); box-shadow: 0 0 0 2px rgba(45,155,111,.3); }
+    .preset-thumb {
+      height: 80px; display: flex; flex-direction: column; gap: 6px; padding: 12px; justify-content: center;
+    }
+    .preset-swatch-row { display: flex; gap: 4px; }
+    .preset-swatch { width: 20px; height: 20px; border-radius: 4px; }
+    .preset-info { padding: 10px 12px; background: var(--dark3); }
+    .preset-name { font-size: 13px; font-weight: 700; }
+    .preset-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* 색상 편집 그리드 */
+    .color-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .color-item { background: var(--dark3); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+    .color-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+    .color-var   { font-size: 10px; color: rgba(45,155,111,.7); font-family: monospace; margin-bottom: 8px; }
+    .color-row   { display: flex; align-items: center; gap: 10px; }
+    .color-preview {
+      width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--border);
+      cursor: pointer; flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .color-preview input[type=color] {
+      position: absolute; inset: -4px; opacity: 0; width: 120%; height: 120%; cursor: pointer;
+    }
+    .color-hex-input {
+      flex: 1; background: var(--dark); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: monospace;
+    }
+    .color-hex-input:focus { outline: none; border-color: var(--g); }
+
+    /* 라이브 미리보기 */
+    .preview-wrap {
+      background: var(--dark3); border-radius: 14px; border: 1px solid var(--border);
+      overflow: hidden; margin-top: 2rem;
+    }
+    .preview-head { padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .preview-head span { font-weight: 400; color: rgba(255,255,255,.3); }
+    .preview-ui {
+      padding: 24px; display: flex; flex-direction: column; gap: 16px;
+    }
+    .preview-nav {
+      height: 48px; border-radius: 10px; display: flex; align-items: center;
+      padding: 0 20px; gap: 20px; font-size: 13px; font-weight: 600; transition: background .3s;
+    }
+    .preview-nav-logo { font-size: 16px; font-weight: 900; margin-right: auto; transition: color .3s; }
+    .preview-nav-link { font-size: 12px; transition: color .3s; }
+    .preview-hero {
+      height: 120px; border-radius: 10px; display: flex; align-items: center;
+      padding: 0 24px; transition: background .3s;
+    }
+    .preview-hero-title { font-size: 22px; font-weight: 900; transition: color .3s; }
+    .preview-buttons { display: flex; gap: 10px; }
+    .preview-btn-p {
+      padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      border: none; cursor: default; transition: background .3s, color .3s;
+    }
+    .preview-btn-o {
+      padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      background: transparent; cursor: default; transition: border-color .3s, color .3s;
+    }
+    .preview-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .preview-card {
+      border-radius: 10px; padding: 16px; font-size: 12px; transition: background .3s, border .3s;
+    }
+    .preview-footer { border-radius: 10px; padding: 16px; font-size: 11px; transition: background .3s, color .3s; }
+
+    /* 섹션 구분 */
+    .section-title { font-size: 14px; font-weight: 800; color: var(--text); margin: 2rem 0 1rem; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+    @media(max-width:960px){ .color-grid{grid-template-columns:1fr;} .preset-grid{grid-template-columns:repeat(2,1fr);} }
+    @media(max-width:700px){ .sidebar{display:none;} }
+  </style>
+</head>
+<body>
+
+<!-- 상단 바 -->
+<div class="top-bar">
+  <div class="top-bar-logo">테마 관리 <a href="../index.html" target="_blank">↗ 사이트 미리보기</a></div>
+  <span class="status-msg" id="js-status"></span>
+  <button class="btn-save" onclick="resetToDefault()">기본값 초기화</button>
+  <button class="btn-pub"  onclick="saveTheme()">테마 저장하기</button>
+</div>
+
+<div class="page-layout">
+
+  <!-- 사이드바 -->
+  <nav class="sidebar">
+    <div class="sidebar-section">관리자</div>
+    <a class="sidebar-link" href="index.html">📊 대시보드</a>
+    <a class="sidebar-link" href="courses.html">📚 강좌 관리</a>
+    <a class="sidebar-link" href="instructors.html">👩‍🏫 강사 관리</a>
+    <a class="sidebar-link" href="landing.html">🏠 랜딩 빌더</a>
+    <a class="sidebar-link active" href="theme.html">🎨 테마 관리</a>
+    <a class="sidebar-link" href="notices.html">📢 공지사항</a>
+    <a class="sidebar-link" href="orders.html">💳 주문 관리</a>
+    <div class="sidebar-section" style="margin-top:16px;">사이트</div>
+    <a class="sidebar-link" href="../index.html" target="_blank">↗ 사이트 보기</a>
+  </nav>
+
+  <!-- 메인 -->
+  <main class="main-content">
+    <div class="page-title">🎨 테마 관리</div>
+    <div class="page-desc">사이트 전체 색상을 한 곳에서 수정합니다. 저장하면 즉시 모든 페이지에 적용됩니다.</div>
+
+    <!-- 프리셋 -->
+    <div class="section-title">프리셋 테마</div>
+    <div class="preset-grid">
+      <div class="preset-card active" id="preset-default" onclick="applyPreset('default',this)">
+        <div class="preset-thumb" style="background:linear-gradient(135deg,#e8f5ee,#fff)">
+          <div class="preset-swatch-row">
+            <div class="preset-swatch" style="background:#2D9B6F"></div>
+            <div class="preset-swatch" style="background:#1A7A4A"></div>
+            <div class="preset-swatch" style="background:#E8F5EE"></div>
+            <div class="preset-swatch" style="background:#111111"></div>
+          </div>
+        </div>
+        <div class="preset-info">
+          <div class="preset-name">기본 그린</div>
+          <div class="preset-sub">신뢰·성장 아이덴티티</div>
+        </div>
+      </div>
+      <div class="preset-card" id="preset-dark" onclick="applyPreset('dark',this)">
+        <div class="preset-thumb" style="background:linear-gradient(135deg,#111318,#1a1f26)">
+          <div class="preset-swatch-row">
+            <div class="preset-swatch" style="background:#4ECCA3"></div>
+            <div class="preset-swatch" style="background:#2EA882"></div>
+            <div class="preset-swatch" style="background:#1a1f26"></div>
+            <div class="preset-swatch" style="background:#e2e8f0"></div>
+          </div>
+        </div>
+        <div class="preset-info">
+          <div class="preset-name">다크 모드</div>
+          <div class="preset-sub">모던·프리미엄 느낌</div>
+        </div>
+      </div>
+      <div class="preset-card" id="preset-warm" onclick="applyPreset('warm',this)">
+        <div class="preset-thumb" style="background:linear-gradient(135deg,#fff8f0,#fff)">
+          <div class="preset-swatch-row">
+            <div class="preset-swatch" style="background:#D97706"></div>
+            <div class="preset-swatch" style="background:#B45309"></div>
+            <div class="preset-swatch" style="background:#FEF3C7"></div>
+            <div class="preset-swatch" style="background:#1C1917"></div>
+          </div>
+        </div>
+        <div class="preset-info">
+          <div class="preset-name">웜 앰버</div>
+          <div class="preset-sub">따뜻·활기 느낌</div>
+        </div>
+      </div>
+      <div class="preset-card" id="preset-cool" onclick="applyPreset('cool',this)">
+        <div class="preset-thumb" style="background:linear-gradient(135deg,#eff6ff,#fff)">
+          <div class="preset-swatch-row">
+            <div class="preset-swatch" style="background:#2563EB"></div>
+            <div class="preset-swatch" style="background:#1D4ED8"></div>
+            <div class="preset-swatch" style="background:#DBEAFE"></div>
+            <div class="preset-swatch" style="background:#111827"></div>
+          </div>
+        </div>
+        <div class="preset-info">
+          <div class="preset-name">쿨 블루</div>
+          <div class="preset-sub">신뢰·전문성 느낌</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 색상 편집 -->
+    <div class="section-title">색상 커스터마이징</div>
+    <div class="color-grid" id="js-color-grid">
+      <!-- JS로 렌더링 -->
+    </div>
+
+    <!-- 라이브 미리보기 -->
+    <div class="preview-wrap">
+      <div class="preview-head">🖥 라이브 미리보기 <span>— 실시간으로 색상이 반영됩니다</span></div>
+      <div class="preview-ui" id="js-preview-ui">
+        <div class="preview-nav" id="pv-nav">
+          <div class="preview-nav-logo" id="pv-logo">아이엠러닝</div>
+          <span class="preview-nav-link" id="pv-link1">강좌</span>
+          <span class="preview-nav-link" id="pv-link2">신앙</span>
+          <span class="preview-nav-link" id="pv-link3">교사·부모</span>
+        </div>
+        <div class="preview-hero" id="pv-hero">
+          <div>
+            <div class="preview-hero-title" id="pv-htitle" style="color:#111111;">온 교회가 함께 배우고</div>
+            <div style="font-size:13px;margin-top:6px;opacity:.6;" id="pv-hsub">2020년부터 목사님, 교사, 부모, 학생까지</div>
+            <div class="preview-buttons" style="margin-top:12px;">
+              <div class="preview-btn-p" id="pv-btn-p">강좌 둘러보기</div>
+              <div class="preview-btn-o" id="pv-btn-o" style="border:2px solid #2D9B6F;color:#2D9B6F;">소개 보기</div>
+            </div>
+          </div>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-card" id="pv-card1">신앙 강좌 카드</div>
+          <div class="preview-card" id="pv-card2">교사·부모 카드</div>
+          <div class="preview-card" id="pv-card3">캠프·사역 카드</div>
+        </div>
+        <div class="preview-footer" id="pv-footer">© 2024 아이엠러닝(IMlearning)</div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+// ──────────────────────────────────────────
+// 색상 변수 정의
+// ──────────────────────────────────────────
+const COLOR_VARS = [
+  { key: '--green',      label: '메인 색상',       desc: '버튼, 강조 색상' },
+  { key: '--green-dark', label: '메인 어두운 색',   desc: 'hover 효과' },
+  { key: '--green-light',label: '메인 밝은 색',     desc: '배경 강조 영역' },
+  { key: '--black',      label: '기본 텍스트',      desc: '제목, 주요 텍스트' },
+  { key: '--gray-900',   label: '진한 회색',        desc: '보조 제목' },
+  { key: '--gray-700',   label: '중간 회색',        desc: '본문 텍스트' },
+  { key: '--gray-500',   label: '회색',             desc: '설명, 부가 텍스트' },
+  { key: '--gray-300',   label: '연한 회색',        desc: '비활성 요소' },
+  { key: '--gray-100',   label: '배경 회색',        desc: '섹션 배경' },
+  { key: '--white',      label: '흰색',             desc: '카드, 기본 배경' },
+  { key: '--nav-bg',     label: '내비 배경',        desc: '상단 네비게이션 배경' },
+  { key: '--footer-bg',  label: '푸터 배경',        desc: '하단 푸터 배경' },
+];
+
+// 프리셋 정의
+const PRESETS = {
+  default: {
+    '--green': '#2D9B6F', '--green-dark': '#1A7A4A', '--green-light': '#E8F5EE',
+    '--black': '#111111', '--gray-900': '#1a1a1a', '--gray-700': '#3d3d3d',
+    '--gray-500': '#6b7280', '--gray-300': '#d1d5db', '--gray-100': '#f9fafb',
+    '--white': '#ffffff', '--nav-bg': '#ffffff', '--footer-bg': '#111111',
+  },
+  dark: {
+    '--green': '#4ECCA3', '--green-dark': '#2EA882', '--green-light': '#1a2e24',
+    '--black': '#e2e8f0', '--gray-900': '#cbd5e1', '--gray-700': '#94a3b8',
+    '--gray-500': '#64748b', '--gray-300': '#334155', '--gray-100': '#1e2433',
+    '--white': '#131929', '--nav-bg': '#0f1318', '--footer-bg': '#0a0d11',
+  },
+  warm: {
+    '--green': '#D97706', '--green-dark': '#B45309', '--green-light': '#FEF3C7',
+    '--black': '#1C1917', '--gray-900': '#292524', '--gray-700': '#57534e',
+    '--gray-500': '#78716c', '--gray-300': '#d6d3d1', '--gray-100': '#fafaf9',
+    '--white': '#ffffff', '--nav-bg': '#ffffff', '--footer-bg': '#1c1917',
+  },
+  cool: {
+    '--green': '#2563EB', '--green-dark': '#1D4ED8', '--green-light': '#DBEAFE',
+    '--black': '#111827', '--gray-900': '#1f2937', '--gray-700': '#374151',
+    '--gray-500': '#6b7280', '--gray-300': '#d1d5db', '--gray-100': '#f9fafb',
+    '--white': '#ffffff', '--nav-bg': '#ffffff', '--footer-bg': '#111827',
+  },
+};
+
+let currentTheme = { ...PRESETS.default };
+
+// 상태 메시지
+function setStatus(msg, ok=true) {
+  const el = document.getElementById('js-status');
+  el.textContent = msg;
+  el.style.color = ok ? '#6ee7b7' : '#f87171';
+  setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+// ──────────────────────────────────────────
+// 색상 그리드 렌더링
+// ──────────────────────────────────────────
+function renderColorGrid() {
+  const grid = document.getElementById('js-color-grid');
+  grid.innerHTML = COLOR_VARS.map(cv => {
+    const val = currentTheme[cv.key] || '#cccccc';
+    const safeKey = cv.key.replace(/--/g,'').replace(/-/g,'_');
+    return `
+      <div class="color-item">
+        <div class="color-label">${cv.label}</div>
+        <div class="color-var">${cv.key}</div>
+        <div class="color-desc" style="font-size:11px;color:var(--muted);margin-bottom:10px;">${cv.desc}</div>
+        <div class="color-row">
+          <div class="color-preview" id="cp_${safeKey}" style="background:${val};">
+            <input type="color" value="${val}"
+              oninput="onColorPick('${cv.key}','cp_${safeKey}','ci_${safeKey}',this.value)">
+          </div>
+          <input class="color-hex-input" id="ci_${safeKey}" type="text" value="${val}" maxlength="7"
+            oninput="onHexInput('${cv.key}','cp_${safeKey}','ci_${safeKey}',this.value)">
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function onColorPick(cssVar, prevId, inputId, val) {
+  currentTheme[cssVar] = val;
+  document.getElementById(prevId).style.background = val;
+  document.getElementById(inputId).value = val;
+  updatePreview();
+}
+
+function onHexInput(cssVar, prevId, inputId, val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    currentTheme[cssVar] = val;
+    document.getElementById(prevId).style.background = val;
+    const picker = document.querySelector(`#${prevId} input[type=color]`);
+    if (picker) picker.value = val;
+    updatePreview();
+  }
+}
+
+// ──────────────────────────────────────────
+// 미리보기 업데이트
+// ──────────────────────────────────────────
+function updatePreview() {
+  const t = currentTheme;
+  const nav = document.getElementById('pv-nav');
+  nav.style.background = t['--nav-bg'];
+  document.getElementById('pv-logo').style.color = t['--green'];
+  document.getElementById('pv-link1').style.color = t['--gray-700'];
+  document.getElementById('pv-link2').style.color = t['--gray-700'];
+  document.getElementById('pv-link3').style.color = t['--gray-700'];
+
+  const hero = document.getElementById('pv-hero');
+  hero.style.background = t['--green-light'];
+  document.getElementById('pv-htitle').style.color = t['--black'];
+  document.getElementById('pv-hsub').style.color = t['--gray-500'];
+
+  const btnP = document.getElementById('pv-btn-p');
+  btnP.style.background = t['--green'];
+  btnP.style.color = '#fff';
+
+  const btnO = document.getElementById('pv-btn-o');
+  btnO.style.borderColor = t['--green'];
+  btnO.style.color = t['--green'];
+
+  [1,2,3].forEach(n => {
+    const card = document.getElementById(`pv-card${n}`);
+    card.style.background = t['--white'];
+    card.style.border = `1px solid ${t['--gray-300']}`;
+    card.style.color = t['--gray-700'];
+  });
+
+  const footer = document.getElementById('pv-footer');
+  footer.style.background = t['--footer-bg'];
+  footer.style.color = '#888';
+}
+
+// ──────────────────────────────────────────
+// 프리셋 적용
+// ──────────────────────────────────────────
+function applyPreset(name, el) {
+  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentTheme = { ...PRESETS[name] };
+  renderColorGrid();
+  updatePreview();
+}
+
+// ──────────────────────────────────────────
+// 기본값 초기화
+// ──────────────────────────────────────────
+function resetToDefault() {
+  if (!confirm('기본 그린 테마로 초기화하시겠습니까?')) return;
+  applyPreset('default', document.getElementById('preset-default'));
+}
+
+// ──────────────────────────────────────────
+// 저장
+// ──────────────────────────────────────────
+async function saveTheme() {
+  setStatus('저장 중...');
+  const rows = Object.entries(currentTheme).map(([k,v]) => ({ key: k, value: v, updated_at: new Date().toISOString() }));
+  const { error } = await supabaseClient.from('theme_config').upsert(rows, { onConflict: 'key' });
+  if (error) { setStatus('저장 실패: '+error.message, false); return; }
+  // 현재 페이지 CSS 변수도 즉시 반영
+  Object.entries(currentTheme).forEach(([k,v]) => document.documentElement.style.setProperty(k, v));
+  setStatus('테마 저장 완료! ✓ 모든 페이지에 적용됩니다.');
+}
+
+// ──────────────────────────────────────────
+// 초기화 (DB에서 기존 테마 로드)
+// ──────────────────────────────────────────
+async function init() {
+  try {
+    const { data } = await supabaseClient.from('theme_config').select('key,value');
+    if (data && data.length) {
+      data.forEach(r => { if (r.key.startsWith('--')) currentTheme[r.key] = r.value; });
+    }
+  } catch(e) {}
+  renderColorGrid();
+  updatePreview();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

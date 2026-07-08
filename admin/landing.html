@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>랜딩 빌더 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --g: #2D9B6F; --gd: #1A7A4A; --gl: #E8F5EE;
+      --dark: #111318; --dark2: #1a1f26; --dark3: #22282f;
+      --border: rgba(255,255,255,.08);
+      --text: #e2e8f0; --muted: #8b9ab0;
+      --white: #fff;
+      --radius: 12px;
+    }
+    body { font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; background: #0f1318; color: var(--text); min-height: 100vh; }
+
+    /* ── 상단 바 ── */
+    .top-bar {
+      height: 56px; background: var(--dark); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 20px; gap: 16px; position: sticky; top: 0; z-index: 100;
+    }
+    .top-bar-logo { font-size: 15px; font-weight: 800; color: var(--g); margin-right: auto; }
+    .top-bar-logo a { color: var(--muted); text-decoration: none; font-weight: 400; font-size: 12px; margin-left: 8px; }
+    .btn-save, .btn-pub {
+      padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      cursor: pointer; border: none; transition: all .2s;
+    }
+    .btn-save { background: var(--dark3); color: var(--text); border: 1px solid var(--border); }
+    .btn-save:hover { background: #2d3340; }
+    .btn-pub  { background: var(--g); color: #fff; }
+    .btn-pub:hover { background: var(--gd); }
+    .status-msg { font-size: 12px; color: var(--muted); min-width: 120px; text-align: right; }
+
+    /* ── 레이아웃 ── */
+    .builder-layout { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+
+    /* ── 왼쪽 섹션 목록 ── */
+    .sec-panel {
+      width: 240px; background: var(--dark); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+    }
+    .sec-panel-head {
+      padding: 16px 16px 12px; font-size: 11px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .sec-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border-radius: 8px; cursor: pointer; border: 1px solid transparent;
+      transition: all .2s; user-select: none;
+    }
+    .sec-item:hover { background: var(--dark3); }
+    .sec-item.active { background: rgba(45,155,111,.12); border-color: rgba(45,155,111,.3); }
+    .sec-drag-handle { color: var(--muted); font-size: 14px; cursor: grab; padding: 2px; flex-shrink: 0; }
+    .sec-drag-handle:active { cursor: grabbing; }
+    .sec-ico { font-size: 18px; flex-shrink: 0; }
+    .sec-info { flex: 1; min-width: 0; }
+    .sec-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sec-id   { font-size: 10px; color: var(--muted); }
+    .sec-toggle { flex-shrink: 0; }
+    .toggle-btn {
+      width: 32px; height: 18px; border-radius: 9px; background: var(--dark3);
+      border: 1px solid rgba(255,255,255,.12); cursor: pointer; position: relative; transition: background .2s;
+    }
+    .toggle-btn::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: all .2s;
+    }
+    .toggle-btn.on { background: var(--g); border-color: var(--g); }
+    .toggle-btn.on::after { left: 16px; background: #fff; }
+    .sec-dragging { opacity: .4; border: 1px dashed var(--g) !important; }
+    .sec-dragover { border-top: 2px solid var(--g) !important; }
+
+    /* ── 가운데 에디터 ── */
+    .editor-panel {
+      flex: 1; overflow-y: auto; padding: 24px;
+      background: #12171e;
+    }
+    .editor-panel::-webkit-scrollbar { width: 6px; }
+    .editor-panel::-webkit-scrollbar-thumb { background: var(--dark3); border-radius: 3px; }
+    .editor-head { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .editor-section { display: none; }
+    .editor-section.active { display: block; }
+
+    /* 폼 공통 */
+    .form-group { margin-bottom: 18px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; display: block; }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; background: var(--dark); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 10px 14px; font-size: 14px;
+      font-family: inherit; transition: border .2s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none; border-color: var(--g);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .form-select { appearance: none; cursor: pointer; }
+    .form-row { display: grid; gap: 14px; }
+    .form-row-2 { grid-template-columns: 1fr 1fr; }
+    .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .form-hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+    /* 색상 피커 */
+    .color-row { display: flex; align-items: center; gap: 10px; }
+    .color-preview {
+      width: 36px; height: 36px; border-radius: 8px; border: 2px solid var(--border);
+      cursor: pointer; flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .color-preview input[type=color] {
+      position: absolute; inset: 0; opacity: 0; width: 200%; height: 200%;
+      cursor: pointer; border: none;
+    }
+    .color-hex { flex: 1; }
+
+    /* 이미지 업로드 */
+    .img-upload-zone {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 2rem;
+      text-align: center; cursor: pointer; transition: all .2s; position: relative;
+    }
+    .img-upload-zone:hover, .img-upload-zone.dragover { border-color: var(--g); background: rgba(45,155,111,.04); }
+    .img-upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .img-upload-ico { font-size: 32px; margin-bottom: 8px; }
+    .img-upload-txt { font-size: 13px; color: var(--muted); }
+    .img-preview {
+      width: 100%; aspect-ratio: 16/9; border-radius: 10px; object-fit: cover;
+      border: 1px solid var(--border); margin-top: 12px; display: none;
+    }
+    .img-preview.show { display: block; }
+    .img-ratio-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .img-ratio-btn {
+      padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--dark3); color: var(--muted); transition: all .2s;
+    }
+    .img-ratio-btn.active { border-color: var(--g); color: var(--g); background: rgba(45,155,111,.08); }
+
+    /* 아이콘 추가 카드 */
+    .stat-cards, .persona-cards, .feature-cards, .review-cards { display: flex; flex-direction: column; gap: 12px; }
+    .sc-card {
+      background: var(--dark); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; position: relative;
+    }
+    .sc-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .sc-card-title { font-size: 12px; font-weight: 700; color: var(--muted); }
+    .sc-del { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+    .sc-del:hover { background: rgba(239,68,68,.1); }
+    .btn-add-card {
+      width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed var(--border);
+      background: none; color: var(--muted); font-size: 13px; cursor: pointer; transition: all .2s; margin-top: 8px;
+    }
+    .btn-add-card:hover { border-color: var(--g); color: var(--g); }
+
+    /* ── 오른쪽 미리보기 ── */
+    .preview-panel {
+      width: 420px; border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; background: var(--dark); flex-shrink: 0;
+    }
+    .preview-toolbar {
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .preview-label { font-size: 12px; font-weight: 700; color: var(--muted); flex: 1; }
+    .pv-toggle { display: flex; background: var(--dark3); border-radius: 8px; padding: 3px; gap: 2px; }
+    .pv-btn {
+      padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      border: none; cursor: pointer; background: transparent; color: var(--muted); transition: all .2s;
+    }
+    .pv-btn.active { background: var(--dark); color: var(--text); }
+    .preview-frame-wrap {
+      flex: 1; overflow: hidden; display: flex; align-items: flex-start; justify-content: center;
+      padding: 16px; background: #0a0d11;
+    }
+    .preview-frame {
+      width: 100%; height: 100%; border: none; border-radius: 10px; overflow: hidden;
+      background: #fff; transition: all .3s;
+    }
+    .preview-frame.mobile { width: 375px; flex-shrink: 0; }
+
+    /* 태그 */
+    .badge-section { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; background: rgba(45,155,111,.15); color: var(--g); }
+
+    /* 섹션이 없을 때 */
+    .editor-empty { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .editor-empty-ico { font-size: 48px; margin-bottom: 12px; }
+
+    /* 반응형 숨김 */
+    @media(max-width:1100px){ .preview-panel { display:none; } }
+    @media(max-width:800px) { .sec-panel { width:200px; } }
+  </style>
+</head>
+<body>
+
+<!-- 상단 바 -->
+<div class="top-bar">
+  <div class="top-bar-logo">랜딩 빌더 <a href="../index.html" target="_blank">↗ 미리보기</a></div>
+  <span class="status-msg" id="js-status"></span>
+  <button class="btn-save" onclick="saveDraft()">임시저장</button>
+  <button class="btn-pub"  onclick="publish()">발행하기</button>
+</div>
+
+<div class="builder-layout">
+
+  <!-- 섹션 목록 -->
+  <aside class="sec-panel">
+    <div class="sec-panel-head">섹션 목록</div>
+    <div class="sec-list" id="js-sec-list">
+      <!-- JS로 렌더링 -->
+    </div>
+  </aside>
+
+  <!-- 에디터 -->
+  <main class="editor-panel">
+
+    <!-- 기본 안내 -->
+    <div id="ed-empty" class="editor-empty">
+      <div class="editor-empty-ico">✏️</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">왼쪽에서 섹션을 선택하세요</div>
+      <div style="font-size:13px;">각 섹션의 텍스트, 이미지, 스타일을 수정할 수 있습니다.</div>
+    </div>
+
+    <!-- ───── 히어로 편집 ───── -->
+    <div id="ed-hero" class="editor-section">
+      <div class="editor-head">🏠 <span>히어로</span> <span class="badge-section">hero</span></div>
+      <div class="form-group">
+        <label class="form-label">메인 슬로건</label>
+        <textarea class="form-textarea" id="h-slogan" rows="2" placeholder="온 교회가 함께 배우고,\n함께 성장합니다">온 교회가 함께 배우고,
+함께 성장합니다</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">서브 카피</label>
+        <input class="form-input" id="h-sub" type="text" value="2020년부터 목사님, 교사, 부모, 학생까지">
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">CTA 버튼 1 텍스트</label>
+          <input class="form-input" id="h-cta1-txt" type="text" value="강좌 둘러보기">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CTA 버튼 1 링크</label>
+          <input class="form-input" id="h-cta1-url" type="text" value="courses.html">
+        </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">CTA 버튼 2 텍스트</label>
+          <input class="form-input" id="h-cta2-txt" type="text" value="아이엠러닝 소개">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CTA 버튼 2 링크</label>
+          <input class="form-input" id="h-cta2-url" type="text" value="about.html">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">배경 그라데이션 시작 색</label>
+          <div class="color-row">
+            <div class="color-preview" style="background:#e8f5ee"><input type="color" id="h-bg-from" value="#e8f5ee" oninput="this.parentElement.style.background=this.value"></div>
+            <input class="form-input color-hex" id="h-bg-from-hex" type="text" value="#e8f5ee" oninput="syncColor('h-bg-from',this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">배경 그라데이션 끝 색</label>
+          <div class="color-row">
+            <div class="color-preview" style="background:#f5fff8"><input type="color" id="h-bg-to" value="#f5fff8" oninput="this.parentElement.style.background=this.value"></div>
+            <input class="form-input color-hex" id="h-bg-to-hex" type="text" value="#f5fff8" oninput="syncColor('h-bg-to',this.value)">
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label class="form-label">히어로 이미지</label>
+        <div class="img-upload-zone" id="h-img-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event,'hero')">
+          <input type="file" accept="image/*" onchange="uploadImage(this,'hero','h-img-preview','h-img-url')">
+          <div class="img-upload-ico">🖼️</div>
+          <div class="img-upload-txt">클릭하거나 이미지를 드래그하세요</div>
+        </div>
+        <img class="img-preview" id="h-img-preview">
+        <input type="hidden" id="h-img-url">
+        <div class="form-hint" style="margin-top:12px;">권장 비율</div>
+        <div class="img-ratio-btns" style="margin-top:6px;">
+          <button class="img-ratio-btn active" onclick="setRatio(this,'3/4')">3:4</button>
+          <button class="img-ratio-btn" onclick="setRatio(this,'1/1')">1:1</button>
+          <button class="img-ratio-btn" onclick="setRatio(this,'4/3')">4:3</button>
+          <button class="img-ratio-btn" onclick="setRatio(this,'16/9')">16:9</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── 신뢰 숫자 편집 ───── -->
+    <div id="ed-trust" class="editor-section">
+      <div class="editor-head">📊 <span>신뢰 숫자</span> <span class="badge-section">trust</span></div>
+      <div class="stat-cards" id="js-trust-cards"></div>
+      <button class="btn-add-card" onclick="addStatCard()">+ 수치 추가</button>
+    </div>
+
+    <!-- ───── 페르소나 편집 ───── -->
+    <div id="ed-personas" class="editor-section">
+      <div class="editor-head">👤 <span>이런 분들에게</span> <span class="badge-section">personas</span></div>
+      <div class="form-group">
+        <label class="form-label">섹션 제목</label>
+        <input class="form-input" id="p-title" type="text" value="이런 분들에게 추천해요">
+      </div>
+      <div class="persona-cards" id="js-persona-cards"></div>
+      <button class="btn-add-card" onclick="addPersonaCard()">+ 페르소나 추가</button>
+    </div>
+
+    <!-- ───── 특징 편집 ───── -->
+    <div id="ed-features" class="editor-section">
+      <div class="editor-head">⭐ <span>특징</span> <span class="badge-section">features</span></div>
+      <div class="form-group">
+        <label class="form-label">섹션 제목</label>
+        <input class="form-input" id="f-title" type="text" value="왜 아이엠러닝인가요?">
+      </div>
+      <div class="feature-cards" id="js-feature-cards"></div>
+      <button class="btn-add-card" onclick="addFeatureCard()">+ 특징 추가</button>
+    </div>
+
+    <!-- ───── 강사 편집 (DB에서 자동 로드) ───── -->
+    <div id="ed-instructors" class="editor-section">
+      <div class="editor-head">👩‍🏫 <span>강사</span> <span class="badge-section">instructors</span></div>
+      <div style="padding:1.5rem;background:var(--dark);border-radius:10px;border:1px solid var(--border);text-align:center;color:var(--muted);font-size:13px;">
+        <div style="font-size:32px;margin-bottom:8px;">🔗</div>
+        강사 정보는 DB에서 자동으로 불러옵니다.<br>강사 관리는 <a href="instructors.html" style="color:var(--g);">강사 관리 페이지</a>에서 수정하세요.
+      </div>
+    </div>
+
+    <!-- ───── 강좌 편집 (DB에서 자동 로드) ───── -->
+    <div id="ed-courses" class="editor-section">
+      <div class="editor-head">📚 <span>대표 강좌</span> <span class="badge-section">courses</span></div>
+      <div style="padding:1.5rem;background:var(--dark);border-radius:10px;border:1px solid var(--border);text-align:center;color:var(--muted);font-size:13px;">
+        <div style="font-size:32px;margin-bottom:8px;">🔗</div>
+        강좌는 DB에서 <strong style="color:var(--text);">featured=true</strong> 기준으로 자동 표시됩니다.<br>강좌 관리는 <a href="courses.html" style="color:var(--g);">강좌 관리 페이지</a>에서 수정하세요.
+      </div>
+    </div>
+
+    <!-- ───── 후기 편집 ───── -->
+    <div id="ed-reviews" class="editor-section">
+      <div class="editor-head">💬 <span>수강 후기</span> <span class="badge-section">reviews</span></div>
+      <div class="form-group">
+        <label class="form-label">섹션 제목</label>
+        <input class="form-input" id="r-title" type="text" value="수강생 후기">
+      </div>
+      <div class="review-cards" id="js-review-cards"></div>
+      <button class="btn-add-card" onclick="addReviewCard()">+ 후기 추가</button>
+    </div>
+
+    <!-- ───── 수료증 편집 ───── -->
+    <div id="ed-certificate" class="editor-section">
+      <div class="editor-head">🏅 <span>수료증</span> <span class="badge-section">certificate</span></div>
+      <div class="form-group">
+        <label class="form-label">섹션 제목</label>
+        <input class="form-input" id="c-title" type="text" value="수료증 발급 안내">
+      </div>
+      <div class="form-group">
+        <label class="form-label">설명</label>
+        <textarea class="form-textarea" id="c-desc">과정 수료 시 공식 수료증이 발급됩니다. CBUP 과정을 비롯한 주요 강좌는 수료증 발급 대상입니다.</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">특징 목록 (한 줄에 하나씩)</label>
+        <textarea class="form-textarea" id="c-feats" rows="5">디지털 수료증 즉시 발급
+교회 제출 가능한 공식 문서
+사역 이력 증빙 활용</textarea>
+      </div>
+    </div>
+
+    <!-- ───── FAQ 편집 ───── -->
+    <div id="ed-faq" class="editor-section">
+      <div class="editor-head">❓ <span>FAQ</span> <span class="badge-section">faq</span></div>
+      <div style="margin-bottom:16px;padding:14px;background:var(--dark);border-radius:10px;border:1px solid var(--border);font-size:13px;color:var(--muted);">
+        FAQ 데이터는 Supabase <code style="color:var(--g);">faqs</code> 테이블에서 불러옵니다.
+      </div>
+      <div id="js-faq-editor">
+        <div style="text-align:center;padding:2rem;color:var(--muted);">로딩 중...</div>
+      </div>
+      <button class="btn-add-card" onclick="addFaqItem()">+ FAQ 추가</button>
+    </div>
+
+    <!-- ───── CTA 편집 ───── -->
+    <div id="ed-cta" class="editor-section">
+      <div class="editor-head">🚀 <span>최종 CTA</span> <span class="badge-section">cta</span></div>
+      <div class="form-group">
+        <label class="form-label">제목 (줄바꿈: Enter)</label>
+        <textarea class="form-textarea" id="ct-title" rows="2">지금 바로
+시작하세요</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">설명</label>
+        <textarea class="form-textarea" id="ct-desc">1,200명 이상의 수강생이 선택한 아이엠러닝에서
+신앙과 삶이 하나 되는 배움을 경험하세요.</textarea>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">버튼 텍스트</label>
+          <input class="form-input" id="ct-btn-txt" type="text" value="강좌 둘러보기">
+        </div>
+        <div class="form-group">
+          <label class="form-label">버튼 링크</label>
+          <input class="form-input" id="ct-btn-url" type="text" value="courses.html">
+        </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">배경 시작 색</label>
+          <div class="color-row">
+            <div class="color-preview" style="background:#0f2d1e"><input type="color" id="ct-bg-from" value="#0f2d1e" oninput="this.parentElement.style.background=this.value"></div>
+            <input class="form-input color-hex" id="ct-bg-from-hex" type="text" value="#0f2d1e" oninput="syncColor('ct-bg-from',this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">배경 끝 색</label>
+          <div class="color-row">
+            <div class="color-preview" style="background:#1a4a30"><input type="color" id="ct-bg-to" value="#1a4a30" oninput="this.parentElement.style.background=this.value"></div>
+            <input class="form-input color-hex" id="ct-bg-to-hex" type="text" value="#1a4a30" oninput="syncColor('ct-bg-to',this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 미리보기 -->
+  <aside class="preview-panel">
+    <div class="preview-toolbar">
+      <span class="preview-label">실시간 미리보기</span>
+      <div class="pv-toggle">
+        <button class="pv-btn active" onclick="setPreview('pc',this)">🖥 PC</button>
+        <button class="pv-btn" onclick="setPreview('mo',this)">📱 Mobile</button>
+      </div>
+    </div>
+    <div class="preview-frame-wrap">
+      <iframe id="js-preview" class="preview-frame" src="../index.html"></iframe>
+    </div>
+  </aside>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+// ─────────────────────────────────────────
+// 섹션 메타 정보
+// ─────────────────────────────────────────
+const SECTIONS = [
+  { id:'hero',        name:'히어로',      icon:'🏠' },
+  { id:'trust',       name:'신뢰 숫자',   icon:'📊' },
+  { id:'personas',    name:'이런 분들에게', icon:'👤' },
+  { id:'features',    name:'특징',        icon:'⭐' },
+  { id:'instructors', name:'강사',        icon:'👩‍🏫' },
+  { id:'courses',     name:'대표 강좌',   icon:'📚' },
+  { id:'reviews',     name:'수강 후기',   icon:'💬' },
+  { id:'certificate', name:'수료증',      icon:'🏅' },
+  { id:'faq',         name:'FAQ',         icon:'❓' },
+  { id:'cta',         name:'최종 CTA',   icon:'🚀' },
+];
+
+let sectionOrder   = SECTIONS.map(s => s.id);
+let sectionVisible = {};
+let currentSec = null;
+let faqs = [];
+
+// 상태 메시지
+function setStatus(msg, ok=true) {
+  const el = document.getElementById('js-status');
+  el.textContent = msg;
+  el.style.color = ok ? '#6ee7b7' : '#f87171';
+  setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+// ─────────────────────────────────────────
+// 섹션 목록 렌더링
+// ─────────────────────────────────────────
+function renderSecList() {
+  const list = document.getElementById('js-sec-list');
+  list.innerHTML = sectionOrder.map(id => {
+    const s = SECTIONS.find(x => x.id === id);
+    if (!s) return '';
+    const vis = sectionVisible[id] !== false;
+    return `
+      <div class="sec-item${currentSec===id?' active':''}" data-id="${id}"
+           draggable="true"
+           ondragstart="onDragStart(event,this)"
+           ondragover="onDragOver(event,this)"
+           ondragleave="onDragLeave(event,this)"
+           ondrop="onDrop(event,this)"
+           ondragend="onDragEnd(event)"
+           onclick="selectSec('${id}')">
+        <span class="sec-drag-handle" title="드래그로 순서 변경">⠿</span>
+        <span class="sec-ico">${s.icon}</span>
+        <div class="sec-info">
+          <div class="sec-name">${s.name}</div>
+          <div class="sec-id">#${id}</div>
+        </div>
+        <div class="sec-toggle">
+          <div class="toggle-btn${vis?' on':''}" onclick="event.stopPropagation();toggleSec('${id}',this)" title="${vis?'숨기기':'표시하기'}"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function selectSec(id) {
+  currentSec = id;
+  document.querySelectorAll('.editor-section').forEach(el => el.classList.remove('active'));
+  document.getElementById('ed-empty').style.display = 'none';
+  const ed = document.getElementById(`ed-${id}`);
+  if (ed) ed.classList.add('active'); else document.getElementById('ed-empty').style.display='';
+  renderSecList();
+}
+
+function toggleSec(id, btn) {
+  sectionVisible[id] = !btn.classList.contains('on');
+  btn.classList.toggle('on');
+}
+
+// ─────────────────────────────────────────
+// 드래그 앤 드롭
+// ─────────────────────────────────────────
+let dragId = null;
+function onDragStart(e, el) { dragId = el.dataset.id; el.classList.add('sec-dragging'); e.dataTransfer.effectAllowed='move'; }
+function onDragOver(e, el)  { e.preventDefault(); if(el.dataset.id!==dragId) el.classList.add('sec-dragover'); }
+function onDragLeave(e, el) { el.classList.remove('sec-dragover'); }
+function onDragEnd(e)       { document.querySelectorAll('.sec-dragging,.sec-dragover').forEach(el=>el.classList.remove('sec-dragging','sec-dragover')); }
+function onDrop(e, el) {
+  e.preventDefault();
+  el.classList.remove('sec-dragover');
+  const targetId = el.dataset.id;
+  if (!dragId || dragId===targetId) return;
+  const fromIdx = sectionOrder.indexOf(dragId);
+  const toIdx   = sectionOrder.indexOf(targetId);
+  sectionOrder.splice(fromIdx,1);
+  sectionOrder.splice(toIdx,0,dragId);
+  renderSecList();
+}
+
+// ─────────────────────────────────────────
+// 동적 카드 (신뢰 숫자)
+// ─────────────────────────────────────────
+let trustItems = [
+  {value:5,unit:'년+',label:'안정적 운영'},
+  {value:1200,unit:'명+',label:'누적 수강생'},
+  {value:50,unit:'개+',label:'온라인 강좌'},
+  {value:95,unit:'%',label:'수료율'}
+];
+
+function renderTrustCards() {
+  const wrap = document.getElementById('js-trust-cards');
+  wrap.innerHTML = trustItems.map((it,i) => `
+    <div class="sc-card">
+      <div class="sc-card-head"><span class="sc-card-title">수치 ${i+1}</span><button class="sc-del" onclick="trustItems.splice(${i},1);renderTrustCards()">✕</button></div>
+      <div class="form-row form-row-3">
+        <div class="form-group"><label class="form-label">숫자</label><input class="form-input" type="number" value="${it.value}" oninput="trustItems[${i}].value=+this.value"></div>
+        <div class="form-group"><label class="form-label">단위</label><input class="form-input" type="text" value="${it.unit}" oninput="trustItems[${i}].unit=this.value" placeholder="명+"></div>
+        <div class="form-group"><label class="form-label">레이블</label><input class="form-input" type="text" value="${it.label}" oninput="trustItems[${i}].label=this.value"></div>
+      </div>
+    </div>`).join('');
+}
+function addStatCard() { trustItems.push({value:0,unit:'',label:''}); renderTrustCards(); }
+
+// ─────────────────────────────────────────
+// 페르소나 카드
+// ─────────────────────────────────────────
+let personaItems = [
+  {icon:'⛪',title:'목사님·사역자',desc:'설교와 사역에 바로 적용할 수 있는 성경 기반 강의'},
+  {icon:'👨‍🏫',title:'교회학교 교사',desc:'교사 교육부터 수업 설계까지 체계적으로'},
+  {icon:'👨‍👩‍👧',title:'부모님',desc:'신앙 안에서 자녀를 세워가는 부모 교육'},
+  {icon:'📖',title:'학생·청년',desc:'검정고시, 영어, 신앙까지 한 곳에서'},
+];
+function renderPersonaCards() {
+  const wrap = document.getElementById('js-persona-cards');
+  wrap.innerHTML = personaItems.map((it,i) => `
+    <div class="sc-card">
+      <div class="sc-card-head"><span class="sc-card-title">페르소나 ${i+1}</span><button class="sc-del" onclick="personaItems.splice(${i},1);renderPersonaCards()">✕</button></div>
+      <div class="form-row form-row-2">
+        <div class="form-group"><label class="form-label">아이콘(이모지)</label><input class="form-input" type="text" value="${it.icon}" oninput="personaItems[${i}].icon=this.value"></div>
+        <div class="form-group"><label class="form-label">제목</label><input class="form-input" type="text" value="${it.title}" oninput="personaItems[${i}].title=this.value"></div>
+      </div>
+      <div class="form-group"><label class="form-label">설명</label><textarea class="form-textarea" rows="2" oninput="personaItems[${i}].desc=this.value">${it.desc}</textarea></div>
+    </div>`).join('');
+}
+function addPersonaCard() { personaItems.push({icon:'😊',title:'',desc:''}); renderPersonaCards(); }
+
+// ─────────────────────────────────────────
+// 특징 카드
+// ─────────────────────────────────────────
+let featureItems = [
+  {icon:'✝️',title:'성경적 세계관 기반',desc:'모든 강의는 성경적 가치관을 기반으로 설계됩니다.'},
+  {icon:'🎯',title:'현장 중심 실전 커리큘럼',desc:'교회·가정·선교 현장에서 바로 적용할 수 있습니다.'},
+  {icon:'🤝',title:'함께 성장하는 공동체',desc:'같은 가치관을 가진 분들과 함께 배우고 성장합니다.'},
+];
+function renderFeatureCards() {
+  const wrap = document.getElementById('js-feature-cards');
+  wrap.innerHTML = featureItems.map((it,i) => `
+    <div class="sc-card">
+      <div class="sc-card-head"><span class="sc-card-title">특징 ${i+1}</span><button class="sc-del" onclick="featureItems.splice(${i},1);renderFeatureCards()">✕</button></div>
+      <div class="form-row form-row-2">
+        <div class="form-group"><label class="form-label">아이콘</label><input class="form-input" type="text" value="${it.icon}" oninput="featureItems[${i}].icon=this.value"></div>
+        <div class="form-group"><label class="form-label">제목</label><input class="form-input" type="text" value="${it.title}" oninput="featureItems[${i}].title=this.value"></div>
+      </div>
+      <div class="form-group"><label class="form-label">설명</label><textarea class="form-textarea" rows="2" oninput="featureItems[${i}].desc=this.value">${it.desc}</textarea></div>
+    </div>`).join('');
+}
+function addFeatureCard() { featureItems.push({icon:'✨',title:'',desc:''}); renderFeatureCards(); }
+
+// ─────────────────────────────────────────
+// 후기 카드
+// ─────────────────────────────────────────
+let reviewItems = [
+  {text:'CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요.',name:'김○○ 집사',course:'CBUP 수료과정',emoji:'😊'},
+  {text:'부모대안학교 수강 후 아이와의 대화가 달라졌어요.',name:'박○○ 권사',course:'부모대안학교',emoji:'🙂'},
+  {text:'영단속 영어기도 강의 듣고 영어로 기도할 수 있게 됐어요!',name:'이○○ 성도',course:'영단속 영어기도',emoji:'😄'},
+];
+function renderReviewCards() {
+  const wrap = document.getElementById('js-review-cards');
+  wrap.innerHTML = reviewItems.map((it,i) => `
+    <div class="sc-card">
+      <div class="sc-card-head"><span class="sc-card-title">후기 ${i+1}</span><button class="sc-del" onclick="reviewItems.splice(${i},1);renderReviewCards()">✕</button></div>
+      <div class="form-group"><label class="form-label">후기 내용</label><textarea class="form-textarea" rows="2" oninput="reviewItems[${i}].text=this.value">${it.text}</textarea></div>
+      <div class="form-row form-row-3">
+        <div class="form-group"><label class="form-label">이름</label><input class="form-input" type="text" value="${it.name}" oninput="reviewItems[${i}].name=this.value"></div>
+        <div class="form-group"><label class="form-label">강좌명</label><input class="form-input" type="text" value="${it.course}" oninput="reviewItems[${i}].course=this.value"></div>
+        <div class="form-group"><label class="form-label">아바타 이모지</label><input class="form-input" type="text" value="${it.emoji}" oninput="reviewItems[${i}].emoji=this.value"></div>
+      </div>
+    </div>`).join('');
+}
+function addReviewCard() { reviewItems.push({text:'',name:'',course:'',emoji:'😊'}); renderReviewCards(); }
+
+// ─────────────────────────────────────────
+// FAQ (Supabase 연동)
+// ─────────────────────────────────────────
+async function loadFaqEditor() {
+  const wrap = document.getElementById('js-faq-editor');
+  try {
+    const { data } = await supabaseClient.from('faqs').select('*').order('sort_order');
+    faqs = data||[];
+    renderFaqEditor();
+  } catch(e) { wrap.innerHTML = '<p style="color:#f87171;">FAQ 로드 실패</p>'; }
+}
+
+function renderFaqEditor() {
+  const wrap = document.getElementById('js-faq-editor');
+  wrap.innerHTML = faqs.map((f,i) => `
+    <div class="sc-card" style="margin-bottom:10px;">
+      <div class="sc-card-head">
+        <span class="sc-card-title">FAQ ${i+1}</span>
+        <label style="font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" ${f.is_visible!==false?'checked':''} onchange="faqs[${i}].is_visible=this.checked"> 표시
+        </label>
+        <button class="sc-del" onclick="deleteFaq(${i})">✕</button>
+      </div>
+      <div class="form-group"><label class="form-label">질문</label><input class="form-input" type="text" value="${f.question||''}" oninput="faqs[${i}].question=this.value"></div>
+      <div class="form-group"><label class="form-label">답변</label><textarea class="form-textarea" rows="2" oninput="faqs[${i}].answer=this.value">${f.answer||''}</textarea></div>
+      <div class="form-group"><label class="form-label">정렬 순서</label><input class="form-input" type="number" value="${f.sort_order||i+1}" oninput="faqs[${i}].sort_order=+this.value" style="width:80px;"></div>
+    </div>`).join('');
+}
+
+function addFaqItem() {
+  faqs.push({ question:'', answer:'', sort_order: faqs.length+1, is_visible: true });
+  renderFaqEditor();
+}
+
+async function deleteFaq(i) {
+  const f = faqs[i];
+  if (f.id) {
+    await supabaseClient.from('faqs').delete().eq('id', f.id);
+  }
+  faqs.splice(i,1);
+  renderFaqEditor();
+}
+
+// ─────────────────────────────────────────
+// 이미지 업로드
+// ─────────────────────────────────────────
+async function uploadImage(input, section, previewId, urlId) {
+  const file = input.files[0];
+  if (!file) return;
+  setStatus('이미지 업로드 중...');
+  const ext = file.name.split('.').pop();
+  const path = `landing/${section}/${Date.now()}.${ext}`;
+  const { data, error } = await supabaseClient.storage.from('landing-images').upload(path, file, { upsert: true });
+  if (error) { setStatus('업로드 실패: '+error.message, false); return; }
+  const { data: { publicUrl } } = supabaseClient.storage.from('landing-images').getPublicUrl(path);
+  document.getElementById(urlId).value = publicUrl;
+  const preview = document.getElementById(previewId);
+  preview.src = publicUrl;
+  preview.classList.add('show');
+  setStatus('이미지 업로드 완료!');
+}
+
+function handleDrop(e, section) {
+  e.preventDefault();
+  document.getElementById('h-img-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const fakeInput = { files: [file] };
+  uploadImage(fakeInput, section, 'h-img-preview', 'h-img-url');
+}
+
+function setRatio(btn, ratio) {
+  document.querySelectorAll('.img-ratio-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const preview = document.getElementById('h-img-preview');
+  preview.style.aspectRatio = ratio;
+}
+
+// 색상 동기화
+function syncColor(inputId, val) {
+  const el = document.getElementById(inputId);
+  if (el && /^#[0-9a-fA-F]{6}$/.test(val)) {
+    el.value = val;
+    el.parentElement.style.background = val;
+  }
+}
+
+// ─────────────────────────────────────────
+// 데이터 수집
+// ─────────────────────────────────────────
+function collectData() {
+  return {
+    sections_order: sectionOrder,
+    sections_visible: sectionVisible,
+    hero: {
+      slogan: document.getElementById('h-slogan').value,
+      subcopy: document.getElementById('h-sub').value,
+      cta1_text: document.getElementById('h-cta1-txt').value,
+      cta1_url:  document.getElementById('h-cta1-url').value,
+      cta2_text: document.getElementById('h-cta2-txt').value,
+      cta2_url:  document.getElementById('h-cta2-url').value,
+      bg_from: document.getElementById('h-bg-from').value,
+      bg_to:   document.getElementById('h-bg-to').value,
+      image_url: document.getElementById('h-img-url').value,
+    },
+    trust: { items: trustItems },
+    personas: { title: document.getElementById('p-title').value, items: personaItems },
+    features: { title: document.getElementById('f-title').value, items: featureItems },
+    reviews:  { title: document.getElementById('r-title').value, items: reviewItems },
+    certificate: {
+      title:    document.getElementById('c-title').value,
+      desc:     document.getElementById('c-desc').value,
+      features: document.getElementById('c-feats').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    },
+    cta: {
+      title:    document.getElementById('ct-title').value,
+      desc:     document.getElementById('ct-desc').value,
+      btn_text: document.getElementById('ct-btn-txt').value,
+      btn_url:  document.getElementById('ct-btn-url').value,
+      bg_from:  document.getElementById('ct-bg-from').value,
+      bg_to:    document.getElementById('ct-bg-to').value,
+    },
+  };
+}
+
+// ─────────────────────────────────────────
+// 저장 (임시 / 발행)
+// ─────────────────────────────────────────
+async function saveToSupabase(published=false) {
+  const d = collectData();
+  const rows = Object.entries(d).map(([k,v]) => ({ key: k, value: v, updated_at: new Date().toISOString() }));
+
+  // FAQ 저장
+  for (const f of faqs) {
+    if (f.id) {
+      await supabaseClient.from('faqs').update({ question:f.question, answer:f.answer, sort_order:f.sort_order, is_visible:f.is_visible }).eq('id',f.id);
+    } else {
+      await supabaseClient.from('faqs').insert({ question:f.question, answer:f.answer, sort_order:f.sort_order, is_visible:f.is_visible });
+    }
+  }
+
+  const { error } = await supabaseClient.from('landing_config').upsert(rows, { onConflict: 'key' });
+  if (error) { setStatus('저장 실패: '+error.message, false); return false; }
+  return true;
+}
+
+async function saveDraft() {
+  setStatus('저장 중...');
+  const ok = await saveToSupabase(false);
+  if (ok) { setStatus('임시저장 완료 ✓'); refreshPreview(); }
+}
+
+async function publish() {
+  setStatus('발행 중...');
+  const ok = await saveToSupabase(true);
+  if (ok) { setStatus('발행 완료! ✓'); refreshPreview(); }
+}
+
+// ─────────────────────────────────────────
+// 미리보기
+// ─────────────────────────────────────────
+function setPreview(mode, btn) {
+  document.querySelectorAll('.pv-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const frame = document.getElementById('js-preview');
+  if (mode==='mo') frame.classList.add('mobile'); else frame.classList.remove('mobile');
+}
+
+function refreshPreview() {
+  const frame = document.getElementById('js-preview');
+  frame.src = frame.src;
+}
+
+// ─────────────────────────────────────────
+// 초기 로드 (Supabase에서 기존 설정 불러오기)
+// ─────────────────────────────────────────
+async function init() {
+  renderSecList();
+  renderTrustCards();
+  renderPersonaCards();
+  renderFeatureCards();
+  renderReviewCards();
+
+  // FAQ 로드
+  await loadFaqEditor();
+
+  // 기존 저장 데이터 불러오기
+  try {
+    const { data } = await supabaseClient.from('landing_config').select('key,value');
+    if (!data) return;
+    const cfg = Object.fromEntries(data.map(r=>[r.key,r.value]));
+
+    if (cfg.sections_order && Array.isArray(cfg.sections_order)) sectionOrder = cfg.sections_order;
+    if (cfg.sections_visible) sectionVisible = cfg.sections_visible;
+    renderSecList();
+
+    const h = cfg.hero;
+    if (h) {
+      document.getElementById('h-slogan').value = h.slogan||'';
+      document.getElementById('h-sub').value = h.subcopy||'';
+      document.getElementById('h-cta1-txt').value = h.cta1_text||'';
+      document.getElementById('h-cta1-url').value = h.cta1_url||'';
+      document.getElementById('h-cta2-txt').value = h.cta2_text||'';
+      document.getElementById('h-cta2-url').value = h.cta2_url||'';
+      if (h.bg_from) { document.getElementById('h-bg-from').value=h.bg_from; document.querySelector('#h-bg-from').parentElement.style.background=h.bg_from; document.getElementById('h-bg-from-hex').value=h.bg_from; }
+      if (h.bg_to)   { document.getElementById('h-bg-to').value=h.bg_to;     document.querySelector('#h-bg-to').parentElement.style.background=h.bg_to; document.getElementById('h-bg-to-hex').value=h.bg_to; }
+      if (h.image_url) { document.getElementById('h-img-url').value=h.image_url; const p=document.getElementById('h-img-preview'); p.src=h.image_url; p.classList.add('show'); }
+    }
+    if (cfg.trust && cfg.trust.items) { trustItems = cfg.trust.items; renderTrustCards(); }
+    if (cfg.personas) {
+      if (cfg.personas.title) document.getElementById('p-title').value = cfg.personas.title;
+      if (cfg.personas.items) { personaItems = cfg.personas.items; renderPersonaCards(); }
+    }
+    if (cfg.features) {
+      if (cfg.features.title) document.getElementById('f-title').value = cfg.features.title;
+      if (cfg.features.items) { featureItems = cfg.features.items; renderFeatureCards(); }
+    }
+    if (cfg.reviews) {
+      if (cfg.reviews.title) document.getElementById('r-title').value = cfg.reviews.title;
+      if (cfg.reviews.items) { reviewItems = cfg.reviews.items; renderReviewCards(); }
+    }
+    const c = cfg.certificate;
+    if (c) {
+      if (c.title) document.getElementById('c-title').value = c.title;
+      if (c.desc)  document.getElementById('c-desc').value  = c.desc;
+      if (c.features) document.getElementById('c-feats').value = c.features.join('\n');
+    }
+    const ct = cfg.cta;
+    if (ct) {
+      if (ct.title) document.getElementById('ct-title').value = ct.title;
+      if (ct.desc)  document.getElementById('ct-desc').value  = ct.desc;
+      if (ct.btn_text) document.getElementById('ct-btn-txt').value = ct.btn_text;
+      if (ct.btn_url)  document.getElementById('ct-btn-url').value  = ct.btn_url;
+      if (ct.bg_from) { document.getElementById('ct-bg-from').value=ct.bg_from; document.querySelector('#ct-bg-from').parentElement.style.background=ct.bg_from; document.getElementById('ct-bg-from-hex').value=ct.bg_from; }
+      if (ct.bg_to)   { document.getElementById('ct-bg-to').value=ct.bg_to;     document.querySelector('#ct-bg-to').parentElement.style.background=ct.bg_to; document.getElementById('ct-bg-to-hex').value=ct.bg_to; }
+    }
+  } catch(e) { console.error('설정 로드 실패:', e); }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
