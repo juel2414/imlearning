@@ -4,67 +4,567 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>아이엠러닝 — I'M Learning, I'M Running!</title>
-  <meta name="description" content="신앙과 삶이 하나 되는 온라인 강의 플랫폼. 신앙, 교사·부모 교육, 선교·캠프, 영어·시험까지.">
+  <meta name="description" content="신앙과 삶이 하나 되는 온라인 강의 플랫폼. 교회학교 교사, 부모, 사역자를 위한 CBUP 수료과정.">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ───── 히어로 캐러셀 ───── */
-    .hero { position: relative; min-height: calc(100vh - 64px); overflow: hidden; }
-    .hero-slide { position: absolute; inset: 0; display: flex; align-items: center; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
-    .hero-slide.active { opacity: 1; pointer-events: all; }
-    .hero-slide-bg { position: absolute; inset: 0; z-index: 0; transition: transform 6s ease; }
-    .hero-slide.active .hero-slide-bg { transform: scale(1.04); }
-    .slide-faith .hero-slide-bg { background: linear-gradient(160deg, #e8f5ee 0%, #f5fff8 40%, #d4eddf 100%); }
-    .slide-edu .hero-slide-bg   { background: linear-gradient(160deg, #eef5ff 0%, #f5f0ff 40%, #e0e8ff 100%); }
-    .slide-mission .hero-slide-bg { background: linear-gradient(160deg, #fff5e8 0%, #fff8f0 40%, #ffe8cc 100%); }
-    .slide-english .hero-slide-bg { background: linear-gradient(160deg, #f0fff5 0%, #e8f8ff 40%, #d4f0e8 100%); }
-    .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 4rem; max-width: 1160px; margin: 0 auto; padding: 4rem 2rem; width: 100%; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; margin-bottom: 1.5rem; letter-spacing: 0.5px; transition: background 0.5s, color 0.5s; }
-    .slide-faith .hero-badge   { background: #d4eddf; color: #1A7A4A; }
-    .slide-edu .hero-badge     { background: #e0e8ff; color: #3B4FA8; }
-    .slide-mission .hero-badge { background: #ffe8cc; color: #B05E0A; }
-    .slide-english .hero-badge { background: #d4f0e8; color: #0A7A5A; }
-    .hero-title { font-size: clamp(36px, 5vw, 56px); font-weight: 800; line-height: 1.15; letter-spacing: -1.5px; color: #111; margin-bottom: 1.25rem; }
-    .hero-title em { font-style: normal; }
-    .slide-faith .hero-title em   { color: #2D9B6F; }
-    .slide-edu .hero-title em     { color: #4B6FD4; }
-    .slide-mission .hero-title em { color: #D4822D; }
-    .slide-english .hero-title em { color: #2D9B7A; }
-    .hero-desc { font-size: 17px; color: #6B6B6B; line-height: 1.75; margin-bottom: 2rem; max-width: 440px; }
-    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-    .hero-btn-main { display: inline-flex; align-items: center; gap: 6px; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 700; transition: all 0.2s; border: none; cursor: pointer; font-family: inherit; color: #fff; }
-    .slide-faith .hero-btn-main   { background: #2D9B6F; }
-    .slide-edu .hero-btn-main     { background: #4B6FD4; }
-    .slide-mission .hero-btn-main { background: #D4822D; }
-    .slide-english .hero-btn-main { background: #2D9B7A; }
-    .hero-btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-    .hero-btn-sub { display: inline-flex; align-items: center; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; background: transparent; border: 1.5px solid rgba(0,0,0,0.15); color: #3D3D3D; transition: all 0.2s; font-family: inherit; }
-    .hero-btn-sub:hover { border-color: #2D9B6F; color: #2D9B6F; }
-    .hero-stats { display: flex; gap: 2rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.07); }
-    .stat-num { font-size: 28px; font-weight: 800; color: #111; letter-spacing: -1px; }
-    .stat-num span { color: #2D9B6F; }
-    .stat-label { font-size: 12px; color: #6B6B6B; margin-top: 2px; }
-    .hero-visual { position: relative; height: 480px; display: flex; align-items: center; justify-content: center; }
-    .hero-visual-main { width: 280px; height: 280px; border-radius: 32px; display: flex; align-items: center; justify-content: center; font-size: 100px; box-shadow: 0 24px 64px rgba(0,0,0,0.12); transition: all 1s cubic-bezier(.4,0,.2,1); position: relative; z-index: 2; }
-    .slide-faith .hero-visual-main   { background: linear-gradient(135deg, #c8eada, #e8f5ee); }
-    .slide-edu .hero-visual-main     { background: linear-gradient(135deg, #c8d4ff, #e8eeff); }
-    .slide-mission .hero-visual-main { background: linear-gradient(135deg, #ffd4a8, #fff0e0); }
-    .slide-english .hero-visual-main { background: linear-gradient(135deg, #a8e8d4, #d4f8ee); }
-    .hero-float-card { position: absolute; background: #fff; border-radius: 14px; padding: 10px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.10); font-size: 12px; font-weight: 600; color: #111; white-space: nowrap; transition: all 0.8s cubic-bezier(.4,0,.2,1); }
-    .hero-float-card span { display: block; font-size: 10px; font-weight: 400; color: #6B6B6B; margin-top: 2px; }
-    .fc-tl { top: 60px; left: -20px; animation: float1 4s ease-in-out infinite; }
-    .fc-tr { top: 40px; right: -10px; animation: float2 4.5s ease-in-out infinite; }
-    .fc-bl { bottom: 80px; left: -30px; animation: float3 3.8s ease-in-out infinite; }
-    .fc-br { bottom: 60px; right: -20px; animation: float4 4.2s ease-in-out infinite; }
-    @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-    @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-    @keyframes float3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    @keyframes float4 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-    .carousel-controls { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px; align-items: center; }
-    .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.2); cursor: pointer; transition: all 0.3s; border: none; }
-    .carousel-dot.active { width: 24px; border-radius: 4px; background: #2D9B6F; }
-    .carousel-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #2D9B6F; transition: width 5s linear; z-index: 10; }
-    .loading-text { color: var(--gray-500); font-size: 13px; grid-column: 1/-1; text-align: center; padding: 2rem; }
+    /* ───── 히어로 ───── */
+    .landing-hero {
+      min-height: calc(100vh - 64px);
+      background: linear-gradient(170deg, #e8f5ee 0%, #f0fdf6 25%, #f5fffa 50%, #eafaf2 75%, #d4f0e4 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .landing-hero::before {
+      content: '';
+      position: absolute;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(45,155,111,0.10) 0%, transparent 70%);
+      top: -200px;
+      right: -200px;
+    }
+    .landing-hero::after {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(109,219,170,0.08) 0%, transparent 70%);
+      bottom: -150px;
+      left: -100px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 4rem;
+      position: relative;
+      z-index: 1;
+      padding: 5rem 0;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(45,155,111,0.12);
+      border: 1px solid rgba(45,155,111,0.2);
+      color: var(--green-dark);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 30px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.3px;
+    }
+    .hero-headline {
+      font-size: clamp(40px, 5.5vw, 64px);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -2px;
+      color: var(--black);
+      margin-bottom: 1.5rem;
+    }
+    .hero-headline em {
+      font-style: normal;
+      color: var(--green);
+      position: relative;
+    }
+    .hero-headline em::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: rgba(45,155,111,0.15);
+      border-radius: 4px;
+      z-index: -1;
+    }
+    .hero-sub {
+      font-size: 18px;
+      color: var(--gray-500);
+      line-height: 1.8;
+      margin-bottom: 2.5rem;
+      max-width: 460px;
+    }
+    .hero-sub strong { color: var(--gray-700); font-weight: 700; }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 3rem; }
+    .hero-cta .btn-primary {
+      padding: 16px 36px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(45,155,111,0.25);
+    }
+    .hero-cta .btn-outline {
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      border-width: 2px;
+    }
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+    .hero-trust-avatars {
+      display: flex;
+    }
+    .hero-trust-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-left: -8px;
+    }
+    .hero-trust-avatar:first-child { margin-left: 0; }
+    .hero-trust-avatar:nth-child(1) { background: #d4eddf; }
+    .hero-trust-avatar:nth-child(2) { background: #e0e8ff; }
+    .hero-trust-avatar:nth-child(3) { background: #ffe8cc; }
+    .hero-trust-avatar:nth-child(4) { background: #d4f0e8; }
+    .hero-trust strong { color: var(--green); font-weight: 800; }
+
+    /* 히어로 우측 비주얼 영역 */
+    .hero-visual-area {
+      position: relative;
+      height: 540px;
+    }
+    .hero-img-main {
+      width: 340px;
+      height: 400px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #c8eada 0%, #a8e0c8 100%);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 2;
+    }
+    .hero-img-main .placeholder-content {
+      text-align: center;
+      color: var(--green-dark);
+    }
+    .hero-img-main .placeholder-icon { font-size: 64px; margin-bottom: 12px; }
+    .hero-img-main .placeholder-text { font-size: 13px; color: var(--green-dark); opacity: 0.7; }
+    .hero-img-sub {
+      width: 180px;
+      height: 220px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #e0e8ff, #c8d4ff);
+      position: absolute;
+      bottom: 30px;
+      left: 0;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      overflow: hidden;
+    }
+    .hero-img-sub .placeholder-icon { font-size: 40px; }
+
+    /* 플로팅 통계 카드 */
+    .stat-float {
+      position: absolute;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+      z-index: 4;
+      white-space: nowrap;
+    }
+    .stat-float-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--black);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .stat-float-value span { color: var(--green); }
+    .stat-float-label {
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .stat-float-icon {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+    .sf-students { top: 40px; right: 10px; animation: floatA 4s ease-in-out infinite; }
+    .sf-courses { bottom: 120px; right: -10px; animation: floatB 4.5s ease-in-out infinite; }
+    .sf-rate { top: 100px; left: -10px; animation: floatC 3.8s ease-in-out infinite; }
+    @keyframes floatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    @keyframes floatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes floatC { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    /* ───── 브랜드 한줄 소개 ───── */
+    .brand-strip {
+      background: var(--black);
+      padding: 4rem 0;
+      text-align: center;
+    }
+    .brand-strip-text {
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      line-height: 1.5;
+    }
+    .brand-strip-text em {
+      font-style: normal;
+      color: var(--green);
+    }
+    .brand-strip-sub {
+      font-size: 15px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 12px;
+    }
+
+    /* ───── 왜 아이엠러닝? (가치 제안) ───── */
+    .why-section { padding: 6rem 0; background: var(--white); }
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 3rem;
+    }
+    .why-card {
+      background: linear-gradient(145deg, #f8fdfb, #eef8f3);
+      border: 1px solid rgba(45,155,111,0.08);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      transition: all 0.3s;
+    }
+    .why-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(45,155,111,0.12);
+    }
+    .why-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 1.25rem;
+    }
+    .why-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--black);
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+    .why-desc {
+      font-size: 14px;
+      color: var(--gray-500);
+      line-height: 1.75;
+    }
+
+    /* ───── 대표 강좌 ───── */
+    .featured-section {
+      padding: 6rem 0;
+      background: var(--gray-100);
+    }
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 3rem;
+    }
+    .featured-card {
+      background: var(--white);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: all 0.3s;
+      display: block;
+    }
+    .featured-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.10);
+      border-color: transparent;
+    }
+    .featured-thumb {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #e8f5ee, #c8eada);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .featured-thumb img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .featured-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+    .featured-body { padding: 20px 22px; }
+    .featured-cat {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .featured-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--black);
+      line-height: 1.4;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .featured-desc {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.6;
+      margin-bottom: 14px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .featured-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    .featured-students { font-size: 12px; color: var(--gray-500); }
+    .featured-price { font-size: 18px; font-weight: 900; color: var(--black); }
+    .featured-price-original {
+      font-size: 12px;
+      color: var(--gray-300);
+      text-decoration: line-through;
+      margin-right: 6px;
+    }
+
+    /* ───── 수강 후기 ───── */
+    .review-section { padding: 6rem 0; background: var(--white); }
+    .review-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 3rem;
+    }
+    .review-card-v2 {
+      background: linear-gradient(145deg, #f8fdfb, #f0faf5);
+      border: 1px solid rgba(45,155,111,0.08);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .review-card-v2:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(45,155,111,0.10);
+    }
+    .review-card-v2::before {
+      content: '\201C';
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 48px;
+      color: rgba(45,155,111,0.12);
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+    .review-stars-v2 {
+      color: #F59E0B;
+      font-size: 14px;
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+    }
+    .review-text-v2 {
+      font-size: 14px;
+      color: var(--gray-700);
+      line-height: 1.8;
+      margin-bottom: 1.25rem;
+      min-height: 80px;
+    }
+    .review-author-v2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    .review-avatar-v2 {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--green-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .review-author-name { font-size: 14px; font-weight: 700; color: var(--black); }
+    .review-author-course { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+
+    /* ───── FAQ ───── */
+    .faq-section {
+      padding: 6rem 0;
+      background: var(--gray-100);
+    }
+    .faq-list {
+      max-width: 740px;
+      margin: 3rem auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .faq-item {
+      background: var(--white);
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.06);
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .faq-item:hover {
+      border-color: rgba(45,155,111,0.2);
+    }
+    .faq-q {
+      padding: 20px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--black);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: color 0.2s;
+    }
+    .faq-q:hover { color: var(--green); }
+    .faq-q::after {
+      content: '+';
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--gray-300);
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+    .faq-item.open .faq-q::after {
+      transform: rotate(45deg);
+      color: var(--green);
+    }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px;
+    }
+    .faq-a-inner {
+      padding: 0 24px 20px;
+      font-size: 14px;
+      color: var(--gray-500);
+      line-height: 1.8;
+    }
+
+    /* ───── CTA 배너 ───── */
+    .cta-section {
+      padding: 6rem 0;
+      background: linear-gradient(135deg, #0f2d1e 0%, #1a4a30 60%, #0d3320 100%);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(45,155,111,0.25) 0%, transparent 70%);
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .cta-inner { position: relative; z-index: 1; }
+    .cta-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -1px;
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+    .cta-title em { font-style: normal; color: #6DDBAA; }
+    .cta-desc {
+      font-size: 16px;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 40px;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 800;
+      box-shadow: 0 8px 32px rgba(45,155,111,0.4);
+      transition: all 0.2s;
+    }
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(45,155,111,0.5);
+      background: #25855f;
+    }
+
+    /* ───── 반응형 ───── */
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; }
+      .hero-sub { margin: 0 auto 2.5rem; }
+      .hero-cta { justify-content: center; }
+      .hero-trust { justify-content: center; }
+      .hero-visual-area { display: none; }
+      .why-grid, .featured-grid, .review-grid { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; }
+    }
+    @media (max-width: 480px) {
+      .hero-cta { flex-direction: column; }
+      .hero-cta .btn-primary, .hero-cta .btn-outline { width: 100%; justify-content: center; }
+    }
   </style>
 </head>
 <body>
@@ -90,213 +590,165 @@
   </div>
 </nav>
 
-<!-- ───── 히어로 캐러셀 ───── -->
-<section class="hero">
-  <div class="hero-slide slide-faith active">
-    <div class="hero-slide-bg"></div>
-    <div class="hero-inner">
-      <div class="hero-content">
-        <div class="hero-badge">✝️ 신앙 · 트리플 스쿨</div>
-        <h1 class="hero-title">배움이 시작되는<br>곳에서 <em>달려가세요</em></h1>
-        <p class="hero-desc">성경과 신앙을 깊이 있게 배우고 싶은 분들을 위한 트리플 스쿨 과정입니다.</p>
-        <div class="hero-btns">
-          <a href="courses.html?cat=faith" class="hero-btn-main">신앙 강좌 보기 →</a>
-          <a href="courses.html?cat=freepass" class="hero-btn-sub">프리패스 알아보기</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><div class="stat-num">1,200<span>+</span></div><div class="stat-label">누적 수강생</div></div>
-          <div class="stat"><div class="stat-num">50<span>+</span></div><div class="stat-label">온라인 강좌</div></div>
-          <div class="stat"><div class="stat-num">5<span>개</span></div><div class="stat-label">카테고리</div></div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-visual-main">✝️</div>
-        <div class="hero-float-card fc-tl">CBUP 수료과정<span>279명 수강중</span></div>
-        <div class="hero-float-card fc-tr">트리플 스쿨<span>복음·제자·소명</span></div>
-        <div class="hero-float-card fc-bl">₩650,000<span>이달의 강의 할인</span></div>
-        <div class="hero-float-card fc-br">⭐ 4.9<span>수강생 평점</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hero-slide slide-edu">
-    <div class="hero-slide-bg"></div>
-    <div class="hero-inner">
-      <div class="hero-content">
-        <div class="hero-badge">👨‍👩‍👧 교사 · 부모 교육</div>
-        <h1 class="hero-title">다음 세대를<br><em>함께 세워가요</em></h1>
-        <p class="hero-desc">교회학교 교사와 부모를 위한 전문 교육 과정. 현장에서 바로 쓸 수 있는 실전 강의입니다.</p>
-        <div class="hero-btns">
-          <a href="courses.html?cat=edu" class="hero-btn-main">교사·부모 강좌 보기 →</a>
-          <a href="courses.html?cat=freepass" class="hero-btn-sub">프리패스 알아보기</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><div class="stat-num">1,200<span>+</span></div><div class="stat-label">누적 수강생</div></div>
-          <div class="stat"><div class="stat-num">50<span>+</span></div><div class="stat-label">온라인 강좌</div></div>
-          <div class="stat"><div class="stat-num">5<span>개</span></div><div class="stat-label">카테고리</div></div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-visual-main">👨‍👩‍👧</div>
-        <div class="hero-float-card fc-tl">부모대안학교<span>145명 수강중</span></div>
-        <div class="hero-float-card fc-tr">교회학교 지원<span>82명 수강중</span></div>
-        <div class="hero-float-card fc-bl">CBUP 과정<span>44강 구성</span></div>
-        <div class="hero-float-card fc-br">⭐ 4.8<span>수강생 평점</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hero-slide slide-mission">
-    <div class="hero-slide-bg"></div>
-    <div class="hero-inner">
-      <div class="hero-content">
-        <div class="hero-badge">🏕️ 캠프 · 사역</div>
-        <h1 class="hero-title">선교의 열정을<br><em>현장으로</em></h1>
-        <p class="hero-desc">캠프 행정부터 선교 훈련까지. 사역 현장에서 필요한 모든 것을 담았습니다.</p>
-        <div class="hero-btns">
-          <a href="courses.html?cat=mission" class="hero-btn-main">캠프·사역 강좌 보기 →</a>
-          <a href="courses.html?cat=freepass" class="hero-btn-sub">프리패스 알아보기</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><div class="stat-num">1,200<span>+</span></div><div class="stat-label">누적 수강생</div></div>
-          <div class="stat"><div class="stat-num">50<span>+</span></div><div class="stat-label">온라인 강좌</div></div>
-          <div class="stat"><div class="stat-num">5<span>개</span></div><div class="stat-label">카테고리</div></div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-visual-main">🏕️</div>
-        <div class="hero-float-card fc-tl">3C 가치관 교육<span>48명 수강중</span></div>
-        <div class="hero-float-card fc-tr">캠프 행정 지원<span>무료 강좌</span></div>
-        <div class="hero-float-card fc-bl">선교 훈련<span>CDG 과정</span></div>
-        <div class="hero-float-card fc-br">⭐ 4.7<span>수강생 평점</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hero-slide slide-english">
-    <div class="hero-slide-bg"></div>
-    <div class="hero-inner">
-      <div class="hero-content">
-        <div class="hero-badge">📖 영어 · 시험</div>
-        <h1 class="hero-title">영어로 기도하고<br><em>시험도 합격하세요</em></h1>
-        <p class="hero-desc">신앙과 연결된 영어 학습부터 검정고시까지. 목표를 향해 함께 달려갑니다.</p>
-        <div class="hero-btns">
-          <a href="courses.html?cat=english" class="hero-btn-main">영어·시험 강좌 보기 →</a>
-          <a href="courses.html?cat=freepass" class="hero-btn-sub">프리패스 알아보기</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><div class="stat-num">1,200<span>+</span></div><div class="stat-label">누적 수강생</div></div>
-          <div class="stat"><div class="stat-num">50<span>+</span></div><div class="stat-label">온라인 강좌</div></div>
-          <div class="stat"><div class="stat-num">5<span>개</span></div><div class="stat-label">카테고리</div></div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-visual-main">📖</div>
-        <div class="hero-float-card fc-tl">영단속 영어기도<span>34명 수강중</span></div>
-        <div class="hero-float-card fc-tr">고졸 검정고시<span>국어·수학·사회</span></div>
-        <div class="hero-float-card fc-bl">ABS 성경영어<span>80,000원</span></div>
-        <div class="hero-float-card fc-br">⭐ 4.9<span>수강생 평점</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="carousel-controls">
-    <button class="carousel-dot active" onclick="goSlide(0)"></button>
-    <button class="carousel-dot" onclick="goSlide(1)"></button>
-    <button class="carousel-dot" onclick="goSlide(2)"></button>
-    <button class="carousel-dot" onclick="goSlide(3)"></button>
-  </div>
-  <div class="carousel-progress" id="carousel-progress"></div>
-</section>
-
-<!-- ───── 브랜드 소개 ───── -->
-<section class="brand-section">
+<!-- ───── 히어로 ───── -->
+<section class="landing-hero">
   <div class="container">
-    <div class="reveal">
-      <p class="section-eyebrow">About IM Learning</p>
-      <h2 class="brand-title">아이엠러닝은<br>배움을 <em>삶으로</em> 연결합니다.</h2>
-      <p class="brand-desc">신앙과 교육이 따로가 아닌 <strong>하나의 삶</strong>으로 이어지도록, 꼭 필요한 강의만 <strong>깊이 있게</strong> 담았습니다. 배운 것이 현장에서 살아있는 <strong>변화</strong>가 되도록 함께합니다.</p>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="hero-eyebrow reveal">I'M Learning, I'M Running!</div>
+        <h1 class="hero-headline reveal">
+          배움이 시작되고<br>
+          <em>삶이 달라지는</em> 곳
+        </h1>
+        <p class="hero-sub reveal">
+          교회학교 교사, 부모, 사역자를 위한<br>
+          <strong>신앙 기반 온라인 강의 플랫폼</strong>.<br>
+          배운 것이 현장에서 살아 숨쉬도록 함께합니다.
+        </p>
+        <div class="hero-cta reveal">
+          <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+          <a href="about.html" class="btn btn-outline">아이엠러닝 소개</a>
+        </div>
+        <div class="hero-trust reveal">
+          <div class="hero-trust-avatars">
+            <div class="hero-trust-avatar">K</div>
+            <div class="hero-trust-avatar">P</div>
+            <div class="hero-trust-avatar">L</div>
+            <div class="hero-trust-avatar">C</div>
+          </div>
+          <span><strong>1,200+</strong>명의 수강생이 함께하고 있어요</span>
+        </div>
+      </div>
+
+      <div class="hero-visual-area reveal">
+        <!-- 메인 이미지 placeholder -->
+        <div class="hero-img-main">
+          <div class="placeholder-content">
+            <div class="placeholder-icon">👨‍🏫</div>
+            <div class="placeholder-text">교사 · 아이 이미지</div>
+          </div>
+        </div>
+        <!-- 서브 이미지 placeholder -->
+        <div class="hero-img-sub">
+          <div class="placeholder-content">
+            <div class="placeholder-icon">👧</div>
+          </div>
+        </div>
+        <!-- 플로팅 통계 카드 -->
+        <div class="stat-float sf-students">
+          <div class="stat-float-icon">👥</div>
+          <div class="stat-float-value">1,200<span>+</span></div>
+          <div class="stat-float-label">누적 수강생</div>
+        </div>
+        <div class="stat-float sf-courses">
+          <div class="stat-float-icon">📚</div>
+          <div class="stat-float-value">50<span>+</span></div>
+          <div class="stat-float-label">온라인 강좌</div>
+        </div>
+        <div class="stat-float sf-rate">
+          <div class="stat-float-icon">🏆</div>
+          <div class="stat-float-value">95<span>%</span></div>
+          <div class="stat-float-label">수료율</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ───── 프로모션 배너 ───── -->
-<section class="promo-section">
+<!-- ───── 브랜드 한줄 소개 ───── -->
+<section class="brand-strip">
   <div class="container">
-    <div class="promo-banner reveal">
-      <div class="promo-left">
-        <div class="promo-tag">🎯 이달의 강의</div>
-        <h2 class="promo-title">CBUP 수료과정 <span>특별 할인</span></h2>
-        <p class="promo-desc">이번 달 한정! 교회학교 교사를 위한 핵심 사역 훈련 과정을 특별가로 만나보세요.</p>
-      </div>
-      <div class="promo-right">
-        <div class="countdown">
-          <div class="countdown-label">할인 종료까지</div>
-          <div class="countdown-timer" id="countdown-timer"></div>
-        </div>
-        <div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.4);text-decoration:line-through;margin-bottom:4px;">₩650,000</div>
-          <div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:16px;">₩450,000</div>
-          <a href="course-detail.html" class="promo-btn">지금 신청하기 →</a>
-        </div>
-      </div>
-    </div>
-    <span id="promo-end-date" data-date="2025-12-31T23:59:59" style="display:none;"></span>
+    <p class="brand-strip-text reveal">
+      신앙과 교육이 따로가 아닌<br>
+      <em>하나의 삶</em>으로 이어지도록
+    </p>
+    <p class="brand-strip-sub reveal">아이엠러닝은 배움을 삶으로 연결합니다</p>
   </div>
 </section>
 
-<!-- ───── 추천 강좌 (Supabase 연동) ───── -->
-<section class="section">
+<!-- ───── 왜 아이엠러닝? ───── -->
+<section class="why-section">
   <div class="container">
-    <div class="section-header reveal">
-      <div>
-        <p class="section-eyebrow">Popular Courses</p>
-        <h2 class="section-title">추천 강좌</h2>
-        <p class="section-subtitle">지금 가장 많이 수강하는 강의</p>
+    <div class="reveal" style="text-align:center;">
+      <p class="section-eyebrow">Why IMlearning?</p>
+      <h2 class="section-title">왜 아이엠러닝인가요?</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-icon">✝️</div>
+        <div class="why-title">성경적 세계관</div>
+        <div class="why-desc">모든 강의는 성경적 세계관을 기반으로 설계됩니다. 배움이 신앙과 분리되지 않는 통합적 교육을 추구합니다.</div>
       </div>
-      <a href="courses.html" class="see-all">전체 보기 →</a>
-    </div>
-    <div class="cat-tabs reveal">
-      <button class="cat-tab active" data-cat="all">전체</button>
-      <button class="cat-tab" data-cat="faith">신앙</button>
-      <button class="cat-tab" data-cat="edu">교사·부모</button>
-      <button class="cat-tab" data-cat="mission">캠프·사역</button>
-      <button class="cat-tab" data-cat="english">영어·시험</button>
-    </div>
-    <div class="courses-grid" id="featured-courses-grid">
-      <p class="loading-text">강좌를 불러오는 중...</p>
+      <div class="why-card reveal reveal-delay-1">
+        <div class="why-icon">🎯</div>
+        <div class="why-title">현장 중심 실전</div>
+        <div class="why-desc">이론에 그치지 않고 교회학교·가정·선교 현장에서 바로 적용할 수 있는 실전형 커리큘럼으로 구성됩니다.</div>
+      </div>
+      <div class="why-card reveal reveal-delay-2">
+        <div class="why-icon">🤝</div>
+        <div class="why-title">함께 성장하는 공동체</div>
+        <div class="why-desc">같은 가치관을 가진 교사, 부모, 사역자들이 함께 배우고 성장하는 온라인 학습 공동체입니다.</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ───── 프리패스 ───── -->
-<section class="freepass-section">
+<!-- ───── 대표 강좌 3개 (Supabase 연동) ───── -->
+<section class="featured-section">
   <div class="container">
-    <div class="freepass-inner">
-      <div class="reveal">
-        <p class="freepass-eyebrow">Freepass</p>
-        <h2 class="freepass-title">전 강좌를<br><span>무제한</span>으로</h2>
-        <p class="freepass-desc">신앙, 교사교육, 선교, 영어까지 — 한 번 구독으로 모든 강좌를 자유롭게 수강하세요. 새로 개설되는 강좌도 자동으로 포함됩니다.</p>
-        <div class="freepass-features">
-          <div class="freepass-feature">전 강좌 무제한 수강</div>
-          <div class="freepass-feature">신규 강좌 자동 포함</div>
-          <div class="freepass-feature">언제든지 해지 가능</div>
-          <div class="freepass-feature">모바일·PC 어디서나</div>
+    <div class="reveal" style="text-align:center;">
+      <p class="section-eyebrow">Featured Courses</p>
+      <h2 class="section-title">대표 강좌</h2>
+      <p class="section-subtitle">지금 가장 많이 수강하는 인기 강좌</p>
+    </div>
+    <div class="featured-grid" id="featured-courses">
+      <p class="loading-text" style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray-500);">강좌를 불러오는 중...</p>
+    </div>
+    <div class="reveal" style="text-align:center;margin-top:2.5rem;">
+      <a href="courses.html" class="btn btn-outline" style="border-radius:12px;padding:14px 36px;font-weight:700;">전체 강좌 보기 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ───── 수강 후기 ───── -->
+<section class="review-section">
+  <div class="container">
+    <div class="reveal" style="text-align:center;">
+      <p class="section-eyebrow">Reviews</p>
+      <h2 class="section-title">수강생 후기</h2>
+      <p class="section-subtitle">실제 수강생들의 생생한 이야기</p>
+    </div>
+    <div class="review-grid">
+      <div class="review-card-v2 reveal">
+        <div class="review-stars-v2">★★★★★</div>
+        <p class="review-text-v2">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 이론과 실제가 균형 있게 잘 짜여있어서 현장에 바로 적용할 수 있었습니다."</p>
+        <div class="review-author-v2">
+          <div class="review-avatar-v2">😊</div>
+          <div>
+            <div class="review-author-name">김○○ 집사</div>
+            <div class="review-author-course">CBUP 수료과정 · 2024</div>
+          </div>
         </div>
-        <a href="courses.html?cat=freepass" class="btn btn-primary btn-lg">프리패스 신청하기 →</a>
       </div>
-      <div class="freepass-card reveal reveal-delay-2">
-        <div class="freepass-price-label">월 구독가</div>
-        <div class="freepass-price">문의<sub>후 결정</sub></div>
-        <div class="freepass-included">
-          <div class="freepass-included-title">포함 강좌</div>
-          <div class="freepass-tags">
-            <span class="freepass-tag">신앙·트리플</span>
-            <span class="freepass-tag">교사교육</span>
-            <span class="freepass-tag">부모교육</span>
-            <span class="freepass-tag">캠프·사역</span>
-            <span class="freepass-tag">영어·시험</span>
-            <span class="freepass-tag">+신규강좌</span>
+      <div class="review-card-v2 reveal reveal-delay-1">
+        <div class="review-stars-v2">★★★★★</div>
+        <p class="review-text-v2">"부모대안학교 수강 후 아이와의 대화가 달라졌어요. 신앙적 관점에서 자녀를 바라보는 시각이 생겼고, 가정 분위기도 훨씬 좋아졌습니다."</p>
+        <div class="review-author-v2">
+          <div class="review-avatar-v2">🙂</div>
+          <div>
+            <div class="review-author-name">박○○ 권사</div>
+            <div class="review-author-course">부모대안학교 · 2024</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card-v2 reveal reveal-delay-2">
+        <div class="review-stars-v2">★★★★★</div>
+        <p class="review-text-v2">"영단속 영어기도 정말 추천해요! 영어로 기도하는 게 어색했는데, 이 강의 듣고 나서 자연스럽게 영어로 기도할 수 있게 됐어요."</p>
+        <div class="review-author-v2">
+          <div class="review-avatar-v2">😄</div>
+          <div>
+            <div class="review-author-name">이○○ 성도</div>
+            <div class="review-author-course">영단속 영어기도 · 2024</div>
           </div>
         </div>
       </div>
@@ -304,50 +756,45 @@
   </div>
 </section>
 
-<!-- ───── 강사 소개 (Supabase 연동) ───── -->
-<section class="section" style="background:var(--gray-100);">
+<!-- ───── FAQ ───── -->
+<section class="faq-section">
   <div class="container">
-    <div class="section-header reveal">
-      <div>
-        <p class="section-eyebrow">Instructors</p>
-        <h2 class="section-title">강사 소개</h2>
-        <p class="section-subtitle">현장에서 검증된 전문 강사진</p>
-      </div>
-      <a href="instructor.html" class="see-all">전체 보기 →</a>
+    <div class="reveal" style="text-align:center;">
+      <p class="section-eyebrow">FAQ</p>
+      <h2 class="section-title">자주 묻는 질문</h2>
     </div>
-    <div class="instructors-grid" id="instructors-grid">
-      <p class="loading-text">강사 정보를 불러오는 중...</p>
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <div class="faq-q" onclick="toggleFaq(this)">아이엠러닝은 어떤 플랫폼인가요?</div>
+        <div class="faq-a"><div class="faq-a-inner">아이엠러닝은 교회학교 교사, 부모, 선교사, 사역자를 위한 신앙 기반 온라인 강의 플랫폼입니다. 성경적 세계관에 기초한 교육과 실전형 커리큘럼을 제공하며, 2021년부터 1,200명 이상의 수강생과 함께 성장하고 있습니다.</div></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q" onclick="toggleFaq(this)">CBUP 수료과정은 어떤 내용인가요?</div>
+        <div class="faq-a"><div class="faq-a-inner">[4세대] CBUP 수료과정은 교회학교 교사를 위한 핵심 사역 훈련 과정입니다. 성경적 세계관 기초부터 실전 교수법, 연령별 교육 전략, 가정 교육 연계까지 총 44강으로 구성되어 있습니다. 수료 시 수료증이 발급됩니다.</div></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q" onclick="toggleFaq(this)">수강 기간에 제한이 있나요?</div>
+        <div class="faq-a"><div class="faq-a-inner">아닙니다! 한 번 결제하시면 수강 기간의 제한 없이 무제한으로 반복 수강할 수 있습니다. 모바일과 PC 어디서나 편하게 수강하실 수 있어요.</div></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-2">
+        <div class="faq-q" onclick="toggleFaq(this)">프리패스는 무엇인가요?</div>
+        <div class="faq-a"><div class="faq-a-inner">프리패스는 아이엠러닝의 전 강좌를 무제한으로 수강할 수 있는 구독 서비스입니다. 신앙, 교사교육, 선교, 영어 등 모든 카테고리의 강좌를 자유롭게 이용할 수 있으며, 새로 개설되는 강좌도 자동으로 포함됩니다.</div></div>
+      </div>
+      <div class="faq-item reveal reveal-delay-2">
+        <div class="faq-q" onclick="toggleFaq(this)">단체 수강 할인이 있나요?</div>
+        <div class="faq-a"><div class="faq-a-inner">네! 교회나 기관 단위로 단체 수강을 원하시면 별도 문의해주세요. 인원 수에 따라 할인이 적용됩니다. 전화(010-5307-6139) 또는 문의 페이지를 통해 연락주시면 안내드리겠습니다.</div></div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ───── 수강 후기 ───── -->
-<section class="section">
+<!-- ───── 하단 CTA ───── -->
+<section class="cta-section">
   <div class="container">
-    <div class="section-header reveal">
-      <div>
-        <p class="section-eyebrow">Reviews</p>
-        <h2 class="section-title">수강생 후기</h2>
-        <p class="section-subtitle">실제 수강생들의 생생한 이야기</p>
-      </div>
-    </div>
-    <div class="reviews-grid">
-      <div class="review-card reveal"><div class="review-stars">★★★★★</div><p class="review-text">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 이론과 실제가 균형 있게 잘 짜여있어서 현장에 바로 적용할 수 있었습니다."</p><div class="review-author"><div class="review-avatar">😊</div><div><div class="review-name">김○○ 집사</div><div class="review-course">CBUP 수료과정</div></div></div></div>
-      <div class="review-card reveal reveal-delay-1"><div class="review-stars">★★★★★</div><p class="review-text">"부모대안학교 수강 후 아이와의 대화가 달라졌어요. 신앙적 관점에서 자녀를 바라보는 시각이 생겼고 가정 분위기도 훨씬 좋아졌습니다."</p><div class="review-author"><div class="review-avatar">🙂</div><div><div class="review-name">박○○ 권사</div><div class="review-course">부모대안학교</div></div></div></div>
-      <div class="review-card reveal reveal-delay-2"><div class="review-stars">★★★★★</div><p class="review-text">"영단속 영어기도 정말 추천해요! 영어로 기도하는 게 어색했는데 이 강의 듣고 나서 자연스럽게 영어로 기도할 수 있게 됐어요."</p><div class="review-author"><div class="review-avatar">😄</div><div><div class="review-name">이○○ 성도</div><div class="review-course">영단속 영어기도</div></div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ───── 공지사항 (Supabase 연동) ───── -->
-<section class="section-sm" style="background:var(--gray-100);">
-  <div class="container">
-    <div class="section-header reveal">
-      <div><p class="section-eyebrow">Notice</p><h2 class="section-title">공지사항</h2></div>
-      <a href="notice.html" class="see-all">전체 보기 →</a>
-    </div>
-    <div class="notice-list reveal" id="notice-list">
-      <p class="loading-text">공지사항을 불러오는 중...</p>
+    <div class="cta-inner">
+      <h2 class="cta-title reveal">지금 바로<br><em>배움을 시작하세요</em></h2>
+      <p class="cta-desc reveal">1,200명 이상의 수강생이 선택한 아이엠러닝에서<br>신앙과 삶이 하나 되는 배움을 경험하세요.</p>
+      <a href="courses.html" class="cta-btn reveal">강좌 둘러보기 →</a>
     </div>
   </div>
 </section>
@@ -393,99 +840,59 @@
 <script src="js/main.js"></script>
 <script src="js/supabase-client.js"></script>
 <script>
-// ───── 캐러셀 ─────
-const slides = document.querySelectorAll('.hero-slide');
-const dots = document.querySelectorAll('.carousel-dot');
-const progress = document.getElementById('carousel-progress');
-let current = 0;
-let timer = null;
-
-function goSlide(n) {
-  slides[current].classList.remove('active');
-  dots[current].classList.remove('active');
-  current = n;
-  slides[current].classList.add('active');
-  dots[current].classList.add('active');
-  startProgress();
+// ───── FAQ 토글 ─────
+function toggleFaq(el) {
+  const item = el.closest('.faq-item');
+  item.classList.toggle('open');
 }
-function nextSlide() { goSlide((current + 1) % slides.length); }
-function startProgress() {
-  clearInterval(timer);
-  progress.style.transition = 'none';
-  progress.style.width = '0%';
-  setTimeout(() => { progress.style.transition = 'width 5s linear'; progress.style.width = '100%'; }, 50);
-  timer = setInterval(nextSlide, 5000);
-}
-startProgress();
 
-// ───── Supabase: 추천 강좌 불러오기 ─────
-async function loadFeaturedCourses() {
-  const grid = document.getElementById('featured-courses-grid');
+// ───── 대표 강좌 3개 불러오기 (Supabase) ─────
+async function loadFeatured() {
+  const grid = document.getElementById('featured-courses');
   try {
     const courses = await fetchCourses({ featured: true });
-    if (!courses || courses.length === 0) {
-      grid.innerHTML = '<p class="loading-text">아직 등록된 추천 강좌가 없어요. 관리자 페이지에서 강좌를 추가하고 "메인에 표시"로 설정해주세요!</p>';
+    const list = courses.slice(0, 3);
+    if (!list.length) {
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray-500);">아직 등록된 추천 강좌가 없어요.</p>';
       return;
     }
-    grid.innerHTML = courses.map(renderCourseCard).join('');
-    initCatTabs();
+    grid.innerHTML = list.map(c => {
+      const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(c);
+      const catLabel = CATEGORY_LABELS[c.category] || '';
+      const thumbContent = c.thumbnail_url
+        ? `<img src="${c.thumbnail_url}">`
+        : '';
+      const thumbEmoji = c.thumbnail_url ? '' : '📚';
+      return `
+        <a href="course-detail.html?id=${c.id}" class="featured-card reveal">
+          <div class="featured-thumb">
+            ${thumbContent}
+            ${thumbEmoji}
+            ${c.featured ? '<div class="featured-badge">인기 강좌</div>' : ''}
+          </div>
+          <div class="featured-body">
+            <div class="featured-cat">${catLabel}</div>
+            <div class="featured-title">${c.title}</div>
+            <div class="featured-desc">${c.description || ''}</div>
+            <div class="featured-footer">
+              <span class="featured-students">👥 ${c.students || 0}명</span>
+              <span class="featured-price">
+                ${isDiscounted ? `<span class="featured-price-original">₩${Number(originalPrice).toLocaleString()}</span>` : ''}
+                ₩${Number(currentPrice || 0).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+
+    document.querySelectorAll('.featured-card.reveal').forEach(el => revealObserver.observe(el));
   } catch (err) {
     console.error(err);
-    grid.innerHTML = '<p class="loading-text">강좌를 불러오지 못했어요.</p>';
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray-500);">강좌를 불러오지 못했어요.</p>';
   }
 }
 
-// ───── Supabase: 강사 목록 불러오기 ─────
-async function loadInstructors() {
-  const grid = document.getElementById('instructors-grid');
-  try {
-    const instructors = await fetchInstructors();
-    if (!instructors || instructors.length === 0) {
-      grid.innerHTML = '<p class="loading-text">아직 등록된 강사가 없어요. 관리자 페이지에서 강사를 추가해주세요!</p>';
-      return;
-    }
-    grid.innerHTML = instructors.map(i => `
-      <div class="instructor-card reveal">
-        <div class="instructor-avatar" style="overflow:hidden;">
-          ${i.photo_url ? `<img src="${i.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
-        </div>
-        <div class="instructor-name">${i.name}</div>
-        <div class="instructor-role">${i.role || ''}</div>
-        <div class="instructor-desc">${i.bio || ''}</div>
-      </div>
-    `).join('');
-  } catch (err) {
-    console.error(err);
-    grid.innerHTML = '<p class="loading-text">강사 정보를 불러오지 못했어요.</p>';
-  }
-}
-
-// ───── Supabase: 공지사항 불러오기 ─────
-async function loadNotices() {
-  const list = document.getElementById('notice-list');
-  try {
-    const notices = await fetchNotices(4);
-    if (!notices || notices.length === 0) {
-      list.innerHTML = '<p class="loading-text">아직 등록된 공지사항이 없어요.</p>';
-      return;
-    }
-    const TYPE_LABELS = { notice: '공지', event: '이벤트', info: '안내' };
-    list.innerHTML = notices.map(n => `
-      <div class="notice-item">
-        <span class="notice-badge">${TYPE_LABELS[n.type] || '공지'}</span>
-        <span class="notice-title">${n.title}</span>
-        <span class="notice-date">${n.notice_date}</span>
-      </div>
-    `).join('');
-  } catch (err) {
-    console.error(err);
-    list.innerHTML = '<p class="loading-text">공지사항을 불러오지 못했어요.</p>';
-  }
-}
-
-loadFeaturedCourses();
-loadInstructors();
-loadNotices();
+loadFeatured();
 </script>
 </body>
 </html>

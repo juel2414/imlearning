@@ -7,7 +7,14 @@ const revealObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.12 });
 
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+function observeReveals() {
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', observeReveals);
+} else {
+  observeReveals();
+}
 
 // ───── 카운트다운 타이머 ─────
 function updateCountdown(targetDate, elemId) {
