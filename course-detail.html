@@ -264,6 +264,8 @@ async function requestPayment() {
     return;
   }
 
+  const btn = document.getElementById('buy-btn');
+
   // 로그인 체크
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) {
@@ -272,8 +274,20 @@ async function requestPayment() {
     return;
   }
 
-  const { isDiscounted, currentPrice } = getCurrentPrice(currentCourse);
+  // 중복 구매 방지
+  if (await hasPurchased(user.id, currentCourse.id)) {
+    if (confirm('이미 수강 신청한 강좌예요. 나의 강의실로 이동할까요?')) {
+      window.location.href = 'my-courses.html';
+    }
+    return;
+  }
+
+  const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(currentCourse);
   const paymentId = 'payment-' + crypto.randomUUID();
+
+  btn.disabled = true;
+  const originalBtnText = btn.textContent;
+  btn.textContent = '결제 진행 중...';
 
   try {
     const payment = await PortOne.requestPayment({
@@ -300,13 +314,34 @@ async function requestPayment() {
       return;
     }
 
-    // 결제 성공 → 서버 검증 (추후 Supabase Edge Function 연결)
-    alert('결제가 완료되었습니다! (테스트)');
-    console.log('결제 완료 paymentId:', payment.paymentId);
+    // 결제 성공 → Supabase orders 테이블에 주문 기록
+    // ⚠️ 보안: 실제 운영 시에는 Supabase Edge Function으로 PortOne 결제내역을
+    //    서버에서 재검증한 뒤 기록하는 것이 안전합니다. (현재는 MVP 클라이언트 기록)
+    const { error: orderError } = await createOrder({
+      user_id: user.id,
+      course_id: currentCourse.id,
+      course_name: currentCourse.title,
+      payment_id: payment.paymentId,
+      amount: currentPrice,
+      original_amount: isDiscounted ? originalPrice : currentPrice,
+      status: 'paid',
+      progress: 0,
+    });
+
+    if (orderError) {
+      alert('결제는 완료되었지만 수강 등록 처리 중 문제가 발생했어요.\n고객센터로 결제번호(' + payment.paymentId + ')를 알려주세요.');
+      return;
+    }
+
+    alert('결제가 완료되었습니다! 나의 강의실에서 수강을 시작해보세요 🎉');
+    window.location.href = 'my-courses.html';
 
   } catch (error) {
     console.error('결제 오류:', error);
     alert('결제 중 오류가 발생했습니다.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
   }
 }
 

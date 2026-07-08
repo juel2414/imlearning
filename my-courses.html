@@ -360,8 +360,7 @@ async function loadMyPage() {
   if (!user) {
     // 로그인 안 된 경우
     document.getElementById('user-name').textContent = '로그인이 필요해요';
-    document.getElementById('nav-login').style.display = '';
-    document.getElementById('nav-signup').style.display = '';
+    // 네비게이션 버튼은 supabase-client.js의 renderNavAuth()가 자동 처리
     ['courses-content', 'orders-content', 'certs-content'].forEach(id => {
       document.getElementById(id).innerHTML = `
         <div class="empty-state">
@@ -379,7 +378,6 @@ async function loadMyPage() {
   document.getElementById('user-name').textContent = userName + '님';
   document.getElementById('user-email').textContent = user.email;
   document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
-  document.getElementById('nav-logout').style.display = '';
 
   // 3. 주문 내역 조회
   const { data: orders, error: orderError } = await supabaseClient
