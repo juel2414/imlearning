@@ -23,6 +23,7 @@
     '.nb-ham{display:flex;}',
     '.navbar-right{display:none!important;}',
     '.navbar-menu{',
+    'display:flex!important;',
     'position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;',
     'width:min(280px,75vw)!important;background:#fff!important;',
     'flex-direction:column!important;align-items:flex-start!important;',
