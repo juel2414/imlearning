@@ -125,7 +125,6 @@
 </div>
 
 <script src="js/supabase-client.js"></script>
-<script src="js/email.js"></script>
 <script src="js/nav.js"></script>
 <script>
 function showError(msg) {
@@ -167,7 +166,8 @@ document.getElementById('signup-form').addEventListener('submit', async function
 
     // 프로필 행은 auth.users 트리거(handle_new_user)가 서버에서 자동 생성함.
     // 이름/전화번호는 위 signUp의 options.data(metadata)로 전달되어 트리거가 채움.
-    if (result.data.user) {
+    // identities가 비어 있으면 이미 가입된 이메일(인증 대기 중) → 환영 메일 미발송
+    if (result.data.user && result.data.user.identities && result.data.user.identities.length > 0) {
       sendEmail('welcome', { email: email, name: name });
     }
 
