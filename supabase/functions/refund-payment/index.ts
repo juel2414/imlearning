@@ -34,19 +34,13 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // 2. 어드민 권한 체크
+    // 2. 역할 조회 (admin 여부 확인용)
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
-
-    if (!profile || profile.role !== 'admin') {
-      return new Response(JSON.stringify({ success: false, error: '관리자 권한이 필요합니다.' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
 
     // 3. 요청 본문 파싱
     const { orderId } = await req.json()
@@ -67,6 +61,14 @@ Deno.serve(async (req: Request) => {
     if (orderError || !order) {
       return new Response(JSON.stringify({ success: false, error: '주문을 찾을 수 없습니다.' }), {
         status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 권한 체크: admin이거나 본인 주문만 가능
+    if (!isAdmin && order.user_id !== user.id) {
+      return new Response(JSON.stringify({ success: false, error: '권한이 없습니다.' }), {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -138,7 +140,7 @@ Deno.serve(async (req: Request) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            reason: '관리자 환불 처리',
+            reason: isAdmin ? '관리자 환불 처리' : '수강생 환불 신청',
             amount: refundAmount,
           }),
         }
