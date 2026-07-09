@@ -477,7 +477,7 @@ function renderCourses(orders, coursesMap) {
   const cards = orders.map(order => {
     const course = coursesMap[order.course_id];
     if (!course) return '';
-    const progress   = order.progress || fakeProgress(course.id);
+    const progress   = order.progress || 0;
     const isComplete = progress >= 100;
     const catLabel   = CATEGORY_LABELS_LOCAL[course.category] || '';
     const courseId   = course.id;
