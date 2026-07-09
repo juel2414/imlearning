@@ -278,7 +278,7 @@
           </div>
 
           <div class="purchase-options">
-            <div class="purchase-option"><span>강의 수</span><span>44강</span></div>
+            <div class="purchase-option"><span>강의 수</span><span id="lesson-count-display">-</span></div>
             <div class="purchase-option"><span>수강 기간</span><span>무제한</span></div>
             <div class="purchase-option"><span>수강 방식</span><span>온라인 영상</span></div>
           </div>
@@ -341,7 +341,6 @@
 <!-- 포트원 SDK -->
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/email.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 
@@ -853,6 +852,10 @@ async function loadCurriculum(courseId) {
     </div>`;
   }).join('');
 
+  // 강의 수 표시 업데이트
+  const lcEl = document.getElementById('lesson-count-display');
+  if (lcEl) lcEl.textContent = lessons.length + '강';
+
   // 무료 미리보기 강의 수 안내
   const freeCount = lessons.filter(l => l.is_free_preview).length;
   if (freeCount > 0) {
@@ -861,9 +864,11 @@ async function loadCurriculum(courseId) {
   }
 
   // 미리보기 버튼 — 비로그인 / 미구매자용 클릭 이벤트
+  // isEnrolled 체크: 수강 중이면 openLesson 핸들러가 처리하므로 preview 모달 열지 않음
   content.querySelectorAll('.curriculum-item[data-free="1"]').forEach(item => {
     item.style.cursor = 'pointer';
     item.addEventListener('click', function() {
+      if (isEnrolled) return;
       const videoUrl = item.dataset.videoUrl;
       if (!videoUrl) return;
       openPreview(videoUrl);
