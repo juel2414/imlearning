@@ -102,29 +102,7 @@ async function navLogout() {
   window.location.href = 'index.html';
 }
 
-// ───── 네비게이션 로그인 상태 반영 ─────
-// .navbar-right 안의 버튼을 로그인 여부에 따라 자동으로 교체
-async function renderNavAuth() {
-  const box = document.querySelector('.navbar-right');
-  if (!box) return;
-  try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) {
-      box.innerHTML =
-        '<a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>' +
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
-    } else {
-      box.innerHTML =
-        '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>' +
-        '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>';
-    }
-  } catch (err) {
-    console.error('네비게이션 상태 반영 실패:', err);
-  }
-}
-
-// 모든 페이지에서 네비 로그인 상태 자동 반영
-document.addEventListener('DOMContentLoaded', renderNavAuth);
+// 네비 로그인 상태 반영은 js/nav.js의 onAuthStateChange 리스너가 처리
 
 // ───── 강좌 카드 HTML 생성 (강좌 목록에서 사용) ─────
 function renderCourseCard(course) {

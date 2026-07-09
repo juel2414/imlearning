@@ -199,59 +199,55 @@
     else window.location.href = 'index.html';
   };
 
-  // ── 인증 + 어드민 상태 반영 ───────────────────────────────────────
+  // ── 네비 인증 상태 갱신 ─────────────────────────────────────────
   function updateAuth(user, isAdmin) {
     var right   = document.getElementById('nb-right');
     var mobAuth = document.getElementById('nb-mob-auth');
     var adminLi = document.getElementById('nb-admin-li');
 
-    if (isAdmin && adminLi) adminLi.style.display = '';
+    if (adminLi) adminLi.style.display = isAdmin ? '' : 'none';
 
     if (user) {
-      var adminLink = isAdmin
+      var adminBtn = isAdmin
         ? '<a href="admin/index.html" class="btn btn-outline btn-sm" style="color:#2D9B6F;border-color:#2D9B6F;">어드민</a>'
         : '';
-      var loggedIn = [
-        adminLink,
-        '<a href="my-courses.html" class="btn btn-outline btn-sm"',
-        ' style="color:var(--green);border-color:var(--green);">나의 강의실</a>',
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>',
-      ].join('');
-      var mobIn = [
-        '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>',
-        isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '',
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>',
-      ].join('');
-      if (right)   right.innerHTML   = loggedIn;
-      if (mobAuth) mobAuth.innerHTML = mobIn;
+      if (right) right.innerHTML =
+        adminBtn +
+        '<a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>' +
+        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
+      if (mobAuth) mobAuth.innerHTML =
+        '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>' +
+        (isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '') +
+        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
     } else {
-      var loggedOut = [
-        '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>',
-        '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
-      ].join('');
-      if (right)   right.innerHTML   = loggedOut;
-      if (mobAuth) mobAuth.innerHTML = loggedOut;
+      var out =
+        '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>' +
+        '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>';
+      if (right)   right.innerHTML   = out;
+      if (mobAuth) mobAuth.innerHTML = out;
     }
   }
 
-  async function checkAuth() {
+  // ── onAuthStateChange: 초기 세션 + 이후 상태 변경 모두 처리 ─
+  // INITIAL_SESSION 이벤트로 로컬 저장 세션을 즉시 읽으므로
+  // getUser() 네트워크 요청 없이 빠르게 로그인 상태를 반영함
+  function initAuth() {
     var sb = window.supabaseClient;
-    if (!sb) return;
-    try {
-      var res = await sb.auth.getUser();
-      var user = res.data && res.data.user ? res.data.user : null;
-      var isAdmin = false;
+    if (!sb) { setTimeout(initAuth, 30); return; }
+
+    sb.auth.onAuthStateChange(function (event, session) {
+      var user = session ? session.user : null;
+      updateAuth(user, false); // admin 확인 전 즉시 렌더
       if (user) {
-        var profileRes = await sb.from('profiles').select('role').eq('id', user.id).single();
-        isAdmin = profileRes.data && profileRes.data.role === 'admin';
+        sb.from('profiles').select('role').eq('id', user.id).maybeSingle()
+          .then(function (res) {
+            var isAdmin = !!(res.data && res.data.role === 'admin');
+            updateAuth(user, isAdmin);
+          })
+          .catch(function () {});
       }
-      updateAuth(user, isAdmin);
-    } catch (e) { /* 준비 안 됐을 때 기본값 유지 */ }
+    });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAuth);
-  } else {
-    checkAuth();
-  }
+  initAuth();
 })();
