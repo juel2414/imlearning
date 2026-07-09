@@ -146,4 +146,40 @@
       window.location.href = 'login.html';
     });
   }
+
+  // ── 관리자 역할 검사 (RLS가 진짜 방어막, 이건 UX·이중방어용) ──────
+  (async function checkAdminRole() {
+    // login.html은 검사 불필요
+    if (window.location.pathname.split('/').pop() === 'login.html') return;
+
+    try {
+      // 이미 초기화된 클라이언트가 있으면 재사용, 없으면 직접 생성
+      var _sb = window.supabaseClient || window.sb;
+      if (!_sb && window.supabase) {
+        _sb = window.supabase.createClient(
+          'https://lvglkxjzraznwnfilxvy.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk'
+        );
+      }
+      if (!_sb) return; // SDK 미로드 — 다음 방어막(RLS)에 위임
+
+      var sessionRes = await _sb.auth.getSession();
+      var session = sessionRes.data && sessionRes.data.session;
+      if (!session) {
+        document.body.style.visibility = 'hidden';
+        window.location.replace('login.html');
+        return;
+      }
+
+      var profileRes = await _sb.from('profiles').select('role').eq('id', session.user.id).single();
+      var role = profileRes.data && profileRes.data.role;
+      if (role !== 'admin') {
+        document.body.style.visibility = 'hidden';
+        window.location.replace('../index.html');
+      }
+    } catch (e) {
+      // 네트워크 오류 등 예외는 RLS에 위임
+      console.warn('[admin-nav] role check error:', e);
+    }
+  })();
 })();
