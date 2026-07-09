@@ -791,7 +791,7 @@ async function requestPayment() {
       payMethod: 'CARD',
       customer: {
         email: user.email || '',
-        phoneNumber: profile.phone || '',
+        ...(profile.phone ? { phoneNumber: profile.phone } : {}),
         fullName: profile.name || user.user_metadata?.full_name || user.email || '',
       },
     });
