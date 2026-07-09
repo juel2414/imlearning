@@ -2,7 +2,10 @@
 const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// window.supabaseClient로 선언해야 nav.js 등 다른 스크립트에서 window.supabaseClient로 접근 가능
+// const/let 선언은 window 객체에 추가되지 않음
+window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabaseClient;
 
 // ───── 강좌 목록 가져오기 ─────
 async function fetchCourses(filter = {}) {
