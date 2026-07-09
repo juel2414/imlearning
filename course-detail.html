@@ -772,6 +772,20 @@ async function requestPayment() {
     if (data) profile = data;
   } catch(e) {}
 
+  // 이니시스 V2 필수값: 휴대폰 번호 없으면 직접 입력받기
+  if (!profile.phone) {
+    const inputPhone = prompt('결제를 위해 휴대폰 번호를 입력해주세요.\n(예: 01012345678)', '');
+    if (!inputPhone || !inputPhone.trim()) {
+      alert('휴대폰 번호를 입력해야 결제를 진행할 수 있습니다.');
+      return;
+    }
+    profile.phone = inputPhone.trim().replace(/[^0-9]/g, '');
+    // 입력한 번호를 profiles에 저장
+    try {
+      await supabaseClient.from('profiles').upsert({ id: user.id, phone: profile.phone }, { onConflict: 'id' });
+    } catch(e) {}
+  }
+
   const { currentPrice } = getCurrentPrice(currentCourse);
   const finalPrice = Math.max(0, currentPrice - couponDiscount);
   const paymentId = 'payment-' + crypto.randomUUID();
@@ -790,10 +804,9 @@ async function requestPayment() {
       currency: 'KRW',
       payMethod: 'CARD',
       customer: (() => {
-        const c = { email: user.email || '' };
+        const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile?.name) c.fullName = profile.name;
         else if (user.user_metadata?.full_name) c.fullName = user.user_metadata.full_name;
-        if (profile?.phone) c.phoneNumber = profile.phone;
         return c;
       })(),
     });
