@@ -28,9 +28,12 @@
     .divider-line { flex: 1; height: 1px; background: rgba(0,0,0,0.08); }
     .divider-text { font-size: 12px; color: #888; white-space: nowrap; }
 
-    .social-btn { width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; border: 1.5px solid rgba(0,0,0,0.1); background: #fff; color: #3D3D3D; box-sizing: border-box; }
+    .social-btn { width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; border: 1.5px solid rgba(0,0,0,0.1); background: #fff; color: #3D3D3D; box-sizing: border-box; transition: opacity .15s; }
     .social-btn.kakao { background: #FEE500; border-color: #FEE500; color: #191919; }
+    .social-btn:disabled { opacity: 0.65; cursor: not-allowed; }
     .social-icon { width: 18px; height: 18px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
 
     .auth-footer { text-align: center; margin-top: 1.5rem; font-size: 13px; color: #888; }
     .auth-footer a { color: #2D9B6F; font-weight: 600; text-decoration: none; }
@@ -100,26 +103,58 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/nav.js"></script>
 <script>
+var REDIRECT_URL = window.location.origin + window.location.pathname.replace(/login\.html.*$/, 'index.html');
+
 function showError(msg) {
   var el = document.getElementById('error-msg');
-  el.textContent = '❌ ' + msg;
+  el.innerHTML = '❌ ' + msg;
   el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+function setSocialBtn(btn, loading) {
+  if (loading) {
+    btn.disabled = true;
+    btn._html = btn.innerHTML;
+    btn.innerHTML = '<span class="spin"></span> 연결 중...';
+  } else {
+    btn.disabled = false;
+    if (btn._html) btn.innerHTML = btn._html;
+  }
+}
+
+// OAuth 콜백 에러 감지 (Supabase가 에러와 함께 돌아온 경우)
+(function () {
+  var raw = window.location.hash + '&' + window.location.search;
+  var em = raw.match(/[#?&]error=([^&]+)/);
+  if (!em) return;
+  var code = decodeURIComponent(em[1]);
+  var dm = raw.match(/error_description=([^&]+)/);
+  var desc = dm ? decodeURIComponent(dm[1]).replace(/\+/g, ' ') : '';
+  var map = {
+    provider_not_found: 'Google/카카오 로그인이 아직 설정되지 않았습니다. 이메일로 로그인해주세요.',
+    access_denied: '로그인이 취소되었습니다.',
+    server_error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  };
+  window.addEventListener('DOMContentLoaded', function () {
+    showError(map[code] || desc || '소셜 로그인 오류 (' + code + ')');
+    history.replaceState(null, '', window.location.pathname);
+  });
+})();
 
 document.getElementById('login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
   document.getElementById('error-msg').classList.remove('show');
-
   var email = document.getElementById('email').value.trim();
   var password = document.getElementById('password').value;
   var btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.textContent = '로그인 중...';
-
   try {
     var result = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
     if (result.error) {
-      showError(result.error.message === 'Invalid login credentials' ? '이메일 또는 비밀번호가 올바르지 않습니다' : result.error.message);
+      var msg = result.error.message;
+      showError(msg === 'Invalid login credentials' ? '이메일 또는 비밀번호가 올바르지 않습니다' : msg);
       btn.disabled = false;
       btn.textContent = '로그인하기';
       return;
@@ -133,19 +168,40 @@ document.getElementById('login-form').addEventListener('submit', async function 
 });
 
 document.getElementById('google-btn').addEventListener('click', async function () {
-  var result = await supabaseClient.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname.replace('login.html', 'index.html') }
-  });
-  if (result.error) showError('구글 로그인 중 오류가 발생했습니다');
+  var btn = this;
+  setSocialBtn(btn, true);
+  try {
+    var result = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: REDIRECT_URL }
+    });
+    if (result.error) {
+      showError('구글 로그인을 사용할 수 없습니다.<br>Supabase 대시보드에서 Google Provider 설정이 필요합니다.');
+      setSocialBtn(btn, false);
+    }
+    // 성공 시 브라우저가 리다이렉트하므로 버튼 유지
+  } catch (e) {
+    showError('구글 로그인 오류: ' + e.message);
+    setSocialBtn(btn, false);
+  }
 });
 
 document.getElementById('kakao-btn').addEventListener('click', async function () {
-  var result = await supabaseClient.auth.signInWithOAuth({
-    provider: 'kakao',
-    options: { redirectTo: window.location.origin + window.location.pathname.replace('login.html', 'index.html') }
-  });
-  if (result.error) showError('카카오 로그인 중 오류가 발생했습니다');
+  var btn = this;
+  setSocialBtn(btn, true);
+  try {
+    var result = await supabaseClient.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: { redirectTo: REDIRECT_URL }
+    });
+    if (result.error) {
+      showError('카카오 로그인을 사용할 수 없습니다.<br>Supabase 대시보드에서 Kakao Provider 설정이 필요합니다.');
+      setSocialBtn(btn, false);
+    }
+  } catch (e) {
+    showError('카카오 로그인 오류: ' + e.message);
+    setSocialBtn(btn, false);
+  }
 });
 </script>
 </body>
