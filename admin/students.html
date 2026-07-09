@@ -61,6 +61,10 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 /* 독려 버튼 */
 .enc-btn { padding:5px 12px; border:1.5px solid #EF4444; background:#fff; color:#EF4444; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
 .enc-btn:hover { background:#EF4444; color:#fff; }
+/* 환불 버튼 */
+.refund-btn { padding:5px 12px; border:1.5px solid #F59E0B; background:#fff; color:#D97706; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; margin-top:4px; }
+.refund-btn:hover { background:#F59E0B; color:#fff; }
+.refund-btn:disabled { opacity:.5; cursor:not-allowed; }
 
 .empty   { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
 .loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
@@ -141,6 +145,18 @@ tr.dormant-row:hover td { background:#FFE8E8; }
     </div>
     <div class="card-body">
       <div id="student-table-area"><div class="loading">불러오는 중...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 환불 처리 모달 -->
+<div id="refund-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;max-width:420px;width:90%;">
+    <h3 style="margin:0 0 1rem;">환불 처리</h3>
+    <p id="refund-modal-info" style="color:#555;font-size:14px;margin-bottom:1.5rem;line-height:1.6;"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeRefundModal()" style="padding:9px 18px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;">취소</button>
+      <button id="refund-confirm-btn" style="padding:9px 18px;border-radius:8px;background:#EF4444;color:#fff;border:none;cursor:pointer;font-weight:700;">환불 처리</button>
     </div>
   </div>
 </div>
@@ -298,7 +314,7 @@ function renderTable() {
 
   var html = '<div class="table-wrap"><table><thead><tr>' +
     '<th>이름 / 이메일</th><th>수강 강좌</th><th>평균 진행률</th>' +
-    '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th></th>' +
+    '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th>관리</th>' +
     '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -306,7 +322,12 @@ function renderTable() {
     var badgeText  = r.status === 'complete' ? '수료' : r.status === 'dormant' ? '휴면' : '활성';
     var rowClass   = (r.isDormant ? 'dormant-row ' : '') + 'clickable-row';
     var lastTxt    = r.lastStudy ? fmtDate(r.lastStudy) + ' (' + r.daysSinceLast + '일 전)' : '미접속';
-    var encBtn     = r.isDormant ? '<button class="enc-btn" onclick="event.stopPropagation();encourage(\'' + r.uid + '\',\'' + r.name + '\')">독려 메시지</button>' : '';
+    var encBtn = r.isDormant ? '<button class="enc-btn" onclick="event.stopPropagation();encourage(\'' + r.uid + '\',\'' + r.name + '\')">독려 메시지</button>' : '';
+    var userOrders = allOrders.filter(function(o){ return o.user_id === r.uid; });
+    var refundableOrder = userOrders.find(function(o){ return !o.refund_status || o.refund_status === 'none'; });
+    var refundBtn = refundableOrder
+      ? '<button class="refund-btn" onclick="event.stopPropagation();showRefundModal(\'' + r.uid + '\',' + refundableOrder.course_id + ',' + refundableOrder.id + ',' + refundableOrder.amount + ')">환불처리</button>'
+      : '';
 
     html += '<tr class="' + rowClass + '" onclick="openModal(\'' + r.uid + '\')">' +
       '<td><div style="font-weight:600;">' + r.name + '</div><div style="font-size:11px;color:#888;">' + r.email + '</div></td>' +
@@ -318,7 +339,7 @@ function renderTable() {
       '<td style="font-size:12px;color:#666;">' + lastTxt + '</td>' +
       '<td style="font-size:12px;">' + fmtSecs(r.totalWatch) + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
-      '<td>' + encBtn + '</td>' +
+      '<td style="white-space:nowrap;">' + encBtn + (encBtn && refundBtn ? '<br>' : '') + refundBtn + '</td>' +
       '</tr>';
   });
 
@@ -405,7 +426,7 @@ async function loadAll() {
   try {
     var [profilesRes, ordersRes, vpRes, logsRes, coursesRes] = await Promise.all([
       sb.from('profiles').select('id, name, email, role, created_at').order('created_at', { ascending:false }),
-      sb.from('orders').select('user_id, course_id, progress, status, created_at').eq('status','paid'),
+      sb.from('orders').select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, created_at').eq('status','paid'),
       sb.from('video_progress').select('user_id, course_id, lesson_number, lesson_title, actual_watched_seconds, actual_watched_text, total_seconds, watch_percentage, completed, updated_at'),
       sb.from('study_logs').select('user_id, course_id, lesson_number, studied_at'),
       sb.from('courses').select('id, title'),
@@ -424,6 +445,83 @@ async function loadAll() {
     console.error('수강생 데이터 로드 오류:', e);
     document.getElementById('student-table-area').innerHTML =
       '<div class="empty">데이터를 불러오는 중 오류가 발생했어요</div>';
+  }
+}
+
+// ── 환불 처리 모달 ──
+var currentRefundOrderId = null;
+
+function showRefundModal(userId, courseId, orderId, amount) {
+  currentRefundOrderId = orderId;
+  var course = allCourses.find(function(c){ return String(c.id) === String(courseId); });
+  var courseName = course ? course.title : '강좌 ID: ' + courseId;
+  var order = allOrders.find(function(o){ return o.id === orderId; });
+  var purchaseDate = order ? fmtDate(order.created_at) : '-';
+  var daysAgo = order ? daysSince(order.created_at) : 0;
+
+  document.getElementById('refund-modal-info').innerHTML =
+    '<strong>' + courseName + '</strong><br>' +
+    '결제금액: <strong>₩' + Number(amount).toLocaleString() + '</strong><br>' +
+    '구매일: ' + purchaseDate + ' (' + daysAgo + '일 전)<br><br>' +
+    '환불 규정에 따라 자동 계산된 금액이 환불됩니다.<br>' +
+    '<span style="color:#EF4444;font-size:12px;">환불 처리 후에는 취소가 불가능합니다.</span>';
+
+  var confirmBtn = document.getElementById('refund-confirm-btn');
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = '환불 처리';
+  confirmBtn.onclick = function() { processRefund(orderId); };
+
+  document.getElementById('refund-modal').style.display = 'flex';
+}
+
+function closeRefundModal() {
+  document.getElementById('refund-modal').style.display = 'none';
+  currentRefundOrderId = null;
+}
+
+async function processRefund(orderId) {
+  var confirmBtn = document.getElementById('refund-confirm-btn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = '처리 중...';
+
+  try {
+    // 어드민 세션 토큰 (supabase auth 기반일 경우 getSession 사용)
+    var { data: { session } } = await sb.auth.getSession();
+    var token = session ? session.access_token : '';
+
+    var res = await fetch('https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/refund-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify({ orderId: orderId }),
+    });
+
+    var result = await res.json();
+
+    if (result.success) {
+      var refundText = result.refund_amount > 0
+        ? '₩' + Number(result.refund_amount).toLocaleString() + ' 환불 완료'
+        : '환불 불가';
+      document.getElementById('refund-modal-info').innerHTML =
+        '<span style="color:#16A34A;font-weight:700;">✅ 처리 완료</span><br>' +
+        result.message + '<br><br>' +
+        '<strong>' + refundText + '</strong>';
+      confirmBtn.style.display = 'none';
+      // 테이블 새로고침
+      await loadAll();
+    } else {
+      document.getElementById('refund-modal-info').innerHTML =
+        '<span style="color:#EF4444;font-weight:700;">❌ 오류 발생</span><br>' + (result.error || '알 수 없는 오류');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '다시 시도';
+    }
+  } catch(e) {
+    document.getElementById('refund-modal-info').innerHTML =
+      '<span style="color:#EF4444;font-weight:700;">❌ 네트워크 오류</span><br>' + (e.message || '오류가 발생했습니다.');
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = '다시 시도';
   }
 }
 

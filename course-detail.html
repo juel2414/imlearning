@@ -89,6 +89,11 @@
 .wish-card-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; background:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; margin-top:8px; }
 .wish-card-btn.wished { border-color:#FF4D6D; color:#FF4D6D; background:#FFF0F0; }
 .wish-card-btn:not(.wished):hover { border-color:var(--green); color:var(--green); }
+/* 환불 정책 박스 */
+.refund-policy-box { background:#F8FAFC; border:1px solid rgba(0,0,0,.08); border-radius:10px; padding:14px 16px; margin-bottom:12px; font-size:13px; }
+.refund-policy-title { font-weight:700; margin-bottom:8px; color:#111; }
+.refund-policy-list { margin:0 0 10px 0; padding-left:16px; color:#555; line-height:1.8; }
+.refund-agree-label { display:flex; align-items:center; gap:8px; font-size:12px; color:#333; cursor:pointer; }
 /* 미리보기 버튼 */
 .preview-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; background:var(--green); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
 /* 미리보기 모달 */
@@ -324,6 +329,18 @@
             <div class="purchase-option"><span>수강 기간</span><span>무제한</span></div>
             <div class="purchase-option"><span>수강 방식</span><span>온라인 영상</span></div>
           </div>
+          <div class="refund-policy-box" id="refund-policy-box">
+            <div class="refund-policy-title">📋 환불 정책</div>
+            <ul class="refund-policy-list">
+              <li>수강 시작 전: <strong>전액 환불</strong></li>
+              <li>7일 이내 + 1/3 미만 시청: <strong>2/3 환불</strong></li>
+              <li>7일 이내 + 1/3~1/2 시청: <strong>1/2 환불</strong></li>
+              <li>1/2 이상 시청 또는 7일 초과: <strong>환불 불가</strong></li>
+            </ul>
+            <label class="refund-agree-label">
+              <input type="checkbox" id="refund-agree"> 환불 정책을 확인했으며 동의합니다
+            </label>
+          </div>
           <div class="purchase-btns" id="purchase-btns-section">
             <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
             <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()">🤍 찜하기</button>
@@ -519,9 +536,10 @@ function applyProgressUI() {
     if (lastWatchedLesson) {
       document.getElementById('resume-btn').textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
     }
-    // 결제 버튼 영역 숨기기 / 쿠폰 영역 숨기기
+    // 결제 버튼 영역 숨기기 / 쿠폰 영역 숨기기 / 환불 정책 숨기기
     document.getElementById('purchase-btns-section').style.display = 'none';
     document.getElementById('coupon-section').style.display = 'none';
+    document.getElementById('refund-policy-box').style.display = 'none';
   } else {
     document.getElementById('coupon-section').style.display = '';
   }
@@ -720,6 +738,12 @@ async function loadCourse() {
 async function requestPayment() {
   if (!currentCourse) {
     alert('강좌 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  const agreed = document.getElementById('refund-agree');
+  if (agreed && !agreed.checked) {
+    alert('환불 정책에 동의해주세요.');
     return;
   }
 
