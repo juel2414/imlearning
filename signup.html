@@ -152,7 +152,11 @@ document.getElementById('signup-form').addEventListener('submit', async function
   btn.textContent = '가입 처리 중...';
 
   try {
-    var result = await supabaseClient.auth.signUp({ email: email, password: password });
+    var result = await supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { name: name, phone: phone } }
+    });
 
     if (result.error) {
       showError(result.error.message === 'User already registered' ? '이미 가입된 이메일입니다' : result.error.message);
@@ -161,13 +165,9 @@ document.getElementById('signup-form').addEventListener('submit', async function
       return;
     }
 
+    // 프로필 행은 auth.users 트리거(handle_new_user)가 서버에서 자동 생성함.
+    // 이름/전화번호는 위 signUp의 options.data(metadata)로 전달되어 트리거가 채움.
     if (result.data.user) {
-      await supabaseClient.from('profiles').insert({
-        id: result.data.user.id,
-        email: email,
-        name: name,
-        phone: phone
-      });
       sendEmail('welcome', { email: email, name: name });
     }
 
