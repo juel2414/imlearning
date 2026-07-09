@@ -345,10 +345,12 @@ async function loadAll() {
     if (user) {
       const [{ data: wl }, { data: orders }] = await Promise.all([
         supabaseClient.from('wishlists').select('course_id').eq('user_id', user.id),
-        supabaseClient.from('orders').select('course_id').eq('user_id', user.id).eq('status', 'paid'),
+        supabaseClient.from('orders').select('course_id, refund_status').eq('user_id', user.id).eq('status', 'paid'),
       ]);
       wishSet = new Set((wl || []).map(w => w.course_id));
-      purchasedSet = new Set((orders || []).map(o => o.course_id));
+      purchasedSet = new Set((orders || []).filter(function(o) {
+        return o.refund_status !== 'refunded' && o.refund_status !== 'partial';
+      }).map(o => o.course_id));
     }
 
     renderTop3();

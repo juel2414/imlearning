@@ -90,13 +90,14 @@ async function createOrder(order) {
 async function hasPurchased(userId, courseId) {
   const { data, error } = await supabaseClient
     .from('orders')
-    .select('id')
+    .select('id, refund_status')
     .eq('user_id', userId)
     .eq('course_id', courseId)
-    .eq('status', 'paid')
-    .limit(1);
+    .eq('status', 'paid');
   if (error) { console.error('구매 확인 실패:', error); return false; }
-  return !!(data && data.length > 0);
+  return (data || []).some(function(o) {
+    return o.refund_status !== 'refunded' && o.refund_status !== 'partial';
+  });
 }
 
 // ───── 로그아웃 (네비 공용) ─────

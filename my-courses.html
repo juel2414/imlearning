@@ -1065,7 +1065,6 @@ async function loadMyPage() {
     .select('*')
     .eq('user_id', user.id)
     .eq('status', 'paid')
-    .neq('refund_status', 'refunded')
     .order('created_at', { ascending: false });
 
   if (orderError && orderError.code !== 'PGRST116') {
@@ -1119,6 +1118,11 @@ async function loadMyPage() {
 
   gOrders = ordersWithProgress;
 
+  // 환불된 주문은 수강 목록·통계·수료증에서 제외 (결제 내역에는 그대로 표시)
+  const activeOrders = ordersWithProgress.filter(function(o) {
+    return o.refund_status !== 'refunded' && o.refund_status !== 'partial';
+  });
+
   // ── 찜 목록 조회 ──
   const { data: wishData } = await supabaseClient
     .from('wishlists')
@@ -1155,10 +1159,10 @@ async function loadMyPage() {
   gBadges = badgesData || [];
 
   // ── 렌더 (기존) ──
-  updateStats(ordersWithProgress);
-  renderCourses(ordersWithProgress, gCoursesMap);
+  updateStats(activeOrders);
+  renderCourses(activeOrders, gCoursesMap);
   renderOrders(myOrders, gCoursesMap);
-  renderCerts(ordersWithProgress, gCoursesMap);
+  renderCerts(activeOrders, gCoursesMap);
   renderWishlist(wishItems);
 
   // ── 렌더 (신규) ──
