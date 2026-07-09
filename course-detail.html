@@ -788,7 +788,7 @@ async function requestPayment() {
 
   const { currentPrice } = getCurrentPrice(currentCourse);
   const finalPrice = Math.max(0, currentPrice - couponDiscount);
-  const paymentId = 'payment-' + crypto.randomUUID();
+  const paymentId = crypto.randomUUID().replace(/-/g, ''); // 이니시스 40자 제한
 
   btn.disabled = true;
   const originalBtnText = btn.textContent;
