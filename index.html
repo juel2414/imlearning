@@ -911,7 +911,34 @@ async function initPersonal() {
 document.addEventListener('DOMContentLoaded', function() {
   init();
   initPersonal();
+  startHeroSlideshow();
 });
+
+function startHeroSlideshow() {
+  var slides = [
+    { bg: 'linear-gradient(160deg,#e8f5ee 0%,#f5fff8 100%)', icon: '🎓' },
+    { bg: 'linear-gradient(160deg,#eef2ff 0%,#f5f3ff 100%)', icon: '✝️' },
+    { bg: 'linear-gradient(160deg,#fff7ed 0%,#fffbf5 100%)', icon: '📖' },
+    { bg: 'linear-gradient(160deg,#f0fdf9 0%,#e6fff5 100%)', icon: '🙏' },
+  ];
+  var idx = 0;
+  var hero = document.querySelector('.lp-hero');
+  var heroImg = document.getElementById('js-hero-img');
+  if (!hero) return;
+  hero.style.transition = 'background 1.4s ease';
+  setInterval(function() {
+    idx = (idx + 1) % slides.length;
+    hero.style.background = slides[idx].bg;
+    if (heroImg && !heroImg.querySelector('img')) {
+      heroImg.style.transition = 'opacity 0.5s';
+      heroImg.style.opacity = '0';
+      setTimeout(function() {
+        heroImg.textContent = slides[idx].icon;
+        heroImg.style.opacity = '1';
+      }, 250);
+    }
+  }, 4000);
+}
 </script>
 </body>
 </html>
