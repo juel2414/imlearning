@@ -125,6 +125,7 @@
 </div>
 
 <script src="js/supabase-client.js"></script>
+<script src="js/email.js"></script>
 <script src="js/nav.js"></script>
 <script>
 function showError(msg) {
@@ -167,6 +168,7 @@ document.getElementById('signup-form').addEventListener('submit', async function
         name: name,
         phone: phone
       });
+      sendEmail('welcome', { email: email, name: name });
     }
 
     document.getElementById('signup-form').style.display = 'none';

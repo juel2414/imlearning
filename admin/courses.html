@@ -363,7 +363,7 @@ async function saveCourse() {
     if (editingId) {
       result = await sb.from('courses').update(courseData).eq('id', editingId);
     } else {
-      result = await sb.from('courses').insert(courseData);
+      result = await sb.from('courses').insert(courseData).select().single();
     }
     if (result.error) {
       showToast('저장 중 오류: ' + result.error.message, true);
@@ -372,7 +372,20 @@ async function saveCourse() {
     }
     await loadCourses();
     toggleForm();
-    showToast(editingId ? '강좌가 수정되었습니다! Supabase에 바로 반영됩니다.' : '새 강좌가 추가되었습니다!');
+    if (!editingId && courseData.status === 'active') {
+      showToast('새 강좌가 추가됐습니다!');
+      var newId = result.data && result.data.id;
+      if (confirm('📢 전체 수강생에게 새 강좌 오픈 알림을 발송할까요?\n\n강좌: ' + courseData.title)) {
+        sendEmail('new_course', {
+          courseTitle: courseData.title,
+          courseId: newId,
+          thumbnailUrl: courseData.thumbnail_url || null,
+        });
+        showToast('📧 전체 수강생에게 알림 이메일을 발송 중입니다...');
+      }
+    } else {
+      showToast(editingId ? '강좌가 수정됐습니다! Supabase에 바로 반영됩니다.' : '새 강좌가 추가됐습니다!');
+    }
   } catch (err) {
     showToast('저장 중 오류가 발생했습니다', true);
   }
@@ -517,11 +530,18 @@ function renderTable(list) {
       '<td><div class="action-btns">' +
         '<button class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;" onclick="openLessonMgmt(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\')">강의</button>' +
         '<button class="btn-sm edit" onclick="editCourse(' + c.id + ')">수정</button>' +
+        (c.status === 'active' ? '<button class="btn-sm" style="border:1px solid #d97706;color:#d97706;" onclick="notifyCourse(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\',' + JSON.stringify(c.thumbnail_url||'') + ')">📢</button>' : '') +
         '<button class="btn-sm del" onclick="deleteCourse(' + c.id + ')">삭제</button>' +
       '</div></td>' +
       '</tr>';
   }).join('');
   return '<div class="table-wrap"><table><thead><tr><th>썸네일</th><th>강좌명</th><th>카테고리</th><th>난이도</th><th>강사</th><th>가격</th><th>강의수</th><th>상태</th><th>관리</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+function notifyCourse(courseId, courseTitle, thumbnailUrl) {
+  if (!confirm('📢 전체 수강생에게 알림 이메일을 발송할까요?\n\n강좌: ' + courseTitle)) return;
+  sendEmail('new_course', { courseTitle: courseTitle, courseId: courseId, thumbnailUrl: thumbnailUrl || null });
+  showToast('📧 전체 수강생에게 알림 이메일을 발송 중입니다...');
 }
 
 function showToast(msg, isError) {
@@ -754,6 +774,7 @@ async function deleteLesson(lessonId) {
 loadInstructors();
 loadCourses();
 </script>
+<script src="../js/email.js"></script>
 <script src="../js/admin-nav.js"></script>
 </body>
 </html>

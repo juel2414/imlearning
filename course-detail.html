@@ -341,6 +341,7 @@
 <!-- 포트원 SDK -->
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <script src="js/supabase-client.js"></script>
+<script src="js/email.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 
@@ -409,6 +410,7 @@ function closePreview(e) {
 let progressMap = {};    // lessonId → true/false
 let isEnrolled = false;
 let lastWatchedLesson = null;
+let _prevCoursePct = -1; // 수료 이메일 중복 방지
 
 async function loadProgress(userId, courseId) {
   const { data } = await supabaseClient
@@ -502,6 +504,12 @@ function applyProgressUI() {
     document.getElementById('prog-summary-bar').style.width = pct + '%';
     document.getElementById('prog-summary-text').textContent = done + '/' + total + '강 완료 (' + pct + '%)';
   }
+
+  // 수료 이메일: 100% 처음 달성했을 때만 발송
+  if (pct === 100 && _prevCoursePct >= 0 && _prevCoursePct < 100 && isEnrolled && currentCourse) {
+    sendEmail('completion', { courseName: currentCourse.title });
+  }
+  _prevCoursePct = pct;
 }
 
 async function toggleLesson(lessonId, lessonTitle, completed) {
