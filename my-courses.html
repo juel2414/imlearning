@@ -6,8 +6,9 @@
 <title>나의 강의실 — 아이엠러닝</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
+/* ── 기존 레이아웃 ── */
 .my-page { padding: 2.5rem 0 5rem; }
-.my-header { background: linear-gradient(135deg, #1a5c3a 0%, #2D9B6F 100%); color: #fff; padding: 3rem 0 2rem; margin-bottom: 2rem; }
+.my-header { background: linear-gradient(135deg, #1a5c3a 0%, #2D9B6F 100%); color: #fff; padding: 3rem 0 2rem; margin-bottom: 0; }
 .my-header-inner { display: flex; align-items: center; gap: 1.5rem; }
 .my-avatar { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; border: 3px solid rgba(255,255,255,0.4); }
 .my-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
@@ -17,17 +18,18 @@
 .my-stat-value { font-size: 22px; font-weight: 900; }
 .my-stat-label { font-size: 11px; opacity: 0.75; margin-top: 2px; }
 
-.my-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(0,0,0,0.07); margin-bottom: 2rem; background: #fff; }
-.my-tab { padding: 14px 24px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+/* ── 탭 ── */
+.my-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(0,0,0,0.07); background: #fff; overflow-x: auto; }
+.my-tab { padding: 14px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
 .my-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
 .my-tab:hover { color: var(--green); }
 
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* 강좌 카드 */
+/* ── 강좌 카드 ── */
 .my-course-list { display: flex; flex-direction: column; gap: 16px; }
-.my-course-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 20px; display: grid; grid-template-columns: 120px 1fr auto; gap: 20px; align-items: center; transition: all 0.2s; }
+.my-course-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 20px; display: grid; grid-template-columns: 120px 1fr auto; gap: 20px; align-items: start; transition: all 0.2s; }
 .my-course-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
 .my-course-thumb { width: 120px; height: 72px; border-radius: 10px; background: linear-gradient(135deg,#e8f5ee,#c8eada); display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; flex-shrink: 0; position: relative; }
 .my-course-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -44,7 +46,7 @@
 .badge-complete { padding: 6px 14px; background: #DCFCE7; color: #16A34A; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .badge-new { padding: 6px 14px; background: #FEF3C7; color: #D97706; border-radius: 20px; font-size: 12px; font-weight: 700; }
 
-/* 주문 내역 */
+/* ── 주문 내역 ── */
 .order-list { display: flex; flex-direction: column; gap: 12px; }
 .order-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 18px 20px; }
 .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -58,13 +60,13 @@
 .order-amount { font-size: 18px; font-weight: 800; color: var(--black); }
 .order-amount.discounted { color: #EF4444; }
 
-/* 빈 상태 */
+/* ── 빈 상태 ── */
 .empty-state { text-align: center; padding: 4rem 2rem; }
 .empty-state-icon { font-size: 56px; margin-bottom: 1rem; }
 .empty-state-title { font-size: 18px; font-weight: 700; color: var(--black); margin-bottom: 8px; }
 .empty-state-desc { font-size: 14px; color: var(--gray-500); margin-bottom: 1.5rem; line-height: 1.7; }
 
-/* 수료증 */
+/* ── 수료증 ── */
 .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .cert-card { background: linear-gradient(135deg, #f0faf5, #fff); border: 1px solid #c8eada; border-radius: 16px; padding: 24px; text-align: center; }
 .cert-icon { font-size: 40px; margin-bottom: 12px; }
@@ -74,7 +76,7 @@
 
 .loading-msg { text-align: center; padding: 3rem; color: var(--gray-500); }
 
-/* 찜한 강좌 */
+/* ── 찜한 강좌 ── */
 .wish-course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
 .wish-course-card { background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: 14px; overflow: hidden; transition: all .2s; }
 .wish-course-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.09); transform: translateY(-3px); }
@@ -89,11 +91,106 @@
 .btn-wish-remove { padding: 9px 12px; border: 1.5px solid rgba(0,0,0,.1); border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: var(--gray-500); }
 .btn-wish-remove:hover { border-color: #FF4D6D; color: #FF4D6D; }
 
+/* ═══════════════════════════════════════════════════
+   FEATURE 1 — 오늘의 학습 목표 위젯
+   ═══════════════════════════════════════════════════ */
+.today-goal-widget { background: linear-gradient(135deg,#f0faf5,#e8f5ee); border: 1px solid #c8eada; border-radius: 16px; padding: 18px 22px; margin-bottom: 20px; }
+.today-goal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+.today-goal-title { font-size: 15px; font-weight: 700; color: var(--black); }
+.today-goal-celebrate { font-size: 13px; color: #16A34A; font-weight: 700; animation: celebratePulse 1s ease-in-out infinite alternate; }
+@keyframes celebratePulse { from { transform: scale(1); } to { transform: scale(1.08); } }
+.today-goal-bar-wrap { background: #d1fae5; border-radius: 20px; height: 10px; margin-bottom: 8px; overflow: hidden; }
+.today-goal-bar { background: linear-gradient(90deg,#16A34A,#2D9B6F); border-radius: 20px; height: 10px; transition: width 0.6s ease; }
+.today-goal-info { font-size: 13px; color: var(--gray-500); }
+
+/* 목표일 설정 인라인 */
+.btn-set-goal { padding: 5px 12px; border: 1.5px solid var(--green); border-radius: 8px; background: #fff; color: var(--green); font-size: 11px; font-weight: 600; cursor: pointer; }
+.btn-set-goal:hover { background: #E8F5EE; }
+.plan-info-text { margin-top: 6px; font-size: 12px; color: #16A34A; font-weight: 600; min-height: 18px; }
+.plan-inline { margin-top: 8px; background: #f0faf5; border-radius: 12px; padding: 12px 14px; display: none; }
+.plan-inline.open { display: block; }
+.plan-inline input[type="date"] { border: 1px solid #c8eada; border-radius: 8px; padding: 4px 8px; font-size: 12px; color: var(--black); }
+.btn-plan-save { padding: 5px 14px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; margin-left: 8px; }
+.plan-achieve-icon { font-size: 16px; margin-left: 4px; }
+
+/* ═══════════════════════════════════════════════════
+   FEATURE 2 — 학습 통계 탭
+   ═══════════════════════════════════════════════════ */
+.stats-full { display: flex; flex-direction: column; gap: 20px; }
+.stats-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 20px; }
+.stats-card-title { font-size: 12px; font-weight: 700; color: var(--gray-500); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* 총 통계 숫자 */
+.stats-total-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.stat-total-item { text-align: center; background: #f8fffe; border-radius: 12px; padding: 14px 8px; border: 1px solid #e8f5ee; }
+.stat-total-value { font-size: 22px; font-weight: 900; color: var(--green); margin-bottom: 4px; }
+.stat-total-label { font-size: 11px; color: var(--gray-500); }
+
+/* 주간 바 차트 */
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 0 4px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; }
+.bar-count { font-size: 10px; color: var(--green); font-weight: 700; min-height: 14px; }
+.bar-block-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.bar-block { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; background: #e8f5ee; transition: height 0.4s ease; }
+.bar-block.has-data { background: linear-gradient(180deg,#2D9B6F,#5cbf8a); }
+.bar-label { font-size: 10px; color: var(--gray-500); }
+.bar-today-label { color: var(--green) !important; font-weight: 700 !important; }
+
+/* 월간 캘린더 (GitHub grass style) */
+.month-cal-labels { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 4px; }
+.month-cal-label { font-size: 9px; text-align: center; color: var(--gray-500); }
+.month-calendar { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-day { width: 100%; aspect-ratio: 1; border-radius: 3px; background: #f0f0f0; }
+.cal-day.studied { background: var(--green); }
+.cal-day.today-marker { outline: 2px solid #f59e0b; outline-offset: 1px; }
+.cal-day.empty { background: transparent; }
+
+/* 강좌별 진행률 */
+.course-progress-list { display: flex; flex-direction: column; gap: 12px; }
+.cp-item-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.cp-item-title { font-weight: 600; color: var(--black); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
+.cp-item-pct { color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+/* 전체 평균 비교 */
+.avg-compare { display: flex; flex-direction: column; gap: 14px; }
+.avg-item-label { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+.avg-bar-wrap { background: #f0f0f0; border-radius: 20px; height: 8px; overflow: hidden; }
+.avg-bar-user { height: 8px; border-radius: 20px; transition: width 0.6s ease; }
+.avg-bar-user.above { background: linear-gradient(90deg,#16A34A,#2D9B6F); }
+.avg-bar-user.below { background: linear-gradient(90deg,#f59e0b,#f97316); }
+.avg-rank-msg { margin-top: 12px; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; text-align: center; }
+.avg-rank-msg.above { background: #DCFCE7; color: #16A34A; }
+.avg-rank-msg.below { background: #FEF3C7; color: #D97706; }
+
+/* ═══════════════════════════════════════════════════
+   FEATURE 3 — 나의 뱃지 탭
+   ═══════════════════════════════════════════════════ */
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 14px; }
+.badge-item { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 14px; padding: 18px 12px; text-align: center; transition: all 0.2s; }
+.badge-item.earned { border-color: #c8eada; box-shadow: 0 2px 12px rgba(45,155,111,0.1); }
+.badge-item.locked { filter: grayscale(1) opacity(0.45); }
+.badge-item-icon { font-size: 34px; margin-bottom: 8px; }
+.badge-item-name { font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
+.badge-item-desc { font-size: 10px; color: var(--gray-500); line-height: 1.4; margin-bottom: 5px; }
+.badge-item-date { font-size: 10px; color: var(--green); font-weight: 600; }
+.badge-item-lock { font-size: 10px; color: var(--gray-400); }
+
+/* 뱃지 획득 토스트 팝업 */
+.badge-toast { position: fixed; bottom: 24px; right: 24px; background: #fff; border: 1px solid #c8eada; border-radius: 16px; padding: 14px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; z-index: 9999; transform: translateY(110px); opacity: 0; transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease; max-width: 300px; pointer-events: none; }
+.badge-toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.badge-toast-icon { font-size: 30px; animation: sparkleIn 0.6s ease-in-out; flex-shrink: 0; }
+@keyframes sparkleIn { 0%{ transform:scale(0) rotate(-30deg); } 60%{ transform:scale(1.3) rotate(10deg); } 100%{ transform:scale(1) rotate(0deg); } }
+.badge-toast-title { font-size: 13px; font-weight: 800; color: var(--black); margin-bottom: 2px; }
+.badge-toast-desc { font-size: 11px; color: var(--gray-500); }
+
+/* ── 반응형 ── */
 @media (max-width: 768px) {
   .my-course-card { grid-template-columns: 80px 1fr; }
   .my-course-action { grid-column: 1/-1; flex-direction: row; justify-content: flex-start; }
   .my-header-inner { flex-direction: column; text-align: center; }
   .my-stats { justify-content: center; }
+  .stats-total-row { grid-template-columns: repeat(3,1fr); }
+  .badge-grid { grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); }
 }
 </style>
 </head>
@@ -152,6 +249,8 @@
 <div class="container">
   <div class="my-tabs">
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
+    <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 통계</div>
+    <div class="my-tab" onclick="switchTab('badges', this)">🏅 나의 뱃지</div>
     <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
     <div class="my-tab" onclick="switchTab('certs', this)">🎓 수료증</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)">❤️ 찜한 강좌</div>
@@ -163,7 +262,18 @@
 
     <!-- 수강 중인 강좌 탭 -->
     <div class="tab-panel active" id="panel-courses">
+      <div id="today-goal-widget"></div>
       <div id="courses-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+    <!-- 학습 통계 탭 -->
+    <div class="tab-panel" id="panel-stats">
+      <div id="stats-content" class="loading-msg">탭을 열면 통계를 불러옵니다...</div>
+    </div>
+
+    <!-- 나의 뱃지 탭 -->
+    <div class="tab-panel" id="panel-badges">
+      <div id="badges-content" class="loading-msg">불러오는 중...</div>
     </div>
 
     <!-- 결제 내역 탭 -->
@@ -188,7 +298,7 @@
   <div class="container">
     <div class="footer-inner">
       <div>
-        <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:32px;width:auto;display:block;margin-bottom:8px;">
+        <div class="footer-brand-name">아이엠<span>러닝</span></div>
         <div class="footer-slogan">I'M Learning, I'M Running!</div>
         <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
       </div>
@@ -203,33 +313,152 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
+<script src="js/badges.js"></script>
 <script>
+/* ════════════════════════════════════════════════════════
+   전역 상태
+   ════════════════════════════════════════════════════════ */
+let gUserId           = null;
+let gOrders           = [];   // ordersWithProgress 배열
+let gCoursesMap       = {};   // { courseId: courseObj }
+let gProgressByCourse = {};   // { courseId: { total, done } }
+let gPlans            = {};   // { courseId: { target_date, daily_goal } }
+let gTodayLogsByCourse= {};   // { courseId: count }
+let gBadges           = [];   // 사용자의 뱃지 배열
+let gStatsLoaded      = false;// 통계 탭 최초 로드 여부
+
 const CATEGORY_LABELS_LOCAL = {
   faith: '신앙', edu: '교사·부모', mission: '캠프·사역',
-  english: '영어·시험', freepass: '전강좌 무제한'
+  english: '영어·시험', freepass: '전강좌 무제한',
 };
 
-// ───── 탭 전환 ─────
+/* ════════════════════════════════════════════════════════
+   탭 전환
+   ════════════════════════════════════════════════════════ */
 function switchTab(id, el) {
   document.querySelectorAll('.my-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('panel-' + id).classList.add('active');
+
+  // 학습 통계 탭: 최초 1회 lazy load
+  if (id === 'stats' && !gStatsLoaded && gUserId) {
+    gStatsLoaded = true;
+    loadAndRenderStats(gUserId);
+  }
 }
 
-// ───── 로그아웃 ─────
+/* ════════════════════════════════════════════════════════
+   로그아웃
+   ════════════════════════════════════════════════════════ */
 async function logout() {
   await supabaseClient.auth.signOut();
   window.location.href = 'index.html';
 }
 
-// ───── 진행률 랜덤 생성 (실제 연동 전 샘플) ─────
+/* ════════════════════════════════════════════════════════
+   진행률 폴백 (실제 데이터 없을 때)
+   ════════════════════════════════════════════════════════ */
 function fakeProgress(courseId) {
   const seed = courseId % 100;
   return Math.min(seed + 10, 100);
 }
 
-// ───── 수강 중인 강좌 렌더 ─────
+/* ════════════════════════════════════════════════════════
+   FEATURE 1 — 오늘의 학습 목표 위젯
+   ════════════════════════════════════════════════════════ */
+function renderTodayGoalWidget() {
+  const el = document.getElementById('today-goal-widget');
+  if (!el) return;
+
+  const plans = Object.values(gPlans);
+  if (plans.length === 0) { el.innerHTML = ''; return; }
+
+  const totalGoal = plans.reduce((s, p) => s + (p.daily_goal || 0), 0);
+  const todayDone = Object.values(gTodayLogsByCourse).reduce((s, c) => s + c, 0);
+  const pct       = totalGoal > 0 ? Math.min(Math.round((todayDone / totalGoal) * 100), 100) : 0;
+  const achieved  = todayDone >= totalGoal;
+
+  el.innerHTML = `
+    <div class="today-goal-widget">
+      <div class="today-goal-header">
+        <div class="today-goal-title">🎯 오늘의 학습 목표</div>
+        ${achieved ? '<div class="today-goal-celebrate">🎉 오늘 목표 달성! 정말 대단해요!</div>' : ''}
+      </div>
+      <div class="today-goal-bar-wrap">
+        <div class="today-goal-bar" style="width:${pct}%"></div>
+      </div>
+      <div class="today-goal-info">
+        오늘 목표: <strong>${totalGoal}강</strong> &nbsp;/&nbsp; 완료: <strong>${todayDone}강</strong>
+        &nbsp;(${pct}%)
+      </div>
+    </div>`;
+}
+
+function togglePlanInline(courseId) {
+  const el = document.getElementById('plan-inline-' + courseId);
+  if (el) el.classList.toggle('open');
+}
+
+async function savePlan(courseId) {
+  const dateInput = document.getElementById('plan-date-' + courseId);
+  if (!dateInput || !dateInput.value) { alert('목표일을 선택해주세요.'); return; }
+
+  const targetDate = dateInput.value;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const target = new Date(targetDate);
+  const daysUntil = Math.ceil((target - today) / 86400000);
+
+  if (daysUntil <= 0) { alert('오늘 이후의 날짜를 선택해주세요.'); return; }
+
+  const prog         = gProgressByCourse[courseId];
+  const course       = gCoursesMap[courseId];
+  const totalLessons = (course && course.lesson_count)
+    ? course.lesson_count
+    : (prog && prog.total > 0 ? prog.total : 20);
+  const done         = prog ? prog.done : 0;
+  const remaining    = Math.max(totalLessons - done, 1);
+  const dailyGoal    = Math.max(Math.ceil(remaining / daysUntil), 1);
+
+  const { error } = await supabaseClient.from('study_plans').upsert({
+    user_id:     gUserId,
+    course_id:   courseId,
+    target_date: targetDate,
+    daily_goal:  dailyGoal,
+  }, { onConflict: 'user_id,course_id' });
+
+  if (error) {
+    console.error('계획 저장 실패:', error);
+    alert('저장에 실패했습니다. 다시 시도해주세요.');
+    return;
+  }
+
+  gPlans[courseId] = { target_date: targetDate, daily_goal: dailyGoal };
+
+  // DOM 인라인 업데이트
+  const infoEl = document.getElementById('plan-info-' + courseId);
+  if (infoEl) {
+    infoEl.innerHTML = `📌 하루 <strong>${dailyGoal}강</strong>씩 들으세요! (${targetDate}까지)`;
+  }
+  const btnEl = document.getElementById('plan-btn-' + courseId);
+  if (btnEl) btnEl.textContent = '📅 목표 수정';
+
+  const achEl = document.getElementById('plan-achieve-' + courseId);
+  if (achEl) {
+    const todayCount = gTodayLogsByCourse[courseId] || 0;
+    achEl.textContent = todayCount >= dailyGoal ? '✅' : '🔥';
+    achEl.title = `오늘 진도: ${todayCount}강 / 목표: ${dailyGoal}강`;
+  }
+
+  document.getElementById('plan-inline-' + courseId)?.classList.remove('open');
+  renderTodayGoalWidget();
+
+  alert(`목표 달성하려면 하루 ${dailyGoal}강씩 들으세요!`);
+}
+
+/* ════════════════════════════════════════════════════════
+   수강 중인 강좌 렌더 (플래너 섹션 포함)
+   ════════════════════════════════════════════════════════ */
 function renderCourses(orders, coursesMap) {
   const el = document.getElementById('courses-content');
   if (orders.length === 0) {
@@ -243,16 +472,52 @@ function renderCourses(orders, coursesMap) {
     return;
   }
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const cards = orders.map(order => {
     const course = coursesMap[order.course_id];
     if (!course) return '';
-    const progress = order.progress || fakeProgress(course.id);
+    const progress   = order.progress || fakeProgress(course.id);
     const isComplete = progress >= 100;
-    const catLabel = CATEGORY_LABELS_LOCAL[course.category] || '';
+    const catLabel   = CATEGORY_LABELS_LOCAL[course.category] || '';
+    const courseId   = course.id;
+    const plan       = gPlans[courseId];
+    const todayCount = gTodayLogsByCourse[courseId] || 0;
+
     const thumbContent = course.thumbnail_url
       ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
       : '';
     const thumbEmoji = course.thumbnail_url ? '' : '📚';
+
+    // 플래너 섹션 (수료 완료 강좌 제외)
+    let planHTML = '';
+    if (!isComplete) {
+      const achieveIcon  = plan ? (todayCount >= plan.daily_goal ? '✅' : '🔥') : '';
+      const planInfoHtml = plan
+        ? `📌 하루 <strong>${plan.daily_goal}강</strong>씩 들으세요! (${plan.target_date}까지)`
+        : '';
+
+      planHTML = `
+        <div style="margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button class="btn-set-goal" id="plan-btn-${courseId}"
+              onclick="togglePlanInline(${courseId})">${plan ? '📅 목표 수정' : '📅 목표일 설정'}</button>
+            ${plan
+              ? `<span class="plan-achieve-icon" id="plan-achieve-${courseId}"
+                   title="오늘 진도: ${todayCount}강 / 목표: ${plan.daily_goal}강">${achieveIcon}</span>`
+              : ''}
+          </div>
+          <div class="plan-info-text" id="plan-info-${courseId}">${planInfoHtml}</div>
+          <div class="plan-inline" id="plan-inline-${courseId}">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:var(--gray-500);">목표 완강일:</span>
+              <input type="date" id="plan-date-${courseId}"
+                min="${todayStr}" value="${plan ? plan.target_date : ''}">
+              <button class="btn-plan-save" onclick="savePlan(${courseId})">저장</button>
+            </div>
+          </div>
+        </div>`;
+    }
 
     return `
       <div class="my-course-card">
@@ -268,6 +533,7 @@ function renderCourses(orders, coursesMap) {
             <div class="progress-bar" style="width:${progress}%"></div>
           </div>
           <div class="progress-text">${progress}% 완료${isComplete ? ' · ✅ 수료 완료' : ''}</div>
+          ${planHTML}
         </div>
         <div class="my-course-action">
           ${isComplete
@@ -281,7 +547,333 @@ function renderCourses(orders, coursesMap) {
   el.innerHTML = `<div class="my-course-list">${cards}</div>`;
 }
 
-// ───── 결제 내역 렌더 ─────
+/* ════════════════════════════════════════════════════════
+   FEATURE 2 — 학습 통계 탭
+   ════════════════════════════════════════════════════════ */
+
+/** 연속 학습 스트릭(일수) 계산 */
+function calcStreak(studyLogs) {
+  if (!studyLogs || studyLogs.length === 0) return 0;
+  const dateSet = new Set(
+    studyLogs.map(l => new Date(l.studied_at).toISOString().split('T')[0])
+  );
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let streak = 0;
+  const cur = new Date(today);
+  while (true) {
+    if (dateSet.has(cur.toISOString().split('T')[0])) {
+      streak++;
+      cur.setDate(cur.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
+
+async function loadAndRenderStats(userId) {
+  const el = document.getElementById('stats-content');
+  el.innerHTML = '<div class="loading-msg">통계를 불러오는 중...</div>';
+
+  const now      = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  // 이번 주 월요일
+  const dow       = now.getDay(); // 0=Sun
+  const monOffset = dow === 0 ? -6 : 1 - dow;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() + monOffset);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekStartStr = weekStart.toISOString().split('T')[0];
+
+  // 이번 달 1일
+  const monthStartStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+
+  const [
+    { data: weekLogs },
+    { data: monthLogs },
+    { data: allLogs },
+    { data: vpData },
+    { data: progData },
+    { data: avgData },
+  ] = await Promise.all([
+    supabaseClient.from('study_logs').select('studied_at')
+      .eq('user_id', userId).gte('studied_at', weekStartStr).lte('studied_at', todayStr + 'T23:59:59'),
+    supabaseClient.from('study_logs').select('studied_at')
+      .eq('user_id', userId).gte('studied_at', monthStartStr),
+    supabaseClient.from('study_logs').select('studied_at')
+      .eq('user_id', userId).order('studied_at', { ascending: false }),
+    supabaseClient.from('video_progress').select('actual_watched_seconds').eq('user_id', userId),
+    supabaseClient.from('progress').select('completed').eq('user_id', userId).eq('completed', true),
+    supabaseClient.rpc('get_learning_averages'),
+  ]);
+
+  const weekArr  = weekLogs  || [];
+  const monthArr = monthLogs || [];
+  const allArr   = allLogs   || [];
+
+  // 주간 카운트 (Mon=0 … Sun=6)
+  const weekCounts = [0,0,0,0,0,0,0];
+  weekArr.forEach(l => {
+    const d   = new Date(l.studied_at);
+    const idx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    weekCounts[idx]++;
+  });
+
+  // 이번 달 학습 날짜 Set
+  const studiedDays = new Set(monthArr.map(l => new Date(l.studied_at).toISOString().split('T')[0]));
+
+  // 통계값 계산
+  const totalCompleted = (progData || []).length;
+  const totalSeconds   = (vpData   || []).reduce((s, v) => s + (v.actual_watched_seconds || 0), 0);
+  const totalHours     = Math.floor(totalSeconds / 3600);
+  const totalMins      = Math.floor((totalSeconds % 3600) / 60);
+  const streak         = calcStreak(allArr);
+  const weeklyCount    = weekArr.length;
+
+  const avgInfo   = avgData || {};
+  const avgWeekly = avgInfo.avg_weekly_lessons || 0;
+
+  el.innerHTML = buildStatsHTML({
+    weekCounts, weekStart, now, studiedDays,
+    totalCompleted, totalHours, totalMins, streak,
+    weeklyCount, avgWeekly,
+    totalLearners: avgInfo.total_learners || 0,
+  });
+}
+
+function buildStatsHTML({ weekCounts, weekStart, now, studiedDays, totalCompleted, totalHours, totalMins, streak, weeklyCount, avgWeekly, totalLearners }) {
+  const todayStr   = now.toISOString().split('T')[0];
+  const weekLabels = ['월','화','수','목','금','토','일'];
+  const maxCount   = Math.max(...weekCounts, 1);
+
+  /* 주간 바 차트 */
+  const barChartHTML = weekCounts.map((cnt, i) => {
+    const barDate   = new Date(weekStart);
+    barDate.setDate(weekStart.getDate() + i);
+    const isToday   = barDate.toISOString().split('T')[0] === todayStr;
+    const heightPct = Math.max(Math.round((cnt / maxCount) * 100), cnt > 0 ? 8 : 0);
+    return `
+      <div class="bar-col">
+        <div class="bar-count">${cnt > 0 ? cnt : ''}</div>
+        <div class="bar-block-wrap">
+          <div class="bar-block ${cnt > 0 ? 'has-data' : ''}" style="height:${heightPct}%"></div>
+        </div>
+        <div class="bar-label ${isToday ? 'bar-today-label' : ''}">${weekLabels[i]}</div>
+      </div>`;
+  }).join('');
+
+  /* 월간 캘린더 */
+  const year       = now.getFullYear();
+  const month      = now.getMonth();
+  const firstDow   = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMon  = new Date(year, month + 1, 0).getDate();
+  const startEmpty = firstDow === 0 ? 6 : firstDow - 1; // Mon-start offset
+
+  const calLabels = ['월','화','수','목','금','토','일']
+    .map(d => `<div class="month-cal-label">${d}</div>`).join('');
+
+  let calDays = '';
+  for (let i = 0; i < startEmpty; i++) calDays += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= daysInMon; d++) {
+    const ds      = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const studied = studiedDays.has(ds);
+    const isToday = ds === todayStr;
+    const cls     = ['cal-day', studied && 'studied', isToday && 'today-marker'].filter(Boolean).join(' ');
+    calDays += `<div class="${cls}" title="${month+1}월 ${d}일${studied ? ' ✅' : ''}"></div>`;
+  }
+
+  /* 강좌별 진행률 */
+  const courseProgHTML = gOrders.length > 0
+    ? gOrders.map(o => {
+        const c = gCoursesMap[o.course_id];
+        if (!c) return '';
+        const p = o.progress || 0;
+        return `
+          <div>
+            <div class="cp-item-label">
+              <span class="cp-item-title">${c.title}</span>
+              <span class="cp-item-pct">${p}%</span>
+            </div>
+            <div class="progress-bar-wrap" style="height:8px;">
+              <div class="progress-bar" style="width:${p}%;height:8px;"></div>
+            </div>
+          </div>`;
+      }).join('')
+    : '<div style="font-size:13px;color:var(--gray-500);">수강 중인 강좌가 없어요.</div>';
+
+  /* 전체 평균 비교 */
+  const isAbove = avgWeekly > 0 && weeklyCount > avgWeekly;
+  const userPct = avgWeekly > 0
+    ? Math.min(Math.round((weeklyCount / (avgWeekly * 2)) * 100), 100)
+    : (weeklyCount > 0 ? 50 : 0);
+
+  let rankMsg = '';
+  if (avgWeekly > 0) {
+    if (weeklyCount >= avgWeekly * 1.5) {
+      rankMsg = '<div class="avg-rank-msg above">🏆 상위 10% 학습자예요!</div>';
+    } else if (weeklyCount > avgWeekly) {
+      rankMsg = '<div class="avg-rank-msg above">📊 전체 학습자 평균을 초과했어요! 멋져요!</div>';
+    } else {
+      rankMsg = '<div class="avg-rank-msg below">💪 조금만 더 하면 평균을 넘을 수 있어요! 화이팅!</div>';
+    }
+  }
+
+  const watchText = totalHours > 0 ? `${totalHours}시간 ${totalMins}분` : `${totalMins}분`;
+
+  return `
+    <div class="stats-full">
+
+      <div class="stats-card">
+        <div class="stats-card-title">📈 전체 학습 현황</div>
+        <div class="stats-total-row">
+          <div class="stat-total-item">
+            <div class="stat-total-value">${totalCompleted}</div>
+            <div class="stat-total-label">총 완료 강의</div>
+          </div>
+          <div class="stat-total-item">
+            <div class="stat-total-value">${watchText}</div>
+            <div class="stat-total-label">총 시청 시간</div>
+          </div>
+          <div class="stat-total-item">
+            <div class="stat-total-value">${streak}일</div>
+            <div class="stat-total-label">연속 학습 스트릭</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-card-title">📊 이번 주 학습 현황</div>
+        <div class="bar-chart">${barChartHTML}</div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-card-title">📅 이번 달 학습 캘린더 (${now.getFullYear()}년 ${now.getMonth()+1}월)</div>
+        <div class="month-cal-labels">${calLabels}</div>
+        <div class="month-calendar">${calDays}</div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-card-title">📚 강좌별 진행률</div>
+        <div class="course-progress-list">${courseProgHTML}</div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-card-title">👥 전체 학습자 비교</div>
+        <div class="avg-compare">
+          <div>
+            <div class="avg-item-label">
+              <span>이번 주 수강 강의 수</span>
+              <span>나: <strong>${weeklyCount}강</strong> / 평균: ${avgWeekly || '집계중'}강</span>
+            </div>
+            <div class="avg-bar-wrap">
+              <div class="avg-bar-user ${isAbove ? 'above' : 'below'}" style="width:${userPct}%"></div>
+            </div>
+          </div>
+        </div>
+        ${rankMsg}
+        <div style="font-size:11px;color:var(--gray-400);margin-top:8px;text-align:center;">
+          전체 ${totalLearners}명의 학습 데이터 기준
+        </div>
+      </div>
+
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 3 — 나의 뱃지 탭
+   ════════════════════════════════════════════════════════ */
+function renderBadgesTab(earnedBadges) {
+  const el = document.getElementById('badges-content');
+  if (!el) return;
+
+  const earnedMap   = {};
+  (earnedBadges || []).forEach(b => { earnedMap[b.badge_type] = b; });
+  const earnedCount = Object.keys(earnedMap).length;
+  const defs        = window.BADGE_DEFINITIONS || [];
+
+  const cards = defs.map(def => {
+    const earned   = earnedMap[def.type];
+    const isEarned = !!earned;
+    const dateStr  = isEarned
+      ? new Date(earned.earned_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' })
+      : '';
+    return `
+      <div class="badge-item ${isEarned ? 'earned' : 'locked'}">
+        <div class="badge-item-icon">${def.icon}</div>
+        <div class="badge-item-name">${def.name}</div>
+        <div class="badge-item-desc">${def.desc}</div>
+        ${isEarned
+          ? `<div class="badge-item-date">획득일: ${dateStr}</div>`
+          : `<div class="badge-item-lock">🔒 미획득</div>`}
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="margin-bottom:18px;">
+      <div style="font-size:16px;font-weight:700;color:var(--black);margin-bottom:4px;">
+        🏅 나의 뱃지
+        <span style="font-size:13px;color:var(--green);font-weight:600;margin-left:6px;">${earnedCount}/${defs.length} 획득</span>
+      </div>
+      <div style="font-size:13px;color:var(--gray-500);">학습을 꾸준히 하면 뱃지를 모을 수 있어요!</div>
+    </div>
+    <div class="badge-grid">${cards}</div>`;
+}
+
+function showBadgeToast(badge) {
+  const defs = window.BADGE_DEFINITIONS || [];
+  const def  = defs.find(d => d.type === badge.badge_type) || badge;
+  if (!def || !def.icon) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'badge-toast';
+  toast.innerHTML = `
+    <div class="badge-toast-icon">${def.icon}</div>
+    <div>
+      <div class="badge-toast-title">🎉 뱃지 획득! ${def.name}</div>
+      <div class="badge-toast-desc">${def.desc}</div>
+    </div>`;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 500);
+  }, 3500);
+}
+
+async function checkAndAwardBadgesOnLoad(userId, recentLogs, totalCompleted, streak, ordersWithProgress, avgData) {
+  if (!userId || typeof window.checkAndAwardBadges !== 'function') return;
+
+  const completedCourses = ordersWithProgress.filter(o => (o.progress || 0) >= 100).length;
+  const todayTotal       = Object.values(gTodayLogsByCourse).reduce((s, c) => s + c, 0);
+  const totalDailyGoal   = Object.values(gPlans).reduce((s, p) => s + (p.daily_goal || 0), 0);
+
+  // 이번 주 7일치 카운트
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 6); weekAgo.setHours(0,0,0,0);
+  const weeklyCount = (recentLogs || []).filter(l => new Date(l.studied_at) >= weekAgo).length;
+
+  const avgWeekly = (avgData && avgData.avg_weekly_lessons) ? avgData.avg_weekly_lessons : 0;
+
+  const newBadges = await window.checkAndAwardBadges(supabaseClient, userId, {
+    studyLogs:        recentLogs || [],
+    completedCount:   totalCompleted,
+    streak,
+    completedCourses,
+    todayCount:       todayTotal,
+    dailyGoal:        totalDailyGoal,
+    weeklyCount,
+    avgWeeklyLessons: avgWeekly,
+  });
+
+  if (newBadges.length > 0) {
+    gBadges = [...gBadges, ...newBadges];
+    renderBadgesTab(gBadges);
+    newBadges.forEach((b, i) => setTimeout(() => showBadgeToast(b), i * 3200));
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   기존 렌더 함수
+   ════════════════════════════════════════════════════════ */
 function renderOrders(orders, coursesMap) {
   const el = document.getElementById('orders-content');
   if (orders.length === 0) {
@@ -296,11 +888,10 @@ function renderOrders(orders, coursesMap) {
   }
 
   const cards = orders.map(order => {
-    const course = coursesMap[order.course_id];
+    const course     = coursesMap[order.course_id];
     const courseName = course ? course.title : order.course_name || '알 수 없는 강좌';
-    const date = new Date(order.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-    const isDiscounted = order.original_amount && order.amount < order.original_amount;
-
+    const date       = new Date(order.created_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+    const isDisc     = order.original_amount && order.amount < order.original_amount;
     return `
       <div class="order-card">
         <div class="order-header">
@@ -315,8 +906,8 @@ function renderOrders(orders, coursesMap) {
         <div class="order-body">
           <div class="order-course-name">${courseName}</div>
           <div>
-            ${isDiscounted ? `<div style="text-decoration:line-through;color:var(--gray-400);font-size:12px;text-align:right;">₩${Number(order.original_amount).toLocaleString()}</div>` : ''}
-            <div class="order-amount ${isDiscounted ? 'discounted' : ''}">₩${Number(order.amount).toLocaleString()}</div>
+            ${isDisc ? `<div style="text-decoration:line-through;color:var(--gray-400);font-size:12px;text-align:right;">₩${Number(order.original_amount).toLocaleString()}</div>` : ''}
+            <div class="order-amount ${isDisc ? 'discounted' : ''}">₩${Number(order.amount || 0).toLocaleString()}</div>
           </div>
         </div>
       </div>`;
@@ -325,9 +916,8 @@ function renderOrders(orders, coursesMap) {
   el.innerHTML = `<div class="order-list">${cards}</div>`;
 }
 
-// ───── 수료증 렌더 ─────
 function renderCerts(orders, coursesMap) {
-  const el = document.getElementById('certs-content');
+  const el        = document.getElementById('certs-content');
   const completed = orders.filter(o => (o.progress || 0) >= 100);
 
   if (completed.length === 0) {
@@ -357,12 +947,10 @@ function renderCerts(orders, coursesMap) {
   el.innerHTML = `<div class="cert-grid">${cards}</div>`;
 }
 
-// ───── 수료증 다운로드 (간단 버전) ─────
 function downloadCert(title, date) {
   alert(`"${title}" 수료증 다운로드 기능은 준비 중이에요!`);
 }
 
-// ───── 찜한 강좌 렌더 ─────
 function renderWishlist(wishCourses) {
   const el = document.getElementById('wishlist-content');
   if (wishCourses.length === 0) {
@@ -379,10 +967,8 @@ function renderWishlist(wishCourses) {
   const cards = wishCourses.map(item => {
     const c = item.course;
     if (!c) return '';
-    const catLabel = CATEGORY_LABELS_LOCAL[c.category] || '';
-    const thumbContent = c.thumbnail_url
-      ? `<img src="${c.thumbnail_url}">`
-      : '<span>📚</span>';
+    const catLabel     = CATEGORY_LABELS_LOCAL[c.category] || '';
+    const thumbContent = c.thumbnail_url ? `<img src="${c.thumbnail_url}">` : '<span>📚</span>';
     return `
       <div class="wish-course-card" id="wish-card-${item.course_id}">
         <div class="wish-thumb">${thumbContent}</div>
@@ -407,7 +993,6 @@ async function removeWish(courseId) {
   await supabaseClient.from('wishlists').delete().eq('user_id', user.id).eq('course_id', courseId);
   const card = document.getElementById('wish-card-' + courseId);
   if (card) card.remove();
-  // 빈 상태 처리
   const grid = document.querySelector('.wish-course-grid');
   if (grid && grid.children.length === 0) {
     document.getElementById('wishlist-content').innerHTML = `
@@ -420,28 +1005,28 @@ async function removeWish(courseId) {
   }
 }
 
-// ───── 통계 업데이트 ─────
 function updateStats(orders) {
-  const enrolled = orders.length;
-  const completed = orders.filter(o => (o.progress || 0) >= 100).length;
+  const enrolled    = orders.length;
+  const completed   = orders.filter(o => (o.progress || 0) >= 100).length;
   const avgProgress = enrolled > 0
-    ? Math.round(orders.reduce((sum, o) => sum + (o.progress || 0), 0) / enrolled)
+    ? Math.round(orders.reduce((s, o) => s + (o.progress || 0), 0) / enrolled)
     : 0;
-  document.getElementById('stat-enrolled').textContent = enrolled;
+  document.getElementById('stat-enrolled').textContent  = enrolled;
   document.getElementById('stat-completed').textContent = completed;
-  document.getElementById('stat-progress').textContent = avgProgress + '%';
+  document.getElementById('stat-progress').textContent  = avgProgress + '%';
 }
 
-// ───── 메인 로드 함수 ─────
+/* ════════════════════════════════════════════════════════
+   메인 로드 함수
+   ════════════════════════════════════════════════════════ */
 async function loadMyPage() {
-  // 1. 로그인 체크
   const { data: { user } } = await supabaseClient.auth.getUser();
 
   if (!user) {
-    // 로그인 안 된 경우
     document.getElementById('user-name').textContent = '로그인이 필요해요';
-    ['courses-content', 'orders-content', 'certs-content', 'wishlist-content'].forEach(id => {
-      document.getElementById(id).innerHTML = `
+    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">🔐</div>
           <div class="empty-state-title">로그인이 필요해요</div>
@@ -452,13 +1037,15 @@ async function loadMyPage() {
     return;
   }
 
-  // 2. 사용자 정보 표시
-  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '회원';
-  document.getElementById('user-name').textContent = userName + '님';
-  document.getElementById('user-email').textContent = user.email;
-  document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+  gUserId = user.id;
 
-  // 3. 주문 내역 조회
+  // 사용자 정보 표시
+  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '회원';
+  document.getElementById('user-name').textContent  = userName + '님';
+  document.getElementById('user-email').textContent = user.email;
+  document.getElementById('user-avatar').textContent= userName.charAt(0).toUpperCase();
+
+  // ── 주문 내역 조회 ──
   const { data: orders, error: orderError } = await supabaseClient
     .from('orders')
     .select('*')
@@ -467,8 +1054,7 @@ async function loadMyPage() {
     .order('created_at', { ascending: false });
 
   if (orderError && orderError.code !== 'PGRST116') {
-    // orders 테이블이 아직 없는 경우 안내
-    ['courses-content', 'orders-content', 'certs-content'].forEach(id => {
+    ['courses-content','orders-content','certs-content'].forEach(id => {
       document.getElementById(id).innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">📚</div>
@@ -479,25 +1065,21 @@ async function loadMyPage() {
     });
     updateStats([]);
     renderWishlist([]);
+    renderBadgesTab([]);
     return;
   }
 
   const myOrders = orders || [];
 
-  // 4. 수강 중인 강좌 정보 조회
+  // ── 강좌 정보 조회 ──
   const courseIds = [...new Set(myOrders.map(o => o.course_id))];
-  let coursesMap = {};
 
   if (courseIds.length > 0) {
-    const { data: coursesData } = await supabaseClient
-      .from('courses')
-      .select('*')
-      .in('id', courseIds);
-    (coursesData || []).forEach(c => { coursesMap[c.id] = c; });
+    const { data: coursesData } = await supabaseClient.from('courses').select('*').in('id', courseIds);
+    (coursesData || []).forEach(c => { gCoursesMap[c.id] = c; });
   }
 
-  // 5. 실제 수강 진도 조회 (progress 테이블)
-  let progressByCoourse = {};
+  // ── 수강 진도 조회 ──
   if (courseIds.length > 0) {
     const { data: progData } = await supabaseClient
       .from('progress')
@@ -506,36 +1088,84 @@ async function loadMyPage() {
       .in('course_id', courseIds);
 
     (progData || []).forEach(p => {
-      if (!progressByCoourse[p.course_id]) progressByCoourse[p.course_id] = { total: 0, done: 0 };
-      progressByCoourse[p.course_id].total++;
-      if (p.completed) progressByCoourse[p.course_id].done++;
+      if (!gProgressByCourse[p.course_id]) gProgressByCourse[p.course_id] = { total: 0, done: 0 };
+      gProgressByCourse[p.course_id].total++;
+      if (p.completed) gProgressByCourse[p.course_id].done++;
     });
   }
 
-  // 진도율 계산 (progress 테이블 기준, 없으면 orders.progress 폴백)
   const ordersWithProgress = myOrders.map(o => {
-    const prog = progressByCoourse[o.course_id];
+    const prog    = gProgressByCourse[o.course_id];
     const realPct = prog && prog.total > 0
       ? Math.round((prog.done / prog.total) * 100)
       : (o.progress || 0);
     return { ...o, progress: realPct };
   });
 
-  // 6. 위시리스트 조회
+  gOrders = ordersWithProgress;
+
+  // ── 찜 목록 조회 ──
   const { data: wishData } = await supabaseClient
     .from('wishlists')
     .select('course_id, courses(*)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
-
   const wishItems = (wishData || []).map(w => ({ course_id: w.course_id, course: w.courses }));
 
-  // 7. 렌더
+  // ── 학습 플래너: study_plans 조회 ──
+  const { data: plansData } = await supabaseClient
+    .from('study_plans')
+    .select('*')
+    .eq('user_id', user.id);
+  (plansData || []).forEach(p => { gPlans[p.course_id] = p; });
+
+  // ── 오늘의 학습 로그 조회 ──
+  const todayStr    = new Date().toISOString().split('T')[0];
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const { data: todayLogs } = await supabaseClient
+    .from('study_logs')
+    .select('course_id')
+    .eq('user_id', user.id)
+    .gte('studied_at', todayStr)
+    .lt('studied_at', tomorrowStr);
+  (todayLogs || []).forEach(l => {
+    gTodayLogsByCourse[l.course_id] = (gTodayLogsByCourse[l.course_id] || 0) + 1;
+  });
+
+  // ── 뱃지 조회 ──
+  const { data: badgesData } = await supabaseClient
+    .from('badges')
+    .select('*')
+    .eq('user_id', user.id);
+  gBadges = badgesData || [];
+
+  // ── 렌더 (기존) ──
   updateStats(ordersWithProgress);
-  renderCourses(ordersWithProgress, coursesMap);
-  renderOrders(myOrders, coursesMap);
-  renderCerts(ordersWithProgress, coursesMap);
+  renderCourses(ordersWithProgress, gCoursesMap);
+  renderOrders(myOrders, gCoursesMap);
+  renderCerts(ordersWithProgress, gCoursesMap);
   renderWishlist(wishItems);
+
+  // ── 렌더 (신규) ──
+  renderTodayGoalWidget();
+  renderBadgesTab(gBadges);
+
+  // ── 뱃지 체크 (최근 90일 로그 + 평균 RPC 병렬) ──
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
+  const [{ data: recentLogs }, { data: avgData }] = await Promise.all([
+    supabaseClient.from('study_logs').select('studied_at, course_id')
+      .eq('user_id', user.id)
+      .gte('studied_at', ninetyDaysAgo)
+      .order('studied_at', { ascending: false }),
+    supabaseClient.rpc('get_learning_averages'),
+  ]);
+
+  const streak         = calcStreak(recentLogs || []);
+  const totalCompleted = Object.values(gProgressByCourse).reduce((s, p) => s + p.done, 0);
+
+  await checkAndAwardBadgesOnLoad(
+    user.id, recentLogs, totalCompleted, streak, ordersWithProgress, avgData
+  );
 }
 
 loadMyPage();

@@ -757,19 +757,19 @@ async function requestPayment() {
       paymentId: paymentId,
       orderName: currentCourse.title,
       totalAmount: finalPrice,
-      currency: 'CURRENCY_KRW',
+      currency: 'KRW',
       payMethod: 'CARD',
       customer: {
         email: user.email || '',
-        fullName: user.user_metadata?.full_name || '',
+        fullName: user.user_metadata?.full_name || user.email || '',
       },
     });
 
     if (payment.code) {
-      if (payment.code !== 'FAILURE_TYPE_PG') {
-        alert('결제가 취소되었습니다.');
+      if (payment.code === 'FAILURE_TYPE_PG') {
+        alert('결제에 실패했습니다: ' + (payment.message || '오류가 발생했습니다.'));
       } else {
-        alert('결제에 실패했습니다: ' + payment.message);
+        alert('결제가 취소되었습니다.');
       }
       return;
     }
