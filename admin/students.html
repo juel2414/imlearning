@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수강생 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { box-sizing:border-box; word-break:keep-all; }
+body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
+a { text-decoration:none; color:inherit; }
+.admin-main { padding:2rem; }
+
+/* 헤더 */
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:1.5rem; flex-wrap:wrap; }
+.page-title  { font-size:24px; font-weight:800; margin:0; }
+.page-desc   { font-size:13px; color:#888; margin-top:4px; }
+
+/* KPI 행 */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:1.25rem; }
+.kpi-card { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.06); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent,#2D9B6F); }
+.kpi-label { font-size:12px; color:#888; margin-bottom:8px; font-weight:600; }
+.kpi-value { font-size:28px; font-weight:900; line-height:1; margin-bottom:6px; }
+.kpi-delta  { font-size:12px; font-weight:600; color:#888; }
+.kpi-delta.red { color:#EF4444; }
+
+/* 카드 */
+.card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.06); overflow:hidden; margin-bottom:1.25rem; }
+.card-header { padding:16px 22px; border-bottom:1px solid rgba(0,0,0,.05); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.card-title  { font-size:14px; font-weight:700; }
+.card-body   { padding:0; }
+
+/* 검색 */
+.search-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.search-input { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; width:220px; outline:none; }
+.search-input:focus { border-color:#2D9B6F; }
+.filter-select { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; cursor:pointer; }
+
+/* 테이블 */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { padding:10px 16px; text-align:left; font-size:11px; color:#888; background:#F8F9FA; white-space:nowrap; font-weight:600; }
+td { padding:12px 16px; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr.dormant-row td { background:#FFF5F5; }
+tr.clickable-row { cursor:pointer; }
+tr.clickable-row:hover td { background:#F0FAF5; }
+tr.dormant-row:hover td { background:#FFE8E8; }
+
+/* 배지 */
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge-active   { background:#DCFCE7; color:#16A34A; }
+.badge-dormant  { background:#FEE2E2; color:#DC2626; }
+.badge-complete { background:#DBEAFE; color:#1D4ED8; }
+
+/* 진행률 바 */
+.prog-bar-wrap { background:#f0f0f0; border-radius:10px; height:6px; width:80px; overflow:hidden; display:inline-block; vertical-align:middle; }
+.prog-bar-fill { background:linear-gradient(90deg,#2D9B6F,#5cbf8a); border-radius:10px; height:6px; transition:width .5s; }
+
+/* 독려 버튼 */
+.enc-btn { padding:5px 12px; border:1.5px solid #EF4444; background:#fff; color:#EF4444; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.enc-btn:hover { background:#EF4444; color:#fff; }
+
+.empty   { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
+.loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
+
+/* ── 상세 모달 ── */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:500; align-items:center; justify-content:center; padding:16px; }
+.modal-bg.open { display:flex; }
+.modal-box { background:#fff; border-radius:16px; width:min(700px,95vw); max-height:88vh; overflow:hidden; display:flex; flex-direction:column; }
+.modal-head { padding:20px 24px 16px; border-bottom:1px solid rgba(0,0,0,.06); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-shrink:0; }
+.modal-name  { font-size:18px; font-weight:800; margin-bottom:2px; }
+.modal-email { font-size:13px; color:#888; }
+.modal-close { width:34px; height:34px; border-radius:50%; border:1.5px solid rgba(0,0,0,.1); background:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.modal-body  { padding:20px 24px; overflow-y:auto; flex:1; }
+.modal-course-title { font-size:14px; font-weight:800; color:#111; margin:16px 0 10px; padding-bottom:6px; border-bottom:2px solid rgba(45,155,111,.15); }
+.modal-course-title:first-child { margin-top:0; }
+
+/* 강의 진도 카드 */
+.lesson-card { padding:10px 14px; border:1px solid rgba(0,0,0,.06); border-radius:10px; margin-bottom:8px; }
+.lesson-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:8px; flex-wrap:wrap; }
+.lesson-num   { font-size:12px; font-weight:700; color:#888; }
+.lesson-title { font-size:13px; font-weight:600; color:#111; flex:1; }
+.lesson-pct   { font-size:13px; font-weight:800; }
+.lesson-detail { font-size:12px; color:#666; margin-bottom:6px; }
+.lesson-bar-wrap { background:#f0f0f0; border-radius:10px; height:8px; overflow:hidden; }
+.lesson-bar-fill { border-radius:10px; height:8px; transition:width .5s; }
+.lesson-done-badge { font-size:11px; font-weight:700; color:#16A34A; margin-left:6px; }
+
+@media(max-width:768px) { .admin-main { padding:1rem; } .kpi-row { grid-template-columns:1fr 1fr; } .search-input { width:100%; } }
+</style>
+</head>
+<body>
+
+<div class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">👥 수강생 관리</h1>
+      <div class="page-desc">수강생 학습 현황을 한눈에 파악하고 관리해요</div>
+    </div>
+  </div>
+
+  <!-- 학습 현황 KPI -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent:#2D9B6F;">
+      <div class="kpi-label">오늘 학습한 수강생</div>
+      <div class="kpi-value" id="ks-today">-</div>
+      <div class="kpi-delta">오늘 기준</div>
+    </div>
+    <div class="kpi-card" style="--accent:#3B82F6;">
+      <div class="kpi-label">총 수강생</div>
+      <div class="kpi-value" id="ks-total">-</div>
+      <div class="kpi-delta">수강 신청 수강생</div>
+    </div>
+    <div class="kpi-card" style="--accent:#EF4444;">
+      <div class="kpi-label">휴면 수강생</div>
+      <div class="kpi-value" id="ks-dormant">-</div>
+      <div class="kpi-delta red">14일 이상 미접속</div>
+    </div>
+    <div class="kpi-card" style="--accent:#F59E0B;">
+      <div class="kpi-label">수료 임박 수강생</div>
+      <div class="kpi-value" id="ks-near">-</div>
+      <div class="kpi-delta">진행률 80% 이상</div>
+    </div>
+  </div>
+
+  <!-- 수강생 목록 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">수강생 목록</span>
+      <div class="search-bar">
+        <input type="text" class="search-input" id="student-search" placeholder="이름 또는 이메일 검색..." oninput="renderTable()">
+        <select class="filter-select" id="status-filter" onchange="renderTable()">
+          <option value="">전체 상태</option>
+          <option value="active">활성</option>
+          <option value="dormant">휴면</option>
+          <option value="complete">수료</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="student-table-area"><div class="loading">불러오는 중...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 수강생 상세 모달 -->
+<div class="modal-bg" id="student-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-name" id="modal-name">-</div>
+        <div class="modal-email" id="modal-email">-</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div class="loading">불러오는 중...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+if (!sessionStorage.getItem('admin_auth')) { window.location.href = 'login.html'; }
+
+const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── 전역 데이터 ──
+var allProfiles   = [];
+var allOrders     = [];
+var allVideoProgress = [];
+var allStudyLogs  = [];
+var allCourses    = [];
+var studentRows   = []; // 계산된 행 데이터
+
+function fmtSecs(s) {
+  s = Math.floor(s || 0);
+  if (s < 60)   return s + '초';
+  if (s < 3600) { var m = Math.floor(s/60); var r = s%60; return m + '분' + (r ? ' ' + r + '초' : ''); }
+  return Math.floor(s/3600) + '시간 ' + (Math.floor((s%3600)/60) ? Math.floor((s%3600)/60) + '분' : '');
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '-';
+  var d = new Date(dateStr);
+  return d.toLocaleDateString('ko-KR', { month:'short', day:'numeric' });
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return 9999;
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+}
+
+// ── 수강생 행 계산 ──
+function buildStudentRows() {
+  var now = Date.now();
+  var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+  // user_id별 orders 그룹
+  var ordersByUser = {};
+  allOrders.filter(function(o){ return o.status === 'paid'; }).forEach(function(o) {
+    if (!ordersByUser[o.user_id]) ordersByUser[o.user_id] = [];
+    ordersByUser[o.user_id].push(o);
+  });
+
+  // user_id별 video_progress 총 시청시간
+  var watchByUser = {};
+  allVideoProgress.forEach(function(vp) {
+    watchByUser[vp.user_id] = (watchByUser[vp.user_id] || 0) + (vp.actual_watched_seconds || 0);
+  });
+
+  // user_id별 마지막 수강일 (study_logs 기준)
+  var lastStudyByUser = {};
+  allStudyLogs.forEach(function(sl) {
+    if (!lastStudyByUser[sl.user_id] || new Date(sl.studied_at) > new Date(lastStudyByUser[sl.user_id])) {
+      lastStudyByUser[sl.user_id] = sl.studied_at;
+    }
+  });
+
+  // 수강생 집합 (최소 1개 이상 paid order인 유저)
+  var enrolledUserIds = Object.keys(ordersByUser);
+
+  studentRows = enrolledUserIds.map(function(uid) {
+    var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
+    var orders  = ordersByUser[uid] || [];
+    var courseCount = orders.length;
+    var avgProgress = courseCount ? Math.round(orders.reduce(function(s,o){ return s+(o.progress||0); },0) / courseCount) : 0;
+    var lastStudy   = lastStudyByUser[uid] || null;
+    var totalWatch  = watchByUser[uid] || 0;
+    var daysSinceLast = daysSince(lastStudy);
+
+    var status;
+    if (avgProgress >= 100) status = 'complete';
+    else if (daysSinceLast > 14) status = 'dormant';
+    else if (daysSinceLast <= 7) status = 'active';
+    else status = 'active'; // 8-14일도 일단 active로
+
+    return {
+      uid:          uid,
+      name:         profile.name || profile.email || uid.slice(0,8),
+      email:        profile.email || '-',
+      courseCount:  courseCount,
+      avgProgress:  avgProgress,
+      lastStudy:    lastStudy,
+      daysSinceLast: daysSinceLast,
+      totalWatch:   totalWatch,
+      status:       status,
+      isDormant:    daysSinceLast > 14,
+    };
+  });
+}
+
+// ── KPI 계산 ──
+function renderKPI() {
+  var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+  // 오늘 학습한 수강생
+  var todayLearners = new Set(
+    allStudyLogs.filter(function(sl){ return new Date(sl.studied_at) >= todayStart; })
+      .map(function(sl){ return sl.user_id; })
+  );
+  document.getElementById('ks-today').textContent = todayLearners.size;
+
+  // 총 수강생 (paid order 있는 유저)
+  var enrolled = new Set(
+    allOrders.filter(function(o){ return o.status==='paid'; }).map(function(o){ return o.user_id; })
+  );
+  document.getElementById('ks-total').textContent = enrolled.size;
+
+  // 휴면 (14일 이상 미접속)
+  var dormant = studentRows.filter(function(r){ return r.isDormant; }).length;
+  document.getElementById('ks-dormant').textContent = dormant;
+
+  // 수료 임박 (80% 이상)
+  var near = studentRows.filter(function(r){ return r.avgProgress >= 80 && r.avgProgress < 100; }).length;
+  document.getElementById('ks-near').textContent = near;
+}
+
+// ── 테이블 렌더 ──
+function renderTable() {
+  var q      = (document.getElementById('student-search').value || '').toLowerCase();
+  var filter = document.getElementById('status-filter').value;
+
+  var rows = studentRows.filter(function(r) {
+    var matchQ = !q || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q);
+    var matchF = !filter || r.status === filter;
+    return matchQ && matchF;
+  });
+
+  var el = document.getElementById('student-table-area');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">조건에 맞는 수강생이 없어요</div>';
+    return;
+  }
+
+  var html = '<table><thead><tr>' +
+    '<th>이름 / 이메일</th><th>수강 강좌</th><th>평균 진행률</th>' +
+    '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th></th>' +
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    var badgeClass = r.status === 'complete' ? 'badge-complete' : r.status === 'dormant' ? 'badge-dormant' : 'badge-active';
+    var badgeText  = r.status === 'complete' ? '수료' : r.status === 'dormant' ? '휴면' : '활성';
+    var rowClass   = (r.isDormant ? 'dormant-row ' : '') + 'clickable-row';
+    var lastTxt    = r.lastStudy ? fmtDate(r.lastStudy) + ' (' + r.daysSinceLast + '일 전)' : '미접속';
+    var encBtn     = r.isDormant ? '<button class="enc-btn" onclick="event.stopPropagation();encourage(\'' + r.uid + '\',\'' + r.name + '\')">독려 메시지</button>' : '';
+
+    html += '<tr class="' + rowClass + '" onclick="openModal(\'' + r.uid + '\')">' +
+      '<td><div style="font-weight:600;">' + r.name + '</div><div style="font-size:11px;color:#888;">' + r.email + '</div></td>' +
+      '<td>' + r.courseCount + '개</td>' +
+      '<td><div style="display:flex;align-items:center;gap:8px;">' +
+        '<div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:' + r.avgProgress + '%;"></div></div>' +
+        '<span style="font-size:12px;font-weight:700;">' + r.avgProgress + '%</span>' +
+      '</div></td>' +
+      '<td style="font-size:12px;color:#666;">' + lastTxt + '</td>' +
+      '<td style="font-size:12px;">' + fmtSecs(r.totalWatch) + '</td>' +
+      '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
+      '<td>' + encBtn + '</td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function encourage(uid, name) {
+  alert('준비 중입니다.\n(' + name + ' 님에게 독려 메시지 발송)');
+}
+
+// ── 상세 모달 ──
+function openModal(uid) {
+  var row = studentRows.find(function(r){ return r.uid === uid; });
+  if (!row) return;
+
+  document.getElementById('modal-name').textContent  = row.name;
+  document.getElementById('modal-email').textContent = row.email;
+  document.getElementById('student-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  renderModalBody(uid);
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('student-modal') && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('student-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderModalBody(uid) {
+  var body = document.getElementById('modal-body');
+
+  // 이 수강생의 강좌별 video_progress
+  var userVP = allVideoProgress.filter(function(vp){ return vp.user_id === uid; });
+  // 이 수강생의 enrolled courses
+  var userOrders = allOrders.filter(function(o){ return o.user_id === uid && o.status === 'paid'; });
+
+  if (!userOrders.length) {
+    body.innerHTML = '<div class="empty">수강 중인 강좌가 없어요</div>';
+    return;
+  }
+
+  var html = '';
+
+  userOrders.forEach(function(order) {
+    var course = allCourses.find(function(c){ return String(c.id) === String(order.course_id); });
+    var courseName = course ? course.title : ('강좌 ID: ' + order.course_id);
+
+    html += '<div class="modal-course-title">📚 ' + courseName + '</div>';
+
+    // 이 강좌의 video_progress
+    var courseVP = userVP.filter(function(vp){ return String(vp.course_id) === String(order.course_id); });
+    courseVP.sort(function(a,b){ return a.lesson_number - b.lesson_number; });
+
+    if (!courseVP.length) {
+      html += '<div style="color:#aaa;font-size:13px;padding:8px 0 12px;">아직 시청 기록이 없어요</div>';
+      return;
+    }
+
+    courseVP.forEach(function(vp) {
+      var pct       = vp.watch_percentage || 0;
+      var barColor  = pct >= 80 ? '#2D9B6F' : pct >= 50 ? '#F59E0B' : '#aaa';
+      var doneText  = vp.completed ? '<span class="lesson-done-badge">✅ 완료</span>' : '';
+      var totalTxt  = vp.total_seconds ? ' (전체 ' + fmtSecs(vp.total_seconds) + ')' : '';
+
+      html += '<div class="lesson-card">' +
+        '<div class="lesson-card-top">' +
+          '<span class="lesson-num">' + vp.lesson_number + '강</span>' +
+          '<span class="lesson-title">' + (vp.lesson_title || '') + totalTxt + '</span>' +
+          '<span class="lesson-pct" style="color:' + barColor + ';">' + pct + '%' + doneText + '</span>' +
+        '</div>' +
+        '<div class="lesson-detail">실제 시청: ' + (vp.actual_watched_text || fmtSecs(vp.actual_watched_seconds)) + '</div>' +
+        '<div class="lesson-bar-wrap"><div class="lesson-bar-fill" style="background:' + barColor + ';width:' + pct + '%;"></div></div>' +
+        '</div>';
+    });
+  });
+
+  body.innerHTML = html || '<div class="empty">시청 데이터가 없어요</div>';
+}
+
+// ── 데이터 로드 ──
+async function loadAll() {
+  try {
+    var [profilesRes, ordersRes, vpRes, logsRes, coursesRes] = await Promise.all([
+      sb.from('profiles').select('id, name, email, role, created_at').order('created_at', { ascending:false }),
+      sb.from('orders').select('user_id, course_id, progress, status, created_at').eq('status','paid'),
+      sb.from('video_progress').select('user_id, course_id, lesson_number, lesson_title, actual_watched_seconds, actual_watched_text, total_seconds, watch_percentage, completed, updated_at'),
+      sb.from('study_logs').select('user_id, course_id, lesson_number, studied_at'),
+      sb.from('courses').select('id, title'),
+    ]);
+
+    allProfiles      = profilesRes.data  || [];
+    allOrders        = ordersRes.data    || [];
+    allVideoProgress = vpRes.data        || [];
+    allStudyLogs     = logsRes.data      || [];
+    allCourses       = coursesRes.data   || [];
+
+    buildStudentRows();
+    renderKPI();
+    renderTable();
+  } catch(e) {
+    console.error('수강생 데이터 로드 오류:', e);
+    document.getElementById('student-table-area').innerHTML =
+      '<div class="empty">데이터를 불러오는 중 오류가 발생했어요</div>';
+  }
+}
+
+loadAll();
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>

@@ -154,6 +154,30 @@ tr:last-child td { border-bottom:none; }
     </div>
   </div>
 
+  <!-- 학습 현황 KPI -->
+  <div class="kpi-row" id="learning-kpi-row">
+    <div class="kpi-card" style="--accent:#2D9B6F;">
+      <div class="kpi-label">오늘 총 시청 시간</div>
+      <div class="kpi-value" id="kpi-watch-time">-</div>
+      <div class="kpi-delta neutral" id="kpi-watch-time-d">오늘 video_progress 합계</div>
+    </div>
+    <div class="kpi-card" style="--accent:#3B82F6;">
+      <div class="kpi-label">오늘 학습 수강생</div>
+      <div class="kpi-value" id="kpi-today-learners">-</div>
+      <div class="kpi-delta neutral">오늘 학습한 수강생 수</div>
+    </div>
+    <div class="kpi-card" style="--accent:#EF4444;">
+      <div class="kpi-label">휴면 수강생</div>
+      <div class="kpi-value" id="kpi-dormant">-</div>
+      <div class="kpi-delta down">14일 이상 미접속</div>
+    </div>
+    <div class="kpi-card" style="--accent:#F59E0B;">
+      <div class="kpi-label">수료 임박 수강생</div>
+      <div class="kpi-value" id="kpi-near-complete">-</div>
+      <div class="kpi-delta up">진행률 80% 이상</div>
+    </div>
+  </div>
+
   <!-- 빠른 실행 -->
   <div class="quick-row">
     <a href="courses.html" class="quick-card"><div class="quick-icon">📚</div><div class="quick-label">강좌 관리</div></a>
@@ -596,19 +620,66 @@ function exportCourseCSV() {
 
 function exportOrdersCSV() { exportCSV(); }
 
+// ── 학습 현황 KPI 렌더 ──
+function renderLearningKPI(vpToday, studyLogsAll, ordersAll) {
+  // 오늘 총 시청 시간 합산
+  const totalWatchSecs = vpToday.reduce((s, r) => s + (r.actual_watched_seconds || 0), 0);
+  function fmtSecs(s) {
+    s = Math.floor(s || 0);
+    if (s < 60)   return s + '초';
+    if (s < 3600) return Math.floor(s/60) + '분';
+    return Math.floor(s/3600) + '시간 ' + Math.floor((s%3600)/60) + '분';
+  }
+  document.getElementById('kpi-watch-time').textContent = fmtSecs(totalWatchSecs);
+  document.getElementById('kpi-watch-time-d').textContent = '총 ' + fmtSecs(totalWatchSecs) + ' 시청';
+
+  // 오늘 학습한 수강생 수 (study_logs에서 오늘 studied_at인 유니크 user_id)
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayLearners = new Set(
+    studyLogsAll.filter(r => new Date(r.studied_at) >= todayStart).map(r => r.user_id)
+  );
+  document.getElementById('kpi-today-learners').textContent = todayLearners.size;
+
+  // 휴면 수강생: 수강생 중 14일 이상 미접속 (study_logs 없거나 오래됨)
+  const cutoff14 = new Date(); cutoff14.setDate(cutoff14.getDate() - 14);
+  const enrolledUsers = [...new Set(ordersAll.filter(o => o.status === 'paid').map(o => o.user_id))];
+  const lastStudyMap = {};
+  studyLogsAll.forEach(r => {
+    if (!lastStudyMap[r.user_id] || new Date(r.studied_at) > new Date(lastStudyMap[r.user_id])) {
+      lastStudyMap[r.user_id] = r.studied_at;
+    }
+  });
+  const dormantCount = enrolledUsers.filter(uid => {
+    const last = lastStudyMap[uid];
+    return !last || new Date(last) < cutoff14;
+  }).length;
+  document.getElementById('kpi-dormant').textContent = dormantCount;
+
+  // 수료 임박: progress >= 80% (하지만 100% 미만)인 수강생
+  const nearComplete = new Set(
+    ordersAll.filter(o => o.status === 'paid' && (o.progress || 0) >= 80 && (o.progress || 0) < 100)
+      .map(o => o.user_id)
+  );
+  document.getElementById('kpi-near-complete').textContent = nearComplete.size;
+}
+
 // ── 데이터 로드 ──
 async function loadAll() {
   try {
-    const [ordersRes, coursesRes, profilesRes] = await Promise.all([
+    const todayStr = new Date().toISOString().slice(0,10);
+    const [ordersRes, coursesRes, profilesRes, vpTodayRes, studyLogsRes] = await Promise.all([
       sb.from('orders').select('*').order('created_at', { ascending: false }),
       sb.from('courses').select('*').order('students', { ascending: false }),
       sb.from('profiles').select('id, created_at').order('created_at', { ascending: false }),
+      sb.from('video_progress').select('user_id, actual_watched_seconds, updated_at').gte('updated_at', todayStr),
+      sb.from('study_logs').select('user_id, studied_at').order('studied_at', { ascending: false }),
     ]);
 
     allOrders   = ordersRes.data   || [];
     allCourses  = coursesRes.data  || [];
     allProfiles = profilesRes.data || [];
 
+    renderLearningKPI(vpTodayRes.data || [], studyLogsRes.data || [], allOrders);
     renderAll();
 
     // 30초마다 자동 갱신

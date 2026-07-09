@@ -12,6 +12,8 @@
     { type: 'section', label: '강좌 관리' },
     { href: 'courses.html',     icon: '📚', label: '강좌 관리' },
     { href: 'instructors.html', icon: '👨‍🏫', label: '강사 관리' },
+    { type: 'section', label: '수강생' },
+    { href: 'students.html',    icon: '👥', label: '수강생 관리' },
     { type: 'section', label: '프로모션' },
     { href: 'promotions.html',  icon: '🎯', label: '프로모션 관리' },
     { type: 'section', label: '콘텐츠' },

@@ -814,6 +814,207 @@ async function requestPayment() {
   }
 }
 
+// ───── Vimeo 플레이어 & 시청 추적 ─────
+let vimeoPlayer   = null;
+let activeTracker = null;
+let pendingResume = 0;
+let playingItem   = null;
+
+function extractVimeoId(url) {
+  if (!url) return null;
+  const m = String(url).match(/vimeo\.com\/(\d+)/);
+  return m ? parseInt(m[1]) : null;
+}
+
+class VimeoTracker {
+  constructor(player, userId, courseId, lessonNum, lessonTitle, totalSecs) {
+    this.player      = player;
+    this.userId      = userId;
+    this.courseId    = courseId;
+    this.lessonNum   = lessonNum;
+    this.lessonTitle = lessonTitle;
+    this.totalSecs   = totalSecs || 0;
+    this.watchedSet  = new Set();
+    this.lastPos     = 0;
+    this._tick       = null;
+    this._saver      = null;
+    this._completed  = false;
+  }
+
+  start() {
+    this._tick = setInterval(async () => {
+      try {
+        const paused = await this.player.getPaused();
+        if (!paused) {
+          const t = await this.player.getCurrentTime();
+          this.watchedSet.add(Math.floor(t));
+          this.lastPos = t;
+          this._refreshUI();
+        }
+      } catch (_) {}
+    }, 1000);
+    this._saver = setInterval(() => this._persist(), 10000);
+  }
+
+  stop() {
+    clearInterval(this._tick);
+    clearInterval(this._saver);
+    this._tick = this._saver = null;
+    this._persist();
+  }
+
+  get actual() { return this.watchedSet.size; }
+  get pct()    { return this.totalSecs ? Math.min(100, Math.round(this.actual / this.totalSecs * 100)) : 0; }
+
+  static fmt(s) {
+    s = Math.floor(s || 0);
+    if (s < 60)   return s + '초';
+    if (s < 3600) { const m = Math.floor(s/60); const r = s%60; return m + '분' + (r ? ' ' + r + '초' : ''); }
+    const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60);
+    return h + '시간' + (m ? ' ' + m + '분' : '');
+  }
+
+  _refreshUI() {
+    const d = document.getElementById('watch-display');
+    const p = document.getElementById('watch-pct-text');
+    const b = document.getElementById('watch-pct-fill');
+    const c = document.getElementById('watch-done-badge');
+    if (d) d.textContent = VimeoTracker.fmt(this.actual);
+    const pct = this.pct;
+    if (p) p.textContent = pct + '%';
+    if (b) b.style.width = pct + '%';
+    if (c) c.style.display = pct >= 80 ? '' : 'none';
+  }
+
+  seed(existingData) {
+    if (existingData && existingData.actual_watched_seconds) {
+      for (let i = 0; i < existingData.actual_watched_seconds; i++) this.watchedSet.add(i);
+    }
+    this._completed = !!(existingData && existingData.completed);
+    this._refreshUI();
+  }
+
+  async _persist() {
+    const actual = this.actual;
+    const pct    = this.pct;
+    const done   = pct >= 80;
+    try {
+      await window.supabaseClient.from('video_progress').upsert({
+        user_id:                this.userId,
+        course_id:              this.courseId,
+        lesson_number:          this.lessonNum,
+        lesson_title:           this.lessonTitle,
+        actual_watched_seconds: actual,
+        actual_watched_text:    VimeoTracker.fmt(actual),
+        total_seconds:          this.totalSecs,
+        watch_percentage:       pct,
+        last_position:          this.lastPos,
+        completed:              done,
+        updated_at:             new Date().toISOString(),
+      }, { onConflict: 'user_id,course_id,lesson_number' });
+
+      if (done && !this._completed) {
+        this._completed = true;
+        await window.supabaseClient.from('study_logs').upsert({
+          user_id:          this.userId,
+          course_id:        this.courseId,
+          lesson_number:    this.lessonNum,
+          studied_at:       new Date().toISOString(),
+          duration_minutes: Math.round(actual / 60),
+        }, { onConflict: 'user_id,course_id,lesson_number' });
+
+        await window.supabaseClient.from('progress').upsert({
+          user_id:      this.userId,
+          course_id:    this.courseId,
+          lesson_id:    'lesson-' + this.lessonNum,
+          lesson_title: this.lessonTitle,
+          completed:    true,
+          watched_at:   new Date().toISOString(),
+        }, { onConflict: 'user_id,course_id,lesson_id' });
+
+        progressMap['lesson-' + this.lessonNum] = true;
+        applyProgressUI();
+      }
+    } catch (e) { console.error('시청 기록 저장 오류:', e); }
+  }
+}
+
+async function openLesson(lessonNum, lessonTitle, vimeoId) {
+  if (activeTracker) { activeTracker.stop(); activeTracker = null; }
+  if (vimeoPlayer)   { try { vimeoPlayer.destroy(); } catch(_){} vimeoPlayer = null; }
+  if (playingItem)   { playingItem.classList.remove('vimeo-playing'); playingItem = null; }
+
+  const wrap = document.getElementById('lesson-player-wrap');
+  wrap.classList.add('show');
+  document.getElementById('lesson-player-title').textContent = lessonNum + '강 — ' + lessonTitle;
+  document.getElementById('resume-banner').classList.remove('show');
+  document.getElementById('watch-display').textContent = '0초';
+  document.getElementById('watch-pct-text').textContent = '';
+  document.getElementById('watch-pct-fill').style.width = '0%';
+  document.getElementById('watch-done-badge').style.display = 'none';
+
+  const curItem = document.querySelector('[data-lesson="lesson-' + lessonNum + '"]');
+  if (curItem) { curItem.classList.add('vimeo-playing'); playingItem = curItem; }
+
+  const { data: { user } } = await window.supabaseClient.auth.getUser();
+  if (!user || !currentCourse) return;
+
+  const { data: vpData } = await window.supabaseClient
+    .from('video_progress')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('course_id', currentCourse.id)
+    .eq('lesson_number', lessonNum)
+    .maybeSingle();
+
+  const container = document.getElementById('vimeo-player-container');
+  container.innerHTML = '';
+
+  try {
+    vimeoPlayer = new Vimeo.Player(container, { id: vimeoId, responsive: true, autopause: false });
+    const totalSecs = await vimeoPlayer.getDuration();
+    activeTracker = new VimeoTracker(vimeoPlayer, user.id, currentCourse.id, lessonNum, lessonTitle, totalSecs);
+
+    if (vpData) {
+      activeTracker.seed(vpData);
+      if ((vpData.last_position || 0) > 5) {
+        pendingResume = vpData.last_position;
+        const timeText = VimeoTracker.fmt(vpData.actual_watched_seconds || 0);
+        document.getElementById('resume-banner-text').textContent =
+          '지난번에 ' + timeText + ' 시청하셨어요. 이어볼까요?';
+        document.getElementById('resume-banner').classList.add('show');
+      }
+    }
+
+    activeTracker.start();
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    console.error('Vimeo 플레이어 생성 오류:', e);
+    container.innerHTML = '<div style="color:#fff;padding:2rem;text-align:center;font-size:14px;">영상을 불러올 수 없어요.</div>';
+  }
+}
+
+function closeLessonPlayer() {
+  if (activeTracker) { activeTracker.stop(); activeTracker = null; }
+  if (vimeoPlayer)   { try { vimeoPlayer.pause(); vimeoPlayer.destroy(); } catch(_){} vimeoPlayer = null; }
+  if (playingItem)   { playingItem.classList.remove('vimeo-playing'); playingItem = null; }
+  document.getElementById('lesson-player-wrap').classList.remove('show');
+}
+
+async function doResume() {
+  document.getElementById('resume-banner').classList.remove('show');
+  if (vimeoPlayer && pendingResume > 0) {
+    try { await vimeoPlayer.setCurrentTime(pendingResume); await vimeoPlayer.play(); } catch(_) {}
+  }
+  pendingResume = 0;
+}
+
+async function doStartOver() {
+  document.getElementById('resume-banner').classList.remove('show');
+  if (vimeoPlayer) { try { await vimeoPlayer.setCurrentTime(0); await vimeoPlayer.play(); } catch(_) {} }
+  pendingResume = 0;
+}
+
 // ───── 탭 전환 ─────
 function switchTab(id, el) {
   document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));

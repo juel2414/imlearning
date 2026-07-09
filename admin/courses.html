@@ -225,6 +225,19 @@
       </div>
       <div class="card-body" id="course-content-area"><div class="empty">강좌 목록을 불러오는 중...</div></div>
     </div>
+    <!-- 강의별 시청 현황 -->
+    <div class="card" style="margin-top:20px;">
+      <div class="card-header">
+        <span class="card-title">📊 강의별 시청 현황</span>
+        <select id="lesson-stats-select" onchange="loadLessonStats(this.value)"
+          style="padding:7px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;cursor:pointer;max-width:280px;">
+          <option value="">강좌 선택...</option>
+        </select>
+      </div>
+      <div class="card-body" id="lesson-stats-body">
+        <div class="empty" style="color:#aaa;font-size:13px;">강좌를 선택하면 강의별 시청 통계를 확인할 수 있어요</div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -401,6 +414,7 @@ async function loadCourses() {
     courses = result.data || [];
     updateStats();
     render();
+    populateLessonStatsSelect();
   } catch (err) {
     document.getElementById('course-content-area').innerHTML = '<div class="empty">불러오기 중 오류가 발생했습니다</div>';
   }
@@ -497,6 +511,99 @@ async function loadInstructors() {
       sel.appendChild(opt);
     });
   } catch (err) {}
+}
+
+// ── 강의별 시청 현황 ──
+function populateLessonStatsSelect() {
+  var sel = document.getElementById('lesson-stats-select');
+  // 기존 옵션 초기화 후 재생성
+  while (sel.options.length > 1) sel.remove(1);
+  courses.forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.title;
+    sel.appendChild(opt);
+  });
+}
+
+function fmtSecs(s) {
+  s = Math.floor(s || 0);
+  if (s < 60)   return s + '초';
+  if (s < 3600) { var m = Math.floor(s/60); var r = s%60; return m + '분' + (r ? ' ' + r + '초' : ''); }
+  return Math.floor(s/3600) + '시간 ' + (Math.floor((s%3600)/60) ? Math.floor((s%3600)/60) + '분' : '');
+}
+
+async function loadLessonStats(courseId) {
+  if (!courseId) return;
+  var body = document.getElementById('lesson-stats-body');
+  body.innerHTML = '<div class="empty">불러오는 중...</div>';
+
+  var result = await sb.from('video_progress')
+    .select('lesson_number, lesson_title, actual_watched_seconds, total_seconds, watch_percentage, completed, user_id')
+    .eq('course_id', courseId);
+
+  if (result.error || !result.data || result.data.length === 0) {
+    body.innerHTML = '<div class="empty">시청 데이터가 아직 없어요</div>';
+    return;
+  }
+
+  // 강의별 그룹핑
+  var lessonMap = {};
+  result.data.forEach(function(row) {
+    var n = row.lesson_number;
+    if (!lessonMap[n]) lessonMap[n] = { title: row.lesson_title, rows: [], totalSecs: row.total_seconds || 0 };
+    lessonMap[n].rows.push(row);
+  });
+
+  var lessonNums = Object.keys(lessonMap).map(Number).sort(function(a,b){ return a-b; });
+
+  var lessonStats = lessonNums.map(function(n) {
+    var g = lessonMap[n];
+    var cnt = g.rows.length;
+    var avgWatch = cnt ? Math.round(g.rows.reduce(function(s,r){ return s + (r.actual_watched_seconds||0); }, 0) / cnt) : 0;
+    var avgPct   = cnt ? Math.round(g.rows.reduce(function(s,r){ return s + (r.watch_percentage||0); }, 0) / cnt) : 0;
+    var doneCnt  = g.rows.filter(function(r){ return r.completed; }).length;
+    return { n: n, title: g.title, cnt: cnt, avgWatch: avgWatch, avgPct: avgPct, doneCnt: doneCnt };
+  });
+
+  // 이탈 구간 감지
+  var warnings = [];
+  for (var i = 1; i < lessonStats.length; i++) {
+    var prev = lessonStats[i-1], curr = lessonStats[i];
+    if (prev.cnt > 0 && curr.cnt < prev.cnt) {
+      var dropPct = Math.round((prev.cnt - curr.cnt) / prev.cnt * 100);
+      if (dropPct >= 20) warnings.push(prev.n + '강에서 수강생 ' + dropPct + '%가 이탈해요');
+    }
+  }
+
+  var html = '';
+
+  if (warnings.length) {
+    html += '<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 16px;margin-bottom:16px;">';
+    html += '<div style="font-weight:700;color:#C2410C;margin-bottom:6px;">⚠️ 이탈 구간 감지</div>';
+    warnings.forEach(function(w) { html += '<div style="font-size:13px;color:#EA580C;margin-bottom:2px;">• ' + w + '</div>'; });
+    html += '</div>';
+  }
+
+  html += '<table><thead><tr><th>강의</th><th>시청 수강생</th><th>평균 시청시간</th><th>평균 진행률</th><th>완료율</th></tr></thead><tbody>';
+  lessonStats.forEach(function(ls) {
+    var barColor = ls.avgPct >= 80 ? '#2D9B6F' : ls.avgPct >= 50 ? '#F59E0B' : '#EF4444';
+    var warn     = ls.avgPct < 50 ? ' ⚠️' : '';
+    var donePct  = ls.cnt ? Math.round(ls.doneCnt / ls.cnt * 100) : 0;
+    html += '<tr>' +
+      '<td style="font-weight:600;">' + ls.n + '강' + (ls.title ? ' — ' + ls.title : '') + '</td>' +
+      '<td>' + ls.cnt + '명</td>' +
+      '<td>' + fmtSecs(ls.avgWatch) + '</td>' +
+      '<td><div style="display:flex;align-items:center;gap:8px;">' +
+        '<div style="flex:1;background:#f0f0f0;border-radius:10px;height:6px;min-width:60px;overflow:hidden;">' +
+          '<div style="background:' + barColor + ';border-radius:10px;height:6px;width:' + ls.avgPct + '%;"></div></div>' +
+        '<span style="font-weight:700;color:' + barColor + ';font-size:12px;">' + ls.avgPct + '%' + warn + '</span>' +
+      '</div></td>' +
+      '<td>' + donePct + '%</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
 }
 
 loadInstructors();
