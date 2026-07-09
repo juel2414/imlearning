@@ -1,27 +1,53 @@
-// js/nav.js — 공통 네비게이션 v1
-// 모든 프론트엔드 페이지에서 로드. <nav.navbar> 또는 .top-logo-bar 를 자동 교체.
+// js/nav.js — 공통 네비게이션 v2
+// 검색 아이콘, 어드민 메뉴, 로그인 개인화 포함
 (function () {
   'use strict';
 
-  // ── 햄버거 & 모바일 메뉴 CSS ──────────────────────────────────
+  // ── CSS 주입 ────────────────────────────────────────────────────
   var style = document.createElement('style');
   style.textContent = [
+    /* 햄버거 */
     '.nb-ham{display:none;align-items:center;justify-content:center;flex-direction:column;',
     'gap:6px;width:40px;height:40px;background:none;border:none;cursor:pointer;',
     'border-radius:8px;padding:8px;flex-shrink:0;}',
-    '.nb-ham span{display:block;width:22px;height:2px;',
-    'background:var(--black,#111);border-radius:2px;',
-    'transition:transform .25s,opacity .25s,width .25s;}',
+    '.nb-ham span{display:block;width:22px;height:2px;background:var(--black,#111);',
+    'border-radius:2px;transition:transform .25s,opacity .25s;}',
     '.nb-ham.open span:nth-child(1){transform:translateY(8px) rotate(45deg);}',
     '.nb-ham.open span:nth-child(2){opacity:0;transform:scaleX(0);}',
     '.nb-ham.open span:nth-child(3){transform:translateY(-8px) rotate(-45deg);}',
+
+    /* 오버레이 */
     '.nb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);',
     'z-index:89;backdrop-filter:blur(2px);}',
     '.nb-overlay.open{display:block;}',
+
+    /* 검색 버튼 */
+    '#nb-search-btn{display:flex;align-items:center;justify-content:center;',
+    'width:36px;height:36px;border:none;background:none;cursor:pointer;',
+    'border-radius:8px;color:var(--black,#111);flex-shrink:0;font-size:18px;}',
+    '#nb-search-btn:hover{background:var(--green-light,#E8F5EE);}',
+
+    /* 검색 드롭다운 */
+    '#nb-search-drop{display:none;position:fixed;top:64px;left:0;right:0;',
+    'background:#fff;border-bottom:1px solid rgba(0,0,0,.08);',
+    'padding:16px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.08);}',
+    '#nb-search-drop.open{display:flex;gap:8px;align-items:center;}',
+    '#nb-search-input{flex:1;padding:11px 16px;border:1.5px solid rgba(0,0,0,.1);',
+    'border-radius:10px;font-size:15px;outline:none;font-family:inherit;}',
+    '#nb-search-input:focus{border-color:var(--green,#2D9B6F);}',
+    '#nb-search-go{padding:11px 20px;background:var(--green,#2D9B6F);color:#fff;',
+    'border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}',
+    '#nb-search-close{padding:11px 14px;border:1.5px solid rgba(0,0,0,.1);',
+    'border-radius:10px;background:#fff;font-size:14px;cursor:pointer;}',
+
+    /* 모바일 인증 */
     '#nb-mob-auth{display:none;}',
+
+    /* 모바일 반응형 */
     '@media(max-width:768px){',
     '.nb-ham{display:flex;}',
     '.navbar-right{display:none!important;}',
+    '#nb-search-btn{display:flex;}',
     '.navbar-menu{',
     'display:flex!important;',
     'position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:auto!important;',
@@ -48,11 +74,12 @@
     'padding:12px!important;border-radius:10px!important;',
     'font-size:14px!important;font-weight:700!important;',
     'cursor:pointer!important;text-decoration:none!important;box-sizing:border-box!important;}',
-    '}'
+    '#nb-search-drop{top:0;position:sticky;}',
+    '}',
   ].join('');
   document.head.appendChild(style);
 
-  // ── 네비 HTML ────────────────────────────────────────────────
+  // ── 네비 HTML ────────────────────────────────────────────────────
   var navEl = document.createElement('nav');
   navEl.className = 'navbar';
   navEl.id = 'site-navbar';
@@ -69,11 +96,13 @@
     '    <li><a href="courses.html?cat=english">영어·시험</a></li>',
     '    <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>',
     '    <li><a href="about.html">소개</a></li>',
+    '    <li id="nb-admin-li" style="display:none"><a href="admin/index.html" style="color:#2D9B6F!important;font-weight:700!important;">어드민</a></li>',
     '    <li id="nb-mob-auth-li"><div id="nb-mob-auth">',
     '      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>',
     '      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
     '    </div></li>',
     '  </ul>',
+    '  <button id="nb-search-btn" aria-label="검색">🔍</button>',
     '  <div class="navbar-right" id="nb-right">',
     '    <a href="login.html" class="btn btn-outline btn-sm">로그인</a>',
     '    <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
@@ -82,10 +111,16 @@
     '    <span></span><span></span><span></span>',
     '  </button>',
     '</div>',
-    '<div class="nb-overlay" id="nb-overlay"></div>'
+    /* 검색 드롭다운 */
+    '<div id="nb-search-drop">',
+    '  <input id="nb-search-input" type="search" placeholder="강좌, 강사, 키워드 검색..." autocomplete="off">',
+    '  <button id="nb-search-go">검색</button>',
+    '  <button id="nb-search-close">✕</button>',
+    '</div>',
+    '<div class="nb-overlay" id="nb-overlay"></div>',
   ].join('');
 
-  // ── 기존 네비 교체 또는 맨 앞 삽입 ───────────────────────────
+  // ── 기존 네비 교체 ────────────────────────────────────────────────
   var existingNav     = document.querySelector('nav.navbar');
   var existingLogoBar = document.querySelector('.top-logo-bar');
   if (existingNav) {
@@ -96,7 +131,33 @@
     document.body.insertBefore(navEl, document.body.firstChild);
   }
 
-  // ── 햄버거 동작 ──────────────────────────────────────────────
+  // ── 검색 동작 ─────────────────────────────────────────────────────
+  var searchBtn   = document.getElementById('nb-search-btn');
+  var searchDrop  = document.getElementById('nb-search-drop');
+  var searchInput = document.getElementById('nb-search-input');
+  var searchGo    = document.getElementById('nb-search-go');
+  var searchClose = document.getElementById('nb-search-close');
+
+  function doSearch() {
+    var q = searchInput.value.trim();
+    if (q) window.location.href = 'search.html?q=' + encodeURIComponent(q);
+  }
+
+  searchBtn.addEventListener('click', function () {
+    searchDrop.classList.toggle('open');
+    if (searchDrop.classList.contains('open')) searchInput.focus();
+  });
+  searchClose.addEventListener('click', function () {
+    searchDrop.classList.remove('open');
+    searchInput.value = '';
+  });
+  searchGo.addEventListener('click', doSearch);
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doSearch();
+    if (e.key === 'Escape') { searchDrop.classList.remove('open'); searchInput.value = ''; }
+  });
+
+  // ── 햄버거 동작 ───────────────────────────────────────────────────
   var ham     = document.getElementById('nb-ham');
   var menu    = document.getElementById('nb-menu');
   var overlay = document.getElementById('nb-overlay');
@@ -119,7 +180,7 @@
   overlay.addEventListener('click', closeMenu);
   menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeMenu); });
 
-  // ── 현재 페이지 활성화 ───────────────────────────────────────
+  // ── 현재 페이지 활성화 ────────────────────────────────────────────
   var curPath   = (window.location.pathname.split('/').pop() || 'index.html');
   var curSearch = window.location.search;
 
@@ -127,36 +188,46 @@
     var href    = a.getAttribute('href') || '';
     var hPath   = href.split('?')[0];
     var hSearch = href.includes('?') ? href.slice(href.indexOf('?')) : '';
-    // 정확히 일치
-    if (hPath === curPath && (!hSearch || hSearch === curSearch)) {
-      a.classList.add('active');
-    }
-    // courses.html: 강좌 상세 페이지에서도 '강좌' 활성화 (카테고리 없을 때)
-    if (hPath === 'courses.html' && !hSearch && curPath === 'course-detail.html') {
-      a.classList.add('active');
-    }
+    if (hPath === curPath && (!hSearch || hSearch === curSearch)) a.classList.add('active');
+    if (hPath === 'courses.html' && !hSearch && curPath === 'course-detail.html') a.classList.add('active');
   });
 
-  // ── 인증 상태 반영 ───────────────────────────────────────────
-  function updateAuth(user) {
+  // ── 로그아웃 (전역) ───────────────────────────────────────────────
+  window.navLogout = function () {
+    var sb = window.supabaseClient;
+    if (sb) sb.auth.signOut().then(function () { window.location.href = 'index.html'; });
+    else window.location.href = 'index.html';
+  };
+
+  // ── 인증 + 어드민 상태 반영 ───────────────────────────────────────
+  function updateAuth(user, isAdmin) {
     var right   = document.getElementById('nb-right');
     var mobAuth = document.getElementById('nb-mob-auth');
+    var adminLi = document.getElementById('nb-admin-li');
+
+    if (isAdmin && adminLi) adminLi.style.display = '';
+
     if (user) {
+      var adminLink = isAdmin
+        ? '<a href="admin/index.html" class="btn btn-outline btn-sm" style="color:#2D9B6F;border-color:#2D9B6F;">어드민</a>'
+        : '';
       var loggedIn = [
+        adminLink,
         '<a href="my-courses.html" class="btn btn-outline btn-sm"',
         ' style="color:var(--green);border-color:var(--green);">나의 강의실</a>',
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>'
+        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>',
       ].join('');
       var mobIn = [
         '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>',
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>'
+        isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '',
+        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>',
       ].join('');
       if (right)   right.innerHTML   = loggedIn;
       if (mobAuth) mobAuth.innerHTML = mobIn;
     } else {
       var loggedOut = [
         '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>',
-        '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>'
+        '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
       ].join('');
       if (right)   right.innerHTML   = loggedOut;
       if (mobAuth) mobAuth.innerHTML = loggedOut;
@@ -168,8 +239,14 @@
     if (!sb) return;
     try {
       var res = await sb.auth.getUser();
-      updateAuth(res.data && res.data.user ? res.data.user : null);
-    } catch (e) { /* Supabase 준비 안 됐을 때 기본값 유지 */ }
+      var user = res.data && res.data.user ? res.data.user : null;
+      var isAdmin = false;
+      if (user) {
+        var profileRes = await sb.from('profiles').select('role').eq('id', user.id).single();
+        isAdmin = profileRes.data && profileRes.data.role === 'admin';
+      }
+      updateAuth(user, isAdmin);
+    } catch (e) { /* 준비 안 됐을 때 기본값 유지 */ }
   }
 
   if (document.readyState === 'loading') {

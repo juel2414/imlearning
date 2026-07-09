@@ -39,6 +39,9 @@
     .top10-price { font-size: 15px; font-weight: 800; color: var(--black); }
     .top10-price-original { font-size: 11px; color: var(--gray-300); text-decoration: line-through; margin-right: 4px; }
     .loading-placeholder { text-align: center; padding: 3rem; color: var(--gray-500); font-size: 14px; }
+    .wish-btn { position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.9); border:none; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.12); transition:transform .15s; z-index:2; }
+    .wish-btn:hover { transform:scale(1.15); }
+    .wish-btn.active { background:#FFF0F0; }
     @media (max-width: 768px) {
       .courses-page-inner { grid-template-columns: 1fr; }
       .sidebar { position: static; }
@@ -150,6 +153,29 @@ const catData = {
 let allCourses = [];
 let currentCat = 'all';
 let currentSort = 'default';
+let wishSet = new Set();
+let currentUser = null;
+
+// ───── 찜하기 ─────
+async function toggleWish(e, courseId) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!currentUser) { window.location.href = 'login.html'; return; }
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  if (wishSet.has(courseId)) {
+    await supabaseClient.from('wishlists').delete().eq('user_id', currentUser.id).eq('course_id', courseId);
+    wishSet.delete(courseId);
+    btn.innerHTML = '🤍';
+    btn.classList.remove('active');
+  } else {
+    await supabaseClient.from('wishlists').insert({ user_id: currentUser.id, course_id: courseId });
+    wishSet.add(courseId);
+    btn.innerHTML = '❤️';
+    btn.classList.add('active');
+  }
+  btn.disabled = false;
+}
 
 // ───── 사이드바 렌더 ─────
 function renderSidebar(cat) {
@@ -229,12 +255,14 @@ function renderCourseGrid() {
       ? `<span class="course-price"><span style="text-decoration:line-through;color:var(--gray-300);font-size:11px;margin-right:4px;">₩${Number(originalPrice).toLocaleString()}</span>₩${Number(currentPrice).toLocaleString()}</span>`
       : `<span class="course-price">₩${Number(currentPrice || 0).toLocaleString()}</span>`;
 
+    const isWished = wishSet.has(course.id);
     return `
       <a href="course-detail.html?id=${course.id}" class="course-card" data-cat="${course.category || ''}">
         <div class="course-thumb" style="background:linear-gradient(135deg,#e8f5ee,#c8eada);position:relative;overflow:hidden;">
           ${thumbContent}
           ${thumbEmoji ? `<span style="font-size:32px;position:relative;z-index:1;">${thumbEmoji}</span>` : ''}
           ${badgeHtml}
+          <button class="wish-btn ${isWished ? 'active' : ''}" onclick="toggleWish(event, ${course.id})" title="찜하기">${isWished ? '❤️' : '🤍'}</button>
         </div>
         <div class="course-body">
           <div class="course-cat">${catLabel}</div>
@@ -304,6 +332,15 @@ function renderTop3() {
 async function loadAll() {
   try {
     allCourses = await fetchCourses({ status: true });
+
+    // 로그인 + 위시리스트 로드
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    currentUser = user;
+    if (user) {
+      const { data: wl } = await supabaseClient.from('wishlists').select('course_id').eq('user_id', user.id);
+      wishSet = new Set((wl || []).map(w => w.course_id));
+    }
+
     renderTop3();
     renderCourseGrid();
   } catch (err) {

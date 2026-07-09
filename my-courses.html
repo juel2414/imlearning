@@ -74,6 +74,21 @@
 
 .loading-msg { text-align: center; padding: 3rem; color: var(--gray-500); }
 
+/* 찜한 강좌 */
+.wish-course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
+.wish-course-card { background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: 14px; overflow: hidden; transition: all .2s; }
+.wish-course-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.09); transform: translateY(-3px); }
+.wish-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.wish-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.wish-body { padding: 12px 14px; }
+.wish-cat { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
+.wish-title { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 4px; line-height: 1.4; }
+.wish-instructor { font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+.wish-footer { display: flex; gap: 8px; }
+.btn-wish-go { flex: 1; padding: 9px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-wish-remove { padding: 9px 12px; border: 1.5px solid rgba(0,0,0,.1); border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: var(--gray-500); }
+.btn-wish-remove:hover { border-color: #FF4D6D; color: #FF4D6D; }
+
 @media (max-width: 768px) {
   .my-course-card { grid-template-columns: 80px 1fr; }
   .my-course-action { grid-column: 1/-1; flex-direction: row; justify-content: flex-start; }
@@ -139,6 +154,7 @@
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
     <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
     <div class="my-tab" onclick="switchTab('certs', this)">🎓 수료증</div>
+    <div class="my-tab" onclick="switchTab('wishlist', this)">❤️ 찜한 강좌</div>
   </div>
 </div>
 
@@ -158,6 +174,11 @@
     <!-- 수료증 탭 -->
     <div class="tab-panel" id="panel-certs">
       <div id="certs-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+    <!-- 찜한 강좌 탭 -->
+    <div class="tab-panel" id="panel-wishlist">
+      <div id="wishlist-content" class="loading-msg">불러오는 중...</div>
     </div>
 
   </div>
@@ -341,6 +362,64 @@ function downloadCert(title, date) {
   alert(`"${title}" 수료증 다운로드 기능은 준비 중이에요!`);
 }
 
+// ───── 찜한 강좌 렌더 ─────
+function renderWishlist(wishCourses) {
+  const el = document.getElementById('wishlist-content');
+  if (wishCourses.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🤍</div>
+        <div class="empty-state-title">찜한 강좌가 없어요</div>
+        <div class="empty-state-desc">관심 있는 강좌에 ❤️ 버튼을 눌러 저장해두세요!</div>
+        <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+      </div>`;
+    return;
+  }
+
+  const cards = wishCourses.map(item => {
+    const c = item.course;
+    if (!c) return '';
+    const catLabel = CATEGORY_LABELS_LOCAL[c.category] || '';
+    const thumbContent = c.thumbnail_url
+      ? `<img src="${c.thumbnail_url}">`
+      : '<span>📚</span>';
+    return `
+      <div class="wish-course-card" id="wish-card-${item.course_id}">
+        <div class="wish-thumb">${thumbContent}</div>
+        <div class="wish-body">
+          <div class="wish-cat">${catLabel}</div>
+          <div class="wish-title">${c.title}</div>
+          <div class="wish-instructor">강사: ${c.instructor || '미정'}</div>
+          <div class="wish-footer">
+            <button class="btn-wish-go" onclick="location.href='course-detail.html?id=${c.id}'">강좌 보기</button>
+            <button class="btn-wish-remove" onclick="removeWish(${item.course_id})" title="찜 취소">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="wish-course-grid">${cards}</div>`;
+}
+
+async function removeWish(courseId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  await supabaseClient.from('wishlists').delete().eq('user_id', user.id).eq('course_id', courseId);
+  const card = document.getElementById('wish-card-' + courseId);
+  if (card) card.remove();
+  // 빈 상태 처리
+  const grid = document.querySelector('.wish-course-grid');
+  if (grid && grid.children.length === 0) {
+    document.getElementById('wishlist-content').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🤍</div>
+        <div class="empty-state-title">찜한 강좌가 없어요</div>
+        <div class="empty-state-desc">관심 있는 강좌에 ❤️ 버튼을 눌러 저장해두세요!</div>
+        <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+      </div>`;
+  }
+}
+
 // ───── 통계 업데이트 ─────
 function updateStats(orders) {
   const enrolled = orders.length;
@@ -361,8 +440,7 @@ async function loadMyPage() {
   if (!user) {
     // 로그인 안 된 경우
     document.getElementById('user-name').textContent = '로그인이 필요해요';
-    // 네비게이션 버튼은 supabase-client.js의 renderNavAuth()가 자동 처리
-    ['courses-content', 'orders-content', 'certs-content'].forEach(id => {
+    ['courses-content', 'orders-content', 'certs-content', 'wishlist-content'].forEach(id => {
       document.getElementById(id).innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">🔐</div>
@@ -400,6 +478,7 @@ async function loadMyPage() {
         </div>`;
     });
     updateStats([]);
+    renderWishlist([]);
     return;
   }
 
@@ -417,11 +496,21 @@ async function loadMyPage() {
     (coursesData || []).forEach(c => { coursesMap[c.id] = c; });
   }
 
-  // 5. 렌더
+  // 5. 위시리스트 조회
+  const { data: wishData } = await supabaseClient
+    .from('wishlists')
+    .select('course_id, courses(*)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const wishItems = (wishData || []).map(w => ({ course_id: w.course_id, course: w.courses }));
+
+  // 6. 렌더
   updateStats(myOrders);
   renderCourses(myOrders, coursesMap);
   renderOrders(myOrders, coursesMap);
   renderCerts(myOrders, coursesMap);
+  renderWishlist(wishItems);
 }
 
 loadMyPage();

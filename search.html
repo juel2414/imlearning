@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>강좌 검색 — 아이엠러닝</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.search-hero { background:linear-gradient(135deg,#f0faf5,#fff); padding:2.5rem 0 1.5rem; border-bottom:1px solid rgba(0,0,0,.06); }
+.search-hero-title { font-size:26px; font-weight:800; color:var(--black); margin-bottom:1rem; }
+.search-bar-wrap { display:flex; gap:10px; max-width:640px; }
+.search-bar-input { flex:1; padding:13px 18px; border:2px solid rgba(0,0,0,.1); border-radius:12px; font-size:16px; outline:none; font-family:inherit; }
+.search-bar-input:focus { border-color:var(--green); }
+.search-bar-btn { padding:13px 24px; background:var(--green); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; white-space:nowrap; }
+
+.search-layout { display:grid; grid-template-columns:240px 1fr; gap:2rem; padding:2rem 0 5rem; align-items:start; }
+
+/* 필터 사이드바 */
+.filter-panel { background:#fff; border:1px solid rgba(0,0,0,.07); border-radius:14px; padding:1.25rem; position:sticky; top:80px; }
+.filter-group { margin-bottom:1.5rem; }
+.filter-group:last-child { margin-bottom:0; }
+.filter-title { font-size:12px; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+.filter-option { display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; font-size:14px; color:var(--gray-700); }
+.filter-option input[type="checkbox"],
+.filter-option input[type="radio"] { accent-color:var(--green); width:15px; height:15px; cursor:pointer; }
+.filter-option:hover { color:var(--green); }
+.filter-reset { width:100%; padding:9px; border:1px solid rgba(0,0,0,.1); border-radius:8px; background:#fff; font-size:13px; color:var(--gray-500); cursor:pointer; margin-top:1rem; }
+.filter-reset:hover { border-color:var(--green); color:var(--green); }
+
+/* 결과 영역 */
+.result-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:10px; }
+.result-count { font-size:14px; color:var(--gray-500); }
+.result-count strong { color:var(--black); font-weight:700; }
+.sort-select { padding:8px 14px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; background:#fff; cursor:pointer; outline:none; }
+
+.results-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1.25rem; }
+
+/* 강좌 카드 (공통과 동일 스타일 재사용) */
+.course-card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.07); overflow:hidden; text-decoration:none; transition:all .2s; display:block; position:relative; }
+.course-card:hover { box-shadow:0 8px 32px rgba(0,0,0,.1); transform:translateY(-3px); }
+.course-thumb { width:100%; aspect-ratio:16/9; background:linear-gradient(135deg,#e8f5ee,#c8eada); display:flex; align-items:center; justify-content:center; font-size:32px; position:relative; overflow:hidden; }
+.course-badge { position:absolute; top:10px; left:10px; background:var(--green); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; }
+.course-body { padding:1rem; }
+.course-cat { font-size:10px; font-weight:700; color:var(--green); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+.course-title { font-size:15px; font-weight:700; color:var(--black); margin-bottom:4px; line-height:1.4; }
+.course-instructor { font-size:12px; color:var(--gray-500); margin-bottom:10px; }
+.course-footer { display:flex; justify-content:space-between; align-items:center; }
+.course-students { font-size:12px; color:var(--gray-400); }
+.course-price { font-size:15px; font-weight:800; color:var(--black); }
+.wish-btn { position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.9); border:none; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.12); transition:transform .15s; z-index:2; }
+.wish-btn:hover { transform:scale(1.15); }
+.wish-btn.active { background:#FFF0F0; }
+
+/* 빈 상태 */
+.empty-result { text-align:center; padding:4rem 2rem; grid-column:1/-1; }
+.empty-result-icon { font-size:56px; margin-bottom:1rem; }
+.empty-result-title { font-size:18px; font-weight:700; margin-bottom:8px; }
+.empty-result-desc { font-size:14px; color:var(--gray-500); margin-bottom:1.5rem; }
+.recommend-label { font-size:14px; font-weight:700; color:var(--black); margin-bottom:1rem; text-align:left; grid-column:1/-1; padding-top:1rem; border-top:1px solid rgba(0,0,0,.06); }
+
+@media(max-width:768px){
+  .search-layout { grid-template-columns:1fr; }
+  .filter-panel { position:static; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar"><div class="navbar-inner">
+  <a href="index.html" class="navbar-logo"><span class="navbar-logo-text">아이엠<span>러닝</span></span></a>
+  <ul class="navbar-menu" id="nb-menu">
+    <li><a href="courses.html">강좌</a></li>
+    <li><a href="courses.html?cat=faith">신앙</a></li>
+    <li><a href="courses.html?cat=edu">교사·부모</a></li>
+    <li><a href="courses.html?cat=mission">캠프·사역</a></li>
+    <li><a href="courses.html?cat=english">영어·시험</a></li>
+    <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
+    <li><a href="about.html">소개</a></li>
+  </ul>
+  <div class="navbar-right" id="nb-right">
+    <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+    <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
+  </div>
+</div></nav>
+
+<!-- 검색바 -->
+<div class="search-hero">
+  <div class="container">
+    <div class="search-hero-title">강좌 검색</div>
+    <div class="search-bar-wrap">
+      <input class="search-bar-input" id="q-input" type="search" placeholder="강좌명, 강사명, 키워드 입력...">
+      <button class="search-bar-btn" onclick="doSearch()">검색</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="search-layout">
+
+    <!-- 필터 -->
+    <div class="filter-panel">
+      <div class="filter-group">
+        <div class="filter-title">카테고리</div>
+        <label class="filter-option"><input type="checkbox" name="cat" value="faith"> 신앙</label>
+        <label class="filter-option"><input type="checkbox" name="cat" value="edu"> 교사·부모</label>
+        <label class="filter-option"><input type="checkbox" name="cat" value="mission"> 캠프·사역</label>
+        <label class="filter-option"><input type="checkbox" name="cat" value="english"> 영어·시험</label>
+        <label class="filter-option"><input type="checkbox" name="cat" value="freepass"> 전강좌 무제한</label>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">가격대</div>
+        <label class="filter-option"><input type="checkbox" name="price" value="free"> 무료</label>
+        <label class="filter-option"><input type="checkbox" name="price" value="10k"> ~1만원</label>
+        <label class="filter-option"><input type="checkbox" name="price" value="100k"> ~10만원</label>
+        <label class="filter-option"><input type="checkbox" name="price" value="high"> 10만원 이상</label>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">난이도</div>
+        <label class="filter-option"><input type="checkbox" name="level" value="beginner"> 입문</label>
+        <label class="filter-option"><input type="checkbox" name="level" value="intermediate"> 중급</label>
+        <label class="filter-option"><input type="checkbox" name="level" value="advanced"> 고급</label>
+      </div>
+      <div class="filter-group" id="instructor-filter">
+        <div class="filter-title">강사</div>
+        <div id="instructor-list"></div>
+      </div>
+      <button class="filter-reset" onclick="resetFilters()">필터 초기화</button>
+    </div>
+
+    <!-- 결과 -->
+    <div>
+      <div class="result-header">
+        <div class="result-count" id="result-count">검색 결과: <strong>0</strong>개</div>
+        <select class="sort-select" onchange="sortChange(this.value)">
+          <option value="default">인기순</option>
+          <option value="newest">최신순</option>
+          <option value="price_asc">낮은 가격순</option>
+          <option value="price_desc">높은 가격순</option>
+        </select>
+      </div>
+      <div class="results-grid" id="results-grid">
+        <div class="empty-result">
+          <div class="empty-result-icon">🔍</div>
+          <div class="empty-result-title">검색어를 입력해주세요</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">아이엠<span>러닝</span></div>
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=edu">교사·부모</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/main.js"></script>
+<script>
+const CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+const LEVEL_LABELS = { beginner:'입문', intermediate:'중급', advanced:'고급' };
+
+let allCourses = [];
+let wishSet = new Set();
+let currentUser = null;
+let sortMode = 'default';
+
+// ── 가격 계산 ──
+function getPrice(c) {
+  const now = new Date();
+  if (c.discount_price && c.discount_start && c.discount_end) {
+    const s = new Date(c.discount_start), e = new Date(c.discount_end);
+    if (now >= s && now <= e) return { price: c.discount_price, original: c.price };
+  }
+  return { price: c.price, original: null };
+}
+
+// ── 가격대 매칭 ──
+function priceMatch(c, bands) {
+  if (!bands.length) return true;
+  const { price } = getPrice(c);
+  const p = price || 0;
+  return bands.some(b => {
+    if (b === 'free') return p === 0;
+    if (b === '10k')  return p > 0 && p <= 10000;
+    if (b === '100k') return p > 10000 && p <= 100000;
+    if (b === 'high') return p > 100000;
+    return false;
+  });
+}
+
+// ── 정렬 ──
+function sorted(list) {
+  const arr = [...list];
+  if (sortMode === 'newest') return arr.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  if (sortMode === 'price_asc') return arr.sort((a,b) => (getPrice(a).price||0) - (getPrice(b).price||0));
+  if (sortMode === 'price_desc') return arr.sort((a,b) => (getPrice(b).price||0) - (getPrice(a).price||0));
+  return arr.sort((a,b) => (b.students||0) - (a.students||0));
+}
+
+// ── 카드 렌더 ──
+function courseCard(c) {
+  const { price, original } = getPrice(c);
+  const isWished = wishSet.has(c.id);
+  const thumb = c.thumbnail_url
+    ? `<img src="${c.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+    : `<span style="font-size:32px;">${'📚'}</span>`;
+  const badge = c.featured ? '<span class="course-badge">🔥 인기</span>' : '';
+  const priceHtml = price === 0 ? '<span class="course-price" style="color:var(--green);">무료</span>'
+    : original ? `<span class="course-price"><s style="color:#aaa;font-size:11px;font-weight:400;">₩${Number(original).toLocaleString()}</s> ₩${Number(price).toLocaleString()}</span>`
+    : `<span class="course-price">₩${Number(price||0).toLocaleString()}</span>`;
+  return `
+    <div class="course-card" style="display:block;" onclick="goDetail(${c.id})" data-id="${c.id}">
+      <div class="course-thumb" style="position:relative;">${thumb}${badge}
+        <button class="wish-btn ${isWished?'active':''}" onclick="toggleWish(event,${c.id})" title="찜하기">${isWished?'❤️':'🤍'}</button>
+      </div>
+      <div class="course-body">
+        <div class="course-cat">${CAT_LABELS[c.category]||''}</div>
+        <div class="course-title">${c.title}</div>
+        <div class="course-instructor">강사: ${c.instructor||'미정'}${c.level ? ' · '+LEVEL_LABELS[c.level] : ''}</div>
+        <div class="course-footer">
+          <span class="course-students">👥 ${c.students||0}명</span>
+          ${priceHtml}
+        </div>
+      </div>
+    </div>`;
+}
+
+function goDetail(id) { window.location.href = 'course-detail.html?id=' + id; }
+
+// ── 찜하기 토글 ──
+async function toggleWish(e, courseId) {
+  e.stopPropagation();
+  if (!currentUser) { window.location.href = 'login.html'; return; }
+  const sb = window.supabaseClient;
+  if (wishSet.has(courseId)) {
+    await sb.from('wishlists').delete().eq('user_id', currentUser.id).eq('course_id', courseId);
+    wishSet.delete(courseId);
+  } else {
+    await sb.from('wishlists').insert({ user_id: currentUser.id, course_id: courseId });
+    wishSet.add(courseId);
+  }
+  render(); // 버튼 상태 업데이트
+}
+
+// ── 필터값 읽기 ──
+function getFilters() {
+  const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(el => el.value);
+  return { cats: checked('cat'), prices: checked('price'), levels: checked('level'), instructors: checked('inst') };
+}
+
+// ── 검색 + 필터 적용 후 렌더 ──
+function render() {
+  const q = document.getElementById('q-input').value.trim().toLowerCase();
+  const { cats, prices, levels, instructors } = getFilters();
+
+  let filtered = allCourses.filter(c => c.status === 'active');
+
+  if (q) {
+    filtered = filtered.filter(c =>
+      c.title.toLowerCase().includes(q) ||
+      (c.description||'').toLowerCase().includes(q) ||
+      (c.instructor||'').toLowerCase().includes(q)
+    );
+  }
+  if (cats.length)        filtered = filtered.filter(c => cats.includes(c.category));
+  if (prices.length)      filtered = filtered.filter(c => priceMatch(c, prices));
+  if (levels.length)      filtered = filtered.filter(c => levels.includes(c.level));
+  if (instructors.length) filtered = filtered.filter(c => instructors.includes(c.instructor));
+
+  const list = sorted(filtered);
+  document.getElementById('result-count').innerHTML = `검색 결과: <strong>${list.length}</strong>개`;
+
+  const grid = document.getElementById('results-grid');
+  if (list.length === 0) {
+    // 결과 없을 때 추천
+    const recs = sorted(allCourses.filter(c => c.status === 'active' && c.featured)).slice(0, 4);
+    grid.innerHTML = `
+      <div class="empty-result">
+        <div class="empty-result-icon">😅</div>
+        <div class="empty-result-title">검색 결과가 없어요</div>
+        <div class="empty-result-desc">다른 키워드로 검색하거나 필터를 변경해보세요.</div>
+      </div>
+      ${recs.length ? '<div class="recommend-label">이런 강좌는 어떠세요? 🌟</div>' + recs.map(courseCard).join('') : ''}`;
+  } else {
+    grid.innerHTML = list.map(courseCard).join('');
+  }
+}
+
+function doSearch() { render(); }
+function sortChange(v) { sortMode = v; render(); }
+function resetFilters() {
+  document.querySelectorAll('.filter-panel input').forEach(el => { el.checked = false; });
+  render();
+}
+
+// ── 강사 필터 동적 생성 ──
+function buildInstructorFilter() {
+  const instructors = [...new Set(allCourses.filter(c => c.instructor).map(c => c.instructor))].sort();
+  document.getElementById('instructor-list').innerHTML = instructors.map(i =>
+    `<label class="filter-option"><input type="checkbox" name="inst" value="${i}"> ${i}</label>`
+  ).join('');
+}
+
+// ── 초기화 ──
+async function init() {
+  // URL 파라미터로 초기 검색어 세팅
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q') || '';
+  if (q) document.getElementById('q-input').value = q;
+
+  const cat = params.get('cat');
+  if (cat) {
+    const el = document.querySelector(`input[name="cat"][value="${cat}"]`);
+    if (el) el.checked = true;
+  }
+
+  try {
+    // 강좌 데이터 로드
+    const { data } = await supabaseClient.from('courses').select('*').order('students', { ascending: false });
+    allCourses = data || [];
+    buildInstructorFilter();
+
+    // 로그인 + 위시리스트 로드
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    currentUser = user;
+    if (user) {
+      const { data: wl } = await supabaseClient.from('wishlists').select('course_id').eq('user_id', user.id);
+      wishSet = new Set((wl || []).map(w => w.course_id));
+    }
+
+    render();
+    // 필터 변경 시 자동 갱신
+    document.querySelectorAll('.filter-panel input').forEach(el => el.addEventListener('change', render));
+    document.getElementById('q-input').addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
+  } catch(e) {
+    document.getElementById('results-grid').innerHTML = '<div class="empty-result"><div class="empty-result-title">강좌를 불러오지 못했어요</div></div>';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

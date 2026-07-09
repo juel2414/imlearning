@@ -48,6 +48,18 @@
 /* 로딩 상태 */
 .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+/* 찜하기 버튼 */
+.wish-card-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; background:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; margin-top:8px; }
+.wish-card-btn.wished { border-color:#FF4D6D; color:#FF4D6D; background:#FFF0F0; }
+.wish-card-btn:not(.wished):hover { border-color:var(--green); color:var(--green); }
+/* 미리보기 버튼 */
+.preview-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; background:var(--green); color:#fff; border:none; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+/* 미리보기 모달 */
+#preview-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:1000; align-items:center; justify-content:center; }
+#preview-modal.open { display:flex; }
+#preview-modal-inner { background:#111; border-radius:16px; overflow:hidden; width:min(760px,95vw); aspect-ratio:16/9; position:relative; }
+#preview-modal-close { position:absolute; top:10px; right:10px; z-index:10; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.18); border:none; color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
+#preview-iframe { width:100%; height:100%; border:none; display:block; }
 @media (max-width: 768px) {
   .detail-inner { grid-template-columns: 1fr; }
   .purchase-card { position: static; }
@@ -115,8 +127,8 @@
         <div class="tab-content" id="tab-curriculum">
           <div class="curriculum-section">
             <div class="curriculum-title">1강 ~ 10강 · 성경적 세계관 기초</div>
-            <div class="curriculum-item"><span class="curriculum-num">1</span>CBUP 오리엔테이션 — 이 과정을 시작하며<span class="curriculum-lock">🔓</span></div>
-            <div class="curriculum-item"><span class="curriculum-num">2</span>성경적 세계관이란 무엇인가<span class="curriculum-lock">🔓</span></div>
+            <div class="curriculum-item"><span class="curriculum-num">1</span>CBUP 오리엔테이션 — 이 과정을 시작하며<span class="curriculum-lock preview-slot" data-slot="1"></span></div>
+            <div class="curriculum-item"><span class="curriculum-num">2</span>성경적 세계관이란 무엇인가<span class="curriculum-lock preview-slot" data-slot="2"></span></div>
             <div class="curriculum-item"><span class="curriculum-num">3</span>교사의 정체성과 사명<span class="curriculum-lock">🔒</span></div>
             <div class="curriculum-item"><span class="curriculum-num">4</span>다음 세대를 향한 하나님의 마음<span class="curriculum-lock">🔒</span></div>
             <div class="curriculum-item"><span class="curriculum-num">5</span>트리플 스쿨 교육철학<span class="curriculum-lock">🔒</span></div>
@@ -165,6 +177,7 @@
           <div class="purchase-btns">
             <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
             <a href="#" class="btn btn-outline" style="text-align:center;">장바구니 담기</a>
+            <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()">🤍 찜하기</button>
           </div>
           <div class="purchase-includes">
             <div class="purchase-includes-title">수강 혜택</div>
@@ -196,6 +209,14 @@
   </div>
 </footer>
 
+<!-- 미리보기 모달 -->
+<div id="preview-modal" onclick="closePreview(event)">
+  <div id="preview-modal-inner">
+    <button id="preview-modal-close" onclick="closePreview()">✕</button>
+    <iframe id="preview-iframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
+  </div>
+</div>
+
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 포트원 SDK -->
@@ -214,6 +235,56 @@ let currentCourse = null;
 
 // ───── 카테고리 한글 변환 (supabase-client.js에서 공유) ─────
 // CATEGORY_LABELS는 supabase-client.js에 이미 선언되어 있음
+
+// ───── 찜하기 ─────
+let isWished = false;
+
+async function loadWishState(userId, courseId) {
+  const { data } = await supabaseClient.from('wishlists').select('id').eq('user_id', userId).eq('course_id', courseId).maybeSingle();
+  isWished = !!data;
+  updateWishBtn();
+}
+
+function updateWishBtn() {
+  const btn = document.getElementById('wish-btn');
+  if (!btn) return;
+  btn.innerHTML = isWished ? '❤️ 찜 취소' : '🤍 찜하기';
+  btn.classList.toggle('wished', isWished);
+}
+
+async function toggleWish() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
+  if (!currentCourse) return;
+  const btn = document.getElementById('wish-btn');
+  btn.disabled = true;
+  if (isWished) {
+    await supabaseClient.from('wishlists').delete().eq('user_id', user.id).eq('course_id', currentCourse.id);
+    isWished = false;
+  } else {
+    await supabaseClient.from('wishlists').insert({ user_id: user.id, course_id: currentCourse.id });
+    isWished = true;
+  }
+  btn.disabled = false;
+  updateWishBtn();
+}
+
+// ───── 미리보기 ─────
+function openPreview(url) {
+  let embedUrl = url;
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) embedUrl = 'https://player.vimeo.com/video/' + vimeoMatch[1] + '?autoplay=1&title=0&byline=0&portrait=0';
+  document.getElementById('preview-iframe').src = embedUrl;
+  document.getElementById('preview-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreview(e) {
+  if (e && e.target !== document.getElementById('preview-modal') && e.target.id !== 'preview-modal-close') return;
+  document.getElementById('preview-modal').classList.remove('open');
+  document.getElementById('preview-iframe').src = '';
+  document.body.style.overflow = '';
+}
 
 // ───── 강좌 데이터 불러오기 ─────
 async function loadCourse() {
@@ -263,6 +334,20 @@ async function loadCourse() {
     origEl.style.display = '';
     document.getElementById('purchase-discount').style.display = 'inline-flex';
   }
+
+  // 미리보기 버튼 (preview_url이 있을 때)
+  const previewSlots = document.querySelectorAll('.preview-slot');
+  if (course.preview_url) {
+    previewSlots.forEach(slot => {
+      slot.innerHTML = `<button class="preview-btn" onclick="openPreview('${course.preview_url}')">▶ 무료 미리보기</button>`;
+    });
+  } else {
+    previewSlots.forEach(slot => { slot.textContent = '🔓'; });
+  }
+
+  // 찜하기 상태 로드
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (user) await loadWishState(user.id, course.id);
 }
 
 // ───── 결제 요청 ─────
