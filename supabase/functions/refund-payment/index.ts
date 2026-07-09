@@ -43,7 +43,60 @@ Deno.serve(async (req: Request) => {
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
 
     // 3. 요청 본문 파싱
-    const { orderId } = await req.json()
+    const body = await req.json()
+    const { orderId, giftCode } = body
+
+    // ── 선물 취소·환불 경로 ──────────────────────────────────────────────
+    if (giftCode) {
+      const { data: gift, error: giftErr } = await supabase
+        .from('gifts').select('*').eq('gift_code', giftCode).maybeSingle()
+
+      if (giftErr || !gift) {
+        return new Response(JSON.stringify({ success: false, error: '선물을 찾을 수 없습니다.' }), {
+          status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (gift.sender_id !== user.id) {
+        return new Response(JSON.stringify({ success: false, error: '권한이 없습니다.' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (!['pending', 'already_owned'].includes(gift.status)) {
+        return new Response(JSON.stringify({ success: false, error: `취소할 수 없는 상태입니다: ${gift.status}` }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const refundAmount = gift.amount || 0
+      const newStatus = gift.status === 'already_owned' ? 'refunded' : 'cancelled'
+
+      if (refundAmount > 0 && gift.payment_id) {
+        const portoneSecret = Deno.env.get('PORTONE_API_SECRET')
+        if (portoneSecret) {
+          const portoneRes = await fetch(
+            `https://api.portone.io/payments/${gift.payment_id}/cancel`,
+            {
+              method: 'POST',
+              headers: { Authorization: `PortOne ${portoneSecret}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reason: '선물 취소 환불', amount: refundAmount }),
+            }
+          )
+          if (!portoneRes.ok) {
+            const errText = await portoneRes.text()
+            return new Response(JSON.stringify({ success: false, error: 'PortOne 환불 실패: ' + errText }), {
+              status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+          }
+        }
+      }
+
+      await supabase.from('gifts').update({ status: newStatus }).eq('gift_code', giftCode)
+
+      return new Response(JSON.stringify({ success: true, refund_amount: refundAmount, status: newStatus }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     if (!orderId) {
       return new Response(JSON.stringify({ success: false, error: 'orderId가 필요합니다.' }), {
         status: 400,

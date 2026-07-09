@@ -192,6 +192,24 @@
   .stats-total-row { grid-template-columns: repeat(3,1fr); }
   .badge-grid { grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); }
 }
+
+/* ── 선물함 ── */
+.gift-section-title { font-size: 15px; font-weight: 800; color: #111; margin: 1.5rem 0 .75rem; padding-bottom: .5rem; border-bottom: 2px solid #f0f0f0; }
+.gift-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.75rem; }
+.gift-card { background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: 14px; padding: 16px 18px; }
+.gift-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-bottom: 10px; }
+.gift-card-title { font-size: 15px; font-weight: 700; color: #111; }
+.gift-card-sub { font-size: 12px; color: #888; margin-top: 2px; }
+.gift-status-badge { flex-shrink: 0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.gift-status-badge.pending  { background: #FEF3C7; color: #D97706; }
+.gift-status-badge.accepted { background: #DCFCE7; color: #16A34A; }
+.gift-status-badge.cancelled,.gift-status-badge.expired { background: #f4f5f6; color: #888; }
+.gift-status-badge.refunded { background: #FEE2E2; color: #EF4444; }
+.gift-status-badge.already_owned { background: #FEF3C7; color: #92400E; }
+.gift-card-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.gift-link-chip { background: #f4f5f6; padding: 5px 12px; border-radius: 8px; font-size: 11px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px; }
+.gift-btn-copy { padding: 5px 12px; border-radius: 8px; border: 1px solid #c8eada; background: #fff; color: #2D9B6F; font-size: 12px; font-weight: 700; cursor: pointer; }
+.gift-btn-cancel { padding: 5px 12px; border-radius: 8px; border: 1px solid #FCA5A5; background: #fff; color: #EF4444; font-size: 12px; font-weight: 700; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -254,6 +272,7 @@
     <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
     <div class="my-tab" onclick="switchTab('certs', this)">🎓 수료증</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)">❤️ 찜한 강좌</div>
+    <div class="my-tab" onclick="switchTab('gifts', this)">🎁 선물함</div>
   </div>
 </div>
 
@@ -289,6 +308,11 @@
     <!-- 찜한 강좌 탭 -->
     <div class="tab-panel" id="panel-wishlist">
       <div id="wishlist-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+    <!-- 선물함 탭 -->
+    <div class="tab-panel" id="panel-gifts">
+      <div id="gifts-content" class="loading-msg">불러오는 중...</div>
     </div>
 
   </div>
@@ -345,6 +369,10 @@ function switchTab(id, el) {
   if (id === 'stats' && !gStatsLoaded && gUserId) {
     gStatsLoaded = true;
     loadAndRenderStats(gUserId);
+  }
+  // 선물함 탭: 열 때마다 새로고침
+  if (id === 'gifts' && gUserId) {
+    loadGifts(gUserId);
   }
 }
 
@@ -1218,6 +1246,156 @@ async function loadMyPage() {
   );
 }
 
+/* ════════════════════════════════════════════════════════
+   선물함
+   ════════════════════════════════════════════════════════ */
+async function loadGifts(userId) {
+  const el = document.getElementById('gifts-content');
+  el.innerHTML = '<div class="loading-msg">불러오는 중...</div>';
+
+  const SITE = 'https://juel2414.github.io/imlearning';
+  const STATUS_LABEL = {
+    pending: '대기 중', accepted: '수락됨', expired: '만료',
+    cancelled: '취소됨', refunded: '환불됨', already_owned: '이미 보유',
+  };
+
+  const [sentRes, receivedRes] = await Promise.all([
+    supabaseClient.from('gifts').select('*').eq('sender_id', userId).order('created_at', { ascending: false }),
+    supabaseClient.from('gifts').select('*').eq('recipient_id', userId).eq('status', 'accepted').order('created_at', { ascending: false }),
+  ]);
+
+  const sent     = sentRes.data     || [];
+  const received = receivedRes.data || [];
+
+  if (sent.length === 0 && received.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🎁</div>
+        <div class="empty-state-title">선물 내역이 없어요</div>
+        <div class="empty-state-desc">강좌 상세 페이지에서 소중한 분께 강의를 선물해보세요!</div>
+        <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+      </div>`;
+    return;
+  }
+
+  // course ID → title 조회
+  const allIds = [...new Set([...sent, ...received].map(g => g.course_id).filter(Boolean))];
+  let courseNames = {};
+  if (allIds.length) {
+    const { data: courses } = await supabaseClient.from('courses').select('id, title').in('id', allIds);
+    (courses || []).forEach(c => { courseNames[c.id] = c.title; });
+  }
+
+  function giftBadge(status) {
+    return `<span class="gift-status-badge ${status}">${STATUS_LABEL[status] || status}</span>`;
+  }
+
+  function sentCard(g) {
+    const title = courseNames[g.course_id] || '강좌';
+    const date  = new Date(g.created_at).toLocaleDateString('ko-KR');
+    const link  = `${SITE}/gift.html?code=${encodeURIComponent(g.gift_code)}`;
+    const toStr = g.recipient_email ? ` → ${g.recipient_email}` : '';
+    const canCancel = g.status === 'pending' || g.status === 'already_owned';
+    return `
+      <div class="gift-card">
+        <div class="gift-card-top">
+          <div>
+            <div class="gift-card-title">${title}</div>
+            <div class="gift-card-sub">${date}${toStr}</div>
+          </div>
+          ${giftBadge(g.status)}
+        </div>
+        ${g.status === 'pending' ? `
+        <div class="gift-card-btns">
+          <span class="gift-link-chip">${link}</span>
+          <button class="gift-btn-copy" onclick="copyGiftCode('${link}', this)">링크 복사</button>
+          <button class="gift-btn-cancel" onclick="openGiftCancelModal('${g.gift_code}', '${title.replace(/'/g,"\\'")}')">취소·환불</button>
+        </div>` : ''}
+        ${g.status === 'already_owned' ? `
+        <div class="gift-card-btns">
+          <button class="gift-btn-cancel" onclick="openGiftCancelModal('${g.gift_code}', '${title.replace(/'/g,"\\'")}')">환불</button>
+        </div>` : ''}
+      </div>`;
+  }
+
+  function receivedCard(g) {
+    const title = courseNames[g.course_id] || '강좌';
+    const date  = new Date(g.updated_at || g.created_at).toLocaleDateString('ko-KR');
+    const fromStr = g.sender_name ? `보낸 분: ${g.sender_name}` : '';
+    return `
+      <div class="gift-card">
+        <div class="gift-card-top">
+          <div>
+            <div class="gift-card-title">${title}</div>
+            <div class="gift-card-sub">${date}${fromStr ? '  ' + fromStr : ''}</div>
+          </div>
+          ${giftBadge(g.status)}
+        </div>
+      </div>`;
+  }
+
+  let html = '';
+  if (sent.length) {
+    html += `<div class="gift-section-title">📤 보낸 선물 (${sent.length})</div>`;
+    html += `<div class="gift-list">${sent.map(sentCard).join('')}</div>`;
+  }
+  if (received.length) {
+    html += `<div class="gift-section-title">📥 받은 선물 (${received.length})</div>`;
+    html += `<div class="gift-list">${received.map(receivedCard).join('')}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function copyGiftCode(link, btn) {
+  navigator.clipboard.writeText(link).then(() => {
+    btn.textContent = '복사됨!';
+    setTimeout(() => { btn.textContent = '링크 복사'; }, 1500);
+  }).catch(() => { prompt('아래 링크를 복사해주세요:', link); });
+}
+
+let _cancelGiftCode = null;
+function openGiftCancelModal(giftCode, title) {
+  _cancelGiftCode = giftCode;
+  document.getElementById('gift-cancel-modal-body').innerHTML =
+    `<strong>${title}</strong><br><br>선물을 취소하고 환불 신청을 하시겠어요?<br>미수락 선물은 전액 환불됩니다.`;
+  document.getElementById('gift-cancel-modal').style.display = 'flex';
+}
+
+function closeGiftCancelModal() {
+  document.getElementById('gift-cancel-modal').style.display = 'none';
+  _cancelGiftCode = null;
+}
+
+async function submitGiftCancel() {
+  if (!_cancelGiftCode) return;
+  const btn = document.getElementById('gift-cancel-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const res = await fetch('https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/refund-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ giftCode: _cancelGiftCode }),
+    });
+    const result = await res.json();
+    closeGiftCancelModal();
+    if (result.success) {
+      alert(result.refund_amount > 0
+        ? `취소 및 환불이 완료됐어요.\n환불금액: ₩${Number(result.refund_amount).toLocaleString()}`
+        : '선물이 취소됐어요.');
+      loadGifts(gUserId);
+    } else {
+      alert('처리 실패: ' + (result.error || '다시 시도해주세요.'));
+    }
+  } catch(e) {
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '취소·환불 확인';
+  }
+}
+
 loadMyPage();
 
 /* ════════════════════════════════════════════════════════
@@ -1272,6 +1450,22 @@ async function submitRefund() {
   }
 }
 </script>
+
+<!-- 선물 취소·환불 모달 -->
+<div id="gift-cancel-modal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <h3 style="margin:0 0 1rem;font-size:18px;font-weight:800;">선물 취소·환불</h3>
+    <div id="gift-cancel-modal-body" style="font-size:14px;color:#555;line-height:1.8;margin-bottom:1rem;"></div>
+    <div style="background:#FEF3C7;border-radius:8px;padding:12px 14px;font-size:12px;color:#92400E;margin-bottom:1.5rem;line-height:1.7;">
+      ⚠️ 아직 수락되지 않은 선물만 취소·환불이 가능합니다.<br>
+      수락된 선물은 취소·환불이 불가능합니다.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="closeGiftCancelModal()" style="padding:10px 20px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;font-weight:600;">닫기</button>
+      <button id="gift-cancel-confirm-btn" onclick="submitGiftCancel()" style="padding:10px 20px;border-radius:8px;background:#EF4444;color:#fff;border:none;cursor:pointer;font-weight:700;font-size:14px;">취소·환불 확인</button>
+    </div>
+  </div>
+</div>
 
 <!-- 환불 신청 모달 -->
 <div id="refund-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
