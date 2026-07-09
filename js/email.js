@@ -10,7 +10,7 @@
       // welcome 이메일은 세션 없이도 발송 (가입 직후)
       if (type !== 'welcome' && client) {
         const { data: { session } } = await client.auth.getSession();
-        if (!session?.access_token) return;
+        if (!session || !session.access_token) return;
         token = session.access_token;
       }
 

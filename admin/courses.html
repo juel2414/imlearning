@@ -90,31 +90,7 @@
 </head>
 <body>
 
-<button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-text">아이엠<span>러닝</span></div>
-      <div class="sidebar-logo-sub">관리자 페이지</div>
-    </div>
-    <div class="nav-section">메인</div>
-    <a href="index.html" class="nav-item">📊 대시보드</a>
-    <div class="nav-section">강좌 관리</div>
-    <a href="courses.html" class="nav-item active">📚 강좌 관리</a>
-    <a href="instructors.html" class="nav-item">👨‍🏫 강사 관리</a>
-    <div class="nav-section">프로모션</div>
-    <a href="promotions.html" class="nav-item">🎯 프로모션 관리</a>
-    <div class="nav-section">콘텐츠</div>
-    <a href="notices.html" class="nav-item">📢 공지사항</a>
-    <a href="banners.html" class="nav-item">🎨 배너 관리</a>
-    <div class="nav-section">설정</div>
-    <a href="settings.html" class="nav-item">⚙️ 사이트 설정</a>
-    <a href="../index.html" class="nav-item">🌐 사이트 보기</a>
-    <a href="login.html" class="nav-item" onclick="sessionStorage.removeItem('admin_auth')">🚪 로그아웃</a>
-  </aside>
-
-  <main class="main">
+<div class="admin-main">
     <div class="page-header">
       <div>
         <h1 class="page-title">📚 강좌 관리</h1>
@@ -269,7 +245,6 @@
         <div class="empty" style="color:#aaa;font-size:13px;">강좌를 선택하면 강의별 시청 통계를 확인할 수 있어요</div>
       </div>
     </div>
-  </main>
 </div>
 
 <div class="toast" id="toast"></div>

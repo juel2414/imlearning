@@ -324,7 +324,7 @@
       <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
       <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a></div>
     </div>
-    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+    <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
   </div>
 </footer>
 
@@ -540,11 +540,16 @@ async function toggleLesson(lessonId, lessonTitle, completed) {
 }
 
 function resumeCourse() {
-  // 마지막으로 본 강의로 스크롤 + 커리큘럼 탭 활성화
-  document.querySelector('.detail-tab[onclick*="curriculum"]').click();
+  const tab = document.querySelector('.detail-tab[onclick*="curriculum"]');
+  if (tab && !tab.classList.contains('active')) tab.click();
   if (lastWatchedLesson) {
     const el = document.querySelector(`[data-lesson="${lastWatchedLesson.lesson_id}"]`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const n = parseInt(lastWatchedLesson.lesson_id.replace(/[^0-9]/g, '')) || 1;
+      const videoUrl = el.dataset.videoUrl || (currentCourse ? currentCourse.vimeo_url : null);
+      if (videoUrl) openLesson(n, lastWatchedLesson.lesson_title || '', videoUrl);
+    }
   }
 }
 
@@ -660,7 +665,13 @@ async function loadCourse() {
 
   // 가격 정보
   const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
-  document.getElementById('purchase-price').textContent = '₩' + Number(currentPrice).toLocaleString();
+  if (!currentPrice) {
+    document.getElementById('purchase-price').textContent = '무료';
+    const buyBtn = document.getElementById('buy-btn');
+    if (buyBtn) buyBtn.textContent = '무료 수강 신청하기';
+  } else {
+    document.getElementById('purchase-price').textContent = '₩' + Number(currentPrice).toLocaleString();
+  }
 
   if (isDiscounted) {
     const origEl = document.getElementById('purchase-original');
@@ -739,6 +750,45 @@ async function requestPayment() {
 
   const { currentPrice } = getCurrentPrice(currentCourse);
   const finalPrice = Math.max(0, currentPrice - couponDiscount);
+
+  // ── 무료 수강 신청 (가격이 0원이거나 쿠폰 전액 할인) ──────────────
+  if (finalPrice === 0) {
+    btn.disabled = true;
+    const originalBtnText = btn.textContent;
+    btn.textContent = '등록 중...';
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token,
+        },
+        body: JSON.stringify({
+          courseId: currentCourse.id,
+          amount: 0,
+          couponCode: appliedCoupon ? appliedCoupon.code : null,
+          couponId: appliedCoupon ? appliedCoupon.id : null,
+        }),
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        alert('수강 등록에 실패했습니다: ' + (verifyData.error || '오류가 발생했습니다.'));
+        return;
+      }
+      window.location.href = 'payment-success.html?courseId=' + currentCourse.id +
+        '&amount=0' +
+        '&courseName=' + encodeURIComponent(currentCourse.title);
+    } catch (error) {
+      console.error('무료 등록 오류:', error);
+      alert('수강 등록 중 오류가 발생했습니다.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalBtnText;
+    }
+    return;
+  }
+
   const paymentId = crypto.randomUUID().replace(/-/g, ''); // 이니시스 40자 제한
 
   btn.disabled = true;

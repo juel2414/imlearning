@@ -305,7 +305,7 @@
       <div class="footer-col"><div class="footer-col-title">강좌</div><a href="#">신앙</a><a href="#">교사·부모</a></div>
       <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
     </div>
-    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+    <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
   </div>
 </footer>
 
@@ -946,7 +946,54 @@ function renderCerts(orders, coursesMap) {
 }
 
 function downloadCert(title, date) {
-  alert(`"${title}" 수료증 다운로드 기능은 준비 중이에요!`);
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>수료증 — ${title}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Serif KR','Apple SD Gothic Neo',serif; background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .cert { width:800px; min-height:560px; border:10px solid #2D9B6F; border-inner:4px solid #c8eada; padding:60px 70px; text-align:center; position:relative; }
+  .cert::before { content:''; position:absolute; inset:14px; border:1.5px solid #c8eada; pointer-events:none; }
+  .logo { font-size:22px; font-weight:700; color:#2D9B6F; letter-spacing:2px; margin-bottom:32px; }
+  .cert-label { font-size:13px; letter-spacing:6px; color:#888; margin-bottom:18px; }
+  .cert-title { font-size:42px; font-weight:700; color:#111; letter-spacing:-1px; margin-bottom:40px; }
+  .course-name { font-size:20px; font-weight:700; color:#2D9B6F; border-bottom:2px solid #2D9B6F; display:inline-block; padding-bottom:6px; margin-bottom:32px; }
+  .cert-body { font-size:16px; color:#444; line-height:2; margin-bottom:40px; }
+  .cert-meta { display:flex; justify-content:space-between; align-items:flex-end; padding-top:28px; border-top:1px solid #ddd; }
+  .cert-date { font-size:14px; color:#666; }
+  .cert-sign { text-align:center; }
+  .cert-sign-name { font-size:18px; font-weight:700; border-top:1px solid #333; padding-top:8px; margin-top:32px; }
+  .cert-sign-role { font-size:12px; color:#666; margin-top:4px; }
+  @media print { body { min-height:auto; } .no-print { display:none; } }
+</style>
+</head>
+<body>
+<div class="cert">
+  <div class="logo">아이엠러닝 IMlearning</div>
+  <div class="cert-label">CERTIFICATE OF COMPLETION</div>
+  <div class="cert-title">수 료 증</div>
+  <div class="course-name">${title}</div>
+  <div class="cert-body">
+    위 수강생은 아이엠러닝(IMlearning)에서 제공하는<br>
+    위 과정을 성실히 이수하였음을 증명합니다.
+  </div>
+  <div class="cert-meta">
+    <div class="cert-date">수료일: ${date}</div>
+    <div class="cert-sign">
+      <div style="font-size:13px;color:#888;margin-bottom:4px;">발행처</div>
+      <div class="cert-sign-name">아이엠러닝 (IMlearning)</div>
+      <div class="cert-sign-role">대표: 이수열</div>
+    </div>
+  </div>
+</div>
+<script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`);
+  win.document.close();
 }
 
 function renderWishlist(wishCourses) {

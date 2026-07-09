@@ -17,9 +17,9 @@
     '.nb-ham.open span:nth-child(3){transform:translateY(-8px) rotate(-45deg);}',
 
     /* 오버레이 */
-    '.nb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);',
-    'z-index:89;backdrop-filter:blur(2px);}',
-    '.nb-overlay.open{display:block;}',
+    '.nb-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.4);',
+    'z-index:89;pointer-events:none;}',
+    '.nb-overlay.open{display:block;pointer-events:auto;}',
 
     /* 검색 버튼 */
     '#nb-search-btn{display:flex;align-items:center;justify-content:center;',
