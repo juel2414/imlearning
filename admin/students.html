@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>수강생 관리 — 아이엠러닝 관리자</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="admin-common.css">
 <style>
 * { box-sizing:border-box; word-break:keep-all; }
 body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
@@ -87,7 +88,7 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 .lesson-bar-fill { border-radius:10px; height:8px; transition:width .5s; }
 .lesson-done-badge { font-size:11px; font-weight:700; color:#16A34A; margin-left:6px; }
 
-@media(max-width:768px) { .admin-main { padding:1rem; } .kpi-row { grid-template-columns:1fr 1fr; } .search-input { width:100%; } }
+@media(max-width:1023px) { .admin-main { padding:1rem; } .kpi-row { grid-template-columns:1fr 1fr; } .search-input { width:100%; } }
 </style>
 </head>
 <body>
@@ -295,7 +296,7 @@ function renderTable() {
     return;
   }
 
-  var html = '<table><thead><tr>' +
+  var html = '<div class="table-wrap"><table><thead><tr>' +
     '<th>이름 / 이메일</th><th>수강 강좌</th><th>평균 진행률</th>' +
     '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th></th>' +
     '</tr></thead><tbody>';
@@ -321,7 +322,7 @@ function renderTable() {
       '</tr>';
   });
 
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   el.innerHTML = html;
 }
 

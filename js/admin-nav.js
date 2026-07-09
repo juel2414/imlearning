@@ -71,8 +71,8 @@
     '#an-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;}',
     '#an-ov.open{display:block;}',
 
-    /* 모바일 */
-    '@media(max-width:768px){',
+    /* 태블릿·모바일 (≤1023px) */
+    '@media(max-width:1023px){',
     '#an-sb{transform:translateX(-100%);}',
     '#an-sb.open{transform:translateX(0);}',
     '#an-ham{display:flex;}',

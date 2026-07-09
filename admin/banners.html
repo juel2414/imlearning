@@ -5,20 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>배너 관리 — 아이엠러닝 관리자</title>
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="admin-common.css">
   <style>
     body { background: #F8F9FA; }
-    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
-    .admin-sidebar { background: var(--black); position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
-    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: #fff; }
-    .admin-logo span { color: #2D9B6F; }
-    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
-    .admin-nav { padding: 1rem 0; }
-    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
-    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all 0.2s; text-decoration: none; }
-    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; border-right: 2px solid #2D9B6F; }
-    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
-    .admin-main { margin-left: 220px; padding: 2rem; }
+    .admin-main { padding: 2rem; }
     .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
     .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
     .admin-card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
@@ -63,28 +53,7 @@
 </head>
 <body>
 
-<div class="admin-layout">
-  <aside class="admin-sidebar">
-    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
-    <nav class="admin-nav">
-      <div class="admin-nav-section">메인</div>
-      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
-      <div class="admin-nav-section">강좌 관리</div>
-      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
-      <a href="instructors.html" class="admin-nav-item"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
-      <div class="admin-nav-section">프로모션</div>
-      <a href="promotions.html" class="admin-nav-item"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
-      <div class="admin-nav-section">콘텐츠</div>
-      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
-      <a href="banners.html" class="admin-nav-item active"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
-      <div class="admin-nav-section">설정</div>
-      <a href="settings.html" class="admin-nav-item"><span class="admin-nav-icon">⚙️</span> 사이트 설정</a>
-      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
-      <a href="login.html" class="admin-nav-item" onclick="logout();return false;"><span class="admin-nav-icon">🚪</span> 로그아웃</a>
-    </nav>
-  </aside>
-
-  <main class="admin-main">
+<main class="admin-main">
     <div class="admin-header">
       <h1>🎨 배너 관리</h1>
     </div>
@@ -244,7 +213,6 @@
     </div>
 
   </main>
-</div>
 
 <div class="success-toast" id="toast"></div>
 

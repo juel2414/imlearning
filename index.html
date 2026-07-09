@@ -364,7 +364,7 @@
             <a id="js-cta1" href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
             <a id="js-cta2" href="about.html" class="btn btn-outline">아이엠러닝 소개</a>
           </div>
-          <div class="lp-hero-stats">
+          <div class="lp-hero-stats" id="js-hero-stats">
             <div><div class="lp-hstat-num">5<span>년+</span></div><div class="lp-hstat-lbl">안정적 운영</div></div>
             <div><div class="lp-hstat-num">1,200<span>명+</span></div><div class="lp-hstat-lbl">누적 수강생</div></div>
             <div><div class="lp-hstat-num">50<span>개+</span></div><div class="lp-hstat-lbl">온라인 강좌</div></div>
@@ -372,9 +372,9 @@
         </div>
         <div class="lp-hero-visual">
           <div class="lp-hero-img" id="js-hero-img">🎓</div>
-          <div class="lp-scard sc1"><div class="lp-scard-ico">👥</div><div class="lp-scard-val">1,200<span>+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
-          <div class="lp-scard sc2"><div class="lp-scard-ico">📚</div><div class="lp-scard-val">50<span>+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
-          <div class="lp-scard sc3"><div class="lp-scard-ico">🏆</div><div class="lp-scard-val">95<span>%</span></div><div class="lp-scard-lbl">수료율</div></div>
+          <div class="lp-scard sc1" id="js-scard-1"><div class="lp-scard-ico">👥</div><div class="lp-scard-val">1,200<span>명+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
+          <div class="lp-scard sc2" id="js-scard-2"><div class="lp-scard-ico">📚</div><div class="lp-scard-val">50<span>개+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
+          <div class="lp-scard sc3" id="js-scard-3"><div class="lp-scard-ico">🏆</div><div class="lp-scard-val">99<span>%</span></div><div class="lp-scard-lbl">수료율</div></div>
         </div>
       </div>
     </div>
@@ -387,7 +387,7 @@
         <div class="lp-trust-item reveal"><div class="lp-tnum" data-target="5" data-suffix="년+">0년+</div><div class="lp-tlbl">안정적 운영</div></div>
         <div class="lp-trust-item reveal reveal-delay-1"><div class="lp-tnum" data-target="1200" data-suffix="명+">0명+</div><div class="lp-tlbl">누적 수강생</div></div>
         <div class="lp-trust-item reveal reveal-delay-2"><div class="lp-tnum" data-target="50" data-suffix="개+">0개+</div><div class="lp-tlbl">온라인 강좌</div></div>
-        <div class="lp-trust-item reveal reveal-delay-3"><div class="lp-tnum" data-target="95" data-suffix="%">0%</div><div class="lp-tlbl">수료율</div></div>
+        <div class="lp-trust-item reveal reveal-delay-3"><div class="lp-tnum" data-target="99" data-suffix="%">0%</div><div class="lp-tlbl">수료율</div></div>
       </div>
     </div>
   </section>
@@ -564,7 +564,7 @@ const LP = {
   sections_order: ['hero','trust','personas','features','instructors','courses','reviews','certificate','faq','cta'],
   sections_visible: {},
   hero: { slogan:'온 교회가 함께 배우고,\n함께 성장합니다', subcopy:'2020년부터 목사님, 교사, 부모, 학생까지', cta1_text:'강좌 둘러보기', cta1_url:'courses.html', cta2_text:'아이엠러닝 소개', cta2_url:'about.html', bg_from:'#e8f5ee', bg_to:'#f5fff8', image_url:'' },
-  trust: { items:[{value:5,unit:'년+',label:'안정적 운영'},{value:1200,unit:'명+',label:'누적 수강생'},{value:50,unit:'개+',label:'온라인 강좌'},{value:95,unit:'%',label:'수료율'}] },
+  trust: { items:[{value:5,unit:'년+',label:'안정적 운영'},{value:1200,unit:'명+',label:'누적 수강생'},{value:50,unit:'개+',label:'온라인 강좌'},{value:99,unit:'%',label:'수료율'}] },
   personas: { title:'이런 분들에게 추천해요', items:[{icon:'⛪',title:'목사님·사역자',desc:'설교와 사역에 바로 적용할 수 있는 성경 기반 강의'},{icon:'👨‍🏫',title:'교회학교 교사',desc:'교사 교육부터 수업 설계까지 체계적으로'},{icon:'👨‍👩‍👧',title:'부모님',desc:'신앙 안에서 자녀를 세워가는 부모 교육'},{icon:'📖',title:'학생·청년',desc:'검정고시, 영어, 신앙까지 한 곳에서'}] },
   features: { title:'왜 아이엠러닝인가요?', items:[{icon:'✝️',title:'성경적 세계관 기반',desc:'모든 강의는 성경적 가치관을 기반으로 설계되어 신앙과 배움이 분리되지 않습니다.'},{icon:'🎯',title:'현장 중심 실전 커리큘럼',desc:'교회·가정·선교 현장에서 바로 적용할 수 있는 실전형 강의로 구성됩니다.'},{icon:'🤝',title:'함께 성장하는 공동체',desc:'같은 가치관을 가진 교사, 부모, 사역자들과 함께 배우고 성장합니다.'}] },
   reviews: { title:'수강생 후기', items:[{text:'CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 현장에 바로 적용할 수 있었습니다.',name:'김○○ 집사',course:'CBUP 수료과정',emoji:'😊'},{text:'부모대안학교 수강 후 아이와의 대화가 달라졌어요. 신앙적 관점에서 자녀를 바라보는 시각이 생겼습니다.',name:'박○○ 권사',course:'부모대안학교',emoji:'🙂'},{text:'영단속 영어기도 강의 듣고 나서 자연스럽게 영어로 기도할 수 있게 됐어요!',name:'이○○ 성도',course:'영단속 영어기도',emoji:'😄'}] },
@@ -611,17 +611,40 @@ function applyHero(c) {
   if (c.font) s.style.fontFamily = c.font;
 }
 
-// 신뢰 숫자
+// 신뢰 숫자 — 히어로 통계 · 신뢰 섹션 · 플로팅 카드를 단일 데이터로 동기화
 function applyTrust(c) {
   if (!c) return;
+  const items = c.items || [];
+
+  // 1. 신뢰 섹션 (카운트업 애니메이션)
   const g = document.getElementById('js-trust');
-  if (!g) return;
-  const dl = ['','reveal-delay-1','reveal-delay-2','reveal-delay-3'];
-  g.innerHTML = c.items.map((it,i) => `
-    <div class="lp-trust-item reveal ${dl[i]}">
-      <div class="lp-tnum" data-target="${it.value}" data-suffix="${it.unit}">0${it.unit}</div>
-      <div class="lp-tlbl">${it.label}</div>
-    </div>`).join('');
+  if (g) {
+    const dl = ['','reveal-delay-1','reveal-delay-2','reveal-delay-3'];
+    g.innerHTML = items.map((it,i) => `
+      <div class="lp-trust-item reveal ${dl[i]}">
+        <div class="lp-tnum" data-target="${it.value}" data-suffix="${it.unit}">0${it.unit}</div>
+        <div class="lp-tlbl">${it.label}</div>
+      </div>`).join('');
+  }
+
+  // 2. 히어로 하단 통계 (처음 3개)
+  const hs = document.getElementById('js-hero-stats');
+  if (hs) {
+    hs.innerHTML = items.slice(0, 3).map(it =>
+      `<div><div class="lp-hstat-num">${Number(it.value).toLocaleString()}<span>${it.unit}</span></div><div class="lp-hstat-lbl">${it.label}</div></div>`
+    ).join('');
+  }
+
+  // 3. 플로팅 카드 (sc1=items[1], sc2=items[2], sc3=items[3])
+  [[1,'js-scard-1'],[2,'js-scard-2'],[3,'js-scard-3']].forEach(([idx, id]) => {
+    const el = document.getElementById(id);
+    const it = items[idx];
+    if (!el || !it) return;
+    const val = el.querySelector('.lp-scard-val');
+    const lbl = el.querySelector('.lp-scard-lbl');
+    if (val) val.innerHTML = `${Number(it.value).toLocaleString()}<span>${it.unit}</span>`;
+    if (lbl) lbl.textContent = it.label;
+  });
 }
 
 // 페르소나

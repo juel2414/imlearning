@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>강좌 관리 — 아이엠러닝 관리자</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="admin-common.css">
 <style>
   * { box-sizing: border-box; word-break: keep-all; }
   body { margin: 0; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #F8F9FA; color: #111; }
@@ -77,11 +78,10 @@
   .toast.show { display: block; }
   .toast.error { background: #EF4444; }
   .menu-btn { display: none; }
-  @media (max-width: 768px) {
+  @media (max-width: 1023px) {
     .layout { flex-direction: column; }
     .sidebar { width: 100%; position: fixed; top: 0; left: 0; height: 100vh; z-index: 200; transform: translateX(-100%); transition: 0.25s; overflow-y: auto; }
     .sidebar.open { transform: translateX(0); }
-    .main { padding: 16px; padding-top: 64px; }
     .menu-btn { display: flex; align-items: center; justify-content: center; position: fixed; top: 14px; left: 14px; z-index: 250; width: 38px; height: 38px; border-radius: 8px; background: #111318; color: #fff; border: none; font-size: 16px; }
     .form-grid, .price-grid { grid-template-columns: 1fr; }
     .search-input { width: 100%; }
@@ -489,7 +489,7 @@ function renderTable(list) {
       '</div></td>' +
       '</tr>';
   }).join('');
-  return '<table><thead><tr><th>썸네일</th><th>강좌명</th><th>카테고리</th><th>난이도</th><th>강사</th><th>가격</th><th>강의수</th><th>상태</th><th>관리</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  return '<div class="table-wrap"><table><thead><tr><th>썸네일</th><th>강좌명</th><th>카테고리</th><th>난이도</th><th>강사</th><th>가격</th><th>강의수</th><th>상태</th><th>관리</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
 function showToast(msg, isError) {
@@ -585,7 +585,7 @@ async function loadLessonStats(courseId) {
     html += '</div>';
   }
 
-  html += '<table><thead><tr><th>강의</th><th>시청 수강생</th><th>평균 시청시간</th><th>평균 진행률</th><th>완료율</th></tr></thead><tbody>';
+  html += '<div class="table-wrap"><table><thead><tr><th>강의</th><th>시청 수강생</th><th>평균 시청시간</th><th>평균 진행률</th><th>완료율</th></tr></thead><tbody>';
   lessonStats.forEach(function(ls) {
     var barColor = ls.avgPct >= 80 ? '#2D9B6F' : ls.avgPct >= 50 ? '#F59E0B' : '#EF4444';
     var warn     = ls.avgPct < 50 ? ' ⚠️' : '';
@@ -602,7 +602,7 @@ async function loadLessonStats(courseId) {
       '<td>' + donePct + '%</td>' +
       '</tr>';
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   body.innerHTML = html;
 }
 

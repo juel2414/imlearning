@@ -1,0 +1,145 @@
+/* admin-common.css — 어드민 공통 반응형 스타일 v1 */
+/* 모든 어드민 페이지에서 로드. admin-nav.js와 함께 사용. */
+
+/* ── 기본 리셋 ── */
+* { box-sizing: border-box; word-break: keep-all; }
+body { margin: 0; font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; }
+
+/* ── 기존 정적 사이드바/레이아웃 무효화 ── */
+/* admin-nav.js가 aside.admin-sidebar를 숨기므로, admin-layout 그리드도 block으로 전환 */
+.admin-sidebar { display: none !important; }
+.admin-layout  { display: block !important; }
+
+/* ── 메인 콘텐츠 영역 ── */
+/* .main 은 courses.html, instructors.html에서 사용 */
+.admin-main { padding: 2rem; min-height: 100vh; }
+
+/* ── 페이지 헤더 ── */
+.admin-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.admin-header h1 { font-size: 24px; font-weight: 800; margin: 0; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ── 카드 ── */
+.admin-card {
+  background: #fff; border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.06); overflow: hidden; margin-bottom: 1.5rem;
+}
+.admin-card-header {
+  padding: 16px 22px; border-bottom: 1px solid rgba(0,0,0,.05);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.admin-card-title { font-size: 15px; font-weight: 700; }
+.admin-card-body  { padding: 22px; }
+
+/* ── 폼 ── */
+.form-group  { margin-bottom: 1.25rem; }
+.form-label  {
+  display: block; font-size: 12px; font-weight: 700; color: #111;
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid rgba(0,0,0,.1); border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: #fff;
+  transition: border-color .2s; box-sizing: border-box;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: #2D9B6F;
+}
+.form-textarea  { resize: vertical; min-height: 120px; }
+.form-row       { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-row-3     { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.form-actions   {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: flex-end; margin-top: 1rem;
+}
+
+/* ── 버튼 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 8px; font-size: 13px;
+  font-weight: 700; cursor: pointer; border: none;
+  font-family: inherit; white-space: nowrap;
+}
+.btn-primary   { background: #2D9B6F; color: #fff; }
+.btn-primary:hover { background: #1A7A4A; }
+.btn-secondary { background: #fff; color: #555; border: 1px solid rgba(0,0,0,.12); }
+.btn-danger    { background: #fff; color: #EF4444; border: 1px solid #FCA5A5; }
+.btn-sm        { padding: 5px 12px; font-size: 12px; }
+
+/* ── 테이블 ── */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+.table-wrap table,
+.table-wrap > table { min-width: 500px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  padding: 9px 14px; text-align: left; font-size: 11px;
+  color: #888; background: #F8F9FA; white-space: nowrap; font-weight: 600;
+}
+td {
+  padding: 11px 14px; border-bottom: 1px solid rgba(0,0,0,.04);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+
+/* ── 뱃지 ── */
+.badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 11px;
+  font-weight: 600; white-space: nowrap;
+  display: inline-flex; align-items: center;
+}
+
+/* ── 2열 페이지 레이아웃 (PC 전용) ── */
+.page-grid-2   { display: grid; grid-template-columns: 1fr 1fr;       gap: 1.5rem; align-items: start; }
+.page-grid-3-2 { display: grid; grid-template-columns: 3fr 2fr;       gap: 1.5rem; align-items: start; }
+
+/* ── 토스트 ── */
+.success-toast {
+  display: none; position: fixed; top: 1.5rem; right: 1.5rem;
+  background: #2D9B6F; color: #fff; padding: 12px 20px;
+  border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999;
+}
+.success-toast.show { display: block; }
+
+/* ── 태블릿 (769px – 1023px) ── */
+@media (max-width:1023px) {
+  /* 햄버거 버튼 공간 확보 — !important로 인라인 스타일 덮어쓰기 */
+  .admin-main          { padding: 1.25rem 1rem; padding-top: 60px !important; }
+  .main                { padding: 1.25rem 1rem; padding-top: 60px !important; }
+  .page-grid-2,
+  .page-grid-3-2       { grid-template-columns: 1fr; }
+  .form-row-3          { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── 모바일 (최대 767px) ── */
+@media (max-width:767px) {
+  .admin-main          { padding: 1rem; padding-top: 60px !important; }
+  .main                { padding: 1rem; padding-top: 60px !important; }
+  .admin-header        { flex-direction: column; align-items: flex-start; }
+  .admin-header h1     { font-size: 20px; }
+  .form-row,
+  .form-row-3          { grid-template-columns: 1fr; }
+  .page-grid-2,
+  .page-grid-3-2       { grid-template-columns: 1fr; }
+  .form-actions        { justify-content: stretch; }
+  .form-actions .btn   { flex: 1; justify-content: center; }
+
+  /* 테이블 → 카드 변환 (선택적: .table-card-mobile 클래스 사용 시) */
+  .table-card-mobile table,
+  .table-card-mobile thead { display: none; }
+  .table-card-mobile .m-card {
+    display: block; background: #fff;
+    border: 1px solid rgba(0,0,0,.08); border-radius: 10px;
+    padding: 14px; margin-bottom: 10px; font-size: 13px;
+  }
+  .table-card-mobile .m-card-row {
+    display: flex; justify-content: space-between;
+    padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,.05);
+  }
+  .table-card-mobile .m-card-row:last-child { border-bottom: none; }
+  .table-card-mobile .m-label { color: #888; font-size: 11px; }
+}
