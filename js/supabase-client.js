@@ -7,6 +7,29 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const supabaseClient = window.supabaseClient;
 
+// ───── 이메일 발송 헬퍼 (Edge Function: send-email 호출) ─────
+// type: 'welcome' | 'payment' | 'completion' | 'new_course'
+// welcome은 로그인 전에도 쓰이므로 anon 키, 그 외에는 로그인 세션 토큰 사용.
+// 발송 실패는 무시하여 호출한 쪽 흐름(가입/결제 등)을 막지 않는다.
+async function sendEmail(type, data) {
+  try {
+    let authToken = SUPABASE_ANON_KEY;
+    if (type !== 'welcome') {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.access_token) authToken = session.access_token;
+    }
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({ type: type, data: data || {} }),
+    });
+    if (!res.ok) console.error('sendEmail 응답 오류:', res.status, await res.text());
+  } catch (e) {
+    console.error('sendEmail 실패(무시):', e);
+  }
+}
+window.sendEmail = sendEmail;
+
 // ───── 강좌 목록 가져오기 ─────
 async function fetchCourses(filter = {}) {
   let query = supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
