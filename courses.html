@@ -191,6 +191,16 @@ function renderSidebar(cat) {
 function switchSub(sub, el) {
   document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
+
+  // '전체' 뷰의 사이드바는 카테고리 이름 → 실제 카테고리 전환
+  if (currentCat === 'all') {
+    const labelToKey = Object.fromEntries(Object.entries(CATEGORY_LABELS).map(([k, v]) => [v, k]));
+    const catKey = sub === '전체' ? 'all' : labelToKey[sub];
+    if (catKey) {
+      const btn = document.querySelector(`.top-cat-btn[onclick*="'${catKey}'"]`);
+      if (btn) switchCat(catKey, btn);
+    }
+  }
 }
 
 // ───── 카테고리 전환 ─────
