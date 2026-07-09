@@ -765,10 +765,10 @@ async function requestPayment() {
     return;
   }
 
-  // profiles에서 이름·전화번호 조회
+  // profiles에서 이름·전화번호 조회 (행 없어도 에러 안 냄)
   let profile = {};
   try {
-    const { data } = await supabaseClient.from('profiles').select('name, phone').eq('id', user.id).single();
+    const { data } = await supabaseClient.from('profiles').select('name, phone').eq('id', user.id).maybeSingle();
     if (data) profile = data;
   } catch(e) {}
 
@@ -789,11 +789,13 @@ async function requestPayment() {
       totalAmount: finalPrice,
       currency: 'KRW',
       payMethod: 'CARD',
-      customer: {
-        email: user.email || '',
-        ...(profile.phone ? { phoneNumber: profile.phone } : {}),
-        fullName: profile.name || user.user_metadata?.full_name || user.email || '',
-      },
+      customer: (() => {
+        const c = { email: user.email || '' };
+        if (profile?.name) c.fullName = profile.name;
+        else if (user.user_metadata?.full_name) c.fullName = user.user_metadata.full_name;
+        if (profile?.phone) c.phoneNumber = profile.phone;
+        return c;
+      })(),
     });
 
     if (payment.code) {
