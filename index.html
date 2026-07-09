@@ -540,8 +540,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-col-title">서비스</div>
-        <a href="instructor.html">강사 소개</a>
-        <a href="notice.html">공지사항</a>
+        <a href="about.html">강사 소개</a>
         <a href="contact.html">문의하기</a>
         <a href="about.html">About Us</a>
       </div>
@@ -899,10 +898,11 @@ async function initPersonal() {
     document.getElementById('lp-greet').textContent = userName + '님, 환영합니다 👋';
     document.getElementById('lp-personal').classList.add('show');
 
-    // 수강 중인 강좌
-    const { data: orders } = await sb.from('orders').select('course_id, progress')
-      .eq('user_id', user.id).eq('status', 'paid').order('created_at', { ascending: false }).limit(3);
-    if (orders && orders.length > 0) {
+    // 수강 중인 강좌 (환불 제외)
+    const { data: allOrders } = await sb.from('orders').select('course_id, progress, refund_status')
+      .eq('user_id', user.id).eq('status', 'paid').order('created_at', { ascending: false });
+    const orders = (allOrders || []).filter(o => o.refund_status !== 'refunded' && o.refund_status !== 'partial').slice(0, 3);
+    if (orders.length > 0) {
       const ids = orders.map(o => o.course_id);
       const { data: cList } = await sb.from('courses').select('id,title,thumbnail_url').in('id', ids);
       const cMap = {};
