@@ -1065,6 +1065,7 @@ async function loadMyPage() {
     .select('*')
     .eq('user_id', user.id)
     .eq('status', 'paid')
+    .neq('refund_status', 'refunded')
     .order('created_at', { ascending: false });
 
   if (orderError && orderError.code !== 'PGRST116') {

@@ -225,6 +225,37 @@
       </div>
       <div class="card-body" id="course-content-area"><div class="empty">강좌 목록을 불러오는 중...</div></div>
     </div>
+    <!-- 강의 목록 관리 -->
+    <div class="card" id="lesson-mgmt-card" style="display:none;margin-top:20px;">
+      <div class="card-header">
+        <span class="card-title">📋 강의 목록 — <span id="lesson-mgmt-title" style="color:#2D9B6F;"></span></span>
+        <button class="add-btn" onclick="openLessonForm(null)">+ 강의 추가</button>
+      </div>
+      <div class="card-body" id="lesson-mgmt-body"><div class="empty">불러오는 중...</div></div>
+      <div id="lesson-form" style="display:none;border-top:1px solid rgba(0,0,0,.06);padding:20px 24px;background:#fafafa;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px;" id="lesson-form-title">강의 추가</div>
+        <div class="form-grid">
+          <div class="form-group full"><label>강의 제목</label><input type="text" id="lf-title" placeholder="예: CBUP 오리엔테이션 — 이 과정을 시작하며"></div>
+          <div class="form-group full">
+            <label>영상 URL (YouTube 또는 Vimeo)</label>
+            <input type="url" id="lf-url" placeholder="https://www.youtube.com/watch?v=... 또는 https://vimeo.com/...">
+          </div>
+          <div class="form-group"><label>섹션 제목 (선택)</label><input type="text" id="lf-section" placeholder="예: 1강~10강 · 성경적 세계관 기초"></div>
+          <div class="form-group"><label>순서 번호</label><input type="number" id="lf-order" placeholder="0" min="0"></div>
+          <div class="form-group"><label>공개 설정</label>
+            <select id="lf-free">
+              <option value="false">🔒 수강생만 (잠금)</option>
+              <option value="true">🔓 무료 미리보기</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,0,0,.06);">
+          <button class="btn-cancel" onclick="closeLessonForm()">취소</button>
+          <button class="btn-save" id="lf-save-btn" onclick="saveLesson()">저장</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 강의별 시청 현황 -->
     <div class="card" style="margin-top:20px;">
       <div class="card-header">
@@ -484,6 +515,7 @@ function renderTable(list) {
       '<td>' + (c.lessons ? c.lessons + '강' : '-') + '</td>' +
       '<td><span class="badge ' + (c.status==='active'?'active':'hidden') + '">' + (c.status==='active'?'판매중':'비공개') + '</span>' + (c.featured ? '<span class="badge promo" style="margin-left:4px;">추천</span>' : '') + '</td>' +
       '<td><div class="action-btns">' +
+        '<button class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;" onclick="openLessonMgmt(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\')">강의</button>' +
         '<button class="btn-sm edit" onclick="editCourse(' + c.id + ')">수정</button>' +
         '<button class="btn-sm del" onclick="deleteCourse(' + c.id + ')">삭제</button>' +
       '</div></td>' +
@@ -604,6 +636,119 @@ async function loadLessonStats(courseId) {
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+}
+
+// ── 강의 목록 관리 ──
+var lessonMgmtCourseId = null;
+var lessonEditingId = null;
+
+async function openLessonMgmt(courseId, courseName) {
+  lessonMgmtCourseId = courseId;
+  document.getElementById('lesson-mgmt-title').textContent = courseName;
+  var card = document.getElementById('lesson-mgmt-card');
+  card.style.display = '';
+  closeLessonForm();
+  card.scrollIntoView({ behavior: 'smooth' });
+  await loadLessons();
+}
+
+async function loadLessons() {
+  var body = document.getElementById('lesson-mgmt-body');
+  body.innerHTML = '<div class="empty">불러오는 중...</div>';
+  var { data, error } = await sb.from('lessons').select('*').eq('course_id', lessonMgmtCourseId).order('sort_order');
+  if (error) { body.innerHTML = '<div class="empty" style="color:#EF4444;">불러오기 실패</div>'; return; }
+  if (!data || data.length === 0) {
+    body.innerHTML = '<div class="empty">아직 등록된 강의가 없어요. [+ 강의 추가]를 눌러 추가해보세요.</div>';
+    return;
+  }
+  var rows = data.map(function(l) {
+    var urlShort = l.video_url ? (l.video_url.length > 40 ? l.video_url.slice(0,40)+'…' : l.video_url) : '-';
+    var isYt = l.video_url && /youtube\.com|youtu\.be/.test(l.video_url);
+    var platform = l.video_url ? (isYt ? '▶ YouTube' : '🎞 Vimeo') : '-';
+    return '<tr>' +
+      '<td style="font-weight:700;width:40px;">' + l.sort_order + '</td>' +
+      '<td style="font-weight:600;">' + l.title + '</td>' +
+      '<td style="color:#6B6B6B;font-size:12px;">' + (l.section_title || '-') + '</td>' +
+      '<td><span style="font-size:11px;color:#2D9B6F;">' + platform + '</span></td>' +
+      '<td>' + (l.is_free_preview ? '<span class="badge active">무료</span>' : '<span class="badge hidden">잠금</span>') + '</td>' +
+      '<td><div class="action-btns">' +
+        '<button class="btn-sm edit" onclick="openLessonForm(' + l.id + ')">수정</button>' +
+        '<button class="btn-sm del" onclick="deleteLesson(' + l.id + ')">삭제</button>' +
+      '</div></td>' +
+      '</tr>';
+  }).join('');
+  body.innerHTML = '<div class="table-wrap"><table><thead><tr><th>순서</th><th>강의 제목</th><th>섹션</th><th>플랫폼</th><th>공개</th><th>관리</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+
+  // 강좌 lessons 카운트 자동 동기화
+  await sb.from('courses').update({ lessons: data.length }).eq('id', lessonMgmtCourseId);
+}
+
+async function openLessonForm(lessonId) {
+  lessonEditingId = lessonId;
+  document.getElementById('lesson-form-title').textContent = lessonId ? '강의 수정' : '강의 추가';
+  document.getElementById('lf-title').value = '';
+  document.getElementById('lf-url').value = '';
+  document.getElementById('lf-section').value = '';
+  document.getElementById('lf-order').value = '';
+  document.getElementById('lf-free').value = 'false';
+
+  if (lessonId) {
+    var { data } = await sb.from('lessons').select('*').eq('id', lessonId).single();
+    if (data) {
+      document.getElementById('lf-title').value = data.title || '';
+      document.getElementById('lf-url').value = data.video_url || '';
+      document.getElementById('lf-section').value = data.section_title || '';
+      document.getElementById('lf-order').value = data.sort_order != null ? data.sort_order : '';
+      document.getElementById('lf-free').value = data.is_free_preview ? 'true' : 'false';
+    }
+  }
+
+  document.getElementById('lesson-form').style.display = '';
+  document.getElementById('lf-title').focus();
+}
+
+function closeLessonForm() {
+  lessonEditingId = null;
+  document.getElementById('lesson-form').style.display = 'none';
+}
+
+async function saveLesson() {
+  var title = document.getElementById('lf-title').value.trim();
+  if (!title) { alert('강의 제목을 입력해주세요.'); return; }
+
+  var btn = document.getElementById('lf-save-btn');
+  btn.disabled = true; btn.textContent = '저장 중...';
+
+  var payload = {
+    course_id:      lessonMgmtCourseId,
+    title:          title,
+    video_url:      document.getElementById('lf-url').value.trim() || null,
+    section_title:  document.getElementById('lf-section').value.trim() || null,
+    sort_order:     parseInt(document.getElementById('lf-order').value) || 0,
+    is_free_preview: document.getElementById('lf-free').value === 'true',
+  };
+
+  var error;
+  if (lessonEditingId) {
+    ({ error } = await sb.from('lessons').update(payload).eq('id', lessonEditingId));
+  } else {
+    ({ error } = await sb.from('lessons').insert(payload));
+  }
+
+  btn.disabled = false; btn.textContent = '저장';
+
+  if (error) { showToast('저장 실패: ' + error.message, true); return; }
+  showToast(lessonEditingId ? '강의를 수정했어요' : '강의를 추가했어요');
+  closeLessonForm();
+  await loadLessons();
+}
+
+async function deleteLesson(lessonId) {
+  if (!confirm('이 강의를 삭제할까요?')) return;
+  var { error } = await sb.from('lessons').delete().eq('id', lessonId);
+  if (error) { showToast('삭제 실패: ' + error.message, true); return; }
+  showToast('강의를 삭제했어요');
+  await loadLessons();
 }
 
 loadInstructors();

@@ -218,56 +218,9 @@
             <div class="prog-summary-text" id="prog-summary-text">0% 완료</div>
           </div>
           <div id="curriculum-content">
-          <div class="curriculum-section">
-            <div class="curriculum-title">1강 ~ 10강 · 성경적 세계관 기초</div>
-            <div class="curriculum-item" data-lesson="lesson-1" data-title="CBUP 오리엔테이션 — 이 과정을 시작하며">
-              <span class="curriculum-num">1</span>
-              <span class="curriculum-item-title">CBUP 오리엔테이션 — 이 과정을 시작하며</span>
-              <span class="curriculum-lock preview-slot" data-slot="1"></span>
-            </div>
-            <div class="curriculum-item" data-lesson="lesson-2" data-title="성경적 세계관이란 무엇인가">
-              <span class="curriculum-num">2</span>
-              <span class="curriculum-item-title">성경적 세계관이란 무엇인가</span>
-              <span class="curriculum-lock preview-slot" data-slot="2"></span>
-            </div>
-            <div class="curriculum-item" data-lesson="lesson-3" data-title="교사의 정체성과 사명">
-              <span class="curriculum-num">3</span>
-              <span class="curriculum-item-title">교사의 정체성과 사명</span>
-              <span class="curriculum-lock">🔒</span>
-            </div>
-            <div class="curriculum-item" data-lesson="lesson-4" data-title="다음 세대를 향한 하나님의 마음">
-              <span class="curriculum-num">4</span>
-              <span class="curriculum-item-title">다음 세대를 향한 하나님의 마음</span>
-              <span class="curriculum-lock">🔒</span>
-            </div>
-            <div class="curriculum-item" data-lesson="lesson-5" data-title="트리플 스쿨 교육철학">
-              <span class="curriculum-num">5</span>
-              <span class="curriculum-item-title">트리플 스쿨 교육철학</span>
-              <span class="curriculum-lock">🔒</span>
-            </div>
+            <div class="curriculum-section" style="color:var(--gray-400);padding:1rem 0;font-size:13px;">강의 목록 불러오는 중...</div>
           </div>
-          <div class="curriculum-section">
-            <div class="curriculum-title">11강 ~ 25강 · 실전 교수법</div>
-            <div class="curriculum-item" data-lesson="lesson-11" data-title="효과적인 수업 설계 방법">
-              <span class="curriculum-num">11</span>
-              <span class="curriculum-item-title">효과적인 수업 설계 방법</span>
-              <span class="curriculum-lock">🔒</span>
-            </div>
-            <div class="curriculum-item" data-lesson="lesson-12" data-title="연령별 눈높이 교육 전략">
-              <span class="curriculum-num">12</span>
-              <span class="curriculum-item-title">연령별 눈높이 교육 전략</span>
-              <span class="curriculum-lock">🔒</span>
-            </div>
-            <div class="curriculum-item" data-lesson="lesson-13" data-title="부모와 함께하는 가정 교육 연계">
-              <span class="curriculum-num">13</span>
-              <span class="curriculum-item-title">부모와 함께하는 가정 교육 연계</span>
-              <span class="curriculum-lock">🔒</span>
-            </div>
-          </div>
-          </div>
-          <div style="padding:1rem;background:var(--green-light);border-radius:var(--radius-sm);font-size:13px;color:var(--green-dark);margin-top:1rem;">
-            🔓 첫 2강은 무료로 미리 볼 수 있어요
-          </div>
+          <div id="free-preview-notice" style="display:none;padding:1rem;background:var(--green-light);border-radius:var(--radius-sm);font-size:13px;color:var(--green-dark);margin-top:1rem;"></div>
         </div>
         <div class="tab-content" id="tab-instructor">
           <div class="instructor-detail">
@@ -513,13 +466,11 @@ function applyProgressUI() {
         item.addEventListener('click', function(e) {
           if (e.target.type === 'checkbox') return;
           const n = parseInt(lid.replace(/[^0-9]/g, '')) || 1;
-          const vid = item.dataset.vimeoId
-            ? parseInt(item.dataset.vimeoId)
-            : extractVimeoId(currentCourse ? currentCourse.vimeo_url : null);
-          if (!vid) { alert('이 강의의 영상 링크가 없어요.'); return; }
+          const videoUrl = item.dataset.videoUrl || (currentCourse ? currentCourse.vimeo_url : null);
+          if (!videoUrl) { alert('이 강의의 영상 링크가 없어요.'); return; }
           const ct = document.querySelector('.detail-tab[onclick*="curriculum"]');
           if (ct && !ct.classList.contains('active')) ct.click();
-          openLesson(n, title, vid);
+          openLesson(n, title, videoUrl);
         });
       }
     }
@@ -711,15 +662,8 @@ async function loadCourse() {
     document.getElementById('purchase-discount').style.display = 'inline-flex';
   }
 
-  // 미리보기 버튼 (preview_url이 있을 때)
-  const previewSlots = document.querySelectorAll('.preview-slot');
-  if (course.preview_url) {
-    previewSlots.forEach(slot => {
-      slot.innerHTML = `<button class="preview-btn" onclick="openPreview('${course.preview_url}')">▶ 무료 미리보기</button>`;
-    });
-  } else {
-    previewSlots.forEach(slot => { slot.textContent = '🔓'; });
-  }
+  // 커리큘럼 동적 로드
+  await loadCurriculum(course.id);
 
   // 로그인 상태 확인 → 수강 여부, 진도, 찜 로드
   const { data: { user } } = await supabaseClient.auth.getUser();
@@ -860,6 +804,74 @@ async function requestPayment() {
   }
 }
 
+// ───── 커리큘럼 동적 로드 ─────
+async function loadCurriculum(courseId) {
+  const { data: lessons } = await supabaseClient
+    .from('lessons')
+    .select('*')
+    .eq('course_id', courseId)
+    .order('sort_order');
+
+  const content = document.getElementById('curriculum-content');
+  const notice  = document.getElementById('free-preview-notice');
+
+  if (!lessons || lessons.length === 0) {
+    content.innerHTML = '<div style="color:var(--gray-400);padding:1rem 0;font-size:13px;">강의 목록이 아직 준비 중이에요.</div>';
+    return;
+  }
+
+  // 섹션별 그룹핑
+  const sections = {};
+  const sectionOrder = [];
+  lessons.forEach((l, idx) => {
+    const sec = l.section_title || '강의 목록';
+    if (!sections[sec]) { sections[sec] = []; sectionOrder.push(sec); }
+    sections[sec].push({ ...l, num: idx + 1 });
+  });
+
+  content.innerHTML = sectionOrder.map(sec => {
+    const items = sections[sec];
+    return `<div class="curriculum-section">
+      <div class="curriculum-title">${sec}</div>
+      ${items.map(l => {
+        const safe = l.title.replace(/"/g, '&quot;');
+        const url  = (l.video_url || '').replace(/"/g, '&quot;');
+        return `<div class="curriculum-item" data-lesson="lesson-${l.num}" data-title="${safe}" data-video-url="${url}" data-free="${l.is_free_preview ? '1' : '0'}">
+          <span class="curriculum-num">${l.num}</span>
+          <span class="curriculum-item-title">${l.title}</span>
+          <span class="curriculum-lock-wrap">${l.is_free_preview ? '<span class="curriculum-lock preview-slot">🔓 미리보기</span>' : '<span class="curriculum-lock">🔒</span>'}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  // 무료 미리보기 강의 수 안내
+  const freeCount = lessons.filter(l => l.is_free_preview).length;
+  if (freeCount > 0) {
+    notice.textContent = `🔓 ${freeCount}강은 무료로 미리 볼 수 있어요`;
+    notice.style.display = '';
+  }
+
+  // 미리보기 버튼 — 비로그인 / 미구매자용 클릭 이벤트
+  content.querySelectorAll('.curriculum-item[data-free="1"]').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', function() {
+      const videoUrl = item.dataset.videoUrl;
+      if (!videoUrl) return;
+      openPreview(videoUrl);
+    });
+  });
+
+  // 수강 완료 후 applyProgressUI가 DOM을 참조할 수 있도록
+  if (isEnrolled) applyProgressUI();
+}
+
+function extractYoutubeId(url) {
+  if (!url) return null;
+  const m = String(url).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
 // ───── Vimeo 플레이어 & 시청 추적 ─────
 let vimeoPlayer   = null;
 let activeTracker = null;
@@ -985,7 +997,7 @@ class VimeoTracker {
   }
 }
 
-async function openLesson(lessonNum, lessonTitle, vimeoId) {
+async function openLesson(lessonNum, lessonTitle, videoUrl) {
   if (activeTracker) { activeTracker.stop(); activeTracker = null; }
   if (vimeoPlayer)   { try { vimeoPlayer.destroy(); } catch(_){} vimeoPlayer = null; }
   if (playingItem)   { playingItem.classList.remove('vimeo-playing'); playingItem = null; }
@@ -1002,6 +1014,32 @@ async function openLesson(lessonNum, lessonTitle, vimeoId) {
   const curItem = document.querySelector('[data-lesson="lesson-' + lessonNum + '"]');
   if (curItem) { curItem.classList.add('vimeo-playing'); playingItem = curItem; }
 
+  const container = document.getElementById('vimeo-player-container');
+  container.innerHTML = '';
+
+  const isYoutube = /youtube\.com|youtu\.be/.test(videoUrl || '');
+  const watchInfo = document.querySelector('.watch-info');
+
+  if (isYoutube) {
+    const ytId = extractYoutubeId(videoUrl);
+    if (!ytId) {
+      container.innerHTML = '<div style="color:#fff;padding:2rem;text-align:center;font-size:14px;">유효하지 않은 YouTube 링크예요.</div>';
+      return;
+    }
+    container.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" style="width:100%;height:100%;border:none;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+    if (watchInfo) watchInfo.style.display = 'none';
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  // Vimeo
+  if (watchInfo) watchInfo.style.display = '';
+  const vimeoId = extractVimeoId(videoUrl);
+  if (!vimeoId) {
+    container.innerHTML = '<div style="color:#fff;padding:2rem;text-align:center;font-size:14px;">영상 링크를 확인해주세요.</div>';
+    return;
+  }
+
   const { data: { user } } = await window.supabaseClient.auth.getUser();
   if (!user || !currentCourse) return;
 
@@ -1012,9 +1050,6 @@ async function openLesson(lessonNum, lessonTitle, vimeoId) {
     .eq('course_id', currentCourse.id)
     .eq('lesson_number', lessonNum)
     .maybeSingle();
-
-  const container = document.getElementById('vimeo-player-container');
-  container.innerHTML = '';
 
   try {
     vimeoPlayer = new Vimeo.Player(container, { id: vimeoId, responsive: true, autopause: false });
@@ -1044,6 +1079,10 @@ function closeLessonPlayer() {
   if (activeTracker) { activeTracker.stop(); activeTracker = null; }
   if (vimeoPlayer)   { try { vimeoPlayer.pause(); vimeoPlayer.destroy(); } catch(_){} vimeoPlayer = null; }
   if (playingItem)   { playingItem.classList.remove('vimeo-playing'); playingItem = null; }
+  // YouTube iframe 정지
+  const container = document.getElementById('vimeo-player-container');
+  const ytIframe = container && container.querySelector('iframe');
+  if (ytIframe) ytIframe.src = ytIframe.src;
   document.getElementById('lesson-player-wrap').classList.remove('show');
 }
 
