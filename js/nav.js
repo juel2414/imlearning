@@ -86,7 +86,7 @@
   navEl.innerHTML = [
     '<div class="navbar-inner">',
     '  <a href="index.html" class="navbar-logo">',
-    '    <span class="navbar-logo-text">아이엠<span>러닝</span></span>',
+    '    <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:38px;width:auto;display:block;">',
     '  </a>',
     '  <ul class="navbar-menu" id="nb-menu">',
     '    <li><a href="courses.html">강좌</a></li>',

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>강좌 상세 — 아이엠러닝</title>
 <link rel="stylesheet" href="css/style.css">
+<script src="https://player.vimeo.com/api/player.js"></script>
 <style>
 .detail-hero { background: linear-gradient(160deg, #f0faf5 0%, #fff 100%); padding: 3rem 0; }
 .detail-inner { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
@@ -100,6 +101,26 @@
   .detail-inner { grid-template-columns: 1fr; }
   .purchase-card { position: static; }
 }
+
+/* ── Vimeo 강의 플레이어 ── */
+.lesson-player-wrap { display:none; margin-bottom:1.5rem; }
+.lesson-player-wrap.show { display:block; }
+.lesson-player-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.lesson-player-title { font-size:15px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%; }
+.lesson-player-close { padding:6px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; background:#fff; font-size:12px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.lesson-iframe-wrap { aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; }
+.lesson-iframe-wrap iframe { width:100%; height:100%; border:none; }
+#vimeo-player-container { width:100%; height:100%; }
+.resume-banner { display:none; background:#FEF3C7; border:1px solid #FDE68A; border-radius:10px; padding:10px 14px; margin-bottom:10px; align-items:center; gap:10px; font-size:13px; color:#92400E; flex-wrap:wrap; }
+.resume-banner.show { display:flex; }
+.resume-btn-yes { padding:6px 14px; background:var(--green); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; }
+.resume-btn-no { padding:6px 12px; background:#fff; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:12px; cursor:pointer; color:#666; margin-left:4px; }
+.watch-info { display:flex; align-items:center; gap:10px; padding:9px 14px; background:var(--green-light); border-radius:8px; font-size:13px; color:var(--green-dark); margin-top:8px; flex-wrap:wrap; }
+.watch-pct-bar { flex:1; min-width:80px; background:rgba(0,0,0,.1); border-radius:10px; height:6px; overflow:hidden; }
+.watch-pct-fill { background:var(--green); border-radius:10px; height:6px; transition:width .3s; }
+.curriculum-item.vimeo-clickable { cursor:pointer; transition:all .15s; }
+.curriculum-item.vimeo-clickable:hover { border-color:rgba(45,155,111,.3); background:rgba(45,155,111,.04); }
+.curriculum-item.vimeo-playing { border-color:var(--green)!important; background:rgba(45,155,111,.08)!important; }
 </style>
 </head>
 <body>
@@ -161,6 +182,29 @@
           </ul>
         </div>
         <div class="tab-content" id="tab-curriculum">
+          <!-- 강의 영상 플레이어 (수강 시) -->
+          <div id="lesson-player-wrap" class="lesson-player-wrap">
+            <div class="lesson-player-header">
+              <span id="lesson-player-title" class="lesson-player-title">강의 선택</span>
+              <button class="lesson-player-close" onclick="closeLessonPlayer()">✕ 닫기</button>
+            </div>
+            <div class="resume-banner" id="resume-banner">
+              <span id="resume-banner-text"></span>
+              <div style="display:flex;gap:6px;margin-left:auto;">
+                <button class="resume-btn-yes" onclick="doResume()">이어보기</button>
+                <button class="resume-btn-no" onclick="doStartOver()">처음부터</button>
+              </div>
+            </div>
+            <div class="lesson-iframe-wrap">
+              <div id="vimeo-player-container"></div>
+            </div>
+            <div class="watch-info">
+              <span>실제 시청: <strong id="watch-display">0초</strong></span>
+              <span id="watch-pct-text" style="font-weight:700;min-width:34px;text-align:right;"></span>
+              <div class="watch-pct-bar"><div class="watch-pct-fill" id="watch-pct-fill" style="width:0%"></div></div>
+              <span id="watch-done-badge" style="display:none;color:var(--green);font-weight:700;font-size:12px;">✅ 완료</span>
+            </div>
+          </div>
           <!-- 진도 요약 (수강 중일 때만 표시) -->
           <div class="prog-summary" id="prog-summary">
             <div class="prog-summary-bar-wrap">
@@ -303,7 +347,7 @@
   <div class="container">
     <div class="footer-inner">
       <div>
-        <div class="footer-brand-name">아이엠<span>러닝</span></div>
+        <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:32px;width:auto;display:block;margin-bottom:8px;">
         <div class="footer-slogan">I'M Learning, I'M Running!</div>
         <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
       </div>
@@ -445,6 +489,23 @@ function applyProgressUI() {
       // 잠금 아이콘 숨기기 (수강 중이면 모든 강의 접근 가능)
       const lockEl = item.querySelector('.curriculum-lock:not(.preview-slot)');
       if (lockEl) lockEl.textContent = '🔓';
+
+      // Vimeo 강의 클릭 핸들러
+      if (!item.dataset.vimeoClickBound) {
+        item.dataset.vimeoClickBound = '1';
+        item.classList.add('vimeo-clickable');
+        item.addEventListener('click', function(e) {
+          if (e.target.type === 'checkbox') return;
+          const n = parseInt(lid.replace(/[^0-9]/g, '')) || 1;
+          const vid = item.dataset.vimeoId
+            ? parseInt(item.dataset.vimeoId)
+            : extractVimeoId(currentCourse ? currentCourse.vimeo_url : null);
+          if (!vid) { alert('이 강의의 영상 링크가 없어요.'); return; }
+          const ct = document.querySelector('.detail-tab[onclick*="curriculum"]');
+          if (ct && !ct.classList.contains('active')) ct.click();
+          openLesson(n, title, vid);
+        });
+      }
     }
   });
 
