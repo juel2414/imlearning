@@ -828,11 +828,13 @@ window.addEventListener('scroll', () => {
 
 // ── 메인 초기화 ──
 async function init() {
-  await applyTheme();
-
+  // theme_config + landing_config 동시 요청 (직렬 → 병렬로 최적화)
   let cfg = {};
   try {
-    const { data } = await supabaseClient.from('landing_config').select('key,value');
+    const [, { data }] = await Promise.all([
+      applyTheme(),
+      supabaseClient.from('landing_config').select('key,value')
+    ]);
     if (data) cfg = Object.fromEntries(data.map(r => [r.key, r.value]));
   } catch(e) {}
 
