@@ -880,7 +880,8 @@ let playingItem   = null;
 
 function extractVimeoId(url) {
   if (!url) return null;
-  const m = String(url).match(/vimeo\.com\/(\d+)/);
+  // vimeo.com/ID, vimeo.com/video/ID, player.vimeo.com/video/ID
+  const m = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);
   return m ? parseInt(m[1]) : null;
 }
 
