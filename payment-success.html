@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>결제 완료 — 아이엠러닝</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.success-wrap {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background: linear-gradient(160deg, #f0faf5 0%, #fff 100%);
+}
+.success-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 3rem 2.5rem;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+.success-icon {
+  width: 96px;
+  height: 96px;
+  background: var(--green-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 48px;
+  animation: pop .5s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes pop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #DCFCE7;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+}
+.success-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--black);
+  letter-spacing: -0.5px;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+.success-sub {
+  font-size: 15px;
+  color: var(--gray-500);
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+.success-receipt {
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--gray-700);
+  padding: 6px 0;
+}
+.receipt-row:not(:last-child) {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.receipt-row .label { color: var(--gray-500); }
+.receipt-row .value { font-weight: 700; color: var(--black); }
+.receipt-row.total .value { font-size: 18px; color: var(--green); }
+.success-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.success-btns .btn {
+  justify-content: center;
+  width: 100%;
+  font-size: 15px;
+  padding: 14px;
+}
+.course-thumb-sm {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #e8f5ee, #c8eada);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+.course-thumb-sm img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 480px) {
+  .success-card { padding: 2rem 1.25rem; }
+  .success-title { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <span class="navbar-logo-text">아이엠<span>러닝</span></span>
+    </a>
+    <ul class="navbar-menu">
+      <li><a href="courses.html">강좌</a></li>
+    </ul>
+    <div class="navbar-right">
+      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
+    </div>
+  </div>
+</nav>
+
+<div class="success-wrap">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <div class="success-badge">결제 완료</div>
+    <h1 class="success-title">수강 신청이<br>완료되었어요!</h1>
+    <p class="success-sub">결제가 정상적으로 처리되었습니다.<br>지금 바로 강의를 시작해보세요.</p>
+
+    <div class="course-thumb-sm" id="course-thumb">✝️</div>
+
+    <div class="success-receipt">
+      <div class="receipt-row">
+        <span class="label">강좌명</span>
+        <span class="value" id="receipt-course" style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">불러오는 중...</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">수강 기간</span>
+        <span class="value">무제한</span>
+      </div>
+      <div class="receipt-row">
+        <span class="label">결제일시</span>
+        <span class="value" id="receipt-date">-</span>
+      </div>
+      <div class="receipt-row total">
+        <span class="label">결제 금액</span>
+        <span class="value" id="receipt-amount">₩0</span>
+      </div>
+    </div>
+
+    <div class="success-btns">
+      <a href="#" class="btn btn-primary btn-lg" id="btn-start">▶ 강의 시작하기</a>
+      <a href="my-courses.html" class="btn btn-outline btn-lg">나의 강의실 보기</a>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand-name">아이엠<span>러닝</span></div>
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="#">신앙</a><a href="#">교사·부모</a><a href="#">영어·시험</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2024 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/nav.js"></script>
+
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const courseId   = params.get('courseId');
+  const amount     = Number(params.get('amount') || 0);
+  const courseName = params.get('courseName') || '';
+
+  // 결제일시
+  const now = new Date();
+  document.getElementById('receipt-date').textContent =
+    now.getFullYear() + '.' +
+    String(now.getMonth() + 1).padStart(2, '0') + '.' +
+    String(now.getDate()).padStart(2, '0') + ' ' +
+    String(now.getHours()).padStart(2, '0') + ':' +
+    String(now.getMinutes()).padStart(2, '0');
+
+  // 금액
+  document.getElementById('receipt-amount').textContent = '₩' + amount.toLocaleString();
+
+  // 강의 시작 버튼
+  const btnStart = document.getElementById('btn-start');
+  if (courseId) {
+    btnStart.href = 'course-detail.html?id=' + courseId;
+  } else {
+    btnStart.href = 'my-courses.html';
+    btnStart.textContent = '나의 강의실로 이동';
+  }
+
+  // 강좌명 + 썸네일 로드
+  if (courseName) {
+    document.getElementById('receipt-course').textContent = decodeURIComponent(courseName);
+  }
+
+  if (courseId) {
+    fetchCourseById(courseId).then(course => {
+      if (!course) return;
+      document.getElementById('receipt-course').textContent = course.title;
+      if (course.thumbnail_url) {
+        const thumbEl = document.getElementById('course-thumb');
+        thumbEl.innerHTML = `<img src="${course.thumbnail_url}" alt="">`;
+      }
+    });
+  }
+
+  // 비로그인 상태면 로그인 페이지로
+  supabaseClient.auth.getUser().then(({ data: { user } }) => {
+    if (!user) {
+      window.location.href = 'login.html';
+    }
+  });
+})();
+</script>
+</body>
+</html>

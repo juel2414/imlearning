@@ -681,7 +681,7 @@ async function requestPayment() {
     return;
   }
 
-  const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(currentCourse);
+  const { currentPrice } = getCurrentPrice(currentCourse);
   const finalPrice = Math.max(0, currentPrice - couponDiscount);
   const paymentId = 'payment-' + crypto.randomUUID();
 
@@ -705,7 +705,6 @@ async function requestPayment() {
     });
 
     if (payment.code) {
-      // 결제 취소 또는 실패
       if (payment.code !== 'FAILURE_TYPE_PG') {
         alert('결제가 취소되었습니다.');
       } else {
@@ -714,34 +713,36 @@ async function requestPayment() {
       return;
     }
 
-    // 결제 성공 → Supabase orders 테이블에 주문 기록
-    // ⚠️ 보안: 실제 운영 시에는 Supabase Edge Function으로 PortOne 결제내역을
-    //    서버에서 재검증한 뒤 기록하는 것이 안전합니다. (현재는 MVP 클라이언트 기록)
-    const { error: orderError } = await createOrder({
-      user_id: user.id,
-      course_id: currentCourse.id,
-      course_name: currentCourse.title,
-      payment_id: payment.paymentId,
-      amount: finalPrice,
-      original_amount: currentPrice,
-      coupon_code: appliedCoupon ? appliedCoupon.code : null,
-      status: 'paid',
-      progress: 0,
+    // 결제 성공 → Edge Function(verify-payment)으로 서버 검증 및 orders 저장
+    btn.textContent = '결제 확인 중...';
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify({
+        paymentId: payment.paymentId,
+        courseId: currentCourse.id,
+        amount: finalPrice,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        couponId: appliedCoupon ? appliedCoupon.id : null,
+      }),
     });
 
-    if (orderError) {
-      alert('결제는 완료되었지만 수강 등록 처리 중 문제가 발생했어요.\n고객센터로 결제번호(' + payment.paymentId + ')를 알려주세요.');
+    const verifyData = await verifyRes.json();
+
+    if (!verifyData.success) {
+      alert('결제 검증에 실패했습니다.\n결제번호: ' + payment.paymentId + '\n고객센터로 문의해주세요.');
+      console.error('결제 검증 실패:', verifyData.error);
       return;
     }
 
-    // 쿠폰 사용 횟수 증가
-    if (appliedCoupon) {
-      await supabaseClient.from('coupons')
-        .update({ used_count: appliedCoupon.used_count + 1 })
-        .eq('id', appliedCoupon.id);
-    }
-    alert('결제가 완료되었습니다! 나의 강의실에서 수강을 시작해보세요 🎉');
-    window.location.href = 'my-courses.html';
+    window.location.href = 'payment-success.html?courseId=' + currentCourse.id +
+      '&amount=' + finalPrice +
+      '&courseName=' + encodeURIComponent(currentCourse.title);
 
   } catch (error) {
     console.error('결제 오류:', error);
