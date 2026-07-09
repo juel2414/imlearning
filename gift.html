@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선물 받기 — 아이엠러닝</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.gift-wrap {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background: linear-gradient(160deg, #f0faf5 0%, #fff 100%);
+}
+.gift-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem 2rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+.gift-icon {
+  width: 88px;
+  height: 88px;
+  background: var(--green-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  font-size: 44px;
+  animation: pop .5s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes pop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.gift-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FEF3C7;
+  color: #D97706;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 0.875rem;
+}
+.gift-from {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--black);
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+.gift-from-sub {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+.gift-course-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, #e8f5ee, #c8eada);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+.gift-course-thumb img {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gift-course-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--black);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.gift-message-box {
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  font-size: 14px;
+  color: var(--gray-700);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+.gift-message-box::before {
+  content: '💬';
+  display: block;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.gift-lock-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #9A3412;
+  text-align: left;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+.gift-status-box {
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.gift-status-icon { font-size: 36px; margin-bottom: 8px; }
+.gift-status-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
+.gift-status-desc { font-size: 13px; color: var(--gray-500); }
+.gift-alert {
+  margin-bottom: 1rem;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  text-align: left;
+  line-height: 1.6;
+}
+.gift-alert.err { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+.gift-alert.warn { background: #FFF7ED; color: #9A3412; border: 1px solid #FED7AA; }
+.gift-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 0.25rem;
+}
+.gift-btns .btn {
+  justify-content: center;
+  width: 100%;
+  font-size: 15px;
+  padding: 14px;
+}
+.gift-code-input-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+.gift-code-input {
+  flex: 1;
+  padding: 13px 16px;
+  border: 1.5px solid rgba(0,0,0,.1);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 0;
+}
+.gift-code-input:focus { border-color: var(--green); }
+.gift-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--green-light);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 2rem auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 480px) {
+  .gift-card { padding: 2rem 1.25rem; }
+  .gift-from { font-size: 16px; }
+  .gift-course-title { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:38px;width:auto;display:block;">
+    </a>
+  </div>
+</nav>
+
+<div class="gift-wrap">
+  <div class="gift-card" id="gift-root">
+    <div class="gift-spinner"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:32px;width:auto;display:block;margin-bottom:8px;">
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=edu">교사·부모</a><a href="courses.html?cat=english">영어·시험</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/nav.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var giftCode = (params.get('code') || '').trim().toUpperCase();
+  var root = document.getElementById('gift-root');
+
+  // ── XSS 방지 ────────────────────────────────────────────────────────────────
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── 상태 렌더러 ─────────────────────────────────────────────────────────────
+  function showLoading() {
+    root.innerHTML = '<div class="gift-spinner"></div>';
+  }
+
+  function showCodeInput() {
+    root.innerHTML = [
+      '<div class="gift-icon">🎁</div>',
+      '<div class="gift-badge">🎀 강좌 선물</div>',
+      '<p class="gift-from">선물 코드를 입력해주세요</p>',
+      '<p class="gift-from-sub">받으신 선물 코드를 아래에 입력해주세요.</p>',
+      '<div class="gift-code-input-wrap">',
+      '  <input class="gift-code-input" id="code-input" type="text" placeholder="IMGIFT-XXXX" maxlength="30" autocomplete="off">',
+      '  <button class="btn btn-primary" id="code-go" style="white-space:nowrap;padding:13px 20px;cursor:pointer;">확인</button>',
+      '</div>',
+    ].join('');
+
+    var input = document.getElementById('code-input');
+    var btn = document.getElementById('code-go');
+
+    function go() {
+      var val = input.value.trim().toUpperCase();
+      if (!val) { input.focus(); return; }
+      history.replaceState(null, '', 'gift.html?code=' + encodeURIComponent(val));
+      giftCode = val;
+      loadGift(val);
+    }
+    btn.addEventListener('click', go);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    input.focus();
+  }
+
+  function showNotFound(msg) {
+    root.innerHTML = [
+      '<div class="gift-icon" style="background:#FEE2E2;">😔</div>',
+      '<p class="gift-from">' + esc(msg || '선물 코드를 찾을 수 없어요') + '</p>',
+      '<p class="gift-from-sub">코드를 다시 확인해주세요.</p>',
+      '<div class="gift-btns">',
+      '  <a href="gift.html" class="btn btn-outline">다시 시도</a>',
+      '</div>',
+    ].join('');
+  }
+
+  // ── 선물 카드 렌더링 ─────────────────────────────────────────────────────────
+  function renderGiftCard(gift, user) {
+    var statusInfo = getStatusInfo(gift);
+
+    var thumbHtml = gift.thumbnail_url
+      ? '<img src="' + esc(gift.thumbnail_url) + '" alt="강좌 썸네일">'
+      : '✝️';
+
+    var lockHtml = gift.is_locked
+      ? ['<div class="gift-lock-notice">',
+         '  🔒 이 선물은 <strong>', esc(gift.masked_email), '</strong> 님에게 보낸 선물이에요.',
+         '  해당 이메일로 로그인해주세요.',
+         '</div>'].join('')
+      : '';
+
+    var msgHtml = gift.message
+      ? '<div class="gift-message-box">' + esc(gift.message) + '</div>'
+      : '';
+
+    var statusHtml = statusInfo.canAccept ? '' : [
+      '<div class="gift-status-box">',
+      '  <div class="gift-status-icon">', statusInfo.icon, '</div>',
+      '  <div class="gift-status-title">', esc(statusInfo.title), '</div>',
+      '  <div class="gift-status-desc">', esc(statusInfo.desc), '</div>',
+      '</div>',
+    ].join('');
+
+    var primaryBtn = '';
+    if (statusInfo.canAccept) {
+      if (!user) {
+        var nextUrl = 'gift.html?code=' + encodeURIComponent(giftCode);
+        primaryBtn = '<a href="login.html?next=' + encodeURIComponent(nextUrl) + '" class="btn btn-primary btn-lg" style="cursor:pointer;">🔑 로그인하고 선물 받기</a>';
+      } else {
+        primaryBtn = '<button class="btn btn-primary btn-lg" id="accept-btn" style="cursor:pointer;">🎁 선물 받기</button>';
+      }
+    }
+
+    root.innerHTML = [
+      '<div class="gift-icon">🎁</div>',
+      '<div class="gift-badge">🎀 강좌 선물</div>',
+      '<p class="gift-from">', esc(gift.sender_name || '누군가'), '님이 선물했어요</p>',
+      '<div class="gift-course-thumb">', thumbHtml, '</div>',
+      '<p class="gift-course-title">', esc(gift.course_title), '</p>',
+      msgHtml,
+      lockHtml,
+      statusHtml,
+      '<div class="gift-btns">',
+      primaryBtn,
+      '<a href="courses.html" class="btn btn-outline" style="cursor:pointer;">강좌 둘러보기</a>',
+      '</div>',
+    ].join('');
+
+    if (statusInfo.canAccept && user) {
+      var acceptBtn = document.getElementById('accept-btn');
+      if (acceptBtn) acceptBtn.addEventListener('click', function () { doAccept(); });
+    }
+  }
+
+  function getStatusInfo(gift) {
+    if (gift.is_expired || gift.status === 'expired') {
+      return { canAccept: false, icon: '⏰', title: '만료된 선물이에요', desc: '선물 유효기간이 지났습니다.' };
+    }
+    if (gift.status === 'accepted') {
+      return { canAccept: false, icon: '✅', title: '이미 수락된 선물이에요', desc: '이 선물 코드는 이미 사용되었습니다.' };
+    }
+    if (gift.status === 'already_owned') {
+      return { canAccept: false, icon: '📚', title: '이미 보유한 강좌였어요', desc: '수신자가 이미 이 강좌를 보유하고 있었습니다.' };
+    }
+    if (gift.status === 'cancelled' || gift.status === 'refunded') {
+      return { canAccept: false, icon: '🚫', title: '취소된 선물이에요', desc: '보내신 분이 선물을 취소했습니다.' };
+    }
+    if (gift.status !== 'pending') {
+      return { canAccept: false, icon: '⚠️', title: '사용할 수 없는 선물이에요', desc: '상태: ' + esc(gift.status) };
+    }
+    return { canAccept: true };
+  }
+
+  // ── 선물 수락 ────────────────────────────────────────────────────────────────
+  async function doAccept() {
+    var btn = document.getElementById('accept-btn');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = '처리 중...';
+
+    try {
+      var result = await supabaseClient.rpc('accept_gift', { p_code: giftCode });
+      if (result.error) throw result.error;
+
+      var data = result.data;
+      if (data.ok) {
+        btn.textContent = '✅ 등록 완료!';
+        setTimeout(function () { window.location.href = 'my-courses.html'; }, 900);
+        return;
+      }
+
+      var alertMsg = '';
+      switch (data.reason) {
+        case 'email_mismatch':
+          alertMsg = '이 선물은 <strong>' + esc(data.masked_email) + '</strong> 계정으로 로그인해야 받을 수 있어요.';
+          break;
+        case 'already_owned':
+          alertMsg = '이미 보유한 강좌예요. 보내주신 분께 환불 처리될 예정이에요.';
+          break;
+        case 'expired':
+          alertMsg = '선물 유효기간이 만료되었어요.';
+          break;
+        case 'not_available':
+          alertMsg = '이미 사용된 선물 코드예요. (상태: ' + esc(data.status || '') + ')';
+          break;
+        default:
+          alertMsg = '선물 수락 중 오류가 발생했어요: ' + esc(data.reason || '알 수 없는 오류');
+      }
+      showAlert(alertMsg, data.reason === 'email_mismatch' || data.reason === 'already_owned' ? 'warn' : 'err');
+      btn.disabled = false;
+      btn.textContent = '🎁 선물 받기';
+    } catch (e) {
+      console.error('accept_gift 오류:', e);
+      showAlert('일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.', 'err');
+      btn.disabled = false;
+      btn.textContent = '🎁 선물 받기';
+    }
+  }
+
+  function showAlert(html, type) {
+    var existing = document.getElementById('gift-alert');
+    if (existing) existing.remove();
+    var el = document.createElement('div');
+    el.id = 'gift-alert';
+    el.className = 'gift-alert ' + type;
+    el.innerHTML = html;
+    var btns = root.querySelector('.gift-btns');
+    if (btns) btns.insertAdjacentElement('beforebegin', el);
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── RPC 호출 ─────────────────────────────────────────────────────────────────
+  async function loadGift(code) {
+    showLoading();
+    try {
+      var result = await supabaseClient.rpc('get_gift_by_code', { p_code: code });
+      if (result.error) throw result.error;
+      if (!result.data || result.data.length === 0) {
+        showNotFound('선물 코드를 찾을 수 없어요');
+        return;
+      }
+      var gift = result.data[0];
+      var authResult = await supabaseClient.auth.getUser();
+      var user = authResult.data ? authResult.data.user : null;
+      renderGiftCard(gift, user);
+    } catch (e) {
+      console.error('get_gift_by_code 오류:', e);
+      showNotFound('선물 정보를 불러오는 중 오류가 발생했어요');
+    }
+  }
+
+  // ── 진입점 ───────────────────────────────────────────────────────────────────
+  if (giftCode) {
+    loadGift(giftCode);
+  } else {
+    showCodeInput();
+  }
+})();
+</script>
+</body>
+</html>
