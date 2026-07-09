@@ -741,6 +741,13 @@ async function requestPayment() {
     return;
   }
 
+  // profiles에서 이름·전화번호 조회
+  let profile = {};
+  try {
+    const { data } = await supabaseClient.from('profiles').select('name, phone').eq('id', user.id).single();
+    if (data) profile = data;
+  } catch(e) {}
+
   const { currentPrice } = getCurrentPrice(currentCourse);
   const finalPrice = Math.max(0, currentPrice - couponDiscount);
   const paymentId = 'payment-' + crypto.randomUUID();
@@ -760,7 +767,8 @@ async function requestPayment() {
       payMethod: 'CARD',
       customer: {
         email: user.email || '',
-        fullName: user.user_metadata?.full_name || user.email || '',
+        phoneNumber: profile.phone || '',
+        fullName: profile.name || user.user_metadata?.full_name || user.email || '',
       },
     });
 
