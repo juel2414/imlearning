@@ -3,119 +3,200 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>프로모션 관리 — 아이엠러닝 관리자</title>
+  <title>프로모션/쿠폰 관리 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    body { background: #F8F9FA; }
-    .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
-    .admin-sidebar { background: var(--black); padding: 0; position: fixed; top: 0; left: 0; width: 220px; height: 100vh; overflow-y: auto; z-index: 100; }
-    .admin-logo { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 16px; font-weight: 800; color: var(--white); }
-    .admin-logo span { color: var(--green); }
-    .admin-logo-sub { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 400; margin-top: 2px; }
-    .admin-nav { padding: 1rem 0; }
-    .admin-nav-section { padding: 0.5rem 1rem; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem; }
-    .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 1.25rem; font-size: 13px; color: rgba(255,255,255,0.6); transition: all var(--transition); cursor: pointer; text-decoration: none; }
-    .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
-    .admin-nav-item.active { background: rgba(45,155,111,0.15); color: var(--green); font-weight: 600; border-right: 2px solid var(--green); }
-    .admin-nav-icon { font-size: 16px; width: 20px; text-align: center; }
-    .admin-main { margin-left: 220px; padding: 2rem; }
-    .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
-    .admin-header h1 { font-size: 24px; font-weight: 800; color: var(--black); }
-    .admin-card { background: var(--white); border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 1.5rem; }
-    .admin-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; }
-    .admin-card-title { font-size: 15px; font-weight: 700; color: var(--black); }
-    .admin-card-body { padding: 1.5rem; }
+    body { background:#F8F9FA; }
+    .admin-main { padding:2rem; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:12px; }
+    .page-title { font-size:24px; font-weight:800; }
+    .card { background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:12px; overflow:hidden; margin-bottom:1.5rem; }
+    .card-header { padding:18px 24px; border-bottom:1px solid rgba(0,0,0,.06); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .card-title { font-size:15px; font-weight:700; }
+    .card-body { padding:1.5rem; }
+    .btn-primary { padding:10px 20px; background:#2D9B6F; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
+    .btn-primary:hover { background:#1a7a4a; }
+    .btn-secondary { padding:8px 16px; background:#fff; color:#333; border:1px solid rgba(0,0,0,.15); border-radius:8px; font-size:12px; cursor:pointer; }
+    .btn-danger { padding:6px 14px; background:#fff; color:#EF4444; border:1px solid #FCA5A5; border-radius:6px; font-size:12px; cursor:pointer; }
+    .btn-danger:hover { background:#FEE2E2; }
+    .btn-edit { padding:6px 14px; background:#fff; color:#555; border:1px solid rgba(0,0,0,.12); border-radius:6px; font-size:12px; cursor:pointer; }
+    .btn-edit:hover { border-color:#2D9B6F; color:#2D9B6F; }
 
-    /* 프로모션 폼 */
-    .promo-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .form-group { margin-bottom: 0; }
-    .form-group.full { grid-column: 1 / -1; }
-    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1.5px solid rgba(0,0,0,0.1); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; transition: border-color var(--transition); }
-    .form-input:focus, .form-select:focus { outline: none; border-color: var(--green); }
-    .form-hint { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+    /* 탭 */
+    .tabs { display:flex; gap:0; border-bottom:1px solid rgba(0,0,0,.07); margin-bottom:1.5rem; }
+    .tab-btn { padding:12px 24px; font-size:14px; font-weight:500; color:#888; border-bottom:2px solid transparent; cursor:pointer; background:none; border-top:none; border-left:none; border-right:none; }
+    .tab-btn.active { color:#2D9B6F; border-bottom-color:#2D9B6F; font-weight:700; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
 
-    /* 프로모션 카드 목록 */
-    .promo-list { display: flex; flex-direction: column; gap: 12px; }
-    .promo-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto auto auto;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.25rem 1.5rem;
-      border: 1px solid rgba(0,0,0,0.07);
-      border-radius: var(--radius-md);
-      background: var(--white);
-      transition: all var(--transition);
-    }
-    .promo-item:hover { box-shadow: var(--shadow-sm); }
-    .promo-item.active { border-color: var(--green); background: rgba(45,155,111,0.02); }
-    .promo-emoji { font-size: 28px; }
-    .promo-name { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
-    .promo-course { font-size: 12px; color: var(--gray-500); }
-    .promo-date { font-size: 12px; color: var(--gray-500); text-align: right; }
-    .promo-date strong { display: block; font-size: 13px; color: var(--black); font-weight: 600; }
-    .promo-discount { font-size: 22px; font-weight: 900; color: var(--green); }
-    .promo-actions { display: flex; gap: 6px; }
-    .btn-edit { padding: 6px 14px; font-size: 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); color: var(--gray-700); background: var(--white); cursor: pointer; transition: all var(--transition); }
-    .btn-edit:hover { border-color: var(--green); color: var(--green); }
-    .btn-delete { padding: 6px 14px; font-size: 12px; border: 1px solid #FCA5A5; border-radius: var(--radius-sm); color: #EF4444; background: var(--white); cursor: pointer; transition: all var(--transition); }
-    .btn-delete:hover { background: #FEE2E2; }
-    .badge-status { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .badge-active { background: #DCFCE7; color: #16A34A; }
-    .badge-scheduled { background: #FEF3C7; color: #D97706; }
-    .badge-end { background: var(--gray-100); color: var(--gray-500); }
+    /* 폼 */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .form-group { display:flex; flex-direction:column; gap:4px; }
+    .form-group.full { grid-column:1/-1; }
+    .form-label { font-size:12px; font-weight:700; color:#333; }
+    .form-input, .form-select, .form-textarea { padding:9px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:14px; font-family:inherit; outline:none; }
+    .form-input:focus, .form-select:focus { border-color:#2D9B6F; }
+    .form-hint { font-size:11px; color:#888; }
+    .form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:.5rem; }
+
+    /* 쿠폰 카드 */
+    .coupon-list { display:flex; flex-direction:column; gap:10px; }
+    .coupon-item { display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:1rem; padding:16px 20px; border:1px solid rgba(0,0,0,.07); border-radius:12px; background:#fff; transition:.2s; }
+    .coupon-item:hover { box-shadow:0 2px 12px rgba(0,0,0,.08); }
+    .coupon-item.active { border-color:rgba(45,155,111,.3); }
+    .coupon-item.inactive { opacity:.55; }
+    .coupon-badge-code { font-size:18px; font-weight:900; font-family:monospace; color:#2D9B6F; letter-spacing:1px; }
+    .coupon-desc { font-size:12px; color:#888; margin-top:2px; }
+    .coupon-meta { font-size:12px; color:#555; }
+    .coupon-meta strong { color:#111; }
+    .coupon-actions { display:flex; gap:6px; }
+    .badge { display:inline-flex; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge-active { background:#DCFCE7; color:#16A34A; }
+    .badge-inactive { background:#F0F0F0; color:#888; }
+    .badge-expired { background:#FEE2E2; color:#EF4444; }
+    .usage-bar-wrap { background:#f0f0f0; border-radius:20px; height:6px; width:100px; display:inline-block; vertical-align:middle; margin-left:6px; }
+    .usage-bar-fill { background:#2D9B6F; border-radius:20px; height:6px; }
+
+    /* 프로모션 (기존) */
+    .promo-list { display:flex; flex-direction:column; gap:10px; }
+    .promo-item { display:grid; grid-template-columns:auto 1fr auto auto auto; align-items:center; gap:1rem; padding:16px 20px; border:1px solid rgba(0,0,0,.07); border-radius:12px; background:#fff; }
+    .promo-item.active-promo { border-color:rgba(45,155,111,.3); }
+    .promo-emoji { font-size:26px; }
+    .promo-name { font-size:15px; font-weight:700; }
+    .promo-course { font-size:12px; color:#888; }
+    .promo-discount { font-size:22px; font-weight:900; color:#2D9B6F; }
+    .promo-date { font-size:12px; color:#888; text-align:right; }
+    .promo-date strong { display:block; font-size:13px; color:#111; font-weight:600; }
+    .badge-scheduled { background:#FEF3C7; color:#D97706; }
+    .badge-end { background:#F0F0F0; color:#888; }
+    .empty { text-align:center; padding:3rem; color:#888; font-size:14px; }
+
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { padding:10px 16px; text-align:left; font-size:11px; color:#888; background:#F8F9FA; white-space:nowrap; }
+    td { padding:12px 16px; border-bottom:1px solid rgba(0,0,0,.04); }
+
+    @media(max-width:768px) { .form-grid { grid-template-columns:1fr; } .coupon-item { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
+<div class="admin-main">
+  <div class="page-header">
+    <div class="page-title">🎯 프로모션/쿠폰 관리</div>
+  </div>
 
-<div class="admin-layout">
-  <aside class="admin-sidebar">
-    <div class="admin-logo">아이엠<span>러닝</span><div class="admin-logo-sub">관리자 페이지</div></div>
-    <nav class="admin-nav">
-      <div class="admin-nav-section">메인</div>
-      <a href="index.html" class="admin-nav-item"><span class="admin-nav-icon">📊</span> 대시보드</a>
-      <div class="admin-nav-section">강좌 관리</div>
-      <a href="courses.html" class="admin-nav-item"><span class="admin-nav-icon">📚</span> 강좌 관리</a>
-      <a href="instructors.html" class="admin-nav-item"><span class="admin-nav-icon">👨‍🏫</span> 강사 관리</a>
-      <div class="admin-nav-section">프로모션</div>
-      <a href="promotions.html" class="admin-nav-item active"><span class="admin-nav-icon">🎯</span> 프로모션 관리</a>
-      <div class="admin-nav-section">콘텐츠</div>
-      <a href="notices.html" class="admin-nav-item"><span class="admin-nav-icon">📢</span> 공지사항</a>
-      <a href="#" class="admin-nav-item"><span class="admin-nav-icon">🎨</span> 배너 관리</a>
-      <div class="admin-nav-section">설정</div>
-      <a href="../index.html" class="admin-nav-item"><span class="admin-nav-icon">🌐</span> 사이트 보기</a>
-    </nav>
-  </aside>
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('coupons',this)">🎟️ 쿠폰 관리</button>
+    <button class="tab-btn" onclick="switchTab('promo',this)">📣 프로모션 할인</button>
+    <button class="tab-btn" onclick="switchTab('stats',this)">📊 사용 현황</button>
+  </div>
 
-  <main class="admin-main">
-    <div class="admin-header">
-      <h1>🎯 프로모션 관리</h1>
-      <button class="btn btn-primary btn-sm" onclick="document.getElementById('new-promo').scrollIntoView({behavior:'smooth'})">+ 새 프로모션 만들기</button>
+  <!-- ── 쿠폰 관리 탭 ── -->
+  <div class="tab-panel active" id="panel-coupons">
+    <!-- 새 쿠폰 만들기 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title" id="coupon-form-title">+ 새 쿠폰 만들기</span>
+        <button class="btn-secondary" onclick="toggleCouponForm()">접기 / 펼치기</button>
+      </div>
+      <div class="card-body" id="coupon-form-wrap">
+        <div class="form-grid">
+          <input type="hidden" id="edit-coupon-id">
+          <div class="form-group">
+            <label class="form-label">쿠폰 코드 *</label>
+            <input class="form-input" id="f-code" type="text" placeholder="WELCOME2024" style="text-transform:uppercase">
+            <div class="form-hint">영문/숫자 조합, 대문자로 저장됩니다</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">설명</label>
+            <input class="form-input" id="f-desc" type="text" placeholder="신규 가입 환영 쿠폰">
+          </div>
+          <div class="form-group">
+            <label class="form-label">할인 유형 *</label>
+            <select class="form-select" id="f-type" onchange="updateDiscountLabel()">
+              <option value="rate">% 할인 (퍼센트)</option>
+              <option value="amount">원 할인 (정액)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="f-value-label">할인율 (%) *</label>
+            <input class="form-input" id="f-value" type="number" min="1" placeholder="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">최소 결제 금액 (원)</label>
+            <input class="form-input" id="f-min" type="number" min="0" placeholder="0 (제한 없음)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">최대 사용 횟수</label>
+            <input class="form-input" id="f-max-uses" type="number" min="1" placeholder="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">만료일</label>
+            <input class="form-input" id="f-expires" type="datetime-local">
+            <div class="form-hint">비워두면 무기한</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">상태</label>
+            <select class="form-select" id="f-status">
+              <option value="active">활성</option>
+              <option value="inactive">비활성</option>
+            </select>
+          </div>
+          <div class="form-group full form-actions">
+            <button class="btn-secondary" onclick="resetCouponForm()">초기화</button>
+            <button class="btn-primary" onclick="saveCoupon()">쿠폰 저장하기</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- 현재 프로모션 목록 -->
-    <div class="admin-card">
-      <div class="admin-card-header">
-        <span class="admin-card-title">프로모션 목록</span>
-        <span style="font-size:12px;color:var(--gray-500);">할인 기간이 지나면 자동으로 원래 가격으로 돌아와요</span>
+    <!-- 쿠폰 목록 -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">쿠폰 목록</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select class="form-select" id="coupon-filter" onchange="loadCoupons()" style="padding:6px 10px;font-size:12px;">
+            <option value="all">전체</option>
+            <option value="active">활성</option>
+            <option value="inactive">비활성</option>
+          </select>
+        </div>
       </div>
-      <div class="admin-card-body">
+      <div class="card-body" id="coupon-list-area">
+        <div class="empty">불러오는 중...</div>
+      </div>
+    </div>
+
+    <!-- 단체/교회 쿠폰 안내 -->
+    <div style="background:#F0FAF5;border:1px solid rgba(45,155,111,.2);border-radius:12px;padding:1.25rem 1.5rem;">
+      <p style="font-size:13px;color:#1a7a4a;line-height:1.8;margin:0;">
+        💡 <strong>단체 할인 활용 팁</strong><br>
+        교회별 전용 쿠폰을 만들어 단체 할인을 제공할 수 있어요. 예: <code style="background:#e8f5ee;padding:2px 6px;border-radius:4px;">CHURCH-{교회명}</code> 형태로 쿠폰 코드를 만들고, 할인율을 설정하세요. 얼리버드 할인은 만료일을 짧게 설정하세요.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 프로모션 할인 탭 ── -->
+  <div class="tab-panel" id="panel-promo">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">진행 중인 프로모션</span>
+        <span style="font-size:12px;color:#888;">courses 테이블의 discount_price, discount_start, discount_end로 관리됩니다</span>
+      </div>
+      <div class="card-body">
         <div class="promo-list">
-          <div class="promo-item active">
+          <div class="promo-item active-promo">
             <div class="promo-emoji">🎯</div>
             <div>
               <div class="promo-name">이달의 강의</div>
               <div class="promo-course">[4세대] CBUP 수료과정 · ₩650,000 → ₩450,000</div>
             </div>
-            <span class="badge-status badge-active">진행중</span>
-            <div class="promo-date">
-              <strong>-31%</strong>
-              2024.11.01 ~ 11.30
-            </div>
-            <div class="promo-actions">
+            <span class="badge badge-active">진행중</span>
+            <div class="promo-date"><strong>-31%</strong>2024.11.01 ~ 11.30</div>
+            <div class="coupon-actions">
               <button class="btn-edit">수정</button>
-              <button class="btn-delete">삭제</button>
+              <button class="btn-danger">삭제</button>
             </div>
           </div>
           <div class="promo-item">
@@ -124,110 +205,286 @@
               <div class="promo-name">겨울 특별 할인</div>
               <div class="promo-course">부모대안학교 1학년 · ₩300,000 → ₩240,000</div>
             </div>
-            <span class="badge-status badge-scheduled">예약됨</span>
-            <div class="promo-date">
-              <strong>-20%</strong>
-              2024.12.01 ~ 12.25
-            </div>
-            <div class="promo-actions">
+            <span class="badge badge-scheduled">예약됨</span>
+            <div class="promo-date"><strong>-20%</strong>2024.12.01 ~ 12.25</div>
+            <div class="coupon-actions">
               <button class="btn-edit">수정</button>
-              <button class="btn-delete">삭제</button>
+              <button class="btn-danger">삭제</button>
             </div>
           </div>
-          <div class="promo-item" style="opacity:0.5;">
-            <div class="promo-emoji">🖤</div>
-            <div>
-              <div class="promo-name">블랙프라이데이</div>
-              <div class="promo-course">전 강좌 · 최대 30% 할인</div>
+        </div>
+        <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(0,0,0,.06);">
+          <div class="card-title" style="margin-bottom:1rem;">새 프로모션 만들기</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">대상 강좌</label>
+              <select class="form-select" id="promo-course-select"><option>강좌 불러오는 중...</option></select>
             </div>
-            <span class="badge-status badge-end">종료</span>
-            <div class="promo-date">
-              <strong>-30%</strong>
-              2024.11.25 ~ 11.29
+            <div class="form-group">
+              <label class="form-label">할인 가격 (원)</label>
+              <input class="form-input" id="promo-price" type="number" placeholder="할인 후 가격">
             </div>
-            <div class="promo-actions">
-              <button class="btn-edit">복사</button>
-              <button class="btn-delete">삭제</button>
+            <div class="form-group">
+              <label class="form-label">할인 시작일</label>
+              <input class="form-input" id="promo-start" type="datetime-local">
+            </div>
+            <div class="form-group">
+              <label class="form-label">할인 종료일</label>
+              <input class="form-input" id="promo-end" type="datetime-local">
+            </div>
+            <div class="form-group full form-actions">
+              <button class="btn-primary" onclick="savePromo()">프로모션 저장</button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- 새 프로모션 만들기 -->
-    <div class="admin-card" id="new-promo">
-      <div class="admin-card-header">
-        <span class="admin-card-title">새 프로모션 만들기</span>
+  <!-- ── 사용 현황 탭 ── -->
+  <div class="tab-panel" id="panel-stats">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">쿠폰 사용 현황</span>
+        <button class="btn-secondary" onclick="exportCouponStats()">📥 CSV 다운로드</button>
       </div>
-      <div class="admin-card-body">
-        <div class="promo-form">
-          <div class="form-group full">
-            <label class="form-label">프로모션 이름</label>
-            <input class="form-input" type="text" placeholder="예: 이달의 강의, 블랙프라이데이, 신학기 특가">
-          </div>
-          <div class="form-group">
-            <label class="form-label">대상 강좌</label>
-            <select class="form-select">
-              <option>강좌 선택</option>
-              <option>[4세대] CBUP 수료과정</option>
-              <option>부모대안학교 1학년</option>
-              <option>교회학교 지원센터</option>
-              <option>영단속 영어기도</option>
-              <option>전 강좌 적용</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">할인 방식</label>
-            <select class="form-select">
-              <option>% 할인 (퍼센트)</option>
-              <option>원 할인 (정액)</option>
-              <option>고정 가격으로 변경</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">할인율 / 금액</label>
-            <input class="form-input" type="number" placeholder="예: 30 (30% 할인)">
-            <div class="form-hint">숫자만 입력하세요. % 또는 원은 위 선택에 따라 자동 적용됩니다.</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">할인 시작일</label>
-            <input class="form-input" type="datetime-local">
-            <div class="form-hint">설정한 시간에 자동으로 할인가로 바뀝니다</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">할인 종료일</label>
-            <input class="form-input" type="datetime-local">
-            <div class="form-hint">종료일이 지나면 자동으로 원래 가격으로 돌아옵니다</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">메인 노출 이모지</label>
-            <input class="form-input" type="text" placeholder="예: 🎯 🖤 ❄️ 🎉">
-          </div>
-          <div class="form-group">
-            <label class="form-label">홈페이지 배너 노출</label>
-            <select class="form-select">
-              <option>메인 프로모션 배너에 표시</option>
-              <option>표시 안 함 (강좌 카드에만)</option>
-            </select>
-          </div>
-          <div class="form-group full" style="display:flex;gap:10px;justify-content:flex-end;margin-top:0.5rem;">
-            <button class="btn btn-outline">미리보기</button>
-            <button class="btn btn-primary" onclick="alert('프로모션이 저장되었습니다!\n설정한 날짜에 자동으로 적용됩니다.')">프로모션 저장하기 →</button>
-          </div>
-        </div>
+      <div class="card-body" id="stats-area">
+        <div class="empty">불러오는 중...</div>
       </div>
     </div>
-
-    <!-- 안내 -->
-    <div style="background:var(--green-light);border-radius:var(--radius-md);padding:1.25rem 1.5rem;border:1px solid rgba(45,155,111,0.2);">
-      <p style="font-size:13px;color:var(--green-dark);line-height:1.7;">
-        💡 <strong>자동화 안내</strong> — 할인 시작일과 종료일을 설정하면 별도로 수동으로 바꿀 필요 없이 자동으로 적용·해제됩니다. 프로모션을 미리 예약해두고 잊어버려도 돼요!
-      </p>
-    </div>
-  </main>
+  </div>
 </div>
 
-<script src="../js/main.js"></script>
+<script>
+if (!sessionStorage.getItem('admin_auth')) { window.location.href = 'login.html'; }
+
+const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── 탭 전환 ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+  if (id === 'stats') loadStats();
+  if (id === 'promo') loadPromoForm();
+}
+
+// ── 할인 레이블 업데이트 ──
+function updateDiscountLabel() {
+  const type = document.getElementById('f-type').value;
+  document.getElementById('f-value-label').textContent = type === 'rate' ? '할인율 (%) *' : '할인 금액 (원) *';
+}
+
+// ── 폼 접기/펼치기 ──
+function toggleCouponForm() {
+  const el = document.getElementById('coupon-form-wrap');
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+function resetCouponForm() {
+  document.getElementById('edit-coupon-id').value = '';
+  document.getElementById('coupon-form-title').textContent = '+ 새 쿠폰 만들기';
+  ['f-code','f-desc','f-value','f-min','f-max-uses','f-expires'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-type').value = 'rate';
+  document.getElementById('f-status').value = 'active';
+  updateDiscountLabel();
+}
+
+// ── 쿠폰 저장 ──
+async function saveCoupon() {
+  const editId = document.getElementById('edit-coupon-id').value;
+  const code = document.getElementById('f-code').value.trim().toUpperCase();
+  const desc = document.getElementById('f-desc').value.trim();
+  const type = document.getElementById('f-type').value;
+  const value = parseFloat(document.getElementById('f-value').value);
+  const min = parseFloat(document.getElementById('f-min').value) || 0;
+  const maxUses = parseInt(document.getElementById('f-max-uses').value) || 100;
+  const expires = document.getElementById('f-expires').value || null;
+  const status = document.getElementById('f-status').value;
+
+  if (!code || isNaN(value) || value <= 0) {
+    alert('쿠폰 코드와 할인 값을 입력해주세요.'); return;
+  }
+
+  const payload = { code, discount_type: type, discount_value: value, min_amount: min, max_uses: maxUses, expires_at: expires, status, description: desc };
+
+  let error;
+  if (editId) {
+    ({ error } = await sb.from('coupons').update(payload).eq('id', editId));
+  } else {
+    ({ error } = await sb.from('coupons').insert({ ...payload, used_count: 0 }));
+  }
+
+  if (error) { alert('저장 실패: ' + error.message); return; }
+  alert(editId ? '쿠폰이 수정되었습니다.' : '쿠폰이 생성되었습니다!');
+  resetCouponForm();
+  loadCoupons();
+}
+
+// ── 쿠폰 수정 (폼에 불러오기) ──
+function editCoupon(c) {
+  document.getElementById('edit-coupon-id').value = c.id;
+  document.getElementById('coupon-form-title').textContent = '✏️ 쿠폰 수정';
+  document.getElementById('f-code').value = c.code;
+  document.getElementById('f-desc').value = c.description || '';
+  document.getElementById('f-type').value = c.discount_type;
+  document.getElementById('f-value').value = c.discount_value;
+  document.getElementById('f-min').value = c.min_amount || '';
+  document.getElementById('f-max-uses').value = c.max_uses || '';
+  document.getElementById('f-expires').value = c.expires_at ? c.expires_at.slice(0, 16) : '';
+  document.getElementById('f-status').value = c.status || 'active';
+  updateDiscountLabel();
+  document.getElementById('coupon-form-wrap').style.display = '';
+  document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── 쿠폰 삭제 ──
+async function deleteCoupon(id) {
+  if (!confirm('이 쿠폰을 삭제할까요?')) return;
+  const { error } = await sb.from('coupons').delete().eq('id', id);
+  if (error) { alert('삭제 실패: ' + error.message); return; }
+  loadCoupons();
+}
+
+// ── 쿠폰 목록 로드 ──
+async function loadCoupons() {
+  const filter = document.getElementById('coupon-filter').value;
+  let query = sb.from('coupons').select('*').order('created_at', { ascending: false });
+  if (filter !== 'all') query = query.eq('status', filter);
+
+  const { data, error } = await query;
+  const el = document.getElementById('coupon-list-area');
+  if (error || !data || data.length === 0) {
+    el.innerHTML = '<div class="empty">등록된 쿠폰이 없어요. 위에서 새 쿠폰을 만들어보세요.</div>';
+    return;
+  }
+
+  const now = new Date();
+  el.innerHTML = '<div class="coupon-list">' + data.map(c => {
+    const expired = c.expires_at && new Date(c.expires_at) < now;
+    const statusBadge = expired ? '<span class="badge badge-expired">만료</span>'
+      : c.status === 'active' ? '<span class="badge badge-active">활성</span>'
+      : '<span class="badge badge-inactive">비활성</span>';
+    const usagePct = c.max_uses ? Math.round((c.used_count / c.max_uses) * 100) : 0;
+    const discountLabel = c.discount_type === 'rate'
+      ? c.discount_value + '% 할인'
+      : '₩' + Number(c.discount_value).toLocaleString() + ' 할인';
+    const expiryLabel = c.expires_at ? new Date(c.expires_at).toLocaleDateString('ko-KR') : '무기한';
+
+    return `
+      <div class="coupon-item ${expired ? 'inactive' : c.status}">
+        <div>
+          <div class="coupon-badge-code">${c.code}</div>
+          <div class="coupon-desc">${c.description || '설명 없음'}</div>
+        </div>
+        <div>
+          <div class="coupon-meta"><strong>${discountLabel}</strong>${c.min_amount ? ' · 최소 ₩' + Number(c.min_amount).toLocaleString() : ''}</div>
+          <div class="coupon-meta" style="margin-top:4px;">
+            사용 ${c.used_count}/${c.max_uses || '∞'}회
+            <span class="usage-bar-wrap"><span class="usage-bar-fill" style="width:${usagePct}%"></span></span>
+            · 만료: ${expiryLabel}
+          </div>
+        </div>
+        <div>${statusBadge}</div>
+        <div class="coupon-actions">
+          <button class="btn-edit" onclick="editCoupon(${JSON.stringify(c).replace(/"/g, '&quot;')})">수정</button>
+          <button class="btn-danger" onclick="deleteCoupon('${c.id}')">삭제</button>
+        </div>
+      </div>`;
+  }).join('') + '</div>';
+}
+
+// ── 프로모션 탭 강좌 셀렉트 로드 ──
+async function loadPromoForm() {
+  const { data } = await sb.from('courses').select('id, title').eq('status', 'active').order('title');
+  const sel = document.getElementById('promo-course-select');
+  if (data && data.length) {
+    sel.innerHTML = '<option value="">강좌 선택</option>' + data.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+  }
+}
+
+// ── 프로모션 저장 ──
+async function savePromo() {
+  const courseId = document.getElementById('promo-course-select').value;
+  const price = parseFloat(document.getElementById('promo-price').value);
+  const start = document.getElementById('promo-start').value;
+  const end = document.getElementById('promo-end').value;
+  if (!courseId || isNaN(price)) { alert('강좌와 할인 가격을 입력해주세요.'); return; }
+  const { error } = await sb.from('courses').update({
+    discount_price: price,
+    discount_start: start || null,
+    discount_end: end || null,
+  }).eq('id', courseId);
+  if (error) { alert('저장 실패: ' + error.message); return; }
+  alert('프로모션이 저장되었습니다!');
+}
+
+// ── 사용 현황 ──
+async function loadStats() {
+  const { data, error } = await sb.from('coupons').select('*').order('used_count', { ascending: false });
+  const el = document.getElementById('stats-area');
+  if (error || !data || data.length === 0) {
+    el.innerHTML = '<div class="empty">쿠폰 데이터가 없어요.</div>'; return;
+  }
+
+  const totalUsed = data.reduce((s, c) => s + (c.used_count || 0), 0);
+  const now = new Date();
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;">
+      <div style="background:#f0faf5;border-radius:10px;padding:1rem;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#2D9B6F;">${data.length}</div>
+        <div style="font-size:12px;color:#555;">전체 쿠폰</div>
+      </div>
+      <div style="background:#f0faf5;border-radius:10px;padding:1rem;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#2D9B6F;">${data.filter(c=>c.status==='active' && (!c.expires_at||new Date(c.expires_at)>now)).length}</div>
+        <div style="font-size:12px;color:#555;">활성 쿠폰</div>
+      </div>
+      <div style="background:#f0faf5;border-radius:10px;padding:1rem;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#2D9B6F;">${totalUsed}</div>
+        <div style="font-size:12px;color:#555;">총 사용 횟수</div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>쿠폰 코드</th><th>설명</th><th>할인</th><th>사용/한도</th><th>만료일</th><th>상태</th></tr></thead>
+      <tbody>${data.map(c => {
+        const expired = c.expires_at && new Date(c.expires_at) < now;
+        const badge = expired ? '<span class="badge badge-expired">만료</span>' : c.status === 'active' ? '<span class="badge badge-active">활성</span>' : '<span class="badge badge-inactive">비활성</span>';
+        return `<tr>
+          <td style="font-weight:700;font-family:monospace;color:#2D9B6F;">${c.code}</td>
+          <td>${c.description || '-'}</td>
+          <td>${c.discount_type==='rate' ? c.discount_value+'%' : '₩'+Number(c.discount_value).toLocaleString()}</td>
+          <td>${c.used_count} / ${c.max_uses || '∞'}</td>
+          <td>${c.expires_at ? new Date(c.expires_at).toLocaleDateString('ko-KR') : '무기한'}</td>
+          <td>${badge}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+// ── CSV 내보내기 ──
+async function exportCouponStats() {
+  const { data } = await sb.from('coupons').select('*').order('created_at', { ascending: false });
+  if (!data || data.length === 0) { alert('데이터가 없어요.'); return; }
+  const headers = ['코드', '설명', '할인유형', '할인값', '최소금액', '최대사용', '사용횟수', '만료일', '상태', '생성일'];
+  const rows = data.map(c => [
+    c.code, c.description||'', c.discount_type, c.discount_value,
+    c.min_amount||0, c.max_uses||'', c.used_count||0,
+    c.expires_at ? new Date(c.expires_at).toLocaleDateString('ko-KR') : '',
+    c.status, new Date(c.created_at).toLocaleDateString('ko-KR')
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'coupons_' + new Date().toISOString().slice(0,10) + '.csv' });
+  a.click();
+}
+
+// ── 초기 로드 ──
+loadCoupons();
+</script>
 <script src="../js/admin-nav.js"></script>
 </body>
 </html>

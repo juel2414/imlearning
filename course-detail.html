@@ -48,6 +48,42 @@
 /* 로딩 상태 */
 .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+/* 수강 진도 바 (구매 카드) */
+.enrolled-progress { margin:10px 0 4px; }
+.enrolled-progress-label { font-size:12px; color:var(--gray-500); margin-bottom:6px; display:flex; justify-content:space-between; }
+.enrolled-bar-wrap { background:#f0f0f0; border-radius:20px; height:8px; }
+.enrolled-bar-fill { background:linear-gradient(90deg,var(--green),#5cbf8a); border-radius:20px; height:8px; transition:width .5s ease; }
+.btn-resume { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:12px; background:var(--green); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px; }
+.btn-resume:hover { background:var(--green-dark); }
+
+/* 커리큘럼 체크박스 */
+.curriculum-check { width:18px; height:18px; accent-color:var(--green); cursor:pointer; flex-shrink:0; }
+.curriculum-item.done { background:rgba(45,155,111,.04); }
+.curriculum-item.done .curriculum-num { background:var(--green); color:#fff; }
+.curriculum-item-title { flex:1; }
+.curriculum-item-title.done-text { text-decoration:line-through; color:var(--gray-400); }
+
+/* 진도 요약 바 (커리큘럼 탭 상단) */
+.prog-summary { background:var(--green-light); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:1.5rem; display:none; }
+.prog-summary.show { display:flex; align-items:center; gap:14px; }
+.prog-summary-bar-wrap { flex:1; background:rgba(0,0,0,.1); border-radius:20px; height:8px; }
+.prog-summary-bar { background:var(--green); border-radius:20px; height:8px; transition:width .5s; }
+.prog-summary-text { font-size:13px; font-weight:700; color:var(--green-dark); white-space:nowrap; }
+
+/* 쿠폰 영역 */
+.coupon-wrap { margin:10px 0; padding:10px; background:#f8f8f8; border-radius:10px; border:1px dashed rgba(0,0,0,.1); }
+.coupon-label { font-size:11px; font-weight:700; color:var(--gray-500); margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px; }
+.coupon-row { display:flex; gap:6px; }
+.coupon-input { flex:1; padding:9px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; font-family:inherit; outline:none; text-transform:uppercase; }
+.coupon-input:focus { border-color:var(--green); }
+.coupon-apply-btn { padding:9px 14px; background:var(--green); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.coupon-apply-btn:disabled { opacity:.5; cursor:not-allowed; }
+.coupon-msg { font-size:12px; margin-top:6px; font-weight:600; }
+.coupon-msg.ok { color:var(--green); }
+.coupon-msg.err { color:#EF4444; }
+.coupon-discount-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-top:4px; padding-top:4px; border-top:1px solid rgba(0,0,0,.06); }
+.coupon-discount-amount { font-weight:700; color:#EF4444; }
+
 /* 찜하기 버튼 */
 .wish-card-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; background:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; margin-top:8px; }
 .wish-card-btn.wished { border-color:#FF4D6D; color:#FF4D6D; background:#FFF0F0; }
@@ -125,19 +161,60 @@
           </ul>
         </div>
         <div class="tab-content" id="tab-curriculum">
+          <!-- 진도 요약 (수강 중일 때만 표시) -->
+          <div class="prog-summary" id="prog-summary">
+            <div class="prog-summary-bar-wrap">
+              <div class="prog-summary-bar" id="prog-summary-bar" style="width:0%"></div>
+            </div>
+            <div class="prog-summary-text" id="prog-summary-text">0% 완료</div>
+          </div>
+          <div id="curriculum-content">
           <div class="curriculum-section">
             <div class="curriculum-title">1강 ~ 10강 · 성경적 세계관 기초</div>
-            <div class="curriculum-item"><span class="curriculum-num">1</span>CBUP 오리엔테이션 — 이 과정을 시작하며<span class="curriculum-lock preview-slot" data-slot="1"></span></div>
-            <div class="curriculum-item"><span class="curriculum-num">2</span>성경적 세계관이란 무엇인가<span class="curriculum-lock preview-slot" data-slot="2"></span></div>
-            <div class="curriculum-item"><span class="curriculum-num">3</span>교사의 정체성과 사명<span class="curriculum-lock">🔒</span></div>
-            <div class="curriculum-item"><span class="curriculum-num">4</span>다음 세대를 향한 하나님의 마음<span class="curriculum-lock">🔒</span></div>
-            <div class="curriculum-item"><span class="curriculum-num">5</span>트리플 스쿨 교육철학<span class="curriculum-lock">🔒</span></div>
+            <div class="curriculum-item" data-lesson="lesson-1" data-title="CBUP 오리엔테이션 — 이 과정을 시작하며">
+              <span class="curriculum-num">1</span>
+              <span class="curriculum-item-title">CBUP 오리엔테이션 — 이 과정을 시작하며</span>
+              <span class="curriculum-lock preview-slot" data-slot="1"></span>
+            </div>
+            <div class="curriculum-item" data-lesson="lesson-2" data-title="성경적 세계관이란 무엇인가">
+              <span class="curriculum-num">2</span>
+              <span class="curriculum-item-title">성경적 세계관이란 무엇인가</span>
+              <span class="curriculum-lock preview-slot" data-slot="2"></span>
+            </div>
+            <div class="curriculum-item" data-lesson="lesson-3" data-title="교사의 정체성과 사명">
+              <span class="curriculum-num">3</span>
+              <span class="curriculum-item-title">교사의 정체성과 사명</span>
+              <span class="curriculum-lock">🔒</span>
+            </div>
+            <div class="curriculum-item" data-lesson="lesson-4" data-title="다음 세대를 향한 하나님의 마음">
+              <span class="curriculum-num">4</span>
+              <span class="curriculum-item-title">다음 세대를 향한 하나님의 마음</span>
+              <span class="curriculum-lock">🔒</span>
+            </div>
+            <div class="curriculum-item" data-lesson="lesson-5" data-title="트리플 스쿨 교육철학">
+              <span class="curriculum-num">5</span>
+              <span class="curriculum-item-title">트리플 스쿨 교육철학</span>
+              <span class="curriculum-lock">🔒</span>
+            </div>
           </div>
           <div class="curriculum-section">
             <div class="curriculum-title">11강 ~ 25강 · 실전 교수법</div>
-            <div class="curriculum-item"><span class="curriculum-num">11</span>효과적인 수업 설계 방법<span class="curriculum-lock">🔒</span></div>
-            <div class="curriculum-item"><span class="curriculum-num">12</span>연령별 눈높이 교육 전략<span class="curriculum-lock">🔒</span></div>
-            <div class="curriculum-item"><span class="curriculum-num">13</span>부모와 함께하는 가정 교육 연계<span class="curriculum-lock">🔒</span></div>
+            <div class="curriculum-item" data-lesson="lesson-11" data-title="효과적인 수업 설계 방법">
+              <span class="curriculum-num">11</span>
+              <span class="curriculum-item-title">효과적인 수업 설계 방법</span>
+              <span class="curriculum-lock">🔒</span>
+            </div>
+            <div class="curriculum-item" data-lesson="lesson-12" data-title="연령별 눈높이 교육 전략">
+              <span class="curriculum-num">12</span>
+              <span class="curriculum-item-title">연령별 눈높이 교육 전략</span>
+              <span class="curriculum-lock">🔒</span>
+            </div>
+            <div class="curriculum-item" data-lesson="lesson-13" data-title="부모와 함께하는 가정 교육 연계">
+              <span class="curriculum-num">13</span>
+              <span class="curriculum-item-title">부모와 함께하는 가정 교육 연계</span>
+              <span class="curriculum-lock">🔒</span>
+            </div>
+          </div>
           </div>
           <div style="padding:1rem;background:var(--green-light);border-radius:var(--radius-sm);font-size:13px;color:var(--green-dark);margin-top:1rem;">
             🔓 첫 2강은 무료로 미리 볼 수 있어요
@@ -166,15 +243,44 @@
       <aside>
         <div class="purchase-card">
           <div class="purchase-thumb">✝️</div>
+          <!-- 수강 중 진도 표시 (수강 후에만 표시) -->
+          <div id="enrolled-section" style="display:none;">
+            <div class="enrolled-progress">
+              <div class="enrolled-progress-label">
+                <span>수강 진도</span>
+                <span id="enrolled-pct">0%</span>
+              </div>
+              <div class="enrolled-bar-wrap">
+                <div class="enrolled-bar-fill" id="enrolled-bar" style="width:0%"></div>
+              </div>
+            </div>
+            <button class="btn-resume" id="resume-btn" onclick="resumeCourse()">▶ 이어보기</button>
+          </div>
+
           <div id="purchase-original" class="purchase-original" style="display:none;"></div>
           <div class="purchase-price" id="purchase-price">불러오는 중...</div>
           <div class="purchase-discount" id="purchase-discount" style="display:none;">🎯 할인 중</div>
+
+          <!-- 쿠폰 입력 (미수강 시에만 표시) -->
+          <div class="coupon-wrap" id="coupon-section" style="display:none;">
+            <div class="coupon-label">쿠폰 코드</div>
+            <div class="coupon-row">
+              <input class="coupon-input" id="coupon-input" type="text" placeholder="쿠폰 코드 입력" maxlength="30">
+              <button class="coupon-apply-btn" id="coupon-apply-btn" onclick="applyCoupon()">적용</button>
+            </div>
+            <div class="coupon-msg" id="coupon-msg"></div>
+            <div class="coupon-discount-row" id="coupon-discount-row" style="display:none;">
+              <span>쿠폰 할인</span>
+              <span class="coupon-discount-amount" id="coupon-discount-amount">-₩0</span>
+            </div>
+          </div>
+
           <div class="purchase-options">
             <div class="purchase-option"><span>강의 수</span><span>44강</span></div>
             <div class="purchase-option"><span>수강 기간</span><span>무제한</span></div>
             <div class="purchase-option"><span>수강 방식</span><span>온라인 영상</span></div>
           </div>
-          <div class="purchase-btns">
+          <div class="purchase-btns" id="purchase-btns-section">
             <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
             <a href="#" class="btn btn-outline" style="text-align:center;">장바구니 담기</a>
             <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()">🤍 찜하기</button>
@@ -286,6 +392,198 @@ function closePreview(e) {
   document.body.style.overflow = '';
 }
 
+// ───── 수강 진도 ─────
+let progressMap = {};    // lessonId → true/false
+let isEnrolled = false;
+let lastWatchedLesson = null;
+
+async function loadProgress(userId, courseId) {
+  const { data } = await supabaseClient
+    .from('progress')
+    .select('lesson_id, completed, watched_at, lesson_title')
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
+    .order('watched_at', { ascending: false });
+
+  if (data && data.length) {
+    data.forEach(r => { progressMap[r.lesson_id] = r.completed; });
+    lastWatchedLesson = data[0]; // 가장 최근에 본 강의
+  }
+  applyProgressUI();
+}
+
+function applyProgressUI() {
+  const items = document.querySelectorAll('#curriculum-content .curriculum-item[data-lesson]');
+  if (!items.length) return;
+
+  let total = 0, done = 0;
+  items.forEach(item => {
+    const lid = item.dataset.lesson;
+    const title = item.dataset.title;
+    const completed = !!progressMap[lid];
+    total++;
+    if (completed) done++;
+
+    if (isEnrolled) {
+      // 이미 체크박스가 추가됐으면 건너뜀
+      if (!item.querySelector('.curriculum-check')) {
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'curriculum-check';
+        cb.checked = completed;
+        cb.dataset.lesson = lid;
+        cb.dataset.title = title;
+        cb.addEventListener('change', () => toggleLesson(lid, title, cb.checked));
+        item.appendChild(cb);
+      } else {
+        item.querySelector('.curriculum-check').checked = completed;
+      }
+      item.classList.toggle('done', completed);
+      const titleEl = item.querySelector('.curriculum-item-title');
+      if (titleEl) titleEl.classList.toggle('done-text', completed);
+
+      // 잠금 아이콘 숨기기 (수강 중이면 모든 강의 접근 가능)
+      const lockEl = item.querySelector('.curriculum-lock:not(.preview-slot)');
+      if (lockEl) lockEl.textContent = '🔓';
+    }
+  });
+
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  // 구매 카드 진도 표시
+  if (isEnrolled) {
+    document.getElementById('enrolled-section').style.display = '';
+    document.getElementById('enrolled-pct').textContent = pct + '%';
+    document.getElementById('enrolled-bar').style.width = pct + '%';
+    // 이어보기 버튼 텍스트
+    if (lastWatchedLesson) {
+      document.getElementById('resume-btn').textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
+    }
+    // 결제 버튼 영역 숨기기 / 쿠폰 영역 숨기기
+    document.getElementById('purchase-btns-section').style.display = 'none';
+    document.getElementById('coupon-section').style.display = 'none';
+  } else {
+    document.getElementById('coupon-section').style.display = '';
+  }
+
+  // 커리큘럼 탭 진도 바
+  if (isEnrolled && total > 0) {
+    const summary = document.getElementById('prog-summary');
+    summary.classList.add('show');
+    document.getElementById('prog-summary-bar').style.width = pct + '%';
+    document.getElementById('prog-summary-text').textContent = done + '/' + total + '강 완료 (' + pct + '%)';
+  }
+}
+
+async function toggleLesson(lessonId, lessonTitle, completed) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user || !currentCourse) return;
+
+  await supabaseClient.from('progress').upsert({
+    user_id: user.id,
+    course_id: currentCourse.id,
+    lesson_id: lessonId,
+    lesson_title: lessonTitle,
+    completed,
+    watched_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,course_id,lesson_id' });
+
+  progressMap[lessonId] = completed;
+  if (completed) lastWatchedLesson = { lesson_id: lessonId, lesson_title: lessonTitle };
+  applyProgressUI();
+
+  // orders 테이블의 progress 컬럼도 동기화
+  const items = document.querySelectorAll('#curriculum-content .curriculum-item[data-lesson]');
+  const total = items.length;
+  const done = Object.values(progressMap).filter(Boolean).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  await supabaseClient.from('orders')
+    .update({ progress: pct })
+    .eq('user_id', user.id)
+    .eq('course_id', currentCourse.id);
+}
+
+function resumeCourse() {
+  // 마지막으로 본 강의로 스크롤 + 커리큘럼 탭 활성화
+  document.querySelector('.detail-tab[onclick*="curriculum"]').click();
+  if (lastWatchedLesson) {
+    const el = document.querySelector(`[data-lesson="${lastWatchedLesson.lesson_id}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// ───── 쿠폰 ─────
+let appliedCoupon = null;
+let couponDiscount = 0;
+
+async function applyCoupon() {
+  const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+  const msgEl = document.getElementById('coupon-msg');
+  const discountRow = document.getElementById('coupon-discount-row');
+  const btn = document.getElementById('coupon-apply-btn');
+
+  if (!code) { msgEl.textContent = '쿠폰 코드를 입력해주세요.'; msgEl.className = 'coupon-msg err'; return; }
+
+  btn.disabled = true;
+  msgEl.textContent = '확인 중...';
+  msgEl.className = 'coupon-msg';
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('coupons')
+      .select('*')
+      .eq('code', code)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (error || !data) {
+      msgEl.textContent = '유효하지 않은 쿠폰 코드예요.';
+      msgEl.className = 'coupon-msg err';
+      appliedCoupon = null; couponDiscount = 0;
+      discountRow.style.display = 'none';
+      return;
+    }
+    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      msgEl.textContent = '만료된 쿠폰이에요.';
+      msgEl.className = 'coupon-msg err';
+      return;
+    }
+    if (data.max_uses && data.used_count >= data.max_uses) {
+      msgEl.textContent = '사용 한도가 초과된 쿠폰이에요.';
+      msgEl.className = 'coupon-msg err';
+      return;
+    }
+
+    const { isDiscounted, currentPrice } = getCurrentPrice(currentCourse);
+    const basePrice = currentPrice || 0;
+
+    if (data.min_amount && basePrice < data.min_amount) {
+      msgEl.textContent = `₩${Number(data.min_amount).toLocaleString()} 이상 구매 시 사용 가능한 쿠폰이에요.`;
+      msgEl.className = 'coupon-msg err';
+      return;
+    }
+
+    // 할인 계산
+    if (data.discount_type === 'rate') {
+      couponDiscount = Math.round(basePrice * data.discount_value / 100);
+    } else {
+      couponDiscount = Math.min(data.discount_value, basePrice);
+    }
+    appliedCoupon = data;
+
+    msgEl.textContent = `✅ ${data.description || code} 쿠폰 적용 완료!`;
+    msgEl.className = 'coupon-msg ok';
+    discountRow.style.display = '';
+    document.getElementById('coupon-discount-amount').textContent = '-₩' + Number(couponDiscount).toLocaleString();
+
+    // 최종 결제 금액 표시 업데이트
+    const finalPrice = Math.max(0, basePrice - couponDiscount);
+    document.getElementById('purchase-price').textContent = '₩' + Number(finalPrice).toLocaleString();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // ───── 강좌 데이터 불러오기 ─────
 async function loadCourse() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -345,9 +643,17 @@ async function loadCourse() {
     previewSlots.forEach(slot => { slot.textContent = '🔓'; });
   }
 
-  // 찜하기 상태 로드
+  // 로그인 상태 확인 → 수강 여부, 진도, 찜 로드
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (user) await loadWishState(user.id, course.id);
+  if (user) {
+    const purchased = await hasPurchased(user.id, course.id);
+    isEnrolled = purchased;
+    await loadProgress(user.id, course.id);
+    await loadWishState(user.id, course.id);
+  } else {
+    // 비로그인: 쿠폰 창만 표시
+    document.getElementById('coupon-section').style.display = '';
+  }
 }
 
 // ───── 결제 요청 ─────
@@ -376,6 +682,7 @@ async function requestPayment() {
   }
 
   const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(currentCourse);
+  const finalPrice = Math.max(0, currentPrice - couponDiscount);
   const paymentId = 'payment-' + crypto.randomUUID();
 
   btn.disabled = true;
@@ -388,7 +695,7 @@ async function requestPayment() {
       channelKey: PORTONE_CHANNEL_KEY,
       paymentId: paymentId,
       orderName: currentCourse.title,
-      totalAmount: currentPrice,
+      totalAmount: finalPrice,
       currency: 'CURRENCY_KRW',
       payMethod: 'CARD',
       customer: {
@@ -415,8 +722,9 @@ async function requestPayment() {
       course_id: currentCourse.id,
       course_name: currentCourse.title,
       payment_id: payment.paymentId,
-      amount: currentPrice,
-      original_amount: isDiscounted ? originalPrice : currentPrice,
+      amount: finalPrice,
+      original_amount: currentPrice,
+      coupon_code: appliedCoupon ? appliedCoupon.code : null,
       status: 'paid',
       progress: 0,
     });
@@ -426,6 +734,12 @@ async function requestPayment() {
       return;
     }
 
+    // 쿠폰 사용 횟수 증가
+    if (appliedCoupon) {
+      await supabaseClient.from('coupons')
+        .update({ used_count: appliedCoupon.used_count + 1 })
+        .eq('id', appliedCoupon.id);
+    }
     alert('결제가 완료되었습니다! 나의 강의실에서 수강을 시작해보세요 🎉');
     window.location.href = 'my-courses.html';
 

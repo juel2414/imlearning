@@ -6,187 +6,623 @@
 <title>대시보드 — 아이엠러닝 관리자</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  * { box-sizing: border-box; word-break: keep-all; }
-  body { margin: 0; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #F8F9FA; color: #111; }
-  a { text-decoration: none; color: inherit; }
+* { box-sizing:border-box; word-break:keep-all; }
+body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
+a { text-decoration:none; color:inherit; }
 
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: 220px; flex-shrink: 0; background: #111318; color: #fff; }
-  .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .sidebar-logo-text { font-size: 16px; font-weight: 800; white-space: nowrap; }
-  .sidebar-logo-text span { color: #2D9B6F; }
-  .sidebar-logo-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 4px; white-space: nowrap; }
-  .nav-section { padding: 16px 20px 6px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; color: rgba(255,255,255,0.65); white-space: nowrap; }
-  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-  .nav-item.active { background: rgba(45,155,111,0.15); color: #2D9B6F; font-weight: 600; }
+.admin-main { padding:2rem; }
 
-  .main { flex: 1; padding: 32px; min-width: 0; }
-  .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-  .page-title { font-size: 26px; font-weight: 800; white-space: nowrap; margin: 0; }
-  .page-date { font-size: 13px; color: #6B6B6B; margin-top: 6px; white-space: nowrap; }
-  .add-btn { padding: 10px 20px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+/* 헤더 */
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:1.5rem; flex-wrap:wrap; }
+.page-title { font-size:24px; font-weight:800; margin:0; }
+.page-date { font-size:12px; color:#888; margin-top:4px; }
+.header-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
-  .stats-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-  .stat-card { flex: 1 1 200px; min-width: 160px; background: #fff; border-radius: 12px; padding: 20px; border: 1px solid rgba(0,0,0,0.06); }
-  .stat-label { font-size: 13px; color: #6B6B6B; margin-bottom: 8px; white-space: nowrap; }
-  .stat-value { font-size: 26px; font-weight: 800; white-space: nowrap; }
-  .stat-delta { font-size: 12px; color: #2D9B6F; font-weight: 600; margin-top: 6px; white-space: nowrap; }
+/* 기간 필터 */
+.period-btns { display:flex; background:#fff; border:1px solid rgba(0,0,0,.1); border-radius:8px; overflow:hidden; }
+.period-btn { padding:7px 14px; font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; color:#888; }
+.period-btn.active { background:#2D9B6F; color:#fff; }
+.export-btn { padding:8px 16px; background:#fff; border:1px solid rgba(0,0,0,.12); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; color:#555; display:flex; align-items:center; gap:4px; }
+.export-btn:hover { border-color:#2D9B6F; color:#2D9B6F; }
 
-  .quick-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-  .quick-card { flex: 1 1 150px; min-width: 130px; background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; padding: 20px; text-align: center; }
-  .quick-icon { font-size: 26px; margin-bottom: 8px; }
-  .quick-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+/* 카드 */
+.card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.06); overflow:hidden; }
+.card-header { padding:16px 22px; border-bottom:1px solid rgba(0,0,0,.05); display:flex; align-items:center; justify-content:space-between; }
+.card-title { font-size:14px; font-weight:700; }
+.card-body { padding:22px; }
+.see-all { font-size:12px; color:#2D9B6F; font-weight:600; }
 
-  .card { background: #fff; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); overflow: hidden; }
-  .card-header { padding: 18px 24px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; }
-  .card-title { font-size: 15px; font-weight: 700; white-space: nowrap; }
-  .see-all { font-size: 12px; color: #2D9B6F; font-weight: 600; white-space: nowrap; }
-  table { width: 100%; border-collapse: collapse; }
-  th { padding: 10px 24px; text-align: left; font-size: 11px; color: #6B6B6B; background: #F8F9FA; white-space: nowrap; }
-  td { padding: 12px 24px; font-size: 13px; border-bottom: 1px solid rgba(0,0,0,0.04); }
-  .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-  .badge.active { background: #DCFCE7; color: #16A34A; }
-  .badge.hidden { background: #F0F0F0; color: #6B6B6B; }
-  .empty { text-align: center; padding: 32px; color: #6B6B6B; font-size: 13px; }
+/* KPI 행 */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin-bottom:1.25rem; }
+.kpi-card { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.06); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent,#2D9B6F); }
+.kpi-label { font-size:12px; color:#888; margin-bottom:8px; font-weight:600; }
+.kpi-value { font-size:28px; font-weight:900; line-height:1; margin-bottom:6px; }
+.kpi-delta { font-size:12px; font-weight:600; }
+.kpi-delta.up { color:#2D9B6F; }
+.kpi-delta.down { color:#EF4444; }
+.kpi-delta.neutral { color:#888; }
 
-  .menu-btn { display: none; }
-  @media (max-width: 768px) {
-    .layout { flex-direction: column; }
-    .sidebar { width: 100%; position: fixed; top: 0; left: 0; height: 100vh; z-index: 200; transform: translateX(-100%); transition: 0.25s; overflow-y: auto; }
-    .sidebar.open { transform: translateX(0); }
-    .main { padding: 16px; padding-top: 64px; }
-    .menu-btn { display: flex; align-items: center; justify-content: center; position: fixed; top: 14px; left: 14px; z-index: 250; width: 38px; height: 38px; border-radius: 8px; background: #111318; color: #fff; border: none; font-size: 16px; }
-  }
+/* 2열 레이아웃 */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:1.25rem; }
+.grid-3 { display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:1.25rem; }
+
+/* 차트 */
+.chart-wrap { position:relative; width:100%; }
+canvas { width:100% !important; }
+
+/* 테이블 */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { padding:9px 14px; text-align:left; font-size:11px; color:#888; background:#F8F9FA; white-space:nowrap; font-weight:600; }
+td { padding:11px 14px; border-bottom:1px solid rgba(0,0,0,.04); }
+tr:last-child td { border-bottom:none; }
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+.badge-paid { background:#DCFCE7; color:#16A34A; }
+.badge-free { background:#E0F2FE; color:#0369A1; }
+
+/* 진행률 바 */
+.rank-bar-wrap { background:#f0f0f0; border-radius:20px; height:6px; flex:1; }
+.rank-bar { background:linear-gradient(90deg,#2D9B6F,#5cbf8a); border-radius:20px; height:6px; transition:width .5s; }
+.rank-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.rank-row:last-child { border-bottom:none; }
+.rank-num { width:22px; font-size:13px; font-weight:800; color:#2D9B6F; flex-shrink:0; }
+.rank-title { flex:2; font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-val { font-size:12px; color:#888; white-space:nowrap; flex-shrink:0; }
+
+/* 목표 달성률 */
+.goal-wrap { margin-bottom:1.25rem; }
+.goal-label { display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:8px; }
+.goal-bar-bg { background:#f0f0f0; border-radius:20px; height:14px; overflow:hidden; }
+.goal-bar-fill { background:linear-gradient(90deg,#2D9B6F,#5cbf8a); border-radius:20px; height:14px; transition:width 1s ease; }
+.goal-pct { font-size:26px; font-weight:900; color:#2D9B6F; }
+
+/* 최근 결제 */
+.payment-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+.payment-item:last-child { border-bottom:none; }
+.payment-avatar { width:36px; height:36px; border-radius:50%; background:#E8F5EE; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.payment-info { flex:1; min-width:0; }
+.payment-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.payment-course { font-size:11px; color:#888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.payment-amount { font-size:14px; font-weight:800; color:#111; white-space:nowrap; flex-shrink:0; }
+.payment-time { font-size:11px; color:#aaa; white-space:nowrap; flex-shrink:0; }
+
+.empty { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
+.loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
+
+/* 빠른 실행 */
+.quick-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; margin-bottom:1.25rem; }
+.quick-card { background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:12px; padding:16px; text-align:center; transition:.2s; }
+.quick-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); transform:translateY(-2px); }
+.quick-icon { font-size:24px; margin-bottom:8px; }
+.quick-label { font-size:12px; font-weight:700; color:#555; }
+
+@media(max-width:900px) { .grid-2,.grid-3 { grid-template-columns:1fr; } }
+@media(max-width:768px) { .admin-main { padding:1rem; } .kpi-row { grid-template-columns:1fr 1fr; } }
 </style>
 </head>
 <body>
 
-<button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-text">아이엠<span>러닝</span></div>
-      <div class="sidebar-logo-sub">관리자 페이지</div>
+<div class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">📊 대시보드</h1>
+      <div class="page-date" id="today-date"></div>
     </div>
-    <div class="nav-section">메인</div>
-    <a href="index.html" class="nav-item active">📊 대시보드</a>
-    <div class="nav-section">강좌 관리</div>
-    <a href="courses.html" class="nav-item">📚 강좌 관리</a>
-    <a href="instructors.html" class="nav-item">👨‍🏫 강사 관리</a>
-    <div class="nav-section">프로모션</div>
-    <a href="promotions.html" class="nav-item">🎯 프로모션 관리</a>
-    <div class="nav-section">콘텐츠</div>
-    <a href="notices.html" class="nav-item">📢 공지사항</a>
-    <a href="banners.html" class="nav-item">🖼️ 배너 관리</a>
-    <a href="landing.html" class="nav-item">🏠 랜딩 빌더</a>
-    <a href="theme.html" class="nav-item">🎨 테마 관리</a>
-    <div class="nav-section">설정</div>
-    <a href="settings.html" class="nav-item">⚙️ 사이트 설정</a>
-    <a href="../index.html" class="nav-item">🌐 사이트 보기</a>
-    <a href="login.html" class="nav-item" onclick="sessionStorage.removeItem('admin_auth')">🚪 로그아웃</a>
-  </aside>
-
-  <main class="main">
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">대시보드</h1>
-        <div class="page-date" id="today"></div>
+    <div class="header-right">
+      <div class="period-btns">
+        <button class="period-btn active" onclick="setPeriod('today',this)">오늘</button>
+        <button class="period-btn" onclick="setPeriod('week',this)">이번주</button>
+        <button class="period-btn" onclick="setPeriod('month',this)">이번달</button>
+        <button class="period-btn" onclick="setPeriod('all',this)">전체</button>
       </div>
-      <a href="courses.html" class="add-btn">+ 새 강좌 추가</a>
+      <button class="export-btn" onclick="exportCSV()">📥 CSV</button>
+      <a href="courses.html" style="padding:8px 16px;background:#2D9B6F;color:#fff;border-radius:8px;font-size:12px;font-weight:700;">+ 강좌 추가</a>
     </div>
+  </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">총 강좌 수</div>
-        <div class="stat-value" id="s-courses">-</div>
-        <div class="stat-delta" id="s-courses-d">-</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">총 강사 수</div>
-        <div class="stat-value" id="s-instructors">-</div>
-        <div class="stat-delta">등록된 강사진</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">총 수강생</div>
-        <div class="stat-value" id="s-students">-</div>
-        <div class="stat-delta">전체 강좌 합계</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">추천 강좌</div>
-        <div class="stat-value" id="s-featured">-</div>
-        <div class="stat-delta">메인 노출 중</div>
-      </div>
+  <!-- KPI 카드 -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent:#2D9B6F;">
+      <div class="kpi-label">매출 (기간)</div>
+      <div class="kpi-value" id="kpi-revenue">-</div>
+      <div class="kpi-delta" id="kpi-revenue-d">불러오는 중...</div>
     </div>
-
-    <div class="quick-row">
-      <a href="courses.html" class="quick-card"><div class="quick-icon">📚</div><div class="quick-label">강좌 추가</div></a>
-      <a href="instructors.html" class="quick-card"><div class="quick-icon">👨‍🏫</div><div class="quick-label">강사 추가</div></a>
-      <a href="notices.html" class="quick-card"><div class="quick-icon">📢</div><div class="quick-label">공지 작성</div></a>
-      <a href="promotions.html" class="quick-card"><div class="quick-icon">🎯</div><div class="quick-label">프로모션 설정</div></a>
+    <div class="kpi-card" style="--accent:#3B82F6;">
+      <div class="kpi-label">결제 건수</div>
+      <div class="kpi-value" id="kpi-orders">-</div>
+      <div class="kpi-delta" id="kpi-orders-d">불러오는 중...</div>
     </div>
+    <div class="kpi-card" style="--accent:#F59E0B;">
+      <div class="kpi-label">신규 회원</div>
+      <div class="kpi-value" id="kpi-users">-</div>
+      <div class="kpi-delta" id="kpi-users-d">불러오는 중...</div>
+    </div>
+    <div class="kpi-card" style="--accent:#8B5CF6;">
+      <div class="kpi-label">결제 전환율</div>
+      <div class="kpi-value" id="kpi-conv">-</div>
+      <div class="kpi-delta neutral" id="kpi-conv-d">가입 대비 결제</div>
+    </div>
+    <div class="kpi-card" style="--accent:#EF4444;">
+      <div class="kpi-label">전체 수강생</div>
+      <div class="kpi-value" id="kpi-students">-</div>
+      <div class="kpi-delta neutral" id="kpi-students-d">강좌별 합계</div>
+    </div>
+    <div class="kpi-card" style="--accent:#10B981;">
+      <div class="kpi-label">활성 강좌</div>
+      <div class="kpi-value" id="kpi-courses">-</div>
+      <div class="kpi-delta neutral" id="kpi-courses-d">판매 중</div>
+    </div>
+  </div>
 
+  <!-- 빠른 실행 -->
+  <div class="quick-row">
+    <a href="courses.html" class="quick-card"><div class="quick-icon">📚</div><div class="quick-label">강좌 관리</div></a>
+    <a href="instructors.html" class="quick-card"><div class="quick-icon">👨‍🏫</div><div class="quick-label">강사 관리</div></a>
+    <a href="promotions.html" class="quick-card"><div class="quick-icon">🎟️</div><div class="quick-label">쿠폰 관리</div></a>
+    <a href="notices.html" class="quick-card"><div class="quick-icon">📢</div><div class="quick-label">공지 작성</div></a>
+    <a href="landing.html" class="quick-card"><div class="quick-icon">🏠</div><div class="quick-label">랜딩 빌더</div></a>
+  </div>
+
+  <!-- 매출 목표 달성률 -->
+  <div class="card goal-wrap" style="padding:20px 24px;margin-bottom:1.25rem;">
+    <div class="card-header" style="padding:0 0 14px;border:none;">
+      <span class="card-title">🎯 이번달 매출 목표</span>
+      <span class="goal-pct" id="goal-pct">0%</span>
+    </div>
+    <div class="goal-label">
+      <span id="goal-current">₩0</span>
+      <span id="goal-target" style="color:#888;">목표: ₩1,000,000</span>
+    </div>
+    <div class="goal-bar-bg">
+      <div class="goal-bar-fill" id="goal-bar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- 매출 그래프 + 강좌 랭킹 -->
+  <div class="grid-3">
     <div class="card">
       <div class="card-header">
-        <span class="card-title">최근 등록된 강좌</span>
-        <a href="courses.html" class="see-all">전체 보기 →</a>
+        <span class="card-title">💰 일별 매출 추이</span>
+        <span class="card-title" id="chart-period-label" style="font-size:12px;color:#888;">최근 30일</span>
       </div>
-      <div id="recent-area"><div class="empty">불러오는 중...</div></div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="revenue-chart"></canvas>
+        </div>
+      </div>
     </div>
-  </main>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🔥 인기 강좌 Top5</span>
+      </div>
+      <div class="card-body" id="top5-area">
+        <div class="loading">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신규 회원 추이 + 최근 결제 -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">👥 신규 회원 가입 추이</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:180px;">
+          <canvas id="users-chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🧾 최근 결제 내역</span>
+        <a href="#" class="see-all">전체 보기</a>
+      </div>
+      <div class="card-body" id="recent-payments">
+        <div class="loading">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 강좌별 수강생 + 전체 주문 목록 -->
+  <div class="card" style="margin-bottom:1.25rem;">
+    <div class="card-header">
+      <span class="card-title">📋 강좌별 수강생 현황</span>
+      <button class="export-btn" onclick="exportCourseCSV()">📥 CSV</button>
+    </div>
+    <div id="course-table-area"><div class="loading">불러오는 중...</div></div>
+  </div>
+
+  <!-- 최근 주문 테이블 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📦 결제 내역 (기간 내)</span>
+      <button class="export-btn" onclick="exportOrdersCSV()">📥 CSV</button>
+    </div>
+    <div id="orders-table-area"><div class="loading">불러오는 중...</div></div>
+  </div>
 </div>
 
 <script>
 if (!sessionStorage.getItem('admin_auth')) { window.location.href = 'login.html'; }
 
-document.getElementById('today').textContent = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-var SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
 
-var CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+// ── 전역 상태 ──
+let currentPeriod = 'today';
+let allOrders = [];
+let allCourses = [];
+let allProfiles = [];
+const MONTHLY_GOAL = 1000000; // 월 목표 매출 (원)
 
-async function load() {
-  try {
-    var coursesRes = await sb.from('courses').select('*').order('created_at', { ascending: false });
-    var instructorsRes = await sb.from('instructors').select('*');
+// ── 기간 계산 ──
+function getPeriodRange(period) {
+  const now = new Date();
+  const start = new Date(now);
+  if (period === 'today') {
+    start.setHours(0,0,0,0);
+  } else if (period === 'week') {
+    const day = start.getDay();
+    start.setDate(start.getDate() - day);
+    start.setHours(0,0,0,0);
+  } else if (period === 'month') {
+    start.setDate(1); start.setHours(0,0,0,0);
+  } else {
+    return { start: null, end: now };
+  }
+  return { start, end: now };
+}
 
-    var courses = coursesRes.data || [];
-    var instructors = instructorsRes.data || [];
+// ── 기간 필터 ──
+async function setPeriod(period, btn) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
 
-    document.getElementById('s-courses').textContent = courses.length;
-    document.getElementById('s-courses-d').textContent = courses.filter(function(c){return c.status==='active';}).length + '개 판매중';
-    document.getElementById('s-instructors').textContent = instructors.length;
-    var totalStudents = 0;
-    courses.forEach(function(c){ totalStudents += (c.students || 0); });
-    document.getElementById('s-students').textContent = totalStudents.toLocaleString();
-    document.getElementById('s-featured').textContent = courses.filter(function(c){return c.featured;}).length;
+// ── 전체 렌더 ──
+function renderAll() {
+  const { start, end } = getPeriodRange(currentPeriod);
+  const filtered = start
+    ? allOrders.filter(o => new Date(o.created_at) >= start && o.status === 'paid')
+    : allOrders.filter(o => o.status === 'paid');
 
-    var recent = courses.slice(0, 5);
-    var area = document.getElementById('recent-area');
-    if (recent.length === 0) {
-      area.innerHTML = '<div class="empty">아직 등록된 강좌가 없어요. "강좌 추가"로 첫 강좌를 등록해보세요!</div>';
-      return;
-    }
-    var html = '<table><thead><tr><th>강좌명</th><th>카테고리</th><th>강사</th><th>가격</th><th>상태</th></tr></thead><tbody>';
-    recent.forEach(function(c) {
-      html += '<tr>';
-      html += '<td style="font-weight:600;">' + c.title + '</td>';
-      html += '<td>' + (CAT_LABELS[c.category] || '-') + '</td>';
-      html += '<td>' + (c.instructor || '-') + '</td>';
-      html += '<td>' + (c.price ? '₩' + Number(c.price).toLocaleString() : '-') + '</td>';
-      html += '<td><span class="badge ' + (c.status === 'active' ? 'active' : 'hidden') + '">' + (c.status === 'active' ? '판매중' : '비공개') + '</span></td>';
-      html += '</tr>';
+  renderKPI(filtered);
+  renderGoal();
+  renderRevenueChart(filtered);
+  renderTop5();
+  renderUsersChart();
+  renderRecentPayments(filtered);
+  renderCourseTable();
+  renderOrdersTable(filtered);
+}
+
+// ── KPI ──
+function renderKPI(filtered) {
+  const revenue = filtered.reduce((s, o) => s + (o.amount || 0), 0);
+  const periodLabel = { today:'오늘', week:'이번주', month:'이번달', all:'전체' }[currentPeriod];
+
+  document.getElementById('kpi-revenue').textContent = '₩' + revenue.toLocaleString();
+  document.getElementById('kpi-revenue-d').textContent = periodLabel + ' 총 매출';
+  document.getElementById('kpi-revenue-d').className = 'kpi-delta ' + (revenue > 0 ? 'up' : 'neutral');
+
+  document.getElementById('kpi-orders').textContent = filtered.length;
+  document.getElementById('kpi-orders-d').textContent = periodLabel + ' 결제 ' + filtered.length + '건';
+
+  const { start } = getPeriodRange(currentPeriod);
+  const newUsers = start
+    ? allProfiles.filter(p => new Date(p.created_at) >= start).length
+    : allProfiles.length;
+  document.getElementById('kpi-users').textContent = newUsers;
+  document.getElementById('kpi-users-d').textContent = periodLabel + ' 신규 가입';
+  document.getElementById('kpi-users-d').className = 'kpi-delta ' + (newUsers > 0 ? 'up' : 'neutral');
+
+  const convRate = allProfiles.length > 0
+    ? Math.round((allOrders.filter(o=>o.status==='paid').length / allProfiles.length) * 100)
+    : 0;
+  document.getElementById('kpi-conv').textContent = convRate + '%';
+
+  const totalStudents = allCourses.reduce((s, c) => s + (c.students || 0), 0);
+  document.getElementById('kpi-students').textContent = totalStudents.toLocaleString();
+
+  const activeCourses = allCourses.filter(c => c.status === 'active').length;
+  document.getElementById('kpi-courses').textContent = activeCourses;
+  document.getElementById('kpi-courses-d').textContent = '전체 ' + allCourses.length + '개 중';
+}
+
+// ── 목표 달성률 ──
+function renderGoal() {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthRevenue = allOrders
+    .filter(o => o.status === 'paid' && new Date(o.created_at) >= monthStart)
+    .reduce((s, o) => s + (o.amount || 0), 0);
+  const pct = Math.min(100, Math.round((monthRevenue / MONTHLY_GOAL) * 100));
+  document.getElementById('goal-current').textContent = '₩' + monthRevenue.toLocaleString();
+  document.getElementById('goal-pct').textContent = pct + '%';
+  document.getElementById('goal-bar').style.width = pct + '%';
+}
+
+// ── 간단한 SVG 바 차트 (Canvas 대신) ──
+function drawBarChart(canvasId, labels, values, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 400;
+  const H = canvas.offsetHeight || 200;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  const padL = 48, padR = 12, padT = 12, padB = 36;
+  const maxVal = Math.max(...values, 1);
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = Math.max(4, (chartW / (labels.length || 1)) * 0.6);
+
+  ctx.clearRect(0, 0, W, H);
+
+  // 그리드 라인
+  ctx.strokeStyle = 'rgba(0,0,0,.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    const label = Math.round(maxVal * (1 - i / 4));
+    ctx.fillStyle = '#aaa';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(label >= 10000 ? '₩' + Math.round(label/10000) + '만' : label, padL - 4, y + 4);
+  }
+
+  // 막대
+  labels.forEach((lbl, i) => {
+    const x = padL + (chartW / labels.length) * i + (chartW / labels.length - barW) / 2;
+    const barH = (values[i] / maxVal) * chartH;
+    const y = padT + chartH - barH;
+
+    // 그라데이션
+    const grad = ctx.createLinearGradient(0, y, 0, padT + chartH);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, color + '88');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
+    ctx.fill();
+
+    // X축 레이블
+    ctx.fillStyle = '#888';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, x + barW / 2, H - 10);
+  });
+}
+
+// ── 매출 차트 ──
+function renderRevenueChart(filtered) {
+  let labels = [], values = [];
+
+  if (currentPeriod === 'today') {
+    // 시간별 (0~23시)
+    document.getElementById('chart-period-label').textContent = '오늘 시간별';
+    labels = Array.from({ length: 24 }, (_, i) => i + '시');
+    values = Array(24).fill(0);
+    filtered.forEach(o => {
+      const h = new Date(o.created_at).getHours();
+      values[h] += (o.amount || 0);
     });
-    html += '</tbody></table>';
-    area.innerHTML = html;
-  } catch (err) {
-    document.getElementById('recent-area').innerHTML = '<div class="empty">불러오기 중 오류가 발생했습니다</div>';
+    // 최근 12시간만 표시
+    const curH = new Date().getHours();
+    labels = labels.slice(Math.max(0, curH - 11), curH + 1);
+    values = values.slice(Math.max(0, curH - 11), curH + 1);
+  } else if (currentPeriod === 'week') {
+    document.getElementById('chart-period-label').textContent = '이번주 요일별';
+    const days = ['일','월','화','수','목','금','토'];
+    labels = days;
+    values = Array(7).fill(0);
+    filtered.forEach(o => {
+      const d = new Date(o.created_at).getDay();
+      values[d] += (o.amount || 0);
+    });
+  } else {
+    // month / all: 날짜별 (최근 30일)
+    document.getElementById('chart-period-label').textContent = currentPeriod === 'all' ? '최근 30일' : '이번달';
+    const days = 30;
+    const map = {};
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = (d.getMonth()+1) + '/' + d.getDate();
+      map[key] = 0;
+    }
+    filtered.forEach(o => {
+      const d = new Date(o.created_at);
+      const key = (d.getMonth()+1) + '/' + d.getDate();
+      if (key in map) map[key] += (o.amount || 0);
+    });
+    labels = Object.keys(map).filter((_, i) => i % 3 === 0 || Object.keys(map).length <= 10);
+    values = labels.map(k => map[k]);
+    // 모든 날짜
+    labels = Object.keys(map);
+    values = labels.map(k => map[k]);
+    if (labels.length > 15) {
+      const step = Math.ceil(labels.length / 15);
+      const allL = labels, allV = values;
+      labels = allL.filter((_, i) => i % step === 0);
+      values = [];
+      for (let i = 0; i < allL.length; i += step) {
+        const chunk = allV.slice(i, i + step);
+        values.push(chunk.reduce((a,b) => a+b, 0));
+      }
+    }
+  }
+
+  setTimeout(() => drawBarChart('revenue-chart', labels, values, '#2D9B6F'), 50);
+}
+
+// ── 신규 회원 차트 ──
+function renderUsersChart() {
+  const days = 14;
+  const map = {};
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = (d.getMonth()+1) + '/' + d.getDate();
+    map[key] = 0;
+  }
+  allProfiles.forEach(p => {
+    const d = new Date(p.created_at);
+    const key = (d.getMonth()+1) + '/' + d.getDate();
+    if (key in map) map[key]++;
+  });
+  const labels = Object.keys(map);
+  const values = labels.map(k => map[k]);
+  setTimeout(() => drawBarChart('users-chart', labels, values, '#3B82F6'), 50);
+}
+
+// ── Top5 강좌 ──
+function renderTop5() {
+  const sorted = [...allCourses].filter(c => c.status === 'active').sort((a,b) => (b.students||0) - (a.students||0)).slice(0, 5);
+  const max = sorted[0]?.students || 1;
+  const el = document.getElementById('top5-area');
+  if (!sorted.length) { el.innerHTML = '<div class="empty">강좌 없음</div>'; return; }
+  el.innerHTML = sorted.map((c, i) => `
+    <div class="rank-row">
+      <span class="rank-num">${i+1}</span>
+      <span class="rank-title">${c.title}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round((c.students||0)/max*100)}%"></div></div>
+      <span class="rank-val">${(c.students||0).toLocaleString()}명</span>
+    </div>`).join('');
+}
+
+// ── 최근 결제 내역 ──
+function renderRecentPayments(filtered) {
+  const recent = [...filtered].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
+  const el = document.getElementById('recent-payments');
+  if (!recent.length) { el.innerHTML = '<div class="empty">결제 내역 없음</div>'; return; }
+  el.innerHTML = recent.map(o => {
+    const ago = timeAgo(new Date(o.created_at));
+    return `
+      <div class="payment-item">
+        <div class="payment-avatar">💳</div>
+        <div class="payment-info">
+          <div class="payment-name">${o.course_name || '강좌명 없음'}</div>
+          <div class="payment-course">${o.user_id?.slice(0,8) || ''}...</div>
+        </div>
+        <div class="payment-amount">₩${Number(o.amount||0).toLocaleString()}</div>
+        <div class="payment-time">${ago}</div>
+      </div>`;
+  }).join('');
+}
+
+function timeAgo(date) {
+  const diff = Date.now() - date.getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return '방금';
+  if (m < 60) return m + '분 전';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + '시간 전';
+  return Math.floor(h / 24) + '일 전';
+}
+
+// ── 강좌별 수강생 테이블 ──
+function renderCourseTable() {
+  const sorted = [...allCourses].sort((a,b) => (b.students||0) - (a.students||0));
+  const CAT = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+  const el = document.getElementById('course-table-area');
+  if (!sorted.length) { el.innerHTML = '<div class="empty">강좌 없음</div>'; return; }
+  let html = '<table><thead><tr><th>강좌명</th><th>카테고리</th><th>강사</th><th>가격</th><th>수강생</th><th>상태</th></tr></thead><tbody>';
+  sorted.forEach(c => {
+    html += `<tr>
+      <td style="font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.title}</td>
+      <td>${CAT[c.category]||'-'}</td>
+      <td>${c.instructor||'-'}</td>
+      <td>${c.price ? '₩'+Number(c.price).toLocaleString() : '무료'}</td>
+      <td><strong>${(c.students||0).toLocaleString()}</strong>명</td>
+      <td><span class="badge ${c.status==='active'?'badge-paid':'badge-free'}">${c.status==='active'?'판매중':'비공개'}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+// ── 결제 내역 테이블 ──
+function renderOrdersTable(filtered) {
+  const recent = [...filtered].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50);
+  const el = document.getElementById('orders-table-area');
+  if (!recent.length) { el.innerHTML = '<div class="empty">결제 내역 없음</div>'; return; }
+  let html = '<table><thead><tr><th>일시</th><th>강좌명</th><th>금액</th><th>쿠폰</th><th>상태</th></tr></thead><tbody>';
+  recent.forEach(o => {
+    const date = new Date(o.created_at).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    html += `<tr>
+      <td style="color:#888;">${date}</td>
+      <td>${o.course_name||'-'}</td>
+      <td><strong>₩${Number(o.amount||0).toLocaleString()}</strong></td>
+      <td style="font-size:11px;color:#888;">${o.coupon_code||'-'}</td>
+      <td><span class="badge badge-paid">완료</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+// ── CSV 내보내기 ──
+function makeCSV(headers, rows) {
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8;' });
+  return URL.createObjectURL(blob);
+}
+
+function exportCSV() {
+  const { start } = getPeriodRange(currentPeriod);
+  const filtered = start ? allOrders.filter(o => new Date(o.created_at) >= start && o.status === 'paid') : allOrders.filter(o => o.status === 'paid');
+  const url = makeCSV(['일시','강좌명','금액','쿠폰','상태'], filtered.map(o => [
+    new Date(o.created_at).toLocaleString('ko-KR'), o.course_name||'', o.amount||0, o.coupon_code||'', o.status
+  ]));
+  Object.assign(document.createElement('a'), { href:url, download:'orders_'+new Date().toISOString().slice(0,10)+'.csv' }).click();
+}
+
+function exportCourseCSV() {
+  const CAT = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+  const url = makeCSV(['강좌명','카테고리','강사','가격','수강생','상태'], allCourses.map(c => [
+    c.title, CAT[c.category]||c.category||'', c.instructor||'', c.price||0, c.students||0, c.status
+  ]));
+  Object.assign(document.createElement('a'), { href:url, download:'courses_'+new Date().toISOString().slice(0,10)+'.csv' }).click();
+}
+
+function exportOrdersCSV() { exportCSV(); }
+
+// ── 데이터 로드 ──
+async function loadAll() {
+  try {
+    const [ordersRes, coursesRes, profilesRes] = await Promise.all([
+      sb.from('orders').select('*').order('created_at', { ascending: false }),
+      sb.from('courses').select('*').order('students', { ascending: false }),
+      sb.from('profiles').select('id, created_at').order('created_at', { ascending: false }),
+    ]);
+
+    allOrders   = ordersRes.data   || [];
+    allCourses  = coursesRes.data  || [];
+    allProfiles = profilesRes.data || [];
+
+    renderAll();
+
+    // 30초마다 자동 갱신
+    setInterval(async () => {
+      const res = await sb.from('orders').select('*').order('created_at', { ascending: false });
+      allOrders = res.data || [];
+      renderAll();
+    }, 30000);
+  } catch (e) {
+    console.error('대시보드 로드 오류:', e);
   }
 }
-load();
+
+loadAll();
 </script>
 <script src="../js/admin-nav.js"></script>
 </body>

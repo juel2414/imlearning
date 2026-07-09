@@ -496,7 +496,32 @@ async function loadMyPage() {
     (coursesData || []).forEach(c => { coursesMap[c.id] = c; });
   }
 
-  // 5. 위시리스트 조회
+  // 5. 실제 수강 진도 조회 (progress 테이블)
+  let progressByCoourse = {};
+  if (courseIds.length > 0) {
+    const { data: progData } = await supabaseClient
+      .from('progress')
+      .select('course_id, completed')
+      .eq('user_id', user.id)
+      .in('course_id', courseIds);
+
+    (progData || []).forEach(p => {
+      if (!progressByCoourse[p.course_id]) progressByCoourse[p.course_id] = { total: 0, done: 0 };
+      progressByCoourse[p.course_id].total++;
+      if (p.completed) progressByCoourse[p.course_id].done++;
+    });
+  }
+
+  // 진도율 계산 (progress 테이블 기준, 없으면 orders.progress 폴백)
+  const ordersWithProgress = myOrders.map(o => {
+    const prog = progressByCoourse[o.course_id];
+    const realPct = prog && prog.total > 0
+      ? Math.round((prog.done / prog.total) * 100)
+      : (o.progress || 0);
+    return { ...o, progress: realPct };
+  });
+
+  // 6. 위시리스트 조회
   const { data: wishData } = await supabaseClient
     .from('wishlists')
     .select('course_id, courses(*)')
@@ -505,11 +530,11 @@ async function loadMyPage() {
 
   const wishItems = (wishData || []).map(w => ({ course_id: w.course_id, course: w.courses }));
 
-  // 6. 렌더
-  updateStats(myOrders);
-  renderCourses(myOrders, coursesMap);
+  // 7. 렌더
+  updateStats(ordersWithProgress);
+  renderCourses(ordersWithProgress, coursesMap);
   renderOrders(myOrders, coursesMap);
-  renderCerts(myOrders, coursesMap);
+  renderCerts(ordersWithProgress, coursesMap);
   renderWishlist(wishItems);
 }
 
