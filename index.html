@@ -61,14 +61,14 @@
     }
     .lp-hero-inner {
       display: flex; flex-direction: column; align-items: center;
-      gap: 2.5rem; padding: 4rem 0 2rem; position: relative; z-index: 3;
+      gap: 4rem; padding: 4rem 0 2rem; position: relative; z-index: 3;
     }
     /* 센터 텍스트 블록 */
     .lp-hero-center { text-align: center; width: 100%; max-width: 740px; }
     /* 와이드 쇼케이스 */
     .lp-hero-showcase {
       width: 100%; max-width: 960px; position: relative;
-      padding-bottom: 4rem;
+      padding-bottom: 0;
       animation: lpSlideIn .8s .25s cubic-bezier(0.16,1,0.3,1) both;
     }
     /* 텍스트 등장 */
@@ -131,9 +131,14 @@
     .lp-feat-slide.active { opacity:1; }
     /* 가로형 썸네일 */
     .lp-feat-thumb-bg {
-      width:40%; flex-shrink:0; height:100%;
+      width:40%; flex-shrink:0; height:100%; position:relative;
       background-size:cover; background-position:center;
       background-color:linear-gradient(135deg,#e8f5ee,#c8eada);
+    }
+    .lp-feat-thumb-bg::after {
+      content:''; position:absolute; top:0; right:0; bottom:0; width:90px;
+      background:linear-gradient(to right, transparent, #fff);
+      pointer-events:none;
     }
     .lp-feat-thumb-ph {
       width:40%; flex-shrink:0; height:100%;
@@ -141,7 +146,7 @@
       display:flex; align-items:center; justify-content:center;
       font-size:56px; color:#fff;
     }
-    .lp-feat-body { padding:2.5rem 2rem; flex:1; display:flex; flex-direction:column; gap:12px; justify-content:center; }
+    .lp-feat-body { padding:2.5rem 2.5rem; flex:1; display:flex; flex-direction:column; gap:14px; justify-content:center; }
     .lp-feat-badge {
       display:inline-flex; align-items:center; gap:4px;
       background:rgba(45,155,111,.1); color:var(--green,#2D9B6F);
@@ -149,11 +154,19 @@
       border-radius:20px; letter-spacing:.3px; width:fit-content;
     }
     .lp-feat-title {
-      font-size:20px; font-weight:800; color:var(--black,#111);
+      font-size:22px; font-weight:800; color:var(--black,#111);
       line-height:1.4; letter-spacing:-.3px;
       display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
     }
-    .lp-feat-price { font-size:22px; font-weight:900; color:var(--green,#2D9B6F); letter-spacing:-.5px; margin-top:0; }
+    .lp-feat-price { font-size:20px; font-weight:900; color:var(--green,#2D9B6F); letter-spacing:-.5px; margin-top:0; }
+    .lp-feat-cta {
+      display:inline-flex; align-items:center; gap:6px;
+      margin-top:4px; padding:11px 20px;
+      background:var(--green,#2D9B6F); color:#fff;
+      border-radius:8px; font-size:13px; font-weight:700;
+      transition:background .15s, gap .15s; width:fit-content;
+    }
+    .lp-feat-slide:hover .lp-feat-cta { background:#25855f; gap:10px; }
     .lp-feat-dots {
       position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
       display:flex; gap:6px; z-index:4;
@@ -207,13 +220,31 @@
     .lp-scard-val span { color:var(--green,#2D9B6F); }
     .lp-scard-lbl { font-size:11px; color:var(--gray-500,#6B6B6B); margin-top:3px; }
     .sc1 { top:-24px; right:0;   animation:lp-f1 4s ease-in-out infinite; }
-    .sc2 { bottom:70px; right:-10px; animation:lp-f2 4.5s ease-in-out infinite; }
-    .sc3 { top:100px; left:-10px; animation:lp-f3 3.8s ease-in-out infinite; }
-    /* steps 카드 — showcase 하단 왼쪽 */
+    .sc2 { top:170px; right:-15px; animation:lp-f2 4.5s ease-in-out infinite; }
+    .sc3 { top:100px; left:-15px; animation:lp-f3 3.8s ease-in-out infinite; }
+    /* steps 카드 — 카드 하단에 가로형 행 */
     .lp-hero-showcase .hero-steps-card {
-      position:absolute; bottom:-10px; left:0;
-      max-width:290px; margin-top:0;
+      position:static;
+      max-width:100%; margin-top:1.5rem;
+      padding:14px 28px;
+      display:flex; align-items:center; gap:0;
     }
+    .lp-hero-showcase .hero-steps-title {
+      font-size:12px; margin-bottom:0; white-space:nowrap;
+      padding-right:20px; margin-right:20px;
+      border-right:1px solid rgba(0,0,0,.08); flex-shrink:0;
+    }
+    .lp-hero-showcase .hero-steps-list {
+      flex-direction:row; flex:1; gap:0; align-items:center; justify-content:space-around;
+    }
+    .lp-hero-showcase .hero-steps-list .hero-step {
+      flex:1; justify-content:center; position:relative; align-items:center;
+    }
+    .lp-hero-showcase .hero-steps-list .hero-step:not(:last-child)::after {
+      content:'›'; color:#ccc; font-size:22px; font-weight:300; line-height:1;
+      position:absolute; right:-4px; top:50%; transform:translateY(-50%);
+    }
+    .lp-hero-showcase .hero-step-text { font-size:12px; white-space:nowrap; }
     @keyframes lp-f1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
     @keyframes lp-f2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes lp-f3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
@@ -454,7 +485,12 @@
       .lp-feat-body { padding:1.5rem 1.25rem; gap:8px; }
       .lp-feat-title { font-size:15px; -webkit-line-clamp:2; }
       .lp-feat-price { font-size:17px; }
-      .lp-hero-showcase .hero-steps-card { position:static; max-width:100%; margin-top:1rem; }
+      .lp-hero-showcase .hero-steps-card { flex-direction:column; align-items:flex-start; gap:12px; padding:16px 20px; }
+      .lp-hero-showcase .hero-steps-title { padding-right:0; margin-right:0; border-right:none; }
+      .lp-hero-showcase .hero-steps-list { flex-direction:column; gap:10px; justify-content:flex-start; }
+      .lp-hero-showcase .hero-steps-list .hero-step { justify-content:flex-start; flex:unset; }
+      .lp-hero-showcase .hero-steps-list .hero-step:not(:last-child)::after { display:none; }
+      .lp-hero-showcase .hero-step-text { white-space:normal; font-size:13px; }
       .lp-hero-showcase { padding-bottom:0; }
       .lp-trust-grid { grid-template-columns:repeat(2,1fr); }
       .lp-personas-grid { grid-template-columns:repeat(2,1fr); }
@@ -1215,6 +1251,7 @@ async function initFeaturedSlider() {
           <div class="lp-feat-badge">🎯 추천 강좌</div>
           <div class="lp-feat-title">${c.title}</div>
           <div class="lp-feat-price">${price}</div>
+          <div class="lp-feat-cta">강좌 바로 보기 →</div>
         </div>`;
     }
 
