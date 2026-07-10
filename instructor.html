@@ -7,30 +7,38 @@
   <meta name="description" content="아이엠러닝 강사진 소개. 영어, 리뉴젠 아카데미, CBUP 과정의 전문 강사들을 만나보세요.">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    /* ── 히어로 ── */
+    /* ── 히어로 (배경 이미지 + 그린 오버레이) ── */
     .inst-hero {
-      padding: 5rem 0 4rem;
-      background: linear-gradient(160deg, #f0faf5 0%, #fff 100%);
+      position: relative;
+      padding: 7rem 0 5.5rem;
       text-align: center;
+      overflow: hidden;
+      background: #0f2d1e;
     }
+    .inst-hero-bg {
+      position: absolute; inset: 0;
+      background-image: url('images/inst-hero-bg.jpg');
+      background-size: cover; background-position: center 55%;
+      opacity: 0.32;
+    }
+    .inst-hero-content { position: relative; z-index: 1; }
     .inst-hero-eye {
-      font-size: 12px; font-weight: 700; color: var(--green, #2D9B6F);
-      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+      font-size: 12px; font-weight: 700; color: rgba(255,255,255,.7);
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
     }
     .inst-hero-title {
-      font-size: clamp(32px, 4.5vw, 52px); font-weight: 900;
-      color: var(--black, #111); letter-spacing: -1.5px; line-height: 1.15;
-      margin-bottom: 1rem;
+      font-size: clamp(34px, 5vw, 58px); font-weight: 900;
+      color: #fff; letter-spacing: -1.5px; line-height: 1.12;
+      margin-bottom: 1.25rem;
     }
-    .inst-hero-title em { color: var(--green, #2D9B6F); font-style: normal; }
+    .inst-hero-title em { color: #5be09e; font-style: normal; }
     .inst-hero-sub {
-      font-size: 17px; color: var(--gray-500, #6B6B6B); line-height: 1.7;
-      max-width: 520px; margin: 0 auto;
+      font-size: 17px; color: rgba(255,255,255,.75); line-height: 1.75;
+      max-width: 480px; margin: 0 auto;
     }
 
     /* ── 섹션 공통 ── */
-    .inst-section { padding: 5rem 0; }
-    .inst-section:nth-child(even) { background: var(--gray-100, #F7F7F7); }
+    .inst-section { padding: 4.5rem 0 5rem; position: relative; }
     .inst-section-title {
       font-size: 11px; font-weight: 700; color: var(--green, #2D9B6F);
       letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;
@@ -38,7 +46,77 @@
     .inst-section-h2 {
       font-size: clamp(22px, 3vw, 30px); font-weight: 900;
       color: var(--black, #111); letter-spacing: -0.5px;
-      margin-bottom: 2.5rem;
+      margin-bottom: 0;
+    }
+
+    /* ── 섹션 헤더 영역 (텍스트 + 이미지 분리) ── */
+    .inst-section-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 2rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+    }
+    .inst-section-header-text { flex: 1; min-width: 200px; }
+
+    /* ── 영어 섹션 배너 이미지 ── */
+    .inst-img-banner {
+      width: 100%; height: 300px;
+      border-radius: 20px; overflow: hidden;
+      margin-bottom: 3rem;
+      box-shadow: 0 16px 48px rgba(0,0,0,.12);
+      position: relative;
+    }
+    .inst-img-banner img {
+      width: 100%; height: 100%; object-fit: cover;
+      object-position: center 25%;
+      display: block;
+    }
+    .inst-img-banner-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, rgba(15,45,30,.45) 0%, transparent 60%);
+    }
+    .inst-img-banner-text {
+      position: absolute; left: 2.5rem; top: 50%; transform: translateY(-50%);
+      color: #fff;
+    }
+    .inst-img-banner-text .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; opacity: .8; margin-bottom: 8px;
+    }
+    .inst-img-banner-text h3 {
+      font-size: clamp(20px, 2.5vw, 28px); font-weight: 900;
+      letter-spacing: -.5px; line-height: 1.2;
+    }
+
+    /* ── 두 섹션 사이 파노라마 배너 ── */
+    .inst-divider {
+      position: relative; height: 260px; overflow: hidden;
+    }
+    .inst-divider img {
+      width: 100%; height: 100%; object-fit: cover;
+      object-position: center 40%; display: block;
+    }
+    .inst-divider-overlay {
+      position: absolute; inset: 0;
+      background: rgba(15,45,30,.62);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 10px;
+    }
+    .inst-divider-quote {
+      font-size: clamp(22px, 3.5vw, 36px); font-weight: 900;
+      color: #fff; letter-spacing: -1px; text-align: center;
+    }
+    .inst-divider-quote em { color: #5be09e; font-style: normal; }
+    .inst-divider-sub {
+      font-size: 14px; color: rgba(255,255,255,.7);
+      letter-spacing: .5px; text-align: center;
+    }
+
+    /* ── 리뉴젠 섹션 배경 ── */
+    .inst-section-renewgen { background: #f7faf8; }
+    .inst-section-renewgen-bg {
+      position: absolute; inset: 0;
+      background-image: url('images/inst-books.jpg');
+      background-size: cover; background-position: center;
+      opacity: 0.05; pointer-events: none;
     }
 
     /* ── 카드 그리드 ── */
@@ -104,8 +182,17 @@
 
     /* ── 반응형 ── */
     @media (max-width: 1024px) { .inst-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 768px)  { .inst-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px)  { .inst-grid { grid-template-columns: 1fr; } .inst-card { padding: 1.5rem 1.25rem; } }
+    @media (max-width: 768px)  {
+      .inst-grid { grid-template-columns: repeat(2, 1fr); }
+      .inst-img-banner { height: 220px; }
+      .inst-img-banner-text { left: 1.5rem; }
+      .inst-divider { height: 200px; }
+    }
+    @media (max-width: 480px)  {
+      .inst-grid { grid-template-columns: 1fr; }
+      .inst-card { padding: 1.5rem 1.25rem; }
+      .inst-img-banner { height: 180px; }
+    }
   </style>
 </head>
 <body>
@@ -130,8 +217,10 @@
   </div>
 </nav>
 
+<!-- 히어로 -->
 <section class="inst-hero">
-  <div class="container">
+  <div class="inst-hero-bg"></div>
+  <div class="container inst-hero-content">
     <div class="inst-hero-eye reveal">Our Instructors</div>
     <h1 class="inst-hero-title reveal">함께 배우는 <em>전문 강사진</em></h1>
     <p class="inst-hero-sub reveal">영어, 검정고시, 신앙 교육까지—<br>현장에서 검증된 강사들이 함께합니다.</p>
@@ -141,19 +230,46 @@
 <!-- 영어 강사 -->
 <section class="inst-section" id="sec-english">
   <div class="container">
-    <div class="inst-section-title reveal">English Instructors</div>
-    <h2 class="inst-section-h2 reveal">영어 강사</h2>
+    <!-- 이미지 배너 -->
+    <div class="inst-img-banner reveal">
+      <img src="images/inst-tablet.jpg" alt="집중해서 공부하는 학생">
+      <div class="inst-img-banner-overlay"></div>
+      <div class="inst-img-banner-text">
+        <div class="eyebrow">English Instructors</div>
+        <h3>토익부터 회화까지<br>체계적인 영어 수업</h3>
+      </div>
+    </div>
+    <div class="inst-section-header">
+      <div class="inst-section-header-text">
+        <div class="inst-section-title">English Instructors</div>
+        <h2 class="inst-section-h2">영어 강사</h2>
+      </div>
+    </div>
     <div class="inst-grid" id="grid-english">
       <div class="inst-loading">불러오는 중...</div>
     </div>
   </div>
 </section>
 
+<!-- 두 섹션 사이 파노라마 배너 -->
+<div class="inst-divider">
+  <img src="images/inst-banner.jpg" alt="함께 공부하는 학생들">
+  <div class="inst-divider-overlay">
+    <p class="inst-divider-quote">배운 것을 들고 <em>현장으로</em></p>
+    <p class="inst-divider-sub">I'M Learning, I'M Running!</p>
+  </div>
+</div>
+
 <!-- 리뉴젠 아카데미 강사 -->
-<section class="inst-section" id="sec-renewgen">
-  <div class="container">
-    <div class="inst-section-title reveal">RenewGen Academy</div>
-    <h2 class="inst-section-h2 reveal">리뉴젠 아카데미 강사</h2>
+<section class="inst-section inst-section-renewgen" id="sec-renewgen">
+  <div class="inst-section-renewgen-bg"></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="inst-section-header">
+      <div class="inst-section-header-text">
+        <div class="inst-section-title reveal">RenewGen Academy</div>
+        <h2 class="inst-section-h2 reveal">리뉴젠 아카데미 강사</h2>
+      </div>
+    </div>
     <div class="inst-grid" id="grid-renewgen">
       <div class="inst-loading">불러오는 중...</div>
     </div>
@@ -228,15 +344,14 @@
       </div>`;
   }
 
-  const english   = data.filter(i => i.role === '영어 강사');
-  const renewgen  = data.filter(i => i.role !== '영어 강사');
+  const english  = data.filter(i => i.role === '영어 강사');
+  const renewgen = data.filter(i => i.role !== '영어 강사');
 
   document.getElementById('grid-english').innerHTML =
     english.length ? english.map(card).join('') : '<p class="inst-loading">등록된 강사가 없습니다.</p>';
 
   document.getElementById('grid-renewgen').innerHTML =
     renewgen.length ? renewgen.map(card).join('') : '<p class="inst-loading">등록된 강사가 없습니다.</p>';
-
 })();
 </script>
 </body>
