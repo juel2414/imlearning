@@ -805,6 +805,14 @@
 <script src="js/main.js"></script>
 <script>
 // ────────────────────────────────────────────
+// HTML 이스케이프 — Supabase DB 데이터를 innerHTML에 삽입 시 XSS 방지
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // 기본값 (Supabase 데이터 없을 때 fallback)
 // ────────────────────────────────────────────
 const LP = {
@@ -921,8 +929,8 @@ function applyPersonas(c) {
   const dl = ['','reveal-delay-1','reveal-delay-2','reveal-delay-3'];
   g.innerHTML = c.items.map((it,i) => `
     <div class="lp-pcard reveal ${dl[i]}">
-      <div class="lp-pcard-title">${it.title}</div>
-      <div class="lp-pcard-desc">${it.desc}</div>
+      <div class="lp-pcard-title">${esc(it.title)}</div>
+      <div class="lp-pcard-desc">${esc(it.desc)}</div>
     </div>`).join('');
   if (c.image_url) {
     const img = document.getElementById('js-personas-img');
@@ -940,8 +948,8 @@ function applyFeatures(c) {
   const dl = ['','reveal-delay-1','reveal-delay-2'];
   g.innerHTML = c.items.map((it,i) => `
     <div class="lp-fcard reveal ${dl[i]}">
-      <div class="lp-fcard-title">${it.title}</div>
-      <div class="lp-fcard-desc">${it.desc}</div>
+      <div class="lp-fcard-title">${esc(it.title)}</div>
+      <div class="lp-fcard-desc">${esc(it.desc)}</div>
     </div>`).join('');
 }
 
@@ -956,10 +964,10 @@ function applyReviews(c) {
   g.innerHTML = c.items.map((it,i) => `
     <div class="lp-rcard reveal ${dl[i]}">
       <div class="lp-rstars">★★★★★</div>
-      <p class="lp-rtext">"${it.text}"</p>
+      <p class="lp-rtext">"${esc(it.text)}"</p>
       <div class="lp-rauthor">
-        <div class="lp-ravatar">${it.emoji}</div>
-        <div><div class="lp-rname">${it.name}</div><div class="lp-rcourse">${it.course}</div></div>
+        <div class="lp-ravatar">${esc(it.emoji)}</div>
+        <div><div class="lp-rname">${esc(it.name)}</div><div class="lp-rcourse">${esc(it.course)}</div></div>
       </div>
     </div>`).join('');
 }
@@ -972,7 +980,7 @@ function applyCert(c) {
   const d = document.querySelector('.js-cert-desc');
   if (d) d.textContent = c.desc||'';
   const l = document.getElementById('js-cert-feats');
-  if (l) l.innerHTML = (c.features||[]).map(f => `<li>${f}</li>`).join('');
+  if (l) l.innerHTML = (c.features||[]).map(f => `<li>${esc(f)}</li>`).join('');
 }
 
 // CTA
@@ -998,11 +1006,11 @@ async function loadInstructors() {
     g.innerHTML = list.map(i => `
       <div class="instructor-card reveal">
         <div class="instructor-avatar" style="overflow:hidden;">
-          ${i.photo_url ? `<img src="${i.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
+          ${i.photo_url ? `<img src="${esc(i.photo_url)}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
         </div>
-        <div class="instructor-name">${i.name}</div>
-        <div class="instructor-role">${i.role||''}</div>
-        <div class="instructor-desc">${i.bio||''}</div>
+        <div class="instructor-name">${esc(i.name)}</div>
+        <div class="instructor-role">${esc(i.role||'')}</div>
+        <div class="instructor-desc">${esc(i.bio||'')}</div>
       </div>`).join('');
     g.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   } catch(e) { g.innerHTML = '<p class="lp-empty">강사 정보를 불러오지 못했습니다.</p>'; }
@@ -1024,8 +1032,8 @@ async function loadCourses() {
             ${c.featured ? '<div class="lp-cbadge">인기 강좌</div>' : ''}
           </div>
           <div class="lp-cbody">
-            <div class="lp-ccat">${CATEGORY_LABELS[c.category]||''}</div>
-            <div class="lp-ctitle">${c.title}</div>
+            <div class="lp-ccat">${esc(CATEGORY_LABELS[c.category]||'')}</div>
+            <div class="lp-ctitle">${esc(c.title)}</div>
             <div class="lp-cfoot">
               <span class="lp-cstudents">${c.students||0}명</span>
               <span class="lp-cprice">${isDiscounted?`<s>₩${Number(originalPrice).toLocaleString()}</s>`:''} ₩${Number(currentPrice||0).toLocaleString()}</span>
@@ -1047,8 +1055,8 @@ async function loadFaqs() {
     if (!list.length) { g.innerHTML = '<p style="text-align:center;color:var(--gray-500);">등록된 FAQ가 없습니다.</p>'; return; }
     g.innerHTML = list.map(f => `
       <div class="lp-faq-item reveal">
-        <div class="lp-faq-q" onclick="this.closest('.lp-faq-item').classList.toggle('open')">${f.question}</div>
-        <div class="lp-faq-a"><div class="lp-faq-a-inner">${f.answer}</div></div>
+        <div class="lp-faq-q" onclick="this.closest('.lp-faq-item').classList.toggle('open')">${esc(f.question)}</div>
+        <div class="lp-faq-a"><div class="lp-faq-a-inner">${esc(f.answer)}</div></div>
       </div>`).join('');
     g.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   } catch(e) { g.innerHTML = '<p style="text-align:center;color:var(--gray-500);">FAQ를 불러오지 못했습니다.</p>'; }
@@ -1145,7 +1153,7 @@ function miniCourseCard(c, progress) {
   return `<a href="course-detail.html?id=${c.id}" class="lp-mini-course">
     <div class="lp-mini-thumb">${thumb}</div>
     <div class="lp-mini-info">
-      <div class="lp-mini-title">${c.title}</div>
+      <div class="lp-mini-title">${esc(c.title)}</div>
       <div class="lp-mini-prog">${typeof progress === 'number' ? progress + '% 완료' : ''}</div>
       ${progHtml}
     </div>

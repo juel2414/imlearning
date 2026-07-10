@@ -616,15 +616,15 @@ async function toggleLesson(lessonId, lessonTitle, completed) {
   if (completed) lastWatchedLesson = { lesson_id: lessonId, lesson_title: lessonTitle };
   applyProgressUI();
 
-  // orders 테이블의 progress 컬럼도 동기화
+  // orders 진도율 동기화 — SECURITY DEFINER 함수로 progress 컬럼만 허용
   const items = document.querySelectorAll('#curriculum-content .curriculum-item[data-lesson]');
   const total = items.length;
   const done = Object.values(progressMap).filter(Boolean).length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  await supabaseClient.from('orders')
-    .update({ progress: pct })
-    .eq('user_id', user.id)
-    .eq('course_id', currentCourse.id);
+  await supabaseClient.rpc('update_order_progress', {
+    p_course_id: currentCourse.id,
+    p_progress: pct
+  });
 }
 
 function resumeCourse() {

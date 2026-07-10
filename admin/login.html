@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>관리자 로그인 — 아이엠러닝</title>
   <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background: #0F1117; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .login-wrap { width: 100%; max-width: 380px; padding: 2rem; }
@@ -21,13 +22,12 @@
       width: 100%; padding: 12px 14px;
       background: rgba(255,255,255,0.06);
       border: 1.5px solid rgba(255,255,255,0.1);
-      border-radius: 8px; font-size: 16px;
+      border-radius: 8px; font-size: 15px;
       color: #fff; font-family: inherit;
-      letter-spacing: 4px; text-align: center;
       transition: border-color 0.2s;
     }
     .form-input:focus { outline: none; border-color: #2D9B6F; }
-    .form-input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.2); font-size: 13px; }
+    .form-input::placeholder { color: rgba(255,255,255,0.2); font-size: 13px; }
     .login-btn {
       width: 100%; padding: 13px;
       background: #2D9B6F; color: #fff;
@@ -36,7 +36,8 @@
       cursor: pointer; font-family: inherit;
       transition: all 0.2s; margin-top: 0.5rem;
     }
-    .login-btn:hover { background: #1A7A4A; }
+    .login-btn:hover:not(:disabled) { background: #1A7A4A; }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .error-msg { display: none; color: #EF4444; font-size: 12px; text-align: center; margin-top: 10px; }
     .error-msg.show { display: block; }
     .shake { animation: shake 0.4s ease; }
@@ -57,34 +58,73 @@
   </div>
   <div class="login-card" id="login-card">
     <div class="login-title">🔐 관리자 로그인</div>
-    <div class="login-desc">관리자 비밀번호를 입력해주세요</div>
+    <div class="login-desc">관리자 계정으로 로그인해주세요</div>
+    <div class="form-group">
+      <label class="form-label">이메일</label>
+      <input class="form-input" type="email" id="email-input" placeholder="관리자 이메일 입력" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('pw-input').focus()">
+    </div>
     <div class="form-group">
       <label class="form-label">비밀번호</label>
-      <input class="form-input" type="password" id="pw-input" placeholder="비밀번호 입력" maxlength="20" onkeydown="if(event.key==='Enter')tryLogin()">
+      <input class="form-input" type="password" id="pw-input" placeholder="비밀번호 입력" autocomplete="current-password" onkeydown="if(event.key==='Enter')tryLogin()">
     </div>
-    <button class="login-btn" onclick="tryLogin()">로그인 →</button>
-    <div class="error-msg" id="error-msg">❌ 비밀번호가 틀렸습니다</div>
+    <button class="login-btn" id="login-btn" onclick="tryLogin()">로그인 →</button>
+    <div class="error-msg" id="error-msg">❌ 이메일 또는 비밀번호가 올바르지 않습니다</div>
   </div>
 </div>
 
 <script>
-function tryLogin() {
-  const input = document.getElementById('pw-input').value;
-  const saved = localStorage.getItem('admin_pw') || '0008';
-  const card = document.getElementById('login-card');
-  const err = document.getElementById('error-msg');
+const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  if (input === saved) {
+async function tryLogin() {
+  const email = document.getElementById('email-input').value.trim();
+  const pw    = document.getElementById('pw-input').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('error-msg');
+  const card  = document.getElementById('login-card');
+
+  err.classList.remove('show');
+  if (!email || !pw) { showError('이메일과 비밀번호를 모두 입력해주세요'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '로그인 중...';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    if (error || !data.session) { showError(); return; }
+
+    // 관리자 권한 확인
+    const { data: profile } = await sb.from('profiles')
+      .select('role').eq('id', data.session.user.id).single();
+
+    if (!profile || profile.role !== 'admin') {
+      await sb.auth.signOut();
+      showError('관리자 권한이 없는 계정입니다');
+      return;
+    }
+
     sessionStorage.setItem('admin_auth', 'true');
     window.location.href = 'index.html';
-  } else {
-    err.classList.add('show');
-    card.classList.remove('shake');
-    void card.offsetWidth;
-    card.classList.add('shake');
-    document.getElementById('pw-input').value = '';
-    document.getElementById('pw-input').focus();
+  } catch (e) {
+    showError();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '로그인 →';
   }
+}
+
+function showError(msg) {
+  const err  = document.getElementById('error-msg');
+  const card = document.getElementById('login-card');
+  if (msg) err.textContent = '❌ ' + msg;
+  else err.textContent = '❌ 이메일 또는 비밀번호가 올바르지 않습니다';
+  err.classList.add('show');
+  card.classList.remove('shake');
+  void card.offsetWidth;
+  card.classList.add('shake');
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-input').focus();
 }
 </script>
 </body>
