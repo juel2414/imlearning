@@ -1050,7 +1050,7 @@ async function requestGift() {
     }
 
     const giftCode = verifyData.giftCode;
-    const shareLink = 'https://juel2414.github.io/imlearning/gift.html?code=' + encodeURIComponent(giftCode);
+    const shareLink = 'https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
     window._giftShareLink = shareLink;
 
     // 프리미엄 교환권 카드 채우기

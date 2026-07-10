@@ -1303,7 +1303,7 @@ async function loadGifts(userId) {
   function sentCard(g) {
     const title = courseNames[g.course_id] || '강좌';
     const date  = new Date(g.created_at).toLocaleDateString('ko-KR');
-    const link  = `${SITE}/gift.html?code=${encodeURIComponent(g.gift_code)}`;
+    const link  = `https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/gift-preview?code=${encodeURIComponent(g.gift_code)}`;
     const toStr = g.recipient_email ? ` → ${gEsc(g.recipient_email)}` : '';
     const cancelBtn = `<button class="gift-btn-cancel" data-gift-code="${gEsc(g.gift_code)}" data-gift-title="${gEsc(title)}" onclick="openGiftCancelModal(this.dataset.giftCode, this.dataset.giftTitle)">취소·환불</button>`;
     const refundBtn = `<button class="gift-btn-cancel" data-gift-code="${gEsc(g.gift_code)}" data-gift-title="${gEsc(title)}" onclick="openGiftCancelModal(this.dataset.giftCode, this.dataset.giftTitle)">환불</button>`;
