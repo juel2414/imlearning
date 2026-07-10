@@ -6,6 +6,9 @@
 images/*-utc.jpg
 images/*-utc.JPG
 
+# 강사 프로필 원본 사진 (압축본 images/instructors/*.jpg는 커밋됨)
+images/강사 프로필/
+
 # Claude Code 에디터 설정
 .claude/
 

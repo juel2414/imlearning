@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강사 소개 — 아이엠러닝</title>
+  <meta name="description" content="아이엠러닝 강사진 소개. 영어, 리뉴젠 아카데미, CBUP 과정의 전문 강사들을 만나보세요.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── 히어로 ── */
+    .inst-hero {
+      padding: 5rem 0 4rem;
+      background: linear-gradient(160deg, #f0faf5 0%, #fff 100%);
+      text-align: center;
+    }
+    .inst-hero-eye {
+      font-size: 12px; font-weight: 700; color: var(--green, #2D9B6F);
+      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .inst-hero-title {
+      font-size: clamp(32px, 4.5vw, 52px); font-weight: 900;
+      color: var(--black, #111); letter-spacing: -1.5px; line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .inst-hero-title em { color: var(--green, #2D9B6F); font-style: normal; }
+    .inst-hero-sub {
+      font-size: 17px; color: var(--gray-500, #6B6B6B); line-height: 1.7;
+      max-width: 520px; margin: 0 auto;
+    }
+
+    /* ── 섹션 공통 ── */
+    .inst-section { padding: 5rem 0; }
+    .inst-section:nth-child(even) { background: var(--gray-100, #F7F7F7); }
+    .inst-section-title {
+      font-size: 11px; font-weight: 700; color: var(--green, #2D9B6F);
+      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .inst-section-h2 {
+      font-size: clamp(22px, 3vw, 30px); font-weight: 900;
+      color: var(--black, #111); letter-spacing: -0.5px;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── 카드 그리드 ── */
+    .inst-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .inst-card {
+      background: #fff; border-radius: 20px;
+      padding: 2rem 1.5rem 1.75rem;
+      border: 1px solid rgba(0,0,0,.06);
+      text-align: center;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .inst-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.09);
+      border-color: rgba(45,155,111,.18);
+    }
+
+    /* ── 사진/아바타 ── */
+    .inst-photo-wrap {
+      width: 120px; height: 120px;
+      border-radius: 50%; margin: 0 auto 1.25rem;
+      overflow: hidden;
+      background: var(--green, #2D9B6F);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 20px rgba(45,155,111,.18);
+      flex-shrink: 0;
+    }
+    .inst-photo-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .inst-initials {
+      font-size: 40px; font-weight: 900; color: #fff; line-height: 1;
+      user-select: none;
+    }
+
+    /* ── 텍스트 ── */
+    .inst-name {
+      font-size: 18px; font-weight: 800; color: var(--black, #111);
+      letter-spacing: -.3px; margin-bottom: 4px;
+    }
+    .inst-role {
+      font-size: 12px; font-weight: 700; color: var(--green, #2D9B6F);
+      letter-spacing: .5px; margin-bottom: 14px;
+      padding: 4px 12px; background: rgba(45,155,111,.08);
+      border-radius: 20px; display: inline-block;
+    }
+    .inst-bio {
+      font-size: 13px; color: var(--gray-500, #6B6B6B);
+      line-height: 1.75; text-align: left;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* ── 로딩/빈 상태 ── */
+    .inst-loading {
+      grid-column: 1 / -1; text-align: center;
+      padding: 4rem; color: var(--gray-500, #888); font-size: 14px;
+    }
+
+    /* ── 반응형 ── */
+    @media (max-width: 1024px) { .inst-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px)  { .inst-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px)  { .inst-grid { grid-template-columns: 1fr; } .inst-card { padding: 1.5rem 1.25rem; } }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <span class="navbar-logo-text">아이엠<span>러닝</span></span>
+    </a>
+    <ul class="navbar-menu">
+      <li><a href="courses.html">강좌</a></li>
+      <li><a href="courses.html?cat=faith">신앙</a></li>
+      <li><a href="courses.html?cat=edu">교사·부모</a></li>
+      <li><a href="courses.html?cat=mission">캠프·사역</a></li>
+      <li><a href="courses.html?cat=english">영어·시험</a></li>
+      <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
+    </ul>
+    <div class="navbar-right">
+      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
+    </div>
+  </div>
+</nav>
+
+<section class="inst-hero">
+  <div class="container">
+    <div class="inst-hero-eye reveal">Our Instructors</div>
+    <h1 class="inst-hero-title reveal">함께 배우는 <em>전문 강사진</em></h1>
+    <p class="inst-hero-sub reveal">영어, 검정고시, 신앙 교육까지—<br>현장에서 검증된 강사들이 함께합니다.</p>
+  </div>
+</section>
+
+<!-- 영어 강사 -->
+<section class="inst-section" id="sec-english">
+  <div class="container">
+    <div class="inst-section-title reveal">English Instructors</div>
+    <h2 class="inst-section-h2 reveal">영어 강사</h2>
+    <div class="inst-grid" id="grid-english">
+      <div class="inst-loading">불러오는 중...</div>
+    </div>
+  </div>
+</section>
+
+<!-- 리뉴젠 아카데미 강사 -->
+<section class="inst-section" id="sec-renewgen">
+  <div class="container">
+    <div class="inst-section-title reveal">RenewGen Academy</div>
+    <h2 class="inst-section-h2 reveal">리뉴젠 아카데미 강사</h2>
+    <div class="inst-grid" id="grid-renewgen">
+      <div class="inst-loading">불러오는 중...</div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:32px;width:auto;display:block;margin-bottom:8px;">
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝<br>대표자: 이수열<br>사업자등록번호: 664-17-01515<br>통신판매업신고: 제2021-대전중구-0601호<br>충청남도 논산시 해월로144번길 1, 101-비02호<br>전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">강좌</div>
+        <a href="courses.html?cat=faith">신앙</a>
+        <a href="courses.html?cat=edu">교사·부모</a>
+        <a href="courses.html?cat=mission">캠프·사역</a>
+        <a href="courses.html?cat=english">영어·시험</a>
+        <a href="courses.html?cat=freepass">전강좌 무제한</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">서비스</div>
+        <a href="instructor.html" class="active">강사 소개</a>
+        <a href="about.html">About Us</a>
+        <a href="contact.html">문의하기</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span>
+      <span>개인정보처리방침 · 이용약관</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/main.js"></script>
+<script>
+(async () => {
+  const { data, error } = await supabaseClient
+    .from('instructors')
+    .select('id, name, role, photo_url, bio')
+    .order('id');
+
+  if (error || !data) {
+    document.getElementById('grid-english').innerHTML = '<p class="inst-loading">강사 정보를 불러오지 못했습니다.</p>';
+    document.getElementById('grid-renewgen').innerHTML = '';
+    return;
+  }
+
+  function initial(name) {
+    return name ? name.charAt(0) : '?';
+  }
+
+  function card(inst) {
+    const photo = inst.photo_url
+      ? `<img src="${inst.photo_url}" alt="${inst.name}" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.inst-initials').style.display='flex'">`
+      : '';
+    const initStyle = inst.photo_url ? 'style="display:none"' : '';
+    return `
+      <div class="inst-card reveal">
+        <div class="inst-photo-wrap">
+          ${photo}
+          <div class="inst-initials" ${initStyle}>${initial(inst.name)}</div>
+        </div>
+        <div class="inst-name">${inst.name}</div>
+        <div class="inst-role">${inst.role}</div>
+        ${inst.bio ? `<p class="inst-bio">${inst.bio}</p>` : ''}
+      </div>`;
+  }
+
+  const english   = data.filter(i => i.role === '영어 강사');
+  const renewgen  = data.filter(i => i.role !== '영어 강사');
+
+  document.getElementById('grid-english').innerHTML =
+    english.length ? english.map(card).join('') : '<p class="inst-loading">등록된 강사가 없습니다.</p>';
+
+  document.getElementById('grid-renewgen').innerHTML =
+    renewgen.length ? renewgen.map(card).join('') : '<p class="inst-loading">등록된 강사가 없습니다.</p>';
+
+  // 동적으로 생성된 카드에 reveal 옵저버 재적용
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.inst-card.reveal').forEach(el => {
+      if (typeof revealObserver !== 'undefined') {
+        revealObserver.observe(el);
+      } else {
+        el.classList.add('visible');
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
