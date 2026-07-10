@@ -234,29 +234,12 @@
     .sc1 { top:100px; right:-15px; animation:lp-f1 4s ease-in-out infinite; }
     .sc2 { top:260px; right:-15px; animation:lp-f2 4.5s ease-in-out infinite; }
     .sc3 { top:170px; left:-15px; animation:lp-f3 3.8s ease-in-out infinite; }
-    /* steps 카드 — 카드 하단에 가로형 행 */
+    /* steps 카드 — 쇼케이스 하단 소형 카드 */
     .lp-hero-showcase .hero-steps-card {
-      position:static;
-      max-width:100%; margin-top:1.5rem;
-      padding:14px 28px;
-      display:flex; align-items:center; gap:0;
+      position: static;
+      margin-top: 1.5rem;
+      /* max-width:300px / flex-direction:column / gap:10px → 기본 .hero-steps-card 스타일 그대로 적용 */
     }
-    .lp-hero-showcase .hero-steps-title {
-      font-size:12px; margin-bottom:0; white-space:nowrap;
-      padding-right:20px; margin-right:20px;
-      border-right:1px solid rgba(0,0,0,.08); flex-shrink:0;
-    }
-    .lp-hero-showcase .hero-steps-list {
-      flex-direction:row; flex:1; gap:0; align-items:center; justify-content:space-around;
-    }
-    .lp-hero-showcase .hero-steps-list .hero-step {
-      flex:1; justify-content:center; position:relative; align-items:center;
-    }
-    .lp-hero-showcase .hero-steps-list .hero-step:not(:last-child)::after {
-      content:'›'; color:#ccc; font-size:22px; font-weight:300; line-height:1;
-      position:absolute; right:-4px; top:50%; transform:translateY(-50%);
-    }
-    .lp-hero-showcase .hero-step-text { font-size:12px; white-space:nowrap; }
     @keyframes lp-f1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
     @keyframes lp-f2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes lp-f3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
@@ -500,12 +483,6 @@
       .lp-feat-title { font-size:17px; -webkit-line-clamp:2; }
       .lp-feat-price { font-size:18px; }
       .lp-feat-desc { display:none; }
-      .lp-hero-showcase .hero-steps-card { flex-direction:column; align-items:flex-start; gap:12px; padding:16px 20px; }
-      .lp-hero-showcase .hero-steps-title { padding-right:0; margin-right:0; border-right:none; }
-      .lp-hero-showcase .hero-steps-list { flex-direction:column; gap:10px; justify-content:flex-start; }
-      .lp-hero-showcase .hero-steps-list .hero-step { justify-content:flex-start; flex:unset; }
-      .lp-hero-showcase .hero-steps-list .hero-step:not(:last-child)::after { display:none; }
-      .lp-hero-showcase .hero-step-text { white-space:normal; font-size:13px; }
       .lp-hero-showcase { padding-bottom:0; }
       .lp-trust-grid { grid-template-columns:repeat(2,1fr); }
       .lp-personas-grid { grid-template-columns:repeat(2,1fr); }
