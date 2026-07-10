@@ -693,7 +693,15 @@ function applyHero(c) {
   const a2 = document.getElementById('js-cta2');
   if (a2) { a2.textContent = c.cta2_text; a2.href = c.cta2_url||'about.html'; }
   const img = document.getElementById('js-hero-img');
-  if (img && c.image_url) img.innerHTML = `<img src="${c.image_url}" alt="히어로">`;
+  if (img && c.image_url) {
+    const imgEl = document.createElement('img');
+    imgEl.alt = '히어로';
+    imgEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;opacity:0;transition:opacity .6s ease;';
+    imgEl.onload = () => { imgEl.style.opacity = '1'; };
+    imgEl.src = c.image_url;
+    img.innerHTML = '';
+    img.appendChild(imgEl);
+  }
   if (c.font) s.style.fontFamily = c.font;
 }
 
