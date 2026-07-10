@@ -39,30 +39,30 @@
       background: linear-gradient(160deg,#e8f5ee 0%,#f5fff8 100%);
       position: relative; overflow: hidden;
     }
-    /* 배경 숨쉬는 그라디언트 */
-    .lp-hero::before {
-      content:''; position:absolute; inset:0; pointer-events:none;
-      background: radial-gradient(ellipse 80% 60% at 75% 20%, rgba(45,155,111,.14) 0%, transparent 60%),
-                  radial-gradient(ellipse 50% 50% at 20% 85%, rgba(45,155,111,.09) 0%, transparent 60%);
-      animation: heroPulse 5s ease-in-out infinite;
+    /* ── 배경 이미지 레이어 ── */
+    .hero-bg-layer { position:absolute; inset:0; z-index:0; overflow:hidden; }
+    .hero-bg-slide {
+      position:absolute; inset:0;
+      background-size:cover; background-position:center;
+      opacity:0; transition:opacity 1.2s ease;
     }
-    .lp-hero::after {
-      content:''; position:absolute; inset:0; pointer-events:none;
-      background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(45,155,111,.06) 0%, transparent 55%);
-      animation: heroPulse 5s 2.5s ease-in-out infinite;
-    }
-    @keyframes heroPulse {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0.4; }
+    .hero-bg-slide.active { opacity:1; }
+    /* 오버레이 — 알파값 높게 유지해 텍스트 가독성 보장 */
+    .hero-overlay {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      background: linear-gradient(120deg,
+        rgba(232,245,238,0.97) 0%,
+        rgba(245,255,248,0.95) 40%,
+        rgba(255,255,255,0.92) 100%);
     }
     #hero-canvas {
       position: absolute; inset: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: 0;
+      pointer-events: none; z-index: 2;
     }
     .lp-hero-inner {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 4rem; align-items: center;
-      padding: 5rem 0; position: relative; z-index: 1;
+      padding: 5rem 0; position: relative; z-index: 3;
     }
     /* 텍스트 등장 */
     .lp-eyebrow {
@@ -99,12 +99,6 @@
     .lp-hstat-num { font-size:26px; font-weight:900; color:var(--black,#111); letter-spacing:-1px; line-height:1; }
     .lp-hstat-num span { color:var(--green,#2D9B6F); }
     .lp-hstat-lbl { font-size:12px; color:var(--gray-500,#6B6B6B); margin-top:4px; }
-
-    /* 히어로 배경 사진 오버레이 */
-    .lp-hero-photo-bg {
-      position:absolute; inset:0; z-index:0;
-      background-size:cover; background-position:center;
-    }
 
     /* 히어로 우측 비주얼 */
     .lp-hero-visual { position:relative; height:520px; animation: lpSlideIn .8s .2s cubic-bezier(0.16,1,0.3,1) both; }
@@ -496,9 +490,12 @@
 
   <!-- 1. 히어로 -->
   <section data-section="hero" class="lp-hero">
-    <div class="lp-hero-photo-bg" id="js-hero-photo-bg"></div>
+    <div class="hero-bg-layer">
+      <div class="hero-bg-slide active" style="background-image:url('images/university-students-doing-group-study-in-library-2026-01-05-00-30-00-utc.jpg')"></div>
+      <div class="hero-bg-slide" style="background-image:url('images/adult-studying-at-home-with-books-and-pencil-2026-03-24-22-44-12-utc.jpg')"></div>
+    </div>
+    <div class="hero-overlay"></div>
     <canvas id="hero-canvas"></canvas>
-    <div class="lp-hero-grid"></div>
     <div class="container">
       <div class="lp-hero-inner">
         <div>
@@ -517,29 +514,7 @@
         </div>
         <div class="lp-hero-visual">
           <div class="lp-hero-img" id="js-hero-img">
-            <!-- 강좌 카테고리 모자이크 (이미지 없을 때 표시) -->
-            <div class="lp-mosaic">
-              <div class="lp-mosaic-item mc1">
-                <div class="lp-mosaic-label">신앙 강의</div>
-                <div class="lp-mosaic-sub">성경·기도·묵상</div>
-              </div>
-              <div class="lp-mosaic-item mc2">
-                <div class="lp-mosaic-label">CBUP 과정</div>
-                <div class="lp-mosaic-sub">수료증 발급</div>
-              </div>
-              <div class="lp-mosaic-item mc3">
-                <div class="lp-mosaic-label">교사·부모</div>
-                <div class="lp-mosaic-sub">교회학교 전문</div>
-              </div>
-              <div class="lp-mosaic-item mc4">
-                <div class="lp-mosaic-label">영어·시험</div>
-                <div class="lp-mosaic-sub">검정고시·영단속</div>
-              </div>
-              <div class="lp-mosaic-item mc5" style="grid-column:span 2">
-                <div class="lp-mosaic-label">전강좌 무제한 패스</div>
-                <div class="lp-mosaic-sub">50개+ 강좌 자유 수강</div>
-              </div>
-            </div>
+            <!-- initFeaturedSlider()가 실제 추천 강좌 카드로 채움 -->
           </div>
           <div class="lp-scard sc1" id="js-scard-1"><div class="lp-scard-dot"></div><div class="lp-scard-val">1,200<span>명+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
           <div class="lp-scard sc2" id="js-scard-2"><div class="lp-scard-dot"></div><div class="lp-scard-val">50<span>개+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
@@ -1160,58 +1135,86 @@ function startHeroSlideshow() {
   // 추천 강좌 슬라이더로 대체 — initFeaturedSlider() 참조
 }
 
-// ── 추천 강좌 슬라이더 ──
+// ── 추천 강좌 슬라이더 + 배경 동기화 ──
 async function initFeaturedSlider() {
+  const bgSlides = Array.from(document.querySelectorAll('.hero-bg-slide'));
+  let bgIdx = 0;
+
+  function nextBg() {
+    if (bgSlides.length < 2) return;
+    bgSlides.forEach((s, i) => s.classList.toggle('active', i === bgIdx));
+    bgIdx = (bgIdx + 1) % bgSlides.length;
+  }
+
   try {
     const { data, error } = await supabaseClient.rpc('get_featured_courses');
-    if (error || !data || data.length === 0) return; // 폴백: 모자이크 유지
-
     const imgWrap = document.getElementById('js-hero-img');
-    if (!imgWrap) return;
+    if (!imgWrap) { setInterval(nextBg, 4000); return; }
 
-    const CAT_ICON = { faith:'✝️', edu:'👨‍🏫', mission:'🏕️', english:'📝', freepass:'🎓' };
+    if (error || !data || data.length === 0) {
+      // 강좌 없으면 배경만 순환
+      setInterval(nextBg, 4000);
+      return;
+    }
 
-    const slides = data.map((c, i) => {
+    function buildCardInner(c) {
+      const price = (c.price > 0) ? `₩${Number(c.price).toLocaleString()}` : '무료';
       const thumb = c.thumbnail_url
         ? `<img class="lp-feat-thumb" src="${c.thumbnail_url}" alt="${c.title}" loading="lazy">`
-        : `<div class="lp-feat-thumb-ph">${CAT_ICON[c.category] || '📚'}</div>`;
-      const price = (c.price > 0) ? `₩${Number(c.price).toLocaleString()}` : '무료';
-      return `<a href="course-detail.html?id=${c.course_id}" class="lp-feat-slide${i === 0 ? ' active' : ''}">
-        ${thumb}
+        : `<div class="lp-feat-thumb-ph">📚</div>`;
+      return `${thumb}
         <div class="lp-feat-body">
           <div class="lp-feat-badge">🎯 추천 강좌</div>
           <div class="lp-feat-title">${c.title}</div>
           <div class="lp-feat-price">${price}</div>
-        </div>
-      </a>`;
-    });
+        </div>`;
+    }
 
     const dots = data.map((_, i) =>
       `<span class="lp-feat-dot${i === 0 ? ' active' : ''}" data-idx="${i}"></span>`
     ).join('');
 
-    imgWrap.innerHTML = `<div class="lp-feat-slider">${slides.join('')}<div class="lp-feat-dots">${dots}</div></div>`;
-
-    if (data.length <= 1) return;
+    imgWrap.innerHTML = `<div class="lp-feat-slider">
+      <a class="lp-feat-slide active" id="hero-feat-card" href="course-detail.html?id=${data[0].course_id}">
+        ${buildCardInner(data[0])}
+      </a>
+      <div class="lp-feat-dots">${dots}</div>
+    </div>`;
 
     let cur = 0;
-    const allSlides = () => imgWrap.querySelectorAll('.lp-feat-slide');
-    const allDots   = () => imgWrap.querySelectorAll('.lp-feat-dot');
+    const card = () => document.getElementById('hero-feat-card');
+    const allDots = () => imgWrap.querySelectorAll('.lp-feat-dot');
 
-    function goTo(idx) {
-      allSlides().forEach((el, i) => el.classList.toggle('active', i === idx));
-      allDots().forEach((el, i) => el.classList.toggle('active', i === idx));
+    function goToCard(idx) {
+      const c = data[idx];
+      const el = card();
+      if (el) {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.4s ease';
+        setTimeout(() => {
+          el.href = `course-detail.html?id=${c.course_id}`;
+          el.innerHTML = buildCardInner(c);
+          el.style.opacity = '1';
+        }, 400);
+      }
+      allDots().forEach((d, i) => d.classList.toggle('active', i === idx));
       cur = idx;
     }
 
     // 도트 클릭
     imgWrap.querySelectorAll('.lp-feat-dot').forEach(dot => {
-      dot.addEventListener('click', e => { e.preventDefault(); goTo(Number(dot.dataset.idx)); });
+      dot.addEventListener('click', e => { e.preventDefault(); goToCard(Number(dot.dataset.idx)); });
     });
 
-    // 4초 자동 전환
-    setInterval(() => goTo((cur + 1) % data.length), 4000);
-  } catch(e) {}
+    // 배경 + 카드 동시 전환 (4초 단일 타이머)
+    setInterval(() => {
+      nextBg();
+      goToCard((cur + 1) % data.length);
+    }, 4000);
+
+  } catch(e) {
+    setInterval(nextBg, 4000);
+  }
 }
 
 function initHeroCanvas() {
