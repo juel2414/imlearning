@@ -86,8 +86,13 @@
       animation: lpFadeUp .6s .25s ease both;
     }
     .lp-hero-btns {
-      display:flex; gap:14px; flex-wrap:wrap; margin-bottom:3rem;
+      display:flex; gap:14px; flex-wrap:wrap; margin-bottom:.75rem;
       animation: lpFadeUp .6s .38s ease both;
+    }
+    .hero-friction {
+      margin:0 0 1.75rem;
+      font-size:12px; color:var(--gray-500,#8a8a8a);
+      animation: lpFadeUp .6s .44s ease both;
     }
     .lp-hero-btns .btn-primary { padding:16px 36px; font-size:16px; font-weight:800; border-radius:12px; box-shadow:0 8px 32px rgba(45,155,111,.28); }
     .lp-hero-btns .btn-outline  { padding:16px 32px; font-size:16px; font-weight:700; border-radius:12px; border-width:2px; }
@@ -202,6 +207,23 @@
     @keyframes lp-f2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes lp-f3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
     @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+
+    /* 시작 3단계 카드 + 우측 래퍼 */
+    .lp-hero-right { display:flex; flex-direction:column; gap:1.25rem; }
+    .hero-steps-card {
+      background:#fff; border-radius:14px; padding:18px 20px;
+      box-shadow:0 8px 24px rgba(0,0,0,.08); max-width:300px;
+      animation: lpSlideIn .8s .5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .hero-steps-title { font-size:13px; font-weight:700; color:#111; margin-bottom:12px; }
+    .hero-steps-list { display:flex; flex-direction:column; gap:10px; }
+    .hero-step { display:flex; gap:10px; align-items:flex-start; }
+    .hero-step-num {
+      flex-shrink:0; width:20px; height:20px; border-radius:50%;
+      background:#2D9B6F; color:#fff; font-size:11px; font-weight:700;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .hero-step-text { font-size:13px; color:#444; line-height:1.4; padding-top:2px; }
     /* 텍스트 블러→선명 등장 */
     @keyframes textBlurIn {
       from { opacity:0; transform:translateY(18px); filter:blur(10px); }
@@ -417,6 +439,7 @@
     @media(max-width:960px){
       .lp-hero-inner { grid-template-columns:1fr; text-align:center; }
       .lp-hero-visual { display:none; }
+      .hero-steps-card { max-width:100%; text-align:left; }
       .lp-hero-sub, .lp-hero-btns, .lp-hero-stats { margin-left:auto; margin-right:auto; }
       .lp-hero-btns, .lp-hero-stats { justify-content:center; }
       .lp-trust-grid { grid-template-columns:repeat(2,1fr); }
@@ -506,19 +529,39 @@
             <a id="js-cta1" href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
             <a id="js-cta2" href="about.html" class="btn btn-outline">아이엠러닝 소개</a>
           </div>
+          <p class="hero-friction">카드 등록 없이 30초 가입 · 결제 전 강좌 미리보기 가능</p>
           <div class="lp-hero-stats" id="js-hero-stats">
             <div><div class="lp-hstat-num">5<span>년+</span></div><div class="lp-hstat-lbl">안정적 운영</div></div>
             <div><div class="lp-hstat-num">1,200<span>명+</span></div><div class="lp-hstat-lbl">누적 수강생</div></div>
             <div><div class="lp-hstat-num">50<span>개+</span></div><div class="lp-hstat-lbl">온라인 강좌</div></div>
           </div>
         </div>
-        <div class="lp-hero-visual">
-          <div class="lp-hero-img" id="js-hero-img">
-            <!-- initFeaturedSlider()가 실제 추천 강좌 카드로 채움 -->
+        <div class="lp-hero-right">
+          <div class="lp-hero-visual">
+            <div class="lp-hero-img" id="js-hero-img">
+              <!-- initFeaturedSlider()가 실제 추천 강좌 카드로 채움 -->
+            </div>
+            <div class="lp-scard sc1" id="js-scard-1"><div class="lp-scard-dot"></div><div class="lp-scard-val">1,200<span>명+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
+            <div class="lp-scard sc2" id="js-scard-2"><div class="lp-scard-dot"></div><div class="lp-scard-val">50<span>개+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
+            <div class="lp-scard sc3" id="js-scard-3"><div class="lp-scard-dot"></div><div class="lp-scard-val">99<span>%</span></div><div class="lp-scard-lbl">수료율</div></div>
           </div>
-          <div class="lp-scard sc1" id="js-scard-1"><div class="lp-scard-dot"></div><div class="lp-scard-val">1,200<span>명+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
-          <div class="lp-scard sc2" id="js-scard-2"><div class="lp-scard-dot"></div><div class="lp-scard-val">50<span>개+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
-          <div class="lp-scard sc3" id="js-scard-3"><div class="lp-scard-dot"></div><div class="lp-scard-val">99<span>%</span></div><div class="lp-scard-lbl">수료율</div></div>
+          <div class="hero-steps-card">
+            <div class="hero-steps-title">💡 이렇게 시작하세요</div>
+            <div class="hero-steps-list">
+              <div class="hero-step">
+                <span class="hero-step-num">1</span>
+                <span class="hero-step-text">무료 회원가입 (30초)</span>
+              </div>
+              <div class="hero-step">
+                <span class="hero-step-num">2</span>
+                <span class="hero-step-text">원하는 강좌 선택 후 수강신청</span>
+              </div>
+              <div class="hero-step">
+                <span class="hero-step-num">3</span>
+                <span class="hero-step-text">바로 학습 시작, 완료 시 수료증</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
