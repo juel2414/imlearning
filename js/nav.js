@@ -90,6 +90,7 @@
     '  </a>',
     '  <ul class="navbar-menu" id="nb-menu">',
     '    <li><a href="courses.html">강좌</a></li>',
+    '    <li><a href="https://imbooks.kr" target="_blank" rel="noopener">아이엠북스</a></li>',
     '    <li><a href="courses.html?cat=faith">신앙</a></li>',
     '    <li><a href="courses.html?cat=edu">교사·부모</a></li>',
     '    <li><a href="courses.html?cat=mission">캠프·사역</a></li>',
