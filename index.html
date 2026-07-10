@@ -39,10 +39,21 @@
       background: linear-gradient(160deg,#e8f5ee 0%,#f5fff8 100%);
       position: relative; overflow: hidden;
     }
+    /* 배경 숨쉬는 그라디언트 */
     .lp-hero::before {
       content:''; position:absolute; inset:0; pointer-events:none;
-      background: radial-gradient(ellipse 80% 60% at 75% 20%, rgba(45,155,111,.12) 0%, transparent 60%),
-                  radial-gradient(ellipse 50% 50% at 20% 85%, rgba(45,155,111,.07) 0%, transparent 60%);
+      background: radial-gradient(ellipse 80% 60% at 75% 20%, rgba(45,155,111,.14) 0%, transparent 60%),
+                  radial-gradient(ellipse 50% 50% at 20% 85%, rgba(45,155,111,.09) 0%, transparent 60%);
+      animation: heroPulse 5s ease-in-out infinite;
+    }
+    .lp-hero::after {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(45,155,111,.06) 0%, transparent 55%);
+      animation: heroPulse 5s 2.5s ease-in-out infinite;
+    }
+    @keyframes heroPulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
     }
     #hero-canvas {
       position: absolute; inset: 0; width: 100%; height: 100%;
@@ -53,43 +64,44 @@
       gap: 4rem; align-items: center;
       padding: 5rem 0; position: relative; z-index: 1;
     }
+    /* 텍스트 등장 */
     .lp-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(45,155,111,.1); border: 1px solid rgba(45,155,111,.2);
       color: var(--green-dark,#1A7A4A); font-size: 12px; font-weight: 700;
       padding: 7px 16px; border-radius: 30px; margin-bottom: 1.5rem;
       letter-spacing: .5px;
-      animation: lpFadeUp .6s ease both;
+      animation: lpFadeUp .5s ease both;
     }
     .lp-hero-headline {
       font-size: clamp(38px,5.5vw,62px); font-weight: 900;
       line-height: 1.12; letter-spacing: -2px; color: var(--black,#111);
       margin-bottom: 1.25rem; word-break: keep-all;
-      animation: lpFadeUp .6s .1s ease both;
+      animation: textBlurIn .7s .1s cubic-bezier(0.16,1,0.3,1) both;
     }
     .lp-hero-headline em { font-style:normal; color: var(--green,#2D9B6F); }
     .lp-hero-sub {
       font-size: 18px; color: var(--gray-500,#6B6B6B); line-height: 1.8;
       margin-bottom: 2.5rem; max-width: 460px;
-      animation: lpFadeUp .6s .2s ease both;
+      animation: lpFadeUp .6s .25s ease both;
     }
     .lp-hero-btns {
       display:flex; gap:14px; flex-wrap:wrap; margin-bottom:3rem;
-      animation: lpFadeUp .6s .3s ease both;
+      animation: lpFadeUp .6s .38s ease both;
     }
     .lp-hero-btns .btn-primary { padding:16px 36px; font-size:16px; font-weight:800; border-radius:12px; box-shadow:0 8px 32px rgba(45,155,111,.28); }
     .lp-hero-btns .btn-outline  { padding:16px 32px; font-size:16px; font-weight:700; border-radius:12px; border-width:2px; }
     .lp-hero-stats {
       display:flex; gap:2.5rem; padding-top:2rem;
       border-top:1px solid rgba(0,0,0,.07);
-      animation: lpFadeUp .6s .4s ease both;
+      animation: lpFadeUp .6s .5s ease both;
     }
     .lp-hstat-num { font-size:26px; font-weight:900; color:var(--black,#111); letter-spacing:-1px; line-height:1; }
     .lp-hstat-num span { color:var(--green,#2D9B6F); }
     .lp-hstat-lbl { font-size:12px; color:var(--gray-500,#6B6B6B); margin-top:4px; }
 
     /* 히어로 우측 비주얼 */
-    .lp-hero-visual { position:relative; height:520px; animation: lpFadeIn .8s .3s ease both; }
+    .lp-hero-visual { position:relative; height:520px; animation: lpSlideIn .8s .2s cubic-bezier(0.16,1,0.3,1) both; }
     .lp-hero-img {
       position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
       width:300px; height:420px; border-radius:24px;
@@ -135,19 +147,26 @@
     }
     .lp-scard-dot {
       width:6px; height:6px; border-radius:50%; background:var(--green,#2D9B6F);
-      margin-bottom:8px;
+      margin-bottom:8px; animation: dotPulse 2s ease-in-out infinite;
     }
     .lp-scard-val { font-size:22px; font-weight:900; color:var(--black,#111); letter-spacing:-.5px; }
     .lp-scard-val span { color:var(--green,#2D9B6F); }
     .lp-scard-lbl { font-size:11px; color:var(--gray-500,#6B6B6B); margin-top:3px; }
-    .sc1 { top:30px; right:0; animation:lp-f1 4s ease-in-out infinite; }
+    .sc1 { top:30px; right:0;   animation:lp-f1 4s ease-in-out infinite; }
     .sc2 { bottom:100px; right:-20px; animation:lp-f2 4.5s ease-in-out infinite; }
     .sc3 { top:130px; left:-10px; animation:lp-f3 3.8s ease-in-out infinite; }
     @keyframes lp-f1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
     @keyframes lp-f2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes lp-f3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    @keyframes lpFadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+    /* 텍스트 블러→선명 등장 */
+    @keyframes textBlurIn {
+      from { opacity:0; transform:translateY(18px); filter:blur(10px); }
+      to   { opacity:1; transform:translateY(0);    filter:blur(0); }
+    }
+    @keyframes lpFadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     @keyframes lpFadeIn  { from{opacity:0} to{opacity:1} }
+    @keyframes lpSlideIn { from{opacity:0;transform:translateX(32px)} to{opacity:1;transform:translateX(0)} }
 
     /* 신뢰 숫자 */
     .lp-trust { background:var(--black); padding:5rem 0; }
@@ -1022,41 +1041,41 @@ function initHeroCanvas() {
     H = canvas.height = rect.height;
   }
 
-  function mkOrb() {
+  function mkParticle() {
     return {
-      x: Math.random() * W,
-      y: Math.random() * H,
-      r: 140 + Math.random() * 180,
-      dx: (Math.random() - 0.5) * 0.25,
-      dy: (Math.random() - 0.5) * 0.25,
-      a: 0.032 + Math.random() * 0.052,
-      h: 148 + Math.random() * 28
+      x: Math.random() * W, y: Math.random() * H,
+      r: 1.5 + Math.random() * 2.5,
+      dx: (Math.random() - 0.5) * 0.4,
+      dy: -0.2 - Math.random() * 0.5,
+      a: 0.15 + Math.random() * 0.35,
+      life: Math.random()
     };
   }
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    orbs.forEach(function(o) {
-      var g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-      g.addColorStop(0, 'hsla(' + o.h + ',55%,55%,' + o.a + ')');
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
+    orbs.forEach(function(p) {
+      p.life += 0.004;
+      var pulse = 0.5 + 0.5 * Math.sin(p.life * Math.PI * 2);
+      var alpha = p.a * pulse;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = 'rgba(45,155,111,1)';
       ctx.beginPath();
-      ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.r * (0.8 + 0.2 * pulse), 0, Math.PI * 2);
       ctx.fill();
-      o.x += o.dx; o.y += o.dy;
-      if (o.x < -o.r) o.x = W + o.r;
-      if (o.x > W + o.r) o.x = -o.r;
-      if (o.y < -o.r) o.y = H + o.r;
-      if (o.y > H + o.r) o.y = -o.r;
+      p.x += p.dx; p.y += p.dy;
+      if (p.y < -10) { p.y = H + 5; p.x = Math.random() * W; p.life = Math.random(); }
+      if (p.x < -10) p.x = W + 5;
+      if (p.x > W + 10) p.x = -5;
     });
+    ctx.globalAlpha = 1;
     raf = requestAnimationFrame(draw);
   }
 
   var ro = new ResizeObserver(function() { resize(); });
   ro.observe(canvas.parentElement);
   resize();
-  orbs = Array.from({ length: 7 }, mkOrb);
+  orbs = Array.from({ length: 28 }, mkParticle);
   draw();
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
