@@ -32,25 +32,21 @@
     .lp-empty-mini { font-size:13px; color:var(--gray-400,#aaa); padding:8px 0; }
     @media(max-width:768px){ .lp-personal-inner{ grid-template-columns:1fr; } }
 
-    /* ═══ 히어로 — dark cinematic ═══ */
+    /* ═══ 히어로 ═══ */
     .lp-hero {
       min-height: calc(100vh - 64px);
       display: flex; align-items: center;
-      background: #06120C;
+      background: linear-gradient(160deg,#e8f5ee 0%,#f5fff8 100%);
       position: relative; overflow: hidden;
+    }
+    .lp-hero::before {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background: radial-gradient(ellipse 80% 60% at 75% 20%, rgba(45,155,111,.12) 0%, transparent 60%),
+                  radial-gradient(ellipse 50% 50% at 20% 85%, rgba(45,155,111,.07) 0%, transparent 60%);
     }
     #hero-canvas {
       position: absolute; inset: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 0;
-    }
-    .lp-hero-grid {
-      position: absolute; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(45,155,111,.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(45,155,111,.045) 1px, transparent 1px);
-      background-size: 64px 64px;
-      -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 0%, transparent 100%);
-      mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 0%, transparent 100%);
     }
     .lp-hero-inner {
       display: grid; grid-template-columns: 1fr 1fr;
@@ -59,68 +55,47 @@
     }
     .lp-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(69,232,149,.07); border: 1px solid rgba(69,232,149,.22);
-      color: #45E895; font-size: 11px; font-weight: 700;
-      padding: 6px 16px; border-radius: 30px; margin-bottom: 1.5rem;
-      letter-spacing: 1.5px; text-transform: uppercase;
-      animation: lpFadeUp .5s ease both;
+      background: rgba(45,155,111,.1); border: 1px solid rgba(45,155,111,.2);
+      color: var(--green-dark,#1A7A4A); font-size: 12px; font-weight: 700;
+      padding: 7px 16px; border-radius: 30px; margin-bottom: 1.5rem;
+      letter-spacing: .5px;
+      animation: lpFadeUp .6s ease both;
     }
     .lp-hero-headline {
-      font-size: clamp(36px,5.2vw,64px); font-weight: 900;
-      line-height: 1.1; letter-spacing: -0.03em; color: #EEF9F4;
-      margin-bottom: 1.25rem;
-      word-break: keep-all;
-      animation: lpFadeUp .5s .08s ease both;
+      font-size: clamp(38px,5.5vw,62px); font-weight: 900;
+      line-height: 1.12; letter-spacing: -2px; color: var(--black,#111);
+      margin-bottom: 1.25rem; word-break: keep-all;
+      animation: lpFadeUp .6s .1s ease both;
     }
-    .lp-hero-headline em { font-style:normal; color: #45E895; }
+    .lp-hero-headline em { font-style:normal; color: var(--green,#2D9B6F); }
     .lp-hero-sub {
-      font-size: 17px; color: rgba(238,249,244,.5); line-height: 1.85;
-      margin-bottom: 2.5rem; max-width: 420px;
-      animation: lpFadeUp .5s .16s ease both;
+      font-size: 18px; color: var(--gray-500,#6B6B6B); line-height: 1.8;
+      margin-bottom: 2.5rem; max-width: 460px;
+      animation: lpFadeUp .6s .2s ease both;
     }
     .lp-hero-btns {
-      display:flex; gap:12px; flex-wrap:wrap; margin-bottom:3rem;
-      animation: lpFadeUp .5s .24s ease both;
+      display:flex; gap:14px; flex-wrap:wrap; margin-bottom:3rem;
+      animation: lpFadeUp .6s .3s ease both;
     }
-    .lp-hero-btns .btn-primary {
-      padding:15px 36px; font-size:16px; font-weight:800; border-radius:12px;
-      background: #45E895; color: #04100A;
-      box-shadow: 0 0 0 0 rgba(69,232,149,0), 0 8px 32px rgba(69,232,149,.28);
-      border: none; transition: all .2s;
-    }
-    .lp-hero-btns .btn-primary:hover {
-      background: #59EDAA;
-      box-shadow: 0 0 0 4px rgba(69,232,149,.15), 0 12px 40px rgba(69,232,149,.38);
-      transform: translateY(-2px);
-    }
-    .lp-hero-btns .btn-outline {
-      padding:15px 32px; font-size:16px; font-weight:700; border-radius:12px;
-      border: 1.5px solid rgba(238,249,244,.18); color: rgba(238,249,244,.75);
-      background: rgba(238,249,244,.03); transition: all .2s;
-    }
-    .lp-hero-btns .btn-outline:hover {
-      border-color: rgba(69,232,149,.35); color: #45E895;
-      background: rgba(69,232,149,.04);
-    }
+    .lp-hero-btns .btn-primary { padding:16px 36px; font-size:16px; font-weight:800; border-radius:12px; box-shadow:0 8px 32px rgba(45,155,111,.28); }
+    .lp-hero-btns .btn-outline  { padding:16px 32px; font-size:16px; font-weight:700; border-radius:12px; border-width:2px; }
     .lp-hero-stats {
-      display:flex; gap:2.5rem; padding-top:1.75rem;
-      border-top:1px solid rgba(238,249,244,.08);
-      animation: lpFadeUp .5s .32s ease both;
+      display:flex; gap:2.5rem; padding-top:2rem;
+      border-top:1px solid rgba(0,0,0,.07);
+      animation: lpFadeUp .6s .4s ease both;
     }
-    .lp-hstat-num { font-size:24px; font-weight:900; color:#EEF9F4; letter-spacing:-0.03em; line-height:1; }
-    .lp-hstat-num span { color:#45E895; }
-    .lp-hstat-lbl { font-size:11px; color:rgba(238,249,244,.38); margin-top:5px; letter-spacing:.4px; }
+    .lp-hstat-num { font-size:26px; font-weight:900; color:var(--black,#111); letter-spacing:-1px; line-height:1; }
+    .lp-hstat-num span { color:var(--green,#2D9B6F); }
+    .lp-hstat-lbl { font-size:12px; color:var(--gray-500,#6B6B6B); margin-top:4px; }
 
     /* 히어로 우측 비주얼 */
-    .lp-hero-visual { position:relative; height:520px; animation: lpFadeIn .9s .25s ease both; }
+    .lp-hero-visual { position:relative; height:520px; animation: lpFadeIn .8s .3s ease both; }
     .lp-hero-img {
       position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      width:300px; height:420px; border-radius:22px;
-      background: linear-gradient(160deg,#0D2419 0%,#071610 100%);
-      border: 1px solid rgba(69,232,149,.12);
+      width:300px; height:420px; border-radius:24px;
+      background: linear-gradient(145deg,#c8eada,#a8d8c0);
       overflow:hidden; z-index:2;
-      box-shadow: 0 0 0 1px rgba(69,232,149,.05), 0 40px 80px rgba(0,0,0,.6),
-                  inset 0 1px 0 rgba(69,232,149,.08);
+      box-shadow: 0 32px 80px rgba(45,155,111,.18), 0 8px 24px rgba(0,0,0,.08);
     }
     .lp-hero-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; }
     /* 강좌 카테고리 모자이크 */
@@ -136,50 +111,43 @@
     .lp-mosaic-item:first-child { grid-row: span 2; }
     .lp-mosaic-item::after {
       content:''; position:absolute; inset:0;
-      background:linear-gradient(to top, rgba(0,0,0,.6) 0%, transparent 60%);
+      background:linear-gradient(to top, rgba(0,0,0,.45) 0%, transparent 65%);
     }
     .lp-mosaic-label {
       position:relative; z-index:1; font-size:11px; font-weight:700;
-      color:rgba(238,249,244,.85); letter-spacing:.3px; line-height:1.3;
+      color:#fff; letter-spacing:.3px; line-height:1.3;
     }
     .lp-mosaic-sub {
       position:relative; z-index:1; font-size:9px;
-      color:rgba(238,249,244,.45); margin-top:2px;
+      color:rgba(255,255,255,.6); margin-top:2px;
     }
-    .mc1 { background:linear-gradient(145deg,#133825,#0C2218); }
-    .mc2 { background:linear-gradient(145deg,#0D2030,#091525); }
-    .mc3 { background:linear-gradient(145deg,#1A2E0A,#111E05); }
-    .mc4 { background:linear-gradient(145deg,#1F1430,#150D22); }
-    .mc5 { background:linear-gradient(145deg,#0C2820,#071A14); }
+    .mc1 { background:linear-gradient(145deg,#2D9B6F,#1A7A4A); }
+    .mc2 { background:linear-gradient(145deg,#3B82C4,#2563A8); }
+    .mc3 { background:linear-gradient(145deg,#59B87A,#2D9B6F); }
+    .mc4 { background:linear-gradient(145deg,#8B5CF6,#6D3FC8); }
+    .mc5 { background:linear-gradient(145deg,#1A7A4A,#0F5235); }
 
-    /* 플로팅 스탯 카드 — glass dark */
+    /* 플로팅 스탯 카드 */
     .lp-scard {
-      position:absolute; border-radius:14px;
-      padding:14px 18px;
-      background: rgba(12,30,20,.8);
-      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(69,232,149,.14);
-      box-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(69,232,149,.08);
+      position:absolute; background:#fff; border-radius:16px;
+      padding:14px 20px; box-shadow:0 8px 32px rgba(0,0,0,.10);
       z-index:3; white-space:nowrap;
     }
     .lp-scard-dot {
-      width:6px; height:6px; border-radius:50%; background:#45E895;
-      margin-bottom:8px; box-shadow:0 0 6px rgba(69,232,149,.6);
+      width:6px; height:6px; border-radius:50%; background:var(--green,#2D9B6F);
+      margin-bottom:8px;
     }
-    .lp-scard-val { font-size:20px; font-weight:900; color:#EEF9F4; letter-spacing:-0.03em; }
-    .lp-scard-val span { color:#45E895; }
-    .lp-scard-lbl { font-size:10px; color:rgba(238,249,244,.4); margin-top:3px; letter-spacing:.4px; }
-    .sc1 { top:28px; right:0; animation:lp-f1 4.2s ease-in-out infinite; }
-    .sc2 { bottom:90px; right:-16px; animation:lp-f2 4.8s ease-in-out infinite; }
-    .sc3 { top:140px; left:-8px; animation:lp-f3 3.9s ease-in-out infinite; }
+    .lp-scard-val { font-size:22px; font-weight:900; color:var(--black,#111); letter-spacing:-.5px; }
+    .lp-scard-val span { color:var(--green,#2D9B6F); }
+    .lp-scard-lbl { font-size:11px; color:var(--gray-500,#6B6B6B); margin-top:3px; }
+    .sc1 { top:30px; right:0; animation:lp-f1 4s ease-in-out infinite; }
+    .sc2 { bottom:100px; right:-20px; animation:lp-f2 4.5s ease-in-out infinite; }
+    .sc3 { top:130px; left:-10px; animation:lp-f3 3.8s ease-in-out infinite; }
     @keyframes lp-f1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
     @keyframes lp-f2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes lp-f3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    @keyframes lpFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes lpFadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
     @keyframes lpFadeIn  { from{opacity:0} to{opacity:1} }
-
-    /* 신뢰 숫자 — 히어로 dark 계열과 연결 */
-    .lp-hero + [data-section="trust"] { margin-top:0; }
 
     /* 신뢰 숫자 */
     .lp-trust { background:var(--black); padding:5rem 0; }
@@ -656,7 +624,7 @@
 const LP = {
   sections_order: ['hero','trust','personas','features','instructors','courses','reviews','certificate','faq','cta'],
   sections_visible: {},
-  hero: { slogan:'온 교회가 함께 배우고,\n함께 성장합니다', subcopy:'2020년부터 목사님, 교사, 부모, 학생까지', cta1_text:'강좌 둘러보기', cta1_url:'courses.html', cta2_text:'아이엠러닝 소개', cta2_url:'about.html', bg_from:'#06120C', bg_to:'#0D2419', image_url:'' },
+  hero: { slogan:'온 교회가 함께 배우고,\n함께 성장합니다', subcopy:'2020년부터 목사님, 교사, 부모, 학생까지', cta1_text:'강좌 둘러보기', cta1_url:'courses.html', cta2_text:'아이엠러닝 소개', cta2_url:'about.html', bg_from:'#e8f5ee', bg_to:'#f5fff8', image_url:'' },
   trust: { items:[{value:5,unit:'년+',label:'안정적 운영'},{value:1200,unit:'명+',label:'누적 수강생'},{value:50,unit:'개+',label:'온라인 강좌'},{value:99,unit:'%',label:'수료율'}] },
   personas: { title:'이런 분들에게 추천해요', items:[{icon:'',title:'목사님·사역자',desc:'설교와 사역에 바로 적용할 수 있는 성경 기반 강의'},{icon:'',title:'교회학교 교사',desc:'교사 교육부터 수업 설계까지 체계적으로'},{icon:'',title:'부모님',desc:'신앙 안에서 자녀를 세워가는 부모 교육'},{icon:'',title:'학생·청년',desc:'검정고시, 영어, 신앙까지 한 곳에서'}] },
   features: { title:'왜 아이엠러닝인가요?', items:[{icon:'',title:'성경적 세계관 기반',desc:'모든 강의는 성경적 가치관을 기반으로 설계되어 신앙과 배움이 분리되지 않습니다.'},{icon:'',title:'현장 중심 실전 커리큘럼',desc:'교회·가정·선교 현장에서 바로 적용할 수 있는 실전형 강의로 구성됩니다.'},{icon:'',title:'함께 성장하는 공동체',desc:'같은 가치관을 가진 교사, 부모, 사역자들과 함께 배우고 성장합니다.'}] },
@@ -690,7 +658,7 @@ function applyHero(c) {
   if (!c) return;
   const s = document.querySelector('[data-section="hero"]');
   if (!s) return;
-  // 배경은 CSS가 제어 — Supabase 값으로 덮어쓰지 않음
+  s.style.background = `linear-gradient(160deg,${c.bg_from||'#e8f5ee'} 0%,${c.bg_to||'#f5fff8'} 100%)`;
   const sl = s.querySelector('.js-slogan');
   if (sl) {
     const lines = (c.slogan||'').split('\n');
@@ -1070,7 +1038,7 @@ function initHeroCanvas() {
     ctx.clearRect(0, 0, W, H);
     orbs.forEach(function(o) {
       var g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-      g.addColorStop(0, 'hsla(' + o.h + ',55%,28%,' + o.a + ')');
+      g.addColorStop(0, 'hsla(' + o.h + ',55%,55%,' + o.a + ')');
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g;
       ctx.beginPath();
