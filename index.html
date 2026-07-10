@@ -336,6 +336,40 @@
     /* 빈 상태 */
     .lp-empty { grid-column:1/-1; text-align:center; padding:3rem; color:var(--gray-500); font-size:14px; }
 
+    /* ── 온라인으로, 언제 어디서나 ── */
+    .lp-online { padding:6rem 0; background:#fff; }
+    .lp-online-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:28px; margin-top:3rem;
+    }
+    .lp-online-img-wrap {
+      border-radius:20px; overflow:hidden;
+      box-shadow:0 12px 40px rgba(0,0,0,.10);
+      aspect-ratio:4/3;
+    }
+    .lp-online-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    /* ── Personas 측면 이미지 ── */
+    .lp-personas-layout {
+      display:grid; grid-template-columns:1fr 320px;
+      gap:3rem; align-items:center;
+    }
+    .lp-personas-layout .lp-personas-grid {
+      grid-template-columns:repeat(2,1fr); margin-top:1.5rem;
+    }
+    .lp-personas-side-img {
+      width:100%; border-radius:20px;
+      box-shadow:0 16px 48px rgba(0,0,0,.12);
+      object-fit:cover; aspect-ratio:3/4; display:block;
+    }
+
+    /* ── CTA 배경 이미지 ── */
+    .lp-cta-bg-photo {
+      position:absolute; inset:0;
+      background-size:cover; background-position:center;
+      opacity:0.16; pointer-events:none;
+    }
+
     /* 반응형 */
     @media(max-width:960px){
       .lp-hero-inner { grid-template-columns:1fr; text-align:center; }
@@ -348,6 +382,9 @@
       .lp-courses-grid { grid-template-columns:1fr; max-width:480px; margin:3rem auto 0; }
       .lp-reviews-grid { grid-template-columns:1fr; max-width:480px; margin:3rem auto 0; }
       .lp-cert-inner { grid-template-columns:1fr; }
+      .lp-personas-layout { grid-template-columns:1fr; }
+      .lp-personas-side { display:none; }
+      .lp-online-grid { grid-template-columns:1fr; }
     }
     @media(max-width:480px){
       .lp-hero-btns { flex-direction:column; }
@@ -480,11 +517,18 @@
         <div class="lp-eye">For You</div>
         <h2 class="lp-title js-personas-title">이런 분들에게 추천해요</h2>
       </div>
-      <div class="lp-personas-grid" id="js-personas">
-        <div class="lp-pcard reveal"><div class="lp-pcard-title">목사님·사역자</div><div class="lp-pcard-desc">설교와 사역에 바로 적용할 수 있는 성경 기반 강의</div></div>
-        <div class="lp-pcard reveal reveal-delay-1"><div class="lp-pcard-title">교회학교 교사</div><div class="lp-pcard-desc">교사 교육부터 수업 설계까지 체계적으로</div></div>
-        <div class="lp-pcard reveal reveal-delay-2"><div class="lp-pcard-title">부모님</div><div class="lp-pcard-desc">신앙 안에서 자녀를 세워가는 부모 교육</div></div>
-        <div class="lp-pcard reveal reveal-delay-3"><div class="lp-pcard-title">학생·청년</div><div class="lp-pcard-desc">검정고시, 영어, 신앙까지 한 곳에서</div></div>
+      <div class="lp-personas-layout">
+        <div class="lp-personas-main">
+          <div class="lp-personas-grid" id="js-personas">
+            <div class="lp-pcard reveal"><div class="lp-pcard-title">목사님·사역자</div><div class="lp-pcard-desc">설교와 사역에 바로 적용할 수 있는 성경 기반 강의</div></div>
+            <div class="lp-pcard reveal reveal-delay-1"><div class="lp-pcard-title">교회학교 교사</div><div class="lp-pcard-desc">교사 교육부터 수업 설계까지 체계적으로</div></div>
+            <div class="lp-pcard reveal reveal-delay-2"><div class="lp-pcard-title">부모님</div><div class="lp-pcard-desc">신앙 안에서 자녀를 세워가는 부모 교육</div></div>
+            <div class="lp-pcard reveal reveal-delay-3"><div class="lp-pcard-title">학생·청년</div><div class="lp-pcard-desc">검정고시, 영어, 신앙까지 한 곳에서</div></div>
+          </div>
+        </div>
+        <div class="lp-personas-side reveal reveal-delay-2">
+          <img id="js-personas-img" src="images/personas.jpg" alt="다양한 학습자들" class="lp-personas-side-img">
+        </div>
       </div>
     </div>
   </section>
@@ -500,6 +544,25 @@
         <div class="lp-fcard reveal"><div class="lp-fcard-title">성경적 세계관 기반</div><div class="lp-fcard-desc">모든 강의는 성경적 가치관을 기반으로 설계되어 신앙과 배움이 분리되지 않습니다.</div></div>
         <div class="lp-fcard reveal reveal-delay-1"><div class="lp-fcard-title">현장 중심 실전 커리큘럼</div><div class="lp-fcard-desc">교회·가정·선교 현장에서 바로 적용할 수 있는 실전형 강의로 구성됩니다.</div></div>
         <div class="lp-fcard reveal reveal-delay-2"><div class="lp-fcard-title">함께 성장하는 공동체</div><div class="lp-fcard-desc">같은 가치관을 가진 교사, 부모, 사역자들과 함께 배우고 성장합니다.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4.5. 온라인으로, 언제 어디서나 -->
+  <section data-section="online" class="lp-online">
+    <div class="container">
+      <div class="lp-head reveal">
+        <div class="lp-eye">Online · Anytime · Anywhere</div>
+        <h2 class="lp-title">온라인으로, 언제 어디서나</h2>
+        <p class="lp-sub">노트북, 태블릿, 스마트폰 어디서든 접속해 원하는 시간에 학습하세요.</p>
+      </div>
+      <div class="lp-online-grid">
+        <div class="lp-online-img-wrap reveal">
+          <img src="images/online-left.jpg" alt="집에서 온라인 강의 수강">
+        </div>
+        <div class="lp-online-img-wrap reveal reveal-delay-1">
+          <img src="images/online-right.jpg" alt="노트북으로 협업 학습">
+        </div>
       </div>
     </div>
   </section>
@@ -592,6 +655,7 @@
 
   <!-- 10. 최종 CTA -->
   <section data-section="cta" class="lp-cta">
+    <div class="lp-cta-bg-photo" style="background-image:url('images/cta-bg.jpg')"></div>
     <div class="container">
       <div class="lp-cta-inner">
         <h2 class="lp-cta-title reveal js-cta-title">지금 바로<br><em>시작하세요</em></h2>
@@ -641,7 +705,7 @@
 // 기본값 (Supabase 데이터 없을 때 fallback)
 // ────────────────────────────────────────────
 const LP = {
-  sections_order: ['hero','trust','personas','features','instructors','courses','reviews','certificate','faq','cta'],
+  sections_order: ['hero','trust','personas','features','online','instructors','courses','reviews','certificate','faq','cta'],
   sections_visible: {},
   hero: { slogan:'온 교회가 함께 배우고,\n함께 성장합니다', subcopy:'2020년부터 목사님, 교사, 부모, 학생까지', cta1_text:'강좌 둘러보기', cta1_url:'courses.html', cta2_text:'아이엠러닝 소개', cta2_url:'about.html', bg_from:'#e8f5ee', bg_to:'#f5fff8', image_url:'' },
   trust: { items:[{value:5,unit:'년+',label:'안정적 운영'},{value:1200,unit:'명+',label:'누적 수강생'},{value:50,unit:'개+',label:'온라인 강좌'},{value:99,unit:'%',label:'수료율'}] },
@@ -754,6 +818,10 @@ function applyPersonas(c) {
       <div class="lp-pcard-title">${it.title}</div>
       <div class="lp-pcard-desc">${it.desc}</div>
     </div>`).join('');
+  if (c.image_url) {
+    const img = document.getElementById('js-personas-img');
+    if (img) img.src = c.image_url;
+  }
 }
 
 // 특징

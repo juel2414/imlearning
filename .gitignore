@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# 대용량 원본 이미지 (압축본 images/hero-1.jpg 등은 커밋됨)
+images/*-utc.jpg
+images/*-utc.JPG
+
+# Claude Code 에디터 설정
+.claude/
+
+# Supabase Edge Functions 로컬 환경 변수
+supabase/.env
+supabase/functions/.env
