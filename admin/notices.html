@@ -4,22 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공지사항 관리 — 아이엠러닝 관리자</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="admin-common.css">
   <style>
     body { background: #F8F9FA; }
-    /* PC에서 폼은 항상 표시, 모바일 토글 버튼만 숨김 */
     @media (min-width: 1024px) {
-      #notice-form      { display: block !important; }
-      .toggle-form-btn  { display: none !important; }
+      #notice-form     { display: block !important; }
+      .toggle-form-btn { display: none !important; }
     }
     .toggle-form-btn { padding: 8px 18px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .form-textarea { height: 160px; resize: vertical; }
-    .btn-save { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .form-textarea   { height: 160px; resize: vertical; }
+    .btn-save   { padding: 10px 24px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
     .btn-save:hover { background: #1A7A4A; }
     .btn-cancel { padding: 10px 20px; background: #fff; color: #6B6B6B; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; }
-    .notice-list { display: flex; flex-direction: column; gap: 0; }
-    .notice-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 1rem; transition: background 0.15s; flex-wrap: wrap; }
+    .notice-list  { display: flex; flex-direction: column; gap: 0; }
+    .notice-row   { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 1rem; transition: background 0.15s; flex-wrap: wrap; }
     .notice-row:last-child { border-bottom: none; }
     .notice-row:hover { background: #F8F9FA; }
     .badge-notice { background: #E8F5EE; color: #1A7A4A; }
@@ -27,12 +26,13 @@
     .badge-info   { background: #EEF2FF; color: #4B6FD4; }
     .notice-title-text { font-size: 14px; font-weight: 500; color: var(--black); flex: 1; min-width: 0; }
     .notice-date-text  { font-size: 12px; color: #6B6B6B; flex-shrink: 0; white-space: nowrap; }
-    .action-btns { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-sm-edit { padding: 4px 10px; font-size: 11px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; color: #3D3D3D; background: #fff; cursor: pointer; }
+    .action-btns  { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-sm-edit  { padding: 4px 10px; font-size: 11px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; color: #3D3D3D; background: #fff; cursor: pointer; }
     .btn-sm-edit:hover { border-color: #2D9B6F; color: #2D9B6F; }
-    .btn-sm-del  { padding: 4px 10px; font-size: 11px; border: 1px solid #FCA5A5; border-radius: 6px; color: #EF4444; background: #fff; cursor: pointer; }
+    .btn-sm-del   { padding: 4px 10px; font-size: 11px; border: 1px solid #FCA5A5; border-radius: 6px; color: #EF4444; background: #fff; cursor: pointer; }
     .btn-sm-del:hover { background: #FEE2E2; }
-    .empty-state { text-align: center; padding: 3rem; color: #6B6B6B; }
+    .empty-state  { text-align: center; padding: 3rem; color: #6B6B6B; }
+    .loading-state { text-align: center; padding: 3rem; color: #6B6B6B; }
   </style>
 </head>
 <body>
@@ -40,12 +40,11 @@
 <main class="admin-main">
   <div class="admin-header">
     <h1>📢 공지사항 관리</h1>
-    <!-- 모바일에서만 표시 (PC는 CSS로 숨김) -->
     <button class="toggle-form-btn" onclick="toggleForm()">+ 공지 작성</button>
   </div>
 
   <div class="page-grid-2">
-    <!-- 작성 폼 (PC: 항상 표시, 모바일: 토글) -->
+    <!-- 작성/수정 폼 -->
     <div class="admin-card" id="notice-form" style="display:none;">
       <div class="admin-card-header">
         <span class="admin-card-title" id="form-title">공지사항 작성</span>
@@ -71,11 +70,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">내용</label>
-          <textarea class="form-textarea" id="notice-content" placeholder="공지사항 내용을 입력해주세요"></textarea>
+          <textarea class="form-textarea form-input" id="notice-content" placeholder="공지사항 내용을 입력해주세요"></textarea>
         </div>
         <div class="form-actions">
-          <button class="btn-cancel" onclick="toggleForm()">취소</button>
-          <button class="btn-save" onclick="saveNotice()">저장하기</button>
+          <button class="btn-cancel" onclick="cancelForm()">취소</button>
+          <button class="btn-save" id="save-btn" onclick="saveNotice()">저장하기</button>
         </div>
       </div>
     </div>
@@ -86,7 +85,7 @@
         <span class="admin-card-title">공지 목록 <span id="notice-count" style="color:#2D9B6F;"></span></span>
       </div>
       <div class="notice-list" id="notice-list">
-        <div class="empty-state">공지사항을 작성해보세요!</div>
+        <div class="loading-state">불러오는 중...</div>
       </div>
     </div>
   </div>
@@ -94,114 +93,146 @@
 
 <div class="success-toast" id="toast"></div>
 
-<script src="../js/main.js"></script>
 <script>
-if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
-function logout() { sessionStorage.removeItem('admin_auth'); window.location.href = 'login.html'; }
+  if (!sessionStorage.getItem('admin_auth')) window.location.href = 'login.html';
 
-let notices = JSON.parse(localStorage.getItem('notices') || '[]');
-let editingId = null;
-const TYPE_LABELS = { notice:'공지', event:'이벤트', info:'안내' };
-const TYPE_BADGES = { notice:'badge-notice', event:'badge-event', info:'badge-info' };
+  var SUPABASE_URL  = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// 오늘 날짜 기본값
-document.getElementById('notice-date').value = new Date().toISOString().split('T')[0];
+  var TYPE_LABELS = { notice:'공지', event:'이벤트', info:'안내' };
+  var TYPE_BADGES = { notice:'badge-notice', event:'badge-event', info:'badge-info' };
+  var editingId = null;
 
-function toggleForm() {
-  const form = document.getElementById('notice-form');
-  if (form.style.display === 'none') {
-    form.style.display = 'block';
-    resetForm();
-    form.scrollIntoView({ behavior: 'smooth' });
-  } else {
-    form.style.display = 'none';
-    resetForm();
-  }
-}
-
-function resetForm() {
-  editingId = null;
-  document.getElementById('form-title').textContent = '공지사항 작성';
-  document.getElementById('notice-type').value = 'notice';
+  // 오늘 날짜 기본값
   document.getElementById('notice-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('notice-title').value = '';
-  document.getElementById('notice-content').value = '';
-}
 
-function saveNotice() {
-  const title = document.getElementById('notice-title').value.trim();
-  if (!title) { alert('제목을 입력해주세요'); return; }
+  // ── 목록 불러오기 ──────────────────────────────────────────────
+  async function loadNotices() {
+    var list = document.getElementById('notice-list');
+    var { data, error } = await sb
+      .from('notices')
+      .select('*')
+      .order('notice_date', { ascending: false })
+      .order('created_at', { ascending: false });
 
-  const notice = {
-    id: editingId || Date.now(),
-    type: document.getElementById('notice-type').value,
-    date: document.getElementById('notice-date').value,
-    title,
-    content: document.getElementById('notice-content').value,
-  };
+    if (error) {
+      list.innerHTML = '<div class="empty-state">불러오기 실패: ' + error.message + '</div>';
+      return;
+    }
 
-  if (editingId) {
-    const idx = notices.findIndex(n => n.id === editingId);
-    if (idx !== -1) notices[idx] = notice;
-  } else {
-    notices.unshift(notice);
+    document.getElementById('notice-count').textContent = '(' + (data.length) + '개)';
+
+    if (!data.length) {
+      list.innerHTML = '<div class="empty-state">공지사항을 작성해보세요!</div>';
+      return;
+    }
+
+    list.innerHTML = data.map(function(n) {
+      var badge = TYPE_BADGES[n.type] || 'badge-notice';
+      var label = TYPE_LABELS[n.type] || n.type;
+      return '<div class="notice-row">' +
+        '<span class="badge ' + badge + '">' + label + '</span>' +
+        '<span class="notice-title-text">' + escHtml(n.title) + '</span>' +
+        '<span class="notice-date-text">' + (n.notice_date || '') + '</span>' +
+        '<div class="action-btns">' +
+          '<button class="btn-sm-edit" onclick="editNotice(' + n.id + ')">수정</button>' +
+          '<button class="btn-sm-del"  onclick="deleteNotice(' + n.id + ')">삭제</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
   }
 
-  localStorage.setItem('notices', JSON.stringify(notices));
-  renderNotices();
-  toggleForm();
-  showToast(editingId ? '공지사항이 수정되었습니다!' : '공지사항이 등록되었습니다!');
-}
+  // ── 저장 (등록/수정) ───────────────────────────────────────────
+  async function saveNotice() {
+    var title   = document.getElementById('notice-title').value.trim();
+    var type    = document.getElementById('notice-type').value;
+    var date    = document.getElementById('notice-date').value;
+    var content = document.getElementById('notice-content').value.trim();
 
-function editNotice(id) {
-  const n = notices.find(n => n.id === id);
-  if (!n) return;
-  editingId = id;
-  document.getElementById('form-title').textContent = '공지사항 수정';
-  document.getElementById('notice-type').value = n.type;
-  document.getElementById('notice-date').value = n.date;
-  document.getElementById('notice-title').value = n.title;
-  document.getElementById('notice-content').value = n.content || '';
-  document.getElementById('notice-form').style.display = 'block';
-  document.getElementById('notice-form').scrollIntoView({ behavior: 'smooth' });
-}
+    if (!title) { alert('제목을 입력해주세요'); return; }
 
-function deleteNotice(id) {
-  if (!confirm('정말 삭제할까요?')) return;
-  notices = notices.filter(n => n.id !== id);
-  localStorage.setItem('notices', JSON.stringify(notices));
-  renderNotices();
-  showToast('삭제되었습니다');
-}
+    var btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
 
-function renderNotices() {
-  const list = document.getElementById('notice-list');
-  document.getElementById('notice-count').textContent = `(${notices.length}개)`;
-  if (notices.length === 0) {
-    list.innerHTML = '<div class="empty-state">공지사항을 작성해보세요!</div>';
-    return;
+    var payload = { type: type, title: title, notice_date: date || null, content: content || null };
+    var error;
+
+    if (editingId) {
+      ({ error } = await sb.from('notices').update(payload).eq('id', editingId));
+    } else {
+      ({ error } = await sb.from('notices').insert(payload));
+    }
+
+    btn.disabled = false;
+    btn.textContent = '저장하기';
+
+    if (error) { alert('저장 실패: ' + error.message); return; }
+
+    showToast(editingId ? '공지사항이 수정되었습니다!' : '공지사항이 등록되었습니다!');
+    cancelForm();
+    loadNotices();
   }
-  list.innerHTML = notices.map(n => `
-    <div class="notice-row">
-      <span class="badge ${TYPE_BADGES[n.type]}">${TYPE_LABELS[n.type]}</span>
-      <span class="notice-title-text">${n.title}</span>
-      <span class="notice-date-text">${n.date}</span>
-      <div class="action-btns">
-        <button class="btn-sm-edit" onclick="editNotice(${n.id})">수정</button>
-        <button class="btn-sm-del" onclick="deleteNotice(${n.id})">삭제</button>
-      </div>
-    </div>
-  `).join('');
-}
 
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = '✅ ' + msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
+  // ── 수정 폼 열기 ───────────────────────────────────────────────
+  async function editNotice(id) {
+    var { data, error } = await sb.from('notices').select('*').eq('id', id).single();
+    if (error || !data) { alert('불러오기 실패'); return; }
 
-renderNotices();
+    editingId = id;
+    document.getElementById('form-title').textContent = '공지사항 수정';
+    document.getElementById('notice-type').value    = data.type || 'notice';
+    document.getElementById('notice-date').value    = data.notice_date || '';
+    document.getElementById('notice-title').value   = data.title || '';
+    document.getElementById('notice-content').value = data.content || '';
+    document.getElementById('notice-form').style.display = 'block';
+    document.getElementById('notice-form').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── 삭제 ───────────────────────────────────────────────────────
+  async function deleteNotice(id) {
+    if (!confirm('정말 삭제할까요?')) return;
+    var { error } = await sb.from('notices').delete().eq('id', id);
+    if (error) { alert('삭제 실패: ' + error.message); return; }
+    showToast('삭제되었습니다');
+    loadNotices();
+  }
+
+  // ── 폼 토글 ────────────────────────────────────────────────────
+  function toggleForm() {
+    var form = document.getElementById('notice-form');
+    if (form.style.display === 'none') {
+      cancelForm();
+      form.style.display = 'block';
+      form.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      form.style.display = 'none';
+    }
+  }
+
+  function cancelForm() {
+    editingId = null;
+    document.getElementById('form-title').textContent  = '공지사항 작성';
+    document.getElementById('notice-type').value       = 'notice';
+    document.getElementById('notice-date').value       = new Date().toISOString().split('T')[0];
+    document.getElementById('notice-title').value      = '';
+    document.getElementById('notice-content').value   = '';
+    document.getElementById('notice-form').style.display = 'none';
+  }
+
+  function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.textContent = '✅ ' + msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 3000);
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  loadNotices();
 </script>
 <script src="../js/admin-nav.js"></script>
 </body>

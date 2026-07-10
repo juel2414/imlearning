@@ -95,6 +95,7 @@
     '    <li><a href="courses.html?cat=mission">캠프·사역</a></li>',
     '    <li><a href="courses.html?cat=english">영어·시험</a></li>',
     '    <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>',
+    '    <li><a href="notices.html">공지사항</a></li>',
     '    <li><a href="about.html">소개</a></li>',
     '    <li id="nb-admin-li" style="display:none"><a href="admin/index.html" style="color:#2D9B6F!important;font-weight:700!important;">어드민</a></li>',
     '    <li id="nb-mob-auth-li"><div id="nb-mob-auth">',
@@ -199,6 +200,87 @@
     else window.location.href = 'index.html';
   };
 
+  // ── 관리자 바 (WordPress 스타일) ──────────────────────────────────
+  var AB_ID = 'im-admin-bar';
+
+  function getContextLinks() {
+    var path   = window.location.pathname.split('/').pop() || 'index.html';
+    var params = new URLSearchParams(window.location.search);
+    var id     = params.get('id');
+    var links  = [];
+    if (path === 'index.html' || path === '') {
+      links = [
+        { label: '🖼️ 배너 편집',   href: 'admin/banners.html' },
+        { label: '🏠 랜딩 편집',   href: 'admin/landing.html' },
+      ];
+    } else if (path === 'courses.html') {
+      links = [{ label: '+ 새 강좌', href: 'admin/courses.html' }];
+    } else if (path === 'course-detail.html' && id) {
+      links = [{ label: '✏️ 이 강좌 편집', href: 'admin/courses.html?edit=' + id }];
+    } else if (path === 'about.html' || path === 'contact.html') {
+      links = [{ label: '⚙️ 사이트 설정', href: 'admin/settings.html' }];
+    }
+    return links;
+  }
+
+  function buildAdminBar() {
+    if (document.getElementById(AB_ID)) return;
+
+    // CSS
+    var abStyle = document.createElement('style');
+    abStyle.textContent = [
+      '#im-admin-bar{position:fixed;top:0;left:0;right:0;height:36px;',
+      'background:#1a1a1a;color:rgba(255,255,255,.75);',
+      'display:flex;align-items:center;justify-content:space-between;',
+      'padding:0 14px;z-index:9999;font-size:12px;gap:8px;box-sizing:border-box;}',
+      '#im-admin-bar a,#im-admin-bar button{',
+      'color:rgba(255,255,255,.75);text-decoration:none;',
+      'padding:3px 9px;border-radius:4px;border:none;background:none;',
+      'cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;}',
+      '#im-admin-bar a:hover,#im-admin-bar button:hover{color:#fff;background:rgba(255,255,255,.12);}',
+      '.ab-left,.ab-right{display:flex;align-items:center;gap:2px;}',
+      '.ab-brand{color:#2D9B6F!important;font-weight:800!important;padding:3px 10px 3px 4px!important;',
+      'border-right:1px solid rgba(255,255,255,.12)!important;margin-right:4px!important;}',
+      '.ab-divider{width:1px;height:14px;background:rgba(255,255,255,.15);margin:0 4px;}',
+      '.ab-ctx{color:#fff!important;background:rgba(45,155,111,.25)!important;}',
+      '.ab-ctx:hover{background:rgba(45,155,111,.45)!important;}',
+      'body.has-admin-bar{padding-top:36px;}',
+      'body.has-admin-bar .navbar,body.has-admin-bar #site-navbar{top:36px!important;}',
+      '@media(max-width:768px){.ab-right .ab-hide-m{display:none;}}',
+    ].join('');
+    document.head.appendChild(abStyle);
+
+    var ctxLinks = getContextLinks();
+    var ctxHtml  = ctxLinks.map(function (l) {
+      return '<a href="' + l.href + '" class="ab-ctx">' + l.label + '</a>';
+    }).join('');
+
+    var bar = document.createElement('div');
+    bar.id  = AB_ID;
+    bar.innerHTML =
+      '<div class="ab-left">' +
+        '<span class="ab-brand">⚙️ 관리자</span>' +
+        ctxHtml +
+      '</div>' +
+      '<div class="ab-right">' +
+        '<a href="admin/courses.html" class="ab-hide-m">강좌 추가</a>' +
+        '<a href="admin/notices.html" class="ab-hide-m">공지 추가</a>' +
+        '<a href="admin/students.html" class="ab-hide-m">수강생</a>' +
+        '<div class="ab-divider ab-hide-m"></div>' +
+        '<a href="admin/index.html" style="color:#2D9B6F!important;font-weight:700;">대시보드</a>' +
+        '<button onclick="navLogout()" style="color:#ff6b6b!important;">로그아웃</button>' +
+      '</div>';
+
+    document.body.insertBefore(bar, document.body.firstChild);
+    document.body.classList.add('has-admin-bar');
+  }
+
+  function destroyAdminBar() {
+    var bar = document.getElementById(AB_ID);
+    if (bar) bar.remove();
+    document.body.classList.remove('has-admin-bar');
+  }
+
   // ── 네비 인증 상태 갱신 ─────────────────────────────────────────
   function updateAuth(user, isAdmin) {
     var right   = document.getElementById('nb-right');
@@ -207,12 +289,12 @@
 
     if (adminLi) adminLi.style.display = isAdmin ? '' : 'none';
 
+    // 관리자 바
+    if (isAdmin) buildAdminBar();
+    else destroyAdminBar();
+
     if (user) {
-      var adminBtn = isAdmin
-        ? '<a href="admin/index.html" class="btn btn-outline btn-sm" style="color:#2D9B6F;border-color:#2D9B6F;">어드민</a>'
-        : '';
       if (right) right.innerHTML =
-        adminBtn +
         '<a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>' +
         '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
       if (mobAuth) mobAuth.innerHTML =

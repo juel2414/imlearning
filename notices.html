@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공지사항 — 아이엠러닝</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .notices-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+    .notices-header {
+      margin-bottom: 32px;
+    }
+    .notices-header h1 {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--black, #111);
+      margin: 0 0 8px;
+    }
+    .notices-header p {
+      font-size: 14px;
+      color: var(--gray-500, #6B6B6B);
+      margin: 0;
+    }
+    /* 탭 필터 */
+    .notice-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .notice-tab {
+      padding: 7px 18px;
+      border-radius: 20px;
+      border: 1.5px solid rgba(0,0,0,0.1);
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-500, #6B6B6B);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .notice-tab.active,
+    .notice-tab:hover {
+      background: var(--green, #2D9B6F);
+      border-color: var(--green, #2D9B6F);
+      color: #fff;
+    }
+    /* 공지 목록 */
+    .notice-list {
+      display: flex;
+      flex-direction: column;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .notice-item {
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notice-item:last-child { border-bottom: none; }
+    .notice-item:hover { background: #f8fdf9; }
+    .notice-item-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 24px;
+    }
+    .notice-title {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--black, #111);
+      min-width: 0;
+    }
+    .notice-date {
+      font-size: 12px;
+      color: var(--gray-500, #6B6B6B);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .notice-chevron {
+      font-size: 12px;
+      color: var(--gray-400, #999);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    .notice-item.open .notice-chevron { transform: rotate(180deg); }
+    .notice-content {
+      display: none;
+      padding: 0 24px 20px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--gray-700, #3d3d3d);
+      white-space: pre-wrap;
+      border-top: 1px dashed rgba(0,0,0,0.07);
+      margin: 0 24px;
+      padding-top: 16px;
+    }
+    .notice-item.open .notice-content { display: block; }
+    /* 배지 */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .badge-notice { background: #E8F5EE; color: #1A7A4A; }
+    .badge-event  { background: #FEF3C7; color: #D97706; }
+    .badge-info   { background: #EEF2FF; color: #4B6FD4; }
+    /* 상태 */
+    .empty-state, .loading-state {
+      text-align: center;
+      padding: 64px 20px;
+      color: var(--gray-500, #6B6B6B);
+      font-size: 15px;
+    }
+    .loading-state { font-size: 14px; }
+    @media (max-width: 600px) {
+      .notice-item-header { padding: 14px 16px; gap: 8px; }
+      .notice-title { font-size: 14px; }
+      .notice-content { margin: 0 16px; padding-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="notices-wrap">
+  <div class="notices-header">
+    <h1>📢 공지사항</h1>
+    <p>아이엠러닝의 새 소식과 안내를 확인하세요.</p>
+  </div>
+
+  <div class="notice-tabs">
+    <button class="notice-tab active" data-filter="all">전체</button>
+    <button class="notice-tab" data-filter="notice">공지</button>
+    <button class="notice-tab" data-filter="event">이벤트</button>
+    <button class="notice-tab" data-filter="info">안내</button>
+  </div>
+
+  <div class="notice-list" id="notice-list">
+    <div class="loading-state">불러오는 중...</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/main.js"></script>
+<script>
+(function () {
+  var TYPE_LABELS = { notice: '공지', event: '이벤트', info: '안내' };
+  var TYPE_BADGES = { notice: 'badge-notice', event: 'badge-event', info: 'badge-info' };
+  var allNotices  = [];
+  var curFilter   = 'all';
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function render(notices) {
+    var list = document.getElementById('notice-list');
+    if (!notices.length) {
+      list.innerHTML = '<div class="empty-state">등록된 공지사항이 없습니다.</div>';
+      return;
+    }
+    list.innerHTML = notices.map(function(n, i) {
+      var badge = TYPE_BADGES[n.type] || 'badge-notice';
+      var label = TYPE_LABELS[n.type] || '공지';
+      var contentHtml = n.content
+        ? '<div class="notice-content">' + escHtml(n.content) + '</div>'
+        : '';
+      return '<div class="notice-item" data-idx="' + i + '">' +
+        '<div class="notice-item-header">' +
+          '<span class="badge ' + badge + '">' + label + '</span>' +
+          '<span class="notice-title">' + escHtml(n.title) + '</span>' +
+          '<span class="notice-date">' + (n.notice_date || '') + '</span>' +
+          (n.content ? '<span class="notice-chevron">▼</span>' : '') +
+        '</div>' +
+        contentHtml +
+      '</div>';
+    }).join('');
+
+    // 아코디언 토글
+    list.querySelectorAll('.notice-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        if (!el.querySelector('.notice-content')) return;
+        el.classList.toggle('open');
+      });
+    });
+  }
+
+  async function load() {
+    var { data, error } = await supabaseClient
+      .from('notices')
+      .select('*')
+      .order('notice_date', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      document.getElementById('notice-list').innerHTML =
+        '<div class="empty-state">불러오기에 실패했습니다.</div>';
+      return;
+    }
+    allNotices = data || [];
+    applyFilter();
+  }
+
+  function applyFilter() {
+    var filtered = curFilter === 'all'
+      ? allNotices
+      : allNotices.filter(function(n) { return n.type === curFilter; });
+    render(filtered);
+  }
+
+  // 탭 필터
+  document.querySelectorAll('.notice-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.notice-tab').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      curFilter = btn.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
