@@ -759,6 +759,16 @@ async function loadCourse() {
   if (user) {
     const purchased = await hasPurchased(user.id, course.id);
     isEnrolled = purchased;
+    if (!isEnrolled) {
+      const { data: myRole } = await supabaseClient.rpc('get_my_role');
+      if (myRole === 'admin') {
+        isEnrolled = true;
+        const badge = document.createElement('div');
+        badge.style.cssText = 'position:fixed;top:72px;right:16px;z-index:9999;background:#1a1a2e;color:#5be09e;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;letter-spacing:.5px;box-shadow:0 4px 12px rgba(0,0,0,.25);pointer-events:none;';
+        badge.textContent = '🔑 관리자 미리보기 모드';
+        document.body.appendChild(badge);
+      }
+    }
     await loadProgress(user.id, course.id);
     await loadWishState(user.id, course.id);
   } else {

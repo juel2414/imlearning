@@ -225,6 +225,29 @@
       </div>
       <div class="card-body" id="course-content-area"><div class="empty">강좌 목록을 불러오는 중...</div></div>
     </div>
+
+    <!-- 추천 강좌 관리 -->
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="card-header">
+        <span class="card-title">🎯 추천 강좌 관리 <span id="fc-count" style="color:#2D9B6F;font-size:13px;font-weight:500;"></span></span>
+        <button class="btn-sm edit" onclick="saveFeaturedOrder()" id="fc-save-btn" style="display:none;">순서 저장</button>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px;color:#888;margin-bottom:1.25rem;">히어로 슬라이더에 노출할 강좌를 선택하고 드래그로 순서를 조정하세요.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">전체 강좌 (체크 = 추천 등록)</div>
+            <div id="fc-all-list" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;border:1px solid #f0f0f0;border-radius:8px;padding:8px;"></div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">추천 강좌 순서 (드래그로 변경)</div>
+            <div id="fc-selected-list" style="display:flex;flex-direction:column;gap:8px;min-height:48px;border:2px dashed #e0e0e0;border-radius:8px;padding:8px;">
+              <div id="fc-empty-msg" style="text-align:center;padding:1rem;color:#bbb;font-size:13px;">추천 강좌를 선택해주세요</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -504,6 +527,113 @@ async function loadInstructors() {
 
 loadInstructors();
 loadCourses();
+loadFeaturedCourses();
+
+/* ─── 추천 강좌 관리 ─── */
+var allCoursesList = [];
+var featuredIds = new Set();
+
+async function loadFeaturedCourses() {
+  try {
+    var res = await sb.rpc('get_featured_courses');
+    var featData = (res.error ? [] : (res.data || []));
+    featuredIds = new Set(featData.map(function(f){ return f.course_id; }));
+
+    var cRes = await sb.from('courses').select('id, title, thumbnail_url, category, status').eq('status','active').order('title');
+    allCoursesList = cRes.error ? [] : (cRes.data || []);
+
+    renderFcAllList();
+    renderFcSelectedList(featData);
+
+    var count = featData.length;
+    document.getElementById('fc-count').textContent = count ? '(' + count + '개 등록됨)' : '';
+    document.getElementById('fc-save-btn').style.display = count ? '' : 'none';
+  } catch(e) {}
+}
+
+var CAT_ICON2 = { faith:'✝️', edu:'👨‍🏫', mission:'🏕️', english:'📝', freepass:'🎓' };
+
+function renderFcAllList() {
+  var el = document.getElementById('fc-all-list');
+  if (!allCoursesList.length) { el.innerHTML = '<div style="padding:1rem;color:#bbb;font-size:13px;text-align:center;">활성 강좌 없음</div>'; return; }
+  el.innerHTML = allCoursesList.map(function(c) {
+    var checked = featuredIds.has(c.id) ? 'checked' : '';
+    var icon = c.thumbnail_url ? '<img src="' + c.thumbnail_url + '" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">' : '<span style="font-size:18px;">' + (CAT_ICON2[c.category]||'📚') + '</span>';
+    return '<label style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'\'">' +
+      '<input type="checkbox" ' + checked + ' onchange="toggleFeatured(this,' + c.id + ')" style="accent-color:#2D9B6F;width:16px;height:16px;flex-shrink:0;">' +
+      icon +
+      '<span style="font-size:13px;font-weight:500;color:#222;">' + c.title + '</span>' +
+      '</label>';
+  }).join('');
+}
+
+var fcSelectedData = [];
+
+function renderFcSelectedList(data) {
+  fcSelectedData = data ? data.slice() : fcSelectedData;
+  var el = document.getElementById('fc-selected-list');
+  var emptyMsg = document.getElementById('fc-empty-msg');
+  if (!fcSelectedData.length) {
+    el.innerHTML = '<div id="fc-empty-msg" style="text-align:center;padding:1rem;color:#bbb;font-size:13px;">추천 강좌를 선택해주세요</div>';
+    document.getElementById('fc-save-btn').style.display = 'none';
+    return;
+  }
+  document.getElementById('fc-save-btn').style.display = '';
+  el.innerHTML = fcSelectedData.map(function(c, i) {
+    var icon = c.thumbnail_url ? '<img src="' + c.thumbnail_url + '" style="width:36px;height:36px;object-fit:cover;border-radius:8px;flex-shrink:0;">' : '<span style="font-size:22px;flex-shrink:0;">' + (CAT_ICON2[c.category]||'📚') + '</span>';
+    return '<div class="fc-row" draggable="true" data-idx="' + i + '" ondragstart="fcDragStart(event,' + i + ')" ondragover="event.preventDefault()" ondrop="fcDrop(event,' + i + ')" style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #eee;border-radius:10px;padding:8px 12px;cursor:grab;transition:box-shadow .15s;" onmousedown="this.style.boxShadow=\'0 4px 12px rgba(0,0,0,.1)\'" onmouseup="this.style.boxShadow=\'\'">' +
+      '<span style="color:#bbb;font-size:16px;cursor:grab;flex-shrink:0;">⠿</span>' +
+      icon +
+      '<span style="font-size:13px;font-weight:500;color:#222;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.title + '</span>' +
+      '<span style="font-size:12px;color:#bbb;flex-shrink:0;">' + (i+1) + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+var fcDragFromIdx = null;
+
+function fcDragStart(e, idx) {
+  fcDragFromIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function fcDrop(e, toIdx) {
+  if (fcDragFromIdx === null || fcDragFromIdx === toIdx) return;
+  var moved = fcSelectedData.splice(fcDragFromIdx, 1)[0];
+  fcSelectedData.splice(toIdx, 0, moved);
+  fcDragFromIdx = null;
+  renderFcSelectedList();
+}
+
+async function toggleFeatured(checkbox, courseId) {
+  try {
+    if (checkbox.checked) {
+      var { error } = await sb.from('featured_courses').insert({ course_id: courseId, sort_order: fcSelectedData.length + 1, active: true });
+      if (error) { showToast('추가 실패: ' + error.message, true); checkbox.checked = false; return; }
+      featuredIds.add(courseId);
+      var course = allCoursesList.find(function(c){ return c.id === courseId; });
+      if (course) fcSelectedData.push({ course_id: course.id, title: course.title, thumbnail_url: course.thumbnail_url, category: course.category, sort_order: fcSelectedData.length + 1 });
+    } else {
+      var { error: delErr } = await sb.from('featured_courses').delete().eq('course_id', courseId);
+      if (delErr) { showToast('삭제 실패: ' + delErr.message, true); checkbox.checked = true; return; }
+      featuredIds.delete(courseId);
+      fcSelectedData = fcSelectedData.filter(function(c){ return c.course_id !== courseId; });
+    }
+    renderFcSelectedList();
+    document.getElementById('fc-count').textContent = fcSelectedData.length ? '(' + fcSelectedData.length + '개 등록됨)' : '';
+    showToast(checkbox.checked ? '추천 강좌에 추가했습니다.' : '추천 강좌에서 제거했습니다.');
+  } catch(e) { showToast('오류가 발생했습니다.', true); }
+}
+
+async function saveFeaturedOrder() {
+  try {
+    for (var i = 0; i < fcSelectedData.length; i++) {
+      await sb.from('featured_courses').update({ sort_order: i + 1 }).eq('course_id', fcSelectedData[i].course_id);
+    }
+    showToast('순서가 저장되었습니다.');
+    renderFcSelectedList();
+  } catch(e) { showToast('저장 실패: ' + e.message, true); }
+}
 </script>
 </body>
 </html>

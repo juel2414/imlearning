@@ -191,6 +191,7 @@ var allVideoProgress = [];
 var allStudyLogs  = [];
 var allCourses    = [];
 var studentRows   = []; // 계산된 행 데이터
+var currentUserId = null;
 
 function fmtSecs(s) {
   s = Math.floor(s || 0);
@@ -314,7 +315,7 @@ function renderTable() {
 
   var html = '<div class="table-wrap"><table><thead><tr>' +
     '<th>이름 / 이메일</th><th>수강 강좌</th><th>평균 진행률</th>' +
-    '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th>관리</th>' +
+    '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th>권한</th><th>관리</th>' +
     '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -329,6 +330,21 @@ function renderTable() {
       ? '<button class="refund-btn" onclick="event.stopPropagation();showRefundModal(\'' + r.uid + '\',' + refundableOrder.course_id + ',' + refundableOrder.id + ',' + refundableOrder.amount + ')">환불처리</button>'
       : '';
 
+    var profile = allProfiles.find(function(p){ return p.id === r.uid; }) || {};
+    var isAdmin = profile.role === 'admin';
+    var isSelf  = r.uid === currentUserId;
+    var roleBadge = isAdmin
+      ? '<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#fef3c7;color:#b45309;font-size:11px;font-weight:700;">관리자</span>'
+      : '<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#f0f0f0;color:#888;font-size:11px;">일반</span>';
+    var roleBtn;
+    if (isSelf) {
+      roleBtn = '<button style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #e0e0e0;background:#f8f8f8;color:#bbb;cursor:not-allowed;margin-top:4px;" disabled title="본인 권한은 변경할 수 없습니다">본인</button>';
+    } else if (isAdmin) {
+      roleBtn = '<button style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer;margin-top:4px;" onclick="event.stopPropagation();setRole(\'' + r.uid + '\',\'admin\')">관리자 해제</button>';
+    } else {
+      roleBtn = '<button style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #2D9B6F;background:#fff;color:#2D9B6F;cursor:pointer;margin-top:4px;" onclick="event.stopPropagation();setRole(\'' + r.uid + '\',\'user\')">관리자 지정</button>';
+    }
+
     html += '<tr class="' + rowClass + '" onclick="openModal(\'' + r.uid + '\')">' +
       '<td><div style="font-weight:600;">' + r.name + '</div><div style="font-size:11px;color:#888;">' + r.email + '</div></td>' +
       '<td>' + r.courseCount + '개</td>' +
@@ -339,6 +355,7 @@ function renderTable() {
       '<td style="font-size:12px;color:#666;">' + lastTxt + '</td>' +
       '<td style="font-size:12px;">' + fmtSecs(r.totalWatch) + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
+      '<td style="white-space:nowrap;">' + roleBadge + '<br>' + roleBtn + '</td>' +
       '<td style="white-space:nowrap;">' + encBtn + (encBtn && refundBtn ? '<br>' : '') + refundBtn + '</td>' +
       '</tr>';
   });
@@ -349,6 +366,36 @@ function renderTable() {
 
 function encourage(uid, name) {
   alert('준비 중입니다.\n(' + name + ' 님에게 독려 메시지 발송)');
+}
+
+async function setRole(uid, currentRole) {
+  var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
+  var name = profile.name || profile.email || uid.slice(0,8);
+  var newRole = currentRole === 'admin' ? 'user' : 'admin';
+  var msg = newRole === 'admin'
+    ? name + ' 님을 관리자로 지정합니다.'
+    : name + ' 님의 관리자 권한을 해제합니다.';
+  if (!confirm(msg)) return;
+  try {
+    var { error } = await sb.rpc('set_user_role', { p_user_id: uid, p_new_role: newRole });
+    if (error) {
+      var reason = error.message || '';
+      if (reason.includes('last_admin')) {
+        alert('마지막 관리자의 권한은 해제할 수 없습니다.');
+      } else if (reason.includes('not_admin')) {
+        alert('관리자만 권한을 변경할 수 있습니다.');
+      } else {
+        alert('오류: ' + reason);
+      }
+      return;
+    }
+    var p = allProfiles.find(function(p){ return p.id === uid; });
+    if (p) p.role = newRole;
+    renderTable();
+    alert((newRole === 'admin' ? '관리자로 지정' : '관리자 해제') + '되었습니다.');
+  } catch(e) {
+    alert('오류가 발생했습니다: ' + e.message);
+  }
 }
 
 // ── 상세 모달 ──
@@ -437,6 +484,9 @@ async function loadAll() {
     allVideoProgress = vpRes.data        || [];
     allStudyLogs     = logsRes.data      || [];
     allCourses       = coursesRes.data   || [];
+
+    var userRes = await sb.auth.getUser();
+    currentUserId = userRes.data?.user?.id || null;
 
     buildStudentRows();
     renderKPI();
