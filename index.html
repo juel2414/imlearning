@@ -32,86 +32,154 @@
     .lp-empty-mini { font-size:13px; color:var(--gray-400,#aaa); padding:8px 0; }
     @media(max-width:768px){ .lp-personal-inner{ grid-template-columns:1fr; } }
 
-    /* 히어로 */
+    /* ═══ 히어로 — dark cinematic ═══ */
     .lp-hero {
       min-height: calc(100vh - 64px);
       display: flex; align-items: center;
-      background: linear-gradient(160deg,#e8f5ee 0%,#f5fff8 100%);
+      background: #06120C;
       position: relative; overflow: hidden;
     }
-    .lp-hero::before {
-      content:''; position:absolute; inset:0; pointer-events:none;
-      background: radial-gradient(ellipse 80% 60% at 75% 20%, rgba(45,155,111,.1) 0%, transparent 60%),
-                  radial-gradient(ellipse 50% 50% at 20% 85%, rgba(45,155,111,.06) 0%, transparent 60%);
+    #hero-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+    .lp-hero-grid {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(45,155,111,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45,155,111,.045) 1px, transparent 1px);
+      background-size: 64px 64px;
+      -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 0%, transparent 100%);
+      mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 0%, transparent 100%);
     }
     .lp-hero-inner {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 4rem; align-items: center;
-      padding: 5rem 0; position: relative; z-index:1;
+      padding: 5rem 0; position: relative; z-index: 1;
     }
     .lp-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(45,155,111,.1); border: 1px solid rgba(45,155,111,.2);
-      color: var(--green-dark); font-size: 12px; font-weight: 700;
-      padding: 7px 16px; border-radius: 30px; margin-bottom: 1.5rem;
-      letter-spacing: .5px;
-      animation: lpFadeUp .6s ease both;
+      background: rgba(69,232,149,.07); border: 1px solid rgba(69,232,149,.22);
+      color: #45E895; font-size: 11px; font-weight: 700;
+      padding: 6px 16px; border-radius: 30px; margin-bottom: 1.5rem;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      animation: lpFadeUp .5s ease both;
     }
     .lp-hero-headline {
-      font-size: clamp(38px,5.5vw,62px); font-weight: 900;
-      line-height: 1.12; letter-spacing: -2px; color: var(--black);
+      font-size: clamp(36px,5.2vw,64px); font-weight: 900;
+      line-height: 1.1; letter-spacing: -0.03em; color: #EEF9F4;
       margin-bottom: 1.25rem;
-      animation: lpFadeUp .6s .1s ease both;
+      word-break: keep-all;
+      animation: lpFadeUp .5s .08s ease both;
     }
-    .lp-hero-headline em { font-style:normal; color: var(--green); }
+    .lp-hero-headline em { font-style:normal; color: #45E895; }
     .lp-hero-sub {
-      font-size: 18px; color: var(--gray-500); line-height: 1.8;
-      margin-bottom: 2.5rem; max-width: 460px;
-      animation: lpFadeUp .6s .2s ease both;
+      font-size: 17px; color: rgba(238,249,244,.5); line-height: 1.85;
+      margin-bottom: 2.5rem; max-width: 420px;
+      animation: lpFadeUp .5s .16s ease both;
     }
     .lp-hero-btns {
-      display:flex; gap:14px; flex-wrap:wrap; margin-bottom:3rem;
-      animation: lpFadeUp .6s .3s ease both;
+      display:flex; gap:12px; flex-wrap:wrap; margin-bottom:3rem;
+      animation: lpFadeUp .5s .24s ease both;
     }
-    .lp-hero-btns .btn-primary { padding:16px 36px; font-size:16px; font-weight:800; border-radius:12px; box-shadow:0 8px 32px rgba(45,155,111,.28); }
-    .lp-hero-btns .btn-outline  { padding:16px 32px; font-size:16px; font-weight:700; border-radius:12px; border-width:2px; }
+    .lp-hero-btns .btn-primary {
+      padding:15px 36px; font-size:16px; font-weight:800; border-radius:12px;
+      background: #45E895; color: #04100A;
+      box-shadow: 0 0 0 0 rgba(69,232,149,0), 0 8px 32px rgba(69,232,149,.28);
+      border: none; transition: all .2s;
+    }
+    .lp-hero-btns .btn-primary:hover {
+      background: #59EDAA;
+      box-shadow: 0 0 0 4px rgba(69,232,149,.15), 0 12px 40px rgba(69,232,149,.38);
+      transform: translateY(-2px);
+    }
+    .lp-hero-btns .btn-outline {
+      padding:15px 32px; font-size:16px; font-weight:700; border-radius:12px;
+      border: 1.5px solid rgba(238,249,244,.18); color: rgba(238,249,244,.75);
+      background: rgba(238,249,244,.03); transition: all .2s;
+    }
+    .lp-hero-btns .btn-outline:hover {
+      border-color: rgba(69,232,149,.35); color: #45E895;
+      background: rgba(69,232,149,.04);
+    }
     .lp-hero-stats {
-      display:flex; gap:2.5rem; padding-top:2rem;
-      border-top:1px solid rgba(0,0,0,.07);
-      animation: lpFadeUp .6s .4s ease both;
+      display:flex; gap:2.5rem; padding-top:1.75rem;
+      border-top:1px solid rgba(238,249,244,.08);
+      animation: lpFadeUp .5s .32s ease both;
     }
-    .lp-hstat-num { font-size:26px; font-weight:900; color:var(--black); letter-spacing:-1px; line-height:1; }
-    .lp-hstat-num span { color:var(--green); }
-    .lp-hstat-lbl { font-size:12px; color:var(--gray-500); margin-top:4px; }
+    .lp-hstat-num { font-size:24px; font-weight:900; color:#EEF9F4; letter-spacing:-0.03em; line-height:1; }
+    .lp-hstat-num span { color:#45E895; }
+    .lp-hstat-lbl { font-size:11px; color:rgba(238,249,244,.38); margin-top:5px; letter-spacing:.4px; }
 
-    /* 히어로 우측 */
-    .lp-hero-visual { position:relative; height:520px; animation: lpFadeIn .8s .3s ease both; }
+    /* 히어로 우측 비주얼 */
+    .lp-hero-visual { position:relative; height:520px; animation: lpFadeIn .9s .25s ease both; }
     .lp-hero-img {
       position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      width:320px; height:420px; border-radius:24px;
-      background:linear-gradient(145deg,#c8eada,#a8d8c0);
-      display:flex; align-items:center; justify-content:center;
-      font-size:80px; box-shadow:0 32px 80px rgba(0,0,0,.12);
+      width:300px; height:420px; border-radius:22px;
+      background: linear-gradient(160deg,#0D2419 0%,#071610 100%);
+      border: 1px solid rgba(69,232,149,.12);
       overflow:hidden; z-index:2;
+      box-shadow: 0 0 0 1px rgba(69,232,149,.05), 0 40px 80px rgba(0,0,0,.6),
+                  inset 0 1px 0 rgba(69,232,149,.08);
     }
-    .lp-hero-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .lp-hero-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; }
+    /* 강좌 카테고리 모자이크 */
+    .lp-mosaic {
+      position:absolute; inset:0; z-index:1;
+      display:grid; grid-template-columns:1fr 1fr;
+      grid-template-rows:1.4fr 1fr 1fr; gap:3px; padding:3px;
+    }
+    .lp-mosaic-item {
+      border-radius:8px; display:flex; flex-direction:column;
+      justify-content:flex-end; padding:10px 12px; overflow:hidden; position:relative;
+    }
+    .lp-mosaic-item:first-child { grid-row: span 2; }
+    .lp-mosaic-item::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(to top, rgba(0,0,0,.6) 0%, transparent 60%);
+    }
+    .lp-mosaic-label {
+      position:relative; z-index:1; font-size:11px; font-weight:700;
+      color:rgba(238,249,244,.85); letter-spacing:.3px; line-height:1.3;
+    }
+    .lp-mosaic-sub {
+      position:relative; z-index:1; font-size:9px;
+      color:rgba(238,249,244,.45); margin-top:2px;
+    }
+    .mc1 { background:linear-gradient(145deg,#133825,#0C2218); }
+    .mc2 { background:linear-gradient(145deg,#0D2030,#091525); }
+    .mc3 { background:linear-gradient(145deg,#1A2E0A,#111E05); }
+    .mc4 { background:linear-gradient(145deg,#1F1430,#150D22); }
+    .mc5 { background:linear-gradient(145deg,#0C2820,#071A14); }
+
+    /* 플로팅 스탯 카드 — glass dark */
     .lp-scard {
-      position:absolute; background:#fff; border-radius:16px;
-      padding:14px 20px; box-shadow:0 8px 32px rgba(0,0,0,.10);
+      position:absolute; border-radius:14px;
+      padding:14px 18px;
+      background: rgba(12,30,20,.8);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(69,232,149,.14);
+      box-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(69,232,149,.08);
       z-index:3; white-space:nowrap;
     }
-    .lp-scard-val { font-size:22px; font-weight:900; color:var(--black); letter-spacing:-.5px; }
-    .lp-scard-val span { color:var(--green); }
-    .lp-scard-lbl { font-size:11px; color:var(--gray-500); margin-top:3px; }
-    .lp-scard-ico { font-size:18px; margin-bottom:5px; }
-    .sc1 { top:30px; right:0; animation:lp-f1 4s ease-in-out infinite; }
-    .sc2 { bottom:100px; right:-20px; animation:lp-f2 4.5s ease-in-out infinite; }
-    .sc3 { top:130px; left:-10px; animation:lp-f3 3.8s ease-in-out infinite; }
+    .lp-scard-dot {
+      width:6px; height:6px; border-radius:50%; background:#45E895;
+      margin-bottom:8px; box-shadow:0 0 6px rgba(69,232,149,.6);
+    }
+    .lp-scard-val { font-size:20px; font-weight:900; color:#EEF9F4; letter-spacing:-0.03em; }
+    .lp-scard-val span { color:#45E895; }
+    .lp-scard-lbl { font-size:10px; color:rgba(238,249,244,.4); margin-top:3px; letter-spacing:.4px; }
+    .sc1 { top:28px; right:0; animation:lp-f1 4.2s ease-in-out infinite; }
+    .sc2 { bottom:90px; right:-16px; animation:lp-f2 4.8s ease-in-out infinite; }
+    .sc3 { top:140px; left:-8px; animation:lp-f3 3.9s ease-in-out infinite; }
     @keyframes lp-f1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
     @keyframes lp-f2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     @keyframes lp-f3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    @keyframes lpFadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes lpFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     @keyframes lpFadeIn  { from{opacity:0} to{opacity:1} }
+
+    /* 신뢰 숫자 — 히어로 dark 계열과 연결 */
+    .lp-hero + [data-section="trust"] { margin-top:0; }
 
     /* 신뢰 숫자 */
     .lp-trust { background:var(--black); padding:5rem 0; }
@@ -354,10 +422,12 @@
 
   <!-- 1. 히어로 -->
   <section data-section="hero" class="lp-hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="lp-hero-grid"></div>
     <div class="container">
       <div class="lp-hero-inner">
         <div>
-          <div class="lp-eyebrow">I'M Learning, I'M Running!</div>
+          <div class="lp-eyebrow">I'M Learning · I'M Running</div>
           <h1 class="lp-hero-headline js-slogan">온 교회가 함께 배우고,<br><em>함께 성장합니다</em></h1>
           <p class="lp-hero-sub js-sub">2020년부터 목사님, 교사, 부모, 학생까지</p>
           <div class="lp-hero-btns">
@@ -371,10 +441,34 @@
           </div>
         </div>
         <div class="lp-hero-visual">
-          <div class="lp-hero-img" id="js-hero-img"></div>
-          <div class="lp-scard sc1" id="js-scard-1"><div class="lp-scard-val">1,200<span>명+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
-          <div class="lp-scard sc2" id="js-scard-2"><div class="lp-scard-val">50<span>개+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
-          <div class="lp-scard sc3" id="js-scard-3"><div class="lp-scard-val">99<span>%</span></div><div class="lp-scard-lbl">수료율</div></div>
+          <div class="lp-hero-img" id="js-hero-img">
+            <!-- 강좌 카테고리 모자이크 (이미지 없을 때 표시) -->
+            <div class="lp-mosaic">
+              <div class="lp-mosaic-item mc1">
+                <div class="lp-mosaic-label">신앙 강의</div>
+                <div class="lp-mosaic-sub">성경·기도·묵상</div>
+              </div>
+              <div class="lp-mosaic-item mc2">
+                <div class="lp-mosaic-label">CBUP 과정</div>
+                <div class="lp-mosaic-sub">수료증 발급</div>
+              </div>
+              <div class="lp-mosaic-item mc3">
+                <div class="lp-mosaic-label">교사·부모</div>
+                <div class="lp-mosaic-sub">교회학교 전문</div>
+              </div>
+              <div class="lp-mosaic-item mc4">
+                <div class="lp-mosaic-label">영어·시험</div>
+                <div class="lp-mosaic-sub">검정고시·영단속</div>
+              </div>
+              <div class="lp-mosaic-item mc5" style="grid-column:span 2">
+                <div class="lp-mosaic-label">전강좌 무제한 패스</div>
+                <div class="lp-mosaic-sub">50개+ 강좌 자유 수강</div>
+              </div>
+            </div>
+          </div>
+          <div class="lp-scard sc1" id="js-scard-1"><div class="lp-scard-dot"></div><div class="lp-scard-val">1,200<span>명+</span></div><div class="lp-scard-lbl">누적 수강생</div></div>
+          <div class="lp-scard sc2" id="js-scard-2"><div class="lp-scard-dot"></div><div class="lp-scard-val">50<span>개+</span></div><div class="lp-scard-lbl">온라인 강좌</div></div>
+          <div class="lp-scard sc3" id="js-scard-3"><div class="lp-scard-dot"></div><div class="lp-scard-val">99<span>%</span></div><div class="lp-scard-lbl">수료율</div></div>
         </div>
       </div>
     </div>
@@ -562,7 +656,7 @@
 const LP = {
   sections_order: ['hero','trust','personas','features','instructors','courses','reviews','certificate','faq','cta'],
   sections_visible: {},
-  hero: { slogan:'온 교회가 함께 배우고,\n함께 성장합니다', subcopy:'2020년부터 목사님, 교사, 부모, 학생까지', cta1_text:'강좌 둘러보기', cta1_url:'courses.html', cta2_text:'아이엠러닝 소개', cta2_url:'about.html', bg_from:'#e8f5ee', bg_to:'#f5fff8', image_url:'' },
+  hero: { slogan:'온 교회가 함께 배우고,\n함께 성장합니다', subcopy:'2020년부터 목사님, 교사, 부모, 학생까지', cta1_text:'강좌 둘러보기', cta1_url:'courses.html', cta2_text:'아이엠러닝 소개', cta2_url:'about.html', bg_from:'#06120C', bg_to:'#0D2419', image_url:'' },
   trust: { items:[{value:5,unit:'년+',label:'안정적 운영'},{value:1200,unit:'명+',label:'누적 수강생'},{value:50,unit:'개+',label:'온라인 강좌'},{value:99,unit:'%',label:'수료율'}] },
   personas: { title:'이런 분들에게 추천해요', items:[{icon:'',title:'목사님·사역자',desc:'설교와 사역에 바로 적용할 수 있는 성경 기반 강의'},{icon:'',title:'교회학교 교사',desc:'교사 교육부터 수업 설계까지 체계적으로'},{icon:'',title:'부모님',desc:'신앙 안에서 자녀를 세워가는 부모 교육'},{icon:'',title:'학생·청년',desc:'검정고시, 영어, 신앙까지 한 곳에서'}] },
   features: { title:'왜 아이엠러닝인가요?', items:[{icon:'',title:'성경적 세계관 기반',desc:'모든 강의는 성경적 가치관을 기반으로 설계되어 신앙과 배움이 분리되지 않습니다.'},{icon:'',title:'현장 중심 실전 커리큘럼',desc:'교회·가정·선교 현장에서 바로 적용할 수 있는 실전형 강의로 구성됩니다.'},{icon:'',title:'함께 성장하는 공동체',desc:'같은 가치관을 가진 교사, 부모, 사역자들과 함께 배우고 성장합니다.'}] },
@@ -596,9 +690,15 @@ function applyHero(c) {
   if (!c) return;
   const s = document.querySelector('[data-section="hero"]');
   if (!s) return;
-  s.style.background = `linear-gradient(160deg,${c.bg_from||'#e8f5ee'} 0%,${c.bg_to||'#f5fff8'} 100%)`;
+  // 배경은 CSS가 제어 — Supabase 값으로 덮어쓰지 않음
   const sl = s.querySelector('.js-slogan');
-  if (sl) sl.innerHTML = (c.slogan||'').replace(/\n/g,'<br>');
+  if (sl) {
+    const lines = (c.slogan||'').split('\n');
+    if (lines.length > 1) {
+      lines[lines.length - 1] = '<em>' + lines[lines.length - 1] + '</em>';
+    }
+    sl.innerHTML = lines.join('<br>');
+  }
   const su = s.querySelector('.js-sub');
   if (su) su.textContent = c.subcopy||'';
   const a1 = document.getElementById('js-cta1');
@@ -935,27 +1035,65 @@ document.addEventListener('DOMContentLoaded', function() {
   init();
   initPersonal();
   startHeroSlideshow();
+  initHeroCanvas();
 });
 
 function startHeroSlideshow() {
-  var slides = [
-    { bg: 'linear-gradient(160deg,#e8f5ee 0%,#f5fff8 100%)' },
-    { bg: 'linear-gradient(160deg,#eef2ff 0%,#f5f3ff 100%)' },
-    { bg: 'linear-gradient(160deg,#fff7ed 0%,#fffbf5 100%)' },
-    { bg: 'linear-gradient(160deg,#f0fdf9 0%,#e6fff5 100%)' },
-  ];
-  var idx = 0;
-  var hero = document.querySelector('.lp-hero');
-  var heroImg = document.getElementById('js-hero-img');
-  if (!hero) return;
-  hero.style.transition = 'background 1.4s ease';
-  setInterval(function() {
-    idx = (idx + 1) % slides.length;
-    hero.style.background = slides[idx].bg;
-    if (heroImg && !heroImg.querySelector('img')) {
-      heroImg.style.transition = 'background 1.4s ease';
-    }
-  }, 4000);
+  // 다크 히어로 — 배경은 캔버스가 담당하므로 슬라이드쇼 비활성
+}
+
+function initHeroCanvas() {
+  var canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H, orbs, raf;
+
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    W = canvas.width  = rect.width;
+    H = canvas.height = rect.height;
+  }
+
+  function mkOrb() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 140 + Math.random() * 180,
+      dx: (Math.random() - 0.5) * 0.25,
+      dy: (Math.random() - 0.5) * 0.25,
+      a: 0.032 + Math.random() * 0.052,
+      h: 148 + Math.random() * 28
+    };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    orbs.forEach(function(o) {
+      var g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+      g.addColorStop(0, 'hsla(' + o.h + ',55%,28%,' + o.a + ')');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+      ctx.fill();
+      o.x += o.dx; o.y += o.dy;
+      if (o.x < -o.r) o.x = W + o.r;
+      if (o.x > W + o.r) o.x = -o.r;
+      if (o.y < -o.r) o.y = H + o.r;
+      if (o.y > H + o.r) o.y = -o.r;
+    });
+    raf = requestAnimationFrame(draw);
+  }
+
+  var ro = new ResizeObserver(function() { resize(); });
+  ro.observe(canvas.parentElement);
+  resize();
+  orbs = Array.from({ length: 7 }, mkOrb);
+  draw();
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    cancelAnimationFrame(raf);
+  }
 }
 </script>
 </body>
