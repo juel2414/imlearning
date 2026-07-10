@@ -1,3 +1,5 @@
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 // ───── 스크롤 애니메이션 ─────
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
