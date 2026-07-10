@@ -71,6 +71,80 @@ Deno.serve(async (req: Request) => {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
+
+      // ── 수락된 선물 환불 (수락 후 7일 이내 + 수령자 1/3 미만 시청) ──
+      if (gift.status === 'accepted') {
+        const acceptedAt = gift.accepted_at ? new Date(gift.accepted_at) : null
+        if (!acceptedAt) {
+          return new Response(JSON.stringify({ success: false, error: '수락 시각 정보가 없습니다.' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        const daysSince = (Date.now() - acceptedAt.getTime()) / (1000 * 60 * 60 * 24)
+        if (daysSince > 7) {
+          return new Response(JSON.stringify({ success: false, error: '수락 후 7일이 지나 환불이 불가합니다.' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        const { data: vpData } = await supabase
+          .from('video_progress')
+          .select('actual_watched_seconds, total_seconds')
+          .eq('user_id', gift.recipient_id)
+          .eq('course_id', gift.course_id)
+
+        let totalWatched = 0, totalDuration = 0
+        for (const vp of vpData || []) {
+          totalWatched += vp.actual_watched_seconds || 0
+          totalDuration += vp.total_seconds || 0
+        }
+        const watchRatio = totalDuration > 0 ? totalWatched / totalDuration : 0
+        if (watchRatio >= 1 / 3) {
+          return new Response(JSON.stringify({ success: false, error: '수령자가 강의를 1/3 이상 시청해 환불이 불가합니다.' }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        const refundAmount = gift.amount || 0
+        if (refundAmount > 0 && gift.payment_id) {
+          const portoneSecret = Deno.env.get('PORTONE_API_SECRET')
+          if (portoneSecret) {
+            const portoneRes = await fetch(
+              `https://api.portone.io/payments/${gift.payment_id}/cancel`,
+              {
+                method: 'POST',
+                headers: { Authorization: `PortOne ${portoneSecret}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: '선물 환불 (수령 후)', amount: refundAmount }),
+              }
+            )
+            if (!portoneRes.ok) {
+              const errText = await portoneRes.text()
+              return new Response(JSON.stringify({ success: false, error: 'PortOne 환불 실패: ' + errText }), {
+                status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              })
+            }
+          }
+        }
+
+        const { error: giftUpdateErr } = await supabase.from('gifts').update({ status: 'refunded' }).eq('gift_code', giftCode)
+        if (giftUpdateErr) {
+          return new Response(JSON.stringify({ success: false, error: '선물 상태 업데이트 실패: ' + giftUpdateErr.message }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+
+        // 수령자 order도 환불 처리 → 수강 접근 차단
+        await supabase.from('orders')
+          .update({ refund_status: 'refunded', refund_amount: refundAmount, refunded_at: new Date().toISOString() })
+          .eq('user_id', gift.recipient_id)
+          .eq('course_id', gift.course_id)
+          .eq('payment_id', gift.payment_id)
+
+        return new Response(JSON.stringify({ success: true, refund_amount: refundAmount, status: 'refunded' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       if (!['pending', 'already_owned'].includes(gift.status)) {
         return new Response(JSON.stringify({ success: false, error: `취소할 수 없는 상태입니다: ${gift.status}` }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
