@@ -63,10 +63,15 @@
     .lp-hero .container { max-width: min(94vw, 1500px); }
     .lp-hero-inner {
       display: flex; flex-direction: column; align-items: stretch;
-      gap: 12rem; padding: 8rem 0 5rem; position: relative; z-index: 3;
+      gap: 0; padding: 0; position: relative; z-index: 3;
     }
-    /* 센터 텍스트 블록 */
-    .lp-hero-center { text-align: center; width: 100%; max-width: 740px; margin: 0 auto; }
+    /* 센터 텍스트 블록 — 첫 뷰포트 전체를 채워 카드를 폴드 아래로 */
+    .lp-hero-center {
+      min-height: calc(100vh - 64px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; width: 100%; max-width: 740px; margin: 0 auto;
+      padding: 4rem 0;
+    }
     /* 와이드 쇼케이스 */
     .lp-hero-showcase {
       width: min(88vw, 1300px); position: relative;
