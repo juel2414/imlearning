@@ -217,7 +217,7 @@
       : '';
     const initStyle = inst.photo_url ? 'style="display:none"' : '';
     return `
-      <div class="inst-card reveal">
+      <div class="inst-card">
         <div class="inst-photo-wrap">
           ${photo}
           <div class="inst-initials" ${initStyle}>${initial(inst.name)}</div>
@@ -237,16 +237,6 @@
   document.getElementById('grid-renewgen').innerHTML =
     renewgen.length ? renewgen.map(card).join('') : '<p class="inst-loading">등록된 강사가 없습니다.</p>';
 
-  // 동적으로 생성된 카드에 reveal 옵저버 재적용
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.inst-card.reveal').forEach(el => {
-      if (typeof revealObserver !== 'undefined') {
-        revealObserver.observe(el);
-      } else {
-        el.classList.add('visible');
-      }
-    });
-  });
 })();
 </script>
 </body>
