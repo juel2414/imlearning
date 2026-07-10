@@ -248,6 +248,67 @@
         </div>
       </div>
     </div>
+
+    <!-- 교재 관리 -->
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="card-header">
+        <span class="card-title">📚 교재 관리</span>
+        <button class="btn-sm edit" onclick="toggleTbForm()">+ 교재 등록</button>
+      </div>
+      <div class="card-body">
+        <!-- 등록 폼 -->
+        <div id="tb-form" style="display:none;background:#f9fafb;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;border:1px solid #eee;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">교재명 *</label>
+              <input id="tb-title" type="text" placeholder="예) 트리플 스쿨 워크북" style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">가격 (원, 참고용)</label>
+              <input id="tb-price" type="number" placeholder="15000" style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">표지 이미지 URL</label>
+              <input id="tb-cover" type="text" placeholder="https://..." style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">아이엠북스 URL *</label>
+              <input id="tb-url" type="text" placeholder="https://imbooks.kr/..." style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">교재 설명</label>
+            <textarea id="tb-desc" rows="2" placeholder="교재에 대한 간단한 설명..." style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm edit" onclick="saveTb()" id="tb-save-btn">저장</button>
+            <button class="btn-sm" onclick="cancelTbForm()" style="background:#f0f0f0;color:#555;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">취소</button>
+          </div>
+        </div>
+
+        <!-- 교재 목록 -->
+        <div id="tb-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.75rem;"></div>
+
+        <!-- 강좌-교재 연결 -->
+        <div style="border-top:1px solid #eee;padding-top:1.25rem;">
+          <div style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">강좌에 교재 연결</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">강좌 선택</label>
+              <select id="tb-link-course" onchange="loadTbLink()" style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:#fff;">
+                <option value="">강좌를 선택하세요</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">연결할 교재 (체크 = 연결)</label>
+              <div id="tb-link-list" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;border:1px solid #f0f0f0;border-radius:8px;padding:8px;">
+                <div style="font-size:13px;color:#bbb;padding:4px;">강좌를 먼저 선택하세요</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -528,6 +589,141 @@ async function loadInstructors() {
 loadInstructors();
 loadCourses();
 loadFeaturedCourses();
+loadTextbooks();
+
+/* ─── 교재 관리 ─── */
+var allTextbooks = [];
+var editingTbId = null;
+
+async function loadTextbooks() {
+  var { data } = await sb.from('textbooks').select('*').order('created_at', { ascending: false });
+  allTextbooks = data || [];
+  renderTbList();
+  renderTbLinkCourseSelect();
+}
+
+function renderTbList() {
+  var el = document.getElementById('tb-list');
+  if (!allTextbooks.length) {
+    el.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px;">등록된 교재가 없습니다</div>';
+    return;
+  }
+  el.innerHTML = allTextbooks.map(function(t) {
+    var cover = t.cover_image_url ? '<img src="' + t.cover_image_url + '" style="width:40px;height:52px;object-fit:cover;border-radius:5px;flex-shrink:0;">' : '<div style="width:40px;height:52px;background:#eef;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📖</div>';
+    return '<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #eee;border-radius:10px;padding:10px 14px;">' +
+      cover +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:13px;font-weight:700;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t.title + '</div>' +
+        '<div style="font-size:12px;color:#888;margin-top:2px;">' + (t.price ? '₩' + Number(t.price).toLocaleString() : '가격 미설정') + ' · <a href="' + t.imbooks_url + '" target="_blank" rel="noopener" style="color:#2D9B6F;text-decoration:none;">아이엠북스 ↗</a></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-shrink:0;">' +
+        '<button class="btn-sm edit" onclick="editTb(' + t.id + ')">수정</button>' +
+        '<button class="btn-sm del" onclick="deleteTb(' + t.id + ')">삭제</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleTbForm() {
+  var f = document.getElementById('tb-form');
+  if (f.style.display === 'none') { cancelTbForm(); f.style.display = ''; } else { f.style.display = 'none'; }
+}
+
+function cancelTbForm() {
+  editingTbId = null;
+  ['tb-title','tb-price','tb-cover','tb-url','tb-desc'].forEach(function(id){ document.getElementById(id).value = ''; });
+  document.getElementById('tb-save-btn').textContent = '저장';
+  document.getElementById('tb-form').style.display = 'none';
+}
+
+function editTb(id) {
+  var t = allTextbooks.find(function(x){ return x.id === id; });
+  if (!t) return;
+  editingTbId = id;
+  document.getElementById('tb-title').value = t.title || '';
+  document.getElementById('tb-price').value = t.price || '';
+  document.getElementById('tb-cover').value = t.cover_image_url || '';
+  document.getElementById('tb-url').value = t.imbooks_url || '';
+  document.getElementById('tb-desc').value = t.description || '';
+  document.getElementById('tb-save-btn').textContent = '수정 저장';
+  document.getElementById('tb-form').style.display = '';
+  document.getElementById('tb-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveTb() {
+  var title = document.getElementById('tb-title').value.trim();
+  var url   = document.getElementById('tb-url').value.trim();
+  if (!title) { showToast('교재명을 입력해주세요.', true); return; }
+  if (!url)   { showToast('아이엠북스 URL을 입력해주세요.', true); return; }
+  var payload = {
+    title:           title,
+    imbooks_url:     url,
+    cover_image_url: document.getElementById('tb-cover').value.trim() || null,
+    price:           parseInt(document.getElementById('tb-price').value) || null,
+    description:     document.getElementById('tb-desc').value.trim() || null,
+  };
+  try {
+    var res = editingTbId
+      ? await sb.from('textbooks').update(payload).eq('id', editingTbId)
+      : await sb.from('textbooks').insert(payload);
+    if (res.error) { showToast('저장 실패: ' + res.error.message, true); return; }
+    showToast(editingTbId ? '교재가 수정되었습니다.' : '교재가 등록되었습니다.');
+    cancelTbForm();
+    await loadTextbooks();
+  } catch(e) { showToast('오류: ' + e.message, true); }
+}
+
+async function deleteTb(id) {
+  var t = allTextbooks.find(function(x){ return x.id === id; });
+  if (!t || !confirm('"' + t.title + '" 교재를 삭제하시겠습니까?')) return;
+  var { error } = await sb.from('textbooks').delete().eq('id', id);
+  if (error) { showToast('삭제 실패: ' + error.message, true); return; }
+  showToast('교재가 삭제되었습니다.');
+  await loadTextbooks();
+}
+
+function renderTbLinkCourseSelect() {
+  var sel = document.getElementById('tb-link-course');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">강좌를 선택하세요</option>';
+  (allCoursesList || []).forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.title;
+    if (String(c.id) === String(cur)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function loadTbLink() {
+  var courseId = document.getElementById('tb-link-course').value;
+  var el = document.getElementById('tb-link-list');
+  if (!courseId) { el.innerHTML = '<div style="font-size:13px;color:#bbb;padding:4px;">강좌를 먼저 선택하세요</div>'; return; }
+  var { data: linked } = await sb.from('course_textbooks').select('textbook_id').eq('course_id', courseId);
+  var linkedIds = new Set((linked || []).map(function(r){ return r.textbook_id; }));
+  if (!allTextbooks.length) { el.innerHTML = '<div style="font-size:13px;color:#bbb;padding:4px;">등록된 교재가 없습니다</div>'; return; }
+  el.innerHTML = allTextbooks.map(function(t) {
+    var checked = linkedIds.has(t.id) ? 'checked' : '';
+    return '<label style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;cursor:pointer;" onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'\'">' +
+      '<input type="checkbox" ' + checked + ' onchange="toggleTbLink(this,' + courseId + ',' + t.id + ')" style="accent-color:#2D9B6F;width:15px;height:15px;flex-shrink:0;">' +
+      '<span style="font-size:13px;font-weight:500;color:#222;">' + t.title + '</span>' +
+      '</label>';
+  }).join('');
+}
+
+async function toggleTbLink(checkbox, courseId, textbookId) {
+  try {
+    if (checkbox.checked) {
+      var { error } = await sb.from('course_textbooks').insert({ course_id: courseId, textbook_id: textbookId, sort_order: 0 });
+      if (error) { showToast('연결 실패: ' + error.message, true); checkbox.checked = false; }
+      else showToast('교재가 연결되었습니다.');
+    } else {
+      var { error: e2 } = await sb.from('course_textbooks').delete().eq('course_id', courseId).eq('textbook_id', textbookId);
+      if (e2) { showToast('해제 실패: ' + e2.message, true); checkbox.checked = true; }
+      else showToast('교재 연결이 해제되었습니다.');
+    }
+  } catch(e) { showToast('오류: ' + e.message, true); }
+}
 
 /* ─── 추천 강좌 관리 ─── */
 var allCoursesList = [];

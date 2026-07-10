@@ -157,6 +157,18 @@
 .gs-btn.gold { background:#c9a252; border:none; color:#1c1406; font-weight:600; }
 .gs-email-notice { margin-top:10px; font-size:12px; color:#8fae9c; text-align:center; }
 .gs-close-btn { display:block; width:100%; margin-top:12px; padding:10px; font-size:13px; border-radius:8px; cursor:pointer; background:transparent; border:0.5px solid #2a4438; color:#6d8a78; font-family:inherit; }
+
+/* ── 관련 교재 탭 ── */
+.textbook-card { background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:16px; overflow:hidden; transition:transform .2s, box-shadow .2s; }
+.textbook-card:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.1); }
+.textbook-cover { width:100%; aspect-ratio:3/4; background:linear-gradient(135deg,#e8f5ee,#c8eada); display:flex; align-items:center; justify-content:center; font-size:48px; overflow:hidden; }
+.textbook-cover img { width:100%; height:100%; object-fit:cover; display:block; }
+.textbook-body { padding:1rem 1.1rem 1.25rem; }
+.textbook-title { font-size:15px; font-weight:700; color:var(--black); margin-bottom:6px; line-height:1.4; }
+.textbook-price { font-size:13px; color:var(--green); font-weight:700; margin-bottom:8px; }
+.textbook-desc { font-size:12px; color:var(--gray-500); line-height:1.65; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.textbook-buy-btn { display:block; text-align:center; padding:9px 14px; background:var(--green); color:#fff; border-radius:8px; font-size:13px; font-weight:700; text-decoration:none; transition:background .15s; }
+.textbook-buy-btn:hover { background:var(--green-dark); }
 </style>
 </head>
 <body>
@@ -167,6 +179,7 @@
     </a>
     <ul class="navbar-menu">
       <li><a href="courses.html" class="active">강좌</a></li>
+      <li><a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a></li>
       <li><a href="courses.html?cat=faith">신앙</a></li>
       <li><a href="courses.html?cat=edu">교사·부모</a></li>
       <li><a href="courses.html?cat=mission">캠프·사역</a></li>
@@ -201,6 +214,7 @@
           <div class="detail-tab" onclick="switchTab('curriculum', this)">커리큘럼</div>
           <div class="detail-tab" onclick="switchTab('instructor', this)">강사 소개</div>
           <div class="detail-tab" onclick="switchTab('review', this)">수강 후기</div>
+          <div class="detail-tab" id="tab-textbooks-btn" style="display:none;" onclick="switchTab('textbooks', this)">📚 관련 교재</div>
         </div>
         <div class="tab-content active" id="tab-intro">
           <h3 style="font-size:18px;font-weight:800;margin-bottom:1rem;color:var(--black);">이런 분들에게 추천해요</h3>
@@ -269,6 +283,9 @@
             <p style="font-size:14px;color:var(--gray-700);margin-bottom:1rem;">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 이론과 실제가 균형 있게 잘 짜여있어서 현장에 바로 적용할 수 있었습니다."</p>
             <div style="font-size:13px;font-weight:700;color:var(--black);">김○○ 집사 <span style="color:var(--gray-500);font-weight:400;">· 2024년 4월 수강</span></div>
           </div>
+        </div>
+        <div class="tab-content" id="tab-textbooks">
+          <div id="textbook-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
         </div>
       </div>
 
@@ -353,7 +370,7 @@
         <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
       </div>
       <div class="footer-col"><div class="footer-col-title">강좌</div><a href="#">신앙</a><a href="#">교사·부모</a><a href="#">영어·시험</a></div>
-      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a></div>
+      <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a><a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a></div>
       <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a></div>
     </div>
     <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
@@ -754,6 +771,9 @@ async function loadCourse() {
   // 커리큘럼 동적 로드
   await loadCurriculum(course.id);
 
+  // 관련 교재 로드 (탭 존재 여부 결정)
+  loadTextbooks(course.id);
+
   // 로그인 상태 확인 → 수강 여부, 진도, 찜 로드
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (user) {
@@ -1086,6 +1106,34 @@ async function requestGift() {
     btn.disabled = false;
     btn.textContent = originalText;
   }
+}
+
+// ───── 관련 교재 로드 ─────
+async function loadTextbooks(courseId) {
+  try {
+    const { data, error } = await supabaseClient.rpc('get_course_textbooks', { p_course_id: courseId });
+    if (error || !data || data.length === 0) return;
+    const btn = document.getElementById('tab-textbooks-btn');
+    if (btn) btn.style.display = '';
+    const list = document.getElementById('textbook-list');
+    if (!list) return;
+    list.innerHTML = data.map(t => {
+      const cover = t.cover_image_url
+        ? `<img src="${t.cover_image_url}" alt="${t.title}" loading="lazy">`
+        : '📖';
+      const price = t.price ? `₩${Number(t.price).toLocaleString()}` : '';
+      const desc = t.description ? `<p class="textbook-desc">${t.description}</p>` : '';
+      return `<div class="textbook-card">
+        <div class="textbook-cover">${cover}</div>
+        <div class="textbook-body">
+          <div class="textbook-title">${t.title}</div>
+          ${price ? `<div class="textbook-price">${price}</div>` : ''}
+          ${desc}
+          <a href="${t.imbooks_url}" target="_blank" rel="noopener" class="textbook-buy-btn">아이엠북스에서 구매하기 →</a>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {}
 }
 
 // ───── 커리큘럼 동적 로드 ─────
