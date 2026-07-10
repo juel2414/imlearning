@@ -433,6 +433,7 @@
 <script src="js/main.js"></script>
 
 <script>
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 // ───── 포트원 설정 ─────
 const PORTONE_STORE_ID = 'store-e42ea706-d26a-47af-a1c9-6b28a573d01e';
 const PORTONE_CHANNEL_KEY = 'channel-key-5ea6245d-fa62-446d-9747-af21167e8a80';
@@ -1119,17 +1120,18 @@ async function loadTextbooks(courseId) {
     if (!list) return;
     list.innerHTML = data.map(t => {
       const cover = t.cover_image_url
-        ? `<img src="${t.cover_image_url}" alt="${t.title}" loading="lazy">`
+        ? `<img src="${esc(t.cover_image_url)}" alt="${esc(t.title)}" loading="lazy">`
         : '📖';
       const price = t.price ? `₩${Number(t.price).toLocaleString()}` : '';
-      const desc = t.description ? `<p class="textbook-desc">${t.description}</p>` : '';
+      const desc = t.description ? `<p class="textbook-desc">${esc(t.description)}</p>` : '';
+      const buyHref = /^https?:\/\//i.test(t.imbooks_url||'') ? esc(t.imbooks_url) : '#';
       return `<div class="textbook-card">
         <div class="textbook-cover">${cover}</div>
         <div class="textbook-body">
-          <div class="textbook-title">${t.title}</div>
+          <div class="textbook-title">${esc(t.title)}</div>
           ${price ? `<div class="textbook-price">${price}</div>` : ''}
           ${desc}
-          <a href="${t.imbooks_url}" target="_blank" rel="noopener" class="textbook-buy-btn">아이엠북스에서 구매하기 →</a>
+          <a href="${buyHref}" target="_blank" rel="noopener" class="textbook-buy-btn">아이엠북스에서 구매하기 →</a>
         </div>
       </div>`;
     }).join('');
@@ -1164,13 +1166,13 @@ async function loadCurriculum(courseId) {
   content.innerHTML = sectionOrder.map(sec => {
     const items = sections[sec];
     return `<div class="curriculum-section">
-      <div class="curriculum-title">${sec}</div>
+      <div class="curriculum-title">${esc(sec)}</div>
       ${items.map(l => {
-        const safe = l.title.replace(/"/g, '&quot;');
-        const url  = (l.video_url || '').replace(/"/g, '&quot;');
+        const safe = esc(l.title);
+        const url  = esc(l.video_url || '');
         return `<div class="curriculum-item" data-lesson="lesson-${l.num}" data-title="${safe}" data-video-url="${url}" data-free="${l.is_free_preview ? '1' : '0'}">
           <span class="curriculum-num">${l.num}</span>
-          <span class="curriculum-item-title">${l.title}</span>
+          <span class="curriculum-item-title">${esc(l.title)}</span>
           <span class="curriculum-lock-wrap">${l.is_free_preview ? '<span class="curriculum-lock preview-slot">🔓 미리보기</span>' : '<span class="curriculum-lock">🔒</span>'}</span>
         </div>`;
       }).join('')}

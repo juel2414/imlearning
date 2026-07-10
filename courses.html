@@ -141,6 +141,7 @@
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 <script>
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 // ───── 카테고리 사이드바 데이터 ─────
 const catData = {
   all:      { title: '전체 강좌',     subs: ['전체', '신앙', '교사·부모', '캠프·사역', '영어·시험', '전강좌 무제한'] },
@@ -280,9 +281,9 @@ function renderCourseGrid() {
           <button class="wish-btn ${isWished ? 'active' : ''}" onclick="toggleWish(event, ${course.id})" title="찜하기">${isWished ? '❤️' : '🤍'}</button>
         </div>
         <div class="course-body">
-          <div class="course-cat">${catLabel}</div>
-          <div class="course-title">${course.title}</div>
-          <div class="course-instructor">강사: ${course.instructor || '미정'}</div>
+          <div class="course-cat">${esc(catLabel)}</div>
+          <div class="course-title">${esc(course.title)}</div>
+          <div class="course-instructor">강사: ${esc(course.instructor || '미정')}</div>
           <div class="course-footer">
             <span class="course-students">👥 ${course.students || 0}명</span>
             ${priceHtml}
@@ -332,9 +333,9 @@ function renderTop3() {
           ${isEnrolledTop ? '<span class="course-badge enrolled-badge" style="position:absolute;top:8px;right:8px;">✅ 수강중</span>' : ''}
         </div>
         <div class="top10-body">
-          <div class="top10-cat">${catLabel}</div>
-          <div class="top10-title-text">${course.title}</div>
-          <div class="top10-instructor">강사: ${course.instructor || '미정'}</div>
+          <div class="top10-cat">${esc(catLabel)}</div>
+          <div class="top10-title-text">${esc(course.title)}</div>
+          <div class="top10-instructor">강사: ${esc(course.instructor || '미정')}</div>
           <div class="top10-footer">
             <span style="font-size:11px;color:var(--gray-500);">👥 ${course.students || 0}명</span>
             <div style="display:flex;align-items:center;gap:4px;">${priceHtml}</div>

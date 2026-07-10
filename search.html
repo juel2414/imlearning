@@ -170,6 +170,7 @@
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 <script>
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 const CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
 const LEVEL_LABELS = { beginner:'입문', intermediate:'중급', advanced:'고급' };
 
@@ -228,9 +229,9 @@ function courseCard(c) {
         <button class="wish-btn ${isWished?'active':''}" onclick="toggleWish(event,${c.id})" title="찜하기">${isWished?'❤️':'🤍'}</button>
       </div>
       <div class="course-body">
-        <div class="course-cat">${CAT_LABELS[c.category]||''}</div>
-        <div class="course-title">${c.title}</div>
-        <div class="course-instructor">강사: ${c.instructor||'미정'}${c.level ? ' · '+LEVEL_LABELS[c.level] : ''}</div>
+        <div class="course-cat">${esc(CAT_LABELS[c.category]||'')}</div>
+        <div class="course-title">${esc(c.title)}</div>
+        <div class="course-instructor">강사: ${esc(c.instructor||'미정')}${c.level ? ' · '+esc(LEVEL_LABELS[c.level]) : ''}</div>
         <div class="course-footer">
           <span class="course-students">👥 ${c.students||0}명</span>
           ${priceHtml}

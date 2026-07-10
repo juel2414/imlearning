@@ -313,6 +313,7 @@
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 <script>
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 (async () => {
   const { data, error } = await supabaseClient
     .from('instructors')
@@ -331,18 +332,18 @@
 
   function card(inst) {
     const photo = inst.photo_url
-      ? `<img src="${inst.photo_url}" alt="${inst.name}" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.inst-initials').style.display='flex'">`
+      ? `<img src="${esc(inst.photo_url)}" alt="${esc(inst.name)}" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.inst-initials').style.display='flex'">`
       : '';
     const initStyle = inst.photo_url ? 'style="display:none"' : '';
     return `
       <div class="inst-card">
         <div class="inst-photo-wrap">
           ${photo}
-          <div class="inst-initials" ${initStyle}>${initial(inst.name)}</div>
+          <div class="inst-initials" ${initStyle}>${esc(initial(inst.name))}</div>
         </div>
-        <div class="inst-name">${inst.name}</div>
-        <div class="inst-role">${inst.role}</div>
-        ${inst.bio ? `<p class="inst-bio">${inst.bio}</p>` : ''}
+        <div class="inst-name">${esc(inst.name)}</div>
+        <div class="inst-role">${esc(inst.role)}</div>
+        ${inst.bio ? `<p class="inst-bio">${esc(inst.bio)}</p>` : ''}
       </div>`;
   }
 
