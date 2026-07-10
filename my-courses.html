@@ -1259,10 +1259,19 @@ async function loadGifts(userId) {
     cancelled: '취소됨', refunded: '환불됨', already_owned: '이미 보유',
   };
 
+  function gEsc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   const [sentRes, receivedRes] = await Promise.all([
     supabaseClient.from('gifts').select('*').eq('sender_id', userId).order('created_at', { ascending: false }),
     supabaseClient.from('gifts').select('*').eq('recipient_id', userId).eq('status', 'accepted').order('created_at', { ascending: false }),
   ]);
+
+  if (sentRes.error || receivedRes.error) {
+    el.innerHTML = '<div class="loading-msg" style="color:#EF4444;">선물 내역을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
+    return;
+  }
 
   const sent     = sentRes.data     || [];
   const received = receivedRes.data || [];
@@ -1287,33 +1296,36 @@ async function loadGifts(userId) {
   }
 
   function giftBadge(status) {
-    return `<span class="gift-status-badge ${status}">${STATUS_LABEL[status] || status}</span>`;
+    const safeSt = /^[a-z_]+$/.test(status) ? status : 'unknown';
+    return `<span class="gift-status-badge ${safeSt}">${gEsc(STATUS_LABEL[status] || status)}</span>`;
   }
 
   function sentCard(g) {
     const title = courseNames[g.course_id] || '강좌';
     const date  = new Date(g.created_at).toLocaleDateString('ko-KR');
     const link  = `${SITE}/gift.html?code=${encodeURIComponent(g.gift_code)}`;
-    const toStr = g.recipient_email ? ` → ${g.recipient_email}` : '';
-    const canCancel = g.status === 'pending' || g.status === 'already_owned';
+    const toStr = g.recipient_email ? ` → ${gEsc(g.recipient_email)}` : '';
+    // data-* attributes instead of inline string interpolation for XSS safety
+    const cancelBtn = `<button class="gift-btn-cancel" data-gift-code="${gEsc(g.gift_code)}" data-gift-title="${gEsc(title)}" onclick="openGiftCancelModal(this.dataset.giftCode, this.dataset.giftTitle)">취소·환불</button>`;
+    const refundBtn = `<button class="gift-btn-cancel" data-gift-code="${gEsc(g.gift_code)}" data-gift-title="${gEsc(title)}" onclick="openGiftCancelModal(this.dataset.giftCode, this.dataset.giftTitle)">환불</button>`;
     return `
       <div class="gift-card">
         <div class="gift-card-top">
           <div>
-            <div class="gift-card-title">${title}</div>
-            <div class="gift-card-sub">${date}${toStr}</div>
+            <div class="gift-card-title">${gEsc(title)}</div>
+            <div class="gift-card-sub">${gEsc(date)}${toStr}</div>
           </div>
           ${giftBadge(g.status)}
         </div>
         ${g.status === 'pending' ? `
         <div class="gift-card-btns">
-          <span class="gift-link-chip">${link}</span>
-          <button class="gift-btn-copy" onclick="copyGiftCode('${link}', this)">링크 복사</button>
-          <button class="gift-btn-cancel" onclick="openGiftCancelModal('${g.gift_code}', '${title.replace(/'/g,"\\'")}')">취소·환불</button>
+          <span class="gift-link-chip">${gEsc(link)}</span>
+          <button class="gift-btn-copy" data-link="${gEsc(link)}" onclick="copyGiftCode(this.dataset.link, this)">링크 복사</button>
+          ${cancelBtn}
         </div>` : ''}
         ${g.status === 'already_owned' ? `
         <div class="gift-card-btns">
-          <button class="gift-btn-cancel" onclick="openGiftCancelModal('${g.gift_code}', '${title.replace(/'/g,"\\'")}')">환불</button>
+          ${refundBtn}
         </div>` : ''}
       </div>`;
   }
@@ -1321,13 +1333,13 @@ async function loadGifts(userId) {
   function receivedCard(g) {
     const title = courseNames[g.course_id] || '강좌';
     const date  = new Date(g.updated_at || g.created_at).toLocaleDateString('ko-KR');
-    const fromStr = g.sender_name ? `보낸 분: ${g.sender_name}` : '';
+    const fromStr = g.sender_name ? `보낸 분: ${gEsc(g.sender_name)}` : '';
     return `
       <div class="gift-card">
         <div class="gift-card-top">
           <div>
-            <div class="gift-card-title">${title}</div>
-            <div class="gift-card-sub">${date}${fromStr ? '  ' + fromStr : ''}</div>
+            <div class="gift-card-title">${gEsc(title)}</div>
+            <div class="gift-card-sub">${gEsc(date)}${fromStr ? '  ' + fromStr : ''}</div>
           </div>
           ${giftBadge(g.status)}
         </div>
@@ -1356,8 +1368,12 @@ function copyGiftCode(link, btn) {
 let _cancelGiftCode = null;
 function openGiftCancelModal(giftCode, title) {
   _cancelGiftCode = giftCode;
-  document.getElementById('gift-cancel-modal-body').innerHTML =
-    `<strong>${title}</strong><br><br>선물을 취소하고 환불 신청을 하시겠어요?<br>미수락 선물은 전액 환불됩니다.`;
+  const body = document.getElementById('gift-cancel-modal-body');
+  body.textContent = '';
+  const strong = document.createElement('strong');
+  strong.textContent = title;
+  body.appendChild(strong);
+  body.insertAdjacentHTML('beforeend', '<br><br>선물을 취소하고 환불 신청을 하시겠어요?<br>미수락 선물은 전액 환불됩니다.');
   document.getElementById('gift-cancel-modal').style.display = 'flex';
 }
 

@@ -100,7 +100,12 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      await supabase.from('gifts').update({ status: newStatus }).eq('gift_code', giftCode)
+      const { error: updateErr } = await supabase.from('gifts').update({ status: newStatus }).eq('gift_code', giftCode)
+      if (updateErr) {
+        return new Response(JSON.stringify({ success: false, error: '상태 업데이트 실패: ' + updateErr.message }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
 
       return new Response(JSON.stringify({ success: true, refund_amount: refundAmount, status: newStatus }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

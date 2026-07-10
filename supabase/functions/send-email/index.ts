@@ -18,29 +18,33 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const SITE_URL = 'https://juel2414.github.io/imlearning'
 const FROM = '아이엠러닝 <noreply@imlearning.co.kr>'
 const BRAND = '#2D9B6F'
+const LOGO_URL = 'https://juel2414.github.io/imlearning/images/logo-horizontal.png'
 
-function base(body: string) {
+function base(body: string, heroHtml = '') {
   return `<!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>아이엠러닝</title></head>
-<body style="margin:0;padding:0;background:#f2f7f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f7f5;padding:32px 12px;">
+<body style="margin:0;padding:0;background:#f0f4f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f2;padding:28px 12px;">
   <tr><td align="center">
-    <table width="100%" style="max-width:560px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);">
+    <table width="100%" style="max-width:580px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.10);">
+      <!-- 로고 헤더 -->
       <tr>
-        <td style="background:${BRAND};padding:26px 32px;text-align:center;">
-          <span style="color:#fff;font-size:24px;font-weight:900;letter-spacing:-0.5px;">아이엠러닝</span>
-          <span style="color:rgba(255,255,255,.65);font-size:12px;display:block;margin-top:2px;letter-spacing:2px;">IM LEARNING</span>
+        <td style="background:#fff;padding:20px 32px 18px;text-align:center;border-top:4px solid ${BRAND};">
+          <img src="${LOGO_URL}" alt="아이엠러닝" style="height:44px;max-width:180px;display:inline-block;" />
         </td>
       </tr>
-      <tr><td style="padding:36px 32px 28px;">${body}</td></tr>
+      ${heroHtml ? `<tr><td>${heroHtml}</td></tr>` : ''}
+      <!-- 본문 -->
+      <tr><td style="padding:32px 32px 24px;">${body}</td></tr>
+      <!-- 푸터 -->
       <tr>
-        <td style="padding:18px 32px 26px;border-top:1px solid #eee;text-align:center;">
-          <p style="margin:0;color:#aaa;font-size:11px;line-height:1.8;">
+        <td style="background:#f8faf9;padding:20px 32px 24px;border-top:1px solid #eaeaea;text-align:center;">
+          <p style="margin:0 0 8px;color:#999;font-size:11px;line-height:1.9;">
             본 메일은 아이엠러닝 회원 대상 자동 발송 메일입니다.<br>
-            수신거부 문의: <a href="mailto:imkorea.mission@gmail.com" style="color:${BRAND};text-decoration:none;">imkorea.mission@gmail.com</a><br>
-            <span style="color:#ccc;">© 2026 아이엠러닝. All rights reserved.</span>
+            수신거부 문의: <a href="mailto:imkorea.mission@gmail.com" style="color:${BRAND};text-decoration:none;font-weight:600;">imkorea.mission@gmail.com</a>
           </p>
+          <p style="margin:0;color:#ccc;font-size:10px;">© 2026 아이엠러닝. All rights reserved.</p>
         </td>
       </tr>
     </table>
@@ -50,46 +54,99 @@ function base(body: string) {
 }
 
 function welcomeHtml(name: string) {
+  const hero = `
+    <div style="background:linear-gradient(135deg,#2D9B6F 0%,#1e7a54 100%);padding:36px 32px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:12px;">🎉</div>
+      <h1 style="margin:0 0 10px;color:#fff;font-size:26px;font-weight:900;letter-spacing:-0.5px;">환영합니다, ${esc(name)}님!</h1>
+      <p style="margin:0;color:rgba(255,255,255,.85);font-size:14px;line-height:1.7;">
+        아이엠러닝 가족이 되신 것을 진심으로 환영합니다.<br>배움의 여정을 지금 시작해보세요.
+      </p>
+    </div>`;
   return base(`
-    <h1 style="margin:0 0 10px;color:#111;font-size:22px;font-weight:900;">환영합니다, ${esc(name)}님! 🎉</h1>
-    <p style="margin:0 0 24px;color:#555;font-size:14px;line-height:1.8;">
-      아이엠러닝 가족이 되신 것을 진심으로 환영합니다.<br>
-      검정고시, 영어, 신앙 교육까지 — 모든 배움을 한 곳에서 시작하세요.
+    <p style="margin:0 0 20px;color:#555;font-size:14px;line-height:1.8;text-align:center;">
+      검정고시부터 영어, 신앙 교육까지 — <strong style="color:#111;">모든 배움을 한 곳에서</strong> 만나보세요.
     </p>
-    <div style="background:#f0faf5;border-radius:10px;padding:20px 24px;margin-bottom:28px;">
-      <p style="margin:0 0 10px;color:${BRAND};font-size:13px;font-weight:700;">✅ 이런 강좌들이 있어요</p>
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="padding:5px 0;color:#333;font-size:13px;">📚</td><td style="padding:5px 0;color:#333;font-size:13px;">검정고시 전 과목 (중졸·고졸)</td></tr>
-        <tr><td style="padding:5px 0;color:#333;font-size:13px;">🌎</td><td style="padding:5px 0;color:#333;font-size:13px;">토익 입문 ~ 중급 (왕기초 포함)</td></tr>
-        <tr><td style="padding:5px 0;color:#333;font-size:13px;">✝️</td><td style="padding:5px 0;color:#333;font-size:13px;">신앙 성장 & 부모·선교 교육</td></tr>
-        <tr><td style="padding:5px 0;color:#333;font-size:13px;">🎓</td><td style="padding:5px 0;color:#333;font-size:13px;">리뉴젠아카데미 전 과목</td></tr>
-      </table>
-    </div>
+    <!-- 강좌 카드 2×2 -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr>
+        <td width="50%" style="padding:6px 6px 6px 0;">
+          <div style="background:#f0faf5;border-radius:12px;padding:18px 14px;text-align:center;">
+            <div style="font-size:30px;margin-bottom:8px;">📚</div>
+            <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:4px;">검정고시</div>
+            <div style="font-size:11px;color:#888;">중졸·고졸 전 과목</div>
+          </div>
+        </td>
+        <td width="50%" style="padding:6px 0 6px 6px;">
+          <div style="background:#f0f5ff;border-radius:12px;padding:18px 14px;text-align:center;">
+            <div style="font-size:30px;margin-bottom:8px;">🌎</div>
+            <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:4px;">영어·토익</div>
+            <div style="font-size:11px;color:#888;">왕기초 ~ 중급</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td width="50%" style="padding:6px 6px 0 0;">
+          <div style="background:#fff8f0;border-radius:12px;padding:18px 14px;text-align:center;">
+            <div style="font-size:30px;margin-bottom:8px;">✝️</div>
+            <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:4px;">신앙·선교</div>
+            <div style="font-size:11px;color:#888;">성장 & 부모·교사 교육</div>
+          </div>
+        </td>
+        <td width="50%" style="padding:6px 0 0 6px;">
+          <div style="background:#fdf0f5;border-radius:12px;padding:18px 14px;text-align:center;">
+            <div style="font-size:30px;margin-bottom:8px;">🎓</div>
+            <div style="font-size:13px;font-weight:800;color:#111;margin-bottom:4px;">리뉴젠아카데미</div>
+            <div style="font-size:11px;color:#888;">전 과목 무제한</div>
+          </div>
+        </td>
+      </tr>
+    </table>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/courses.html" style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:800;">강좌 둘러보기 →</a>
+      <a href="${SITE_URL}/courses.html"
+         style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;
+                padding:15px 44px;border-radius:10px;font-size:15px;font-weight:800;letter-spacing:-0.3px;">
+        강좌 둘러보기 →
+      </a>
     </div>
-  `)
+    <p style="margin:20px 0 0;text-align:center;color:#aaa;font-size:12px;">
+      궁금한 점이 있으면 언제든지 <a href="mailto:imkorea.mission@gmail.com" style="color:${BRAND};text-decoration:none;">문의</a>해 주세요.
+    </p>
+  `, hero)
 }
 
 function paymentHtml(courseName: string, amount: number) {
   const amtStr = Number(amount).toLocaleString('ko-KR')
   const dateStr = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' })
+  const hero = `
+    <div style="background:linear-gradient(135deg,#2D9B6F 0%,#1e7a54 100%);padding:32px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:10px;">✅</div>
+      <h1 style="margin:0 0 6px;color:#fff;font-size:22px;font-weight:900;">결제가 완료됐습니다!</h1>
+      <p style="margin:0;color:rgba(255,255,255,.85);font-size:13px;">아래 영수증을 확인해주세요.</p>
+    </div>`
   return base(`
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="width:60px;height:60px;background:#f0faf5;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:14px;">✅</div>
-      <h1 style="margin:0 0 6px;color:#111;font-size:21px;font-weight:900;">결제가 완료됐습니다!</h1>
-      <p style="margin:0;color:#666;font-size:13px;">아래 영수증을 확인해주세요.</p>
-    </div>
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:28px;">
-      <tr style="background:#fafafa;"><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;width:36%;border-bottom:1px solid #eee;">강좌명</td><td style="padding:13px 18px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #eee;">${esc(courseName)}</td></tr>
-      <tr><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;border-bottom:1px solid #eee;">결제 금액</td><td style="padding:13px 18px;color:${BRAND};font-size:18px;font-weight:900;border-bottom:1px solid #eee;">₩${amtStr}</td></tr>
-      <tr style="background:#fafafa;"><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;">결제일시</td><td style="padding:13px 18px;color:#444;font-size:13px;">${dateStr}</td></tr>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e8e8e8;border-radius:12px;overflow:hidden;margin-bottom:28px;">
+      <tr style="background:#f8faf9;">
+        <td style="padding:14px 18px;color:#888;font-size:12px;font-weight:700;width:34%;border-bottom:1px solid #eee;letter-spacing:.3px;">강 좌 명</td>
+        <td style="padding:14px 18px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #eee;">${esc(courseName)}</td>
+      </tr>
+      <tr>
+        <td style="padding:14px 18px;color:#888;font-size:12px;font-weight:700;border-bottom:1px solid #eee;letter-spacing:.3px;">결제 금액</td>
+        <td style="padding:14px 18px;color:${BRAND};font-size:22px;font-weight:900;border-bottom:1px solid #eee;">₩${amtStr}</td>
+      </tr>
+      <tr style="background:#f8faf9;">
+        <td style="padding:14px 18px;color:#888;font-size:12px;font-weight:700;letter-spacing:.3px;">결제 일시</td>
+        <td style="padding:14px 18px;color:#555;font-size:13px;">${dateStr}</td>
+      </tr>
     </table>
-    <div style="text-align:center;">
-      <a href="${SITE_URL}/my-courses.html" style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:800;">수강 시작하기 →</a>
+    <div style="text-align:center;margin-bottom:16px;">
+      <a href="${SITE_URL}/my-courses.html"
+         style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;
+                padding:15px 44px;border-radius:10px;font-size:15px;font-weight:800;">
+        지금 수강 시작하기 →
+      </a>
     </div>
-    <p style="margin:20px 0 0;color:#aaa;font-size:12px;text-align:center;">환불 정책은 강좌 상세 페이지에서 확인하실 수 있습니다.</p>
-  `)
+    <p style="margin:0;color:#bbb;font-size:11px;text-align:center;">환불 정책은 강좌 상세 페이지에서 확인하실 수 있습니다.</p>
+  `, hero)
 }
 
 function completionHtml(courseName: string) {
