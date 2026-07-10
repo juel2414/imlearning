@@ -188,26 +188,46 @@ function newCourseHtml(courseTitle: string, courseId: string | number, thumbnail
   `)
 }
 
-function giftHtml(courseName: string, senderName: string, message: string, acceptUrl: string) {
+function giftHtml(courseName: string, senderName: string, message: string, acceptUrl: string, thumbnailUrl = '') {
   const who = senderName ? `${esc(senderName)}님이` : '누군가'
   const msgBlock = message
-    ? `<div style="background:#f0faf5;border-radius:10px;padding:16px 20px;margin:0 0 24px;color:#333;font-size:14px;line-height:1.7;">${esc(message).replace(/\n/g, '<br>')}</div>`
+    ? `<div style="background:#16241d;border-radius:10px;padding:16px 20px;margin:0 0 20px;color:#dfe6e1;font-size:14px;line-height:1.7;font-style:italic;">${esc(message).replace(/\n/g, '<br>')}</div>`
     : ''
-  return base(`
-    <div style="text-align:center;margin-bottom:24px;">
-      <div style="font-size:48px;margin-bottom:12px;">🎁</div>
-      <h1 style="margin:0 0 8px;color:#111;font-size:22px;font-weight:900;">${who} 강의를 선물했어요!</h1>
-      <p style="margin:0;color:#666;font-size:14px;">아래 강좌를 무료로 받아보세요.</p>
-    </div>
-    <div style="border:1px solid #e8e8e8;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
-      <p style="margin:0;color:#222;font-size:17px;font-weight:800;">${esc(courseName)}</p>
-    </div>
-    ${msgBlock}
-    <div style="text-align:center;">
-      <a href="${acceptUrl}" style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:800;">선물 받기 →</a>
-    </div>
-    <p style="margin:20px 0 0;color:#aaa;font-size:12px;text-align:center;">선물은 발급일로부터 1년간 유효합니다.</p>
-  `)
+  const thumb = thumbnailUrl
+    ? `<img src="${thumbnailUrl}" width="56" height="56" style="border-radius:8px;object-fit:cover;display:block;flex-shrink:0;">`
+    : `<div style="width:56px;height:56px;background:#3d5648;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📚</div>`
+  // 선물 이메일은 독립 다크 레이아웃 (base() 미사용)
+  return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>아이엠러닝 선물</title></head>
+<body style="margin:0;padding:0;background:#080f0b;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#080f0b;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="100%" style="max-width:480px;">
+      <tr><td style="text-align:center;padding-bottom:20px;">
+        <img src="https://juel2414.github.io/imlearning/images/logo-horizontal.png" alt="아이엠러닝" style="height:36px;display:inline-block;">
+      </td></tr>
+      <tr><td style="background:#0f1a15;border:0.5px solid #24382e;border-radius:16px;padding:36px 28px;text-align:center;">
+        <div style="font-size:10px;letter-spacing:2px;color:#8fae9c;margin-bottom:10px;text-transform:uppercase;">IMLEARNING GIFT</div>
+        <h1 style="margin:0 0 20px;color:#f0f3f1;font-size:20px;font-weight:700;">${who} 강의를 선물했어요</h1>
+        ${msgBlock}
+        <!-- 골드 리본 교환권 -->
+        <div style="background:linear-gradient(180deg,#e9d18f 0%,#c9a252 50%,#e9d18f 100%);border-radius:10px;padding:14px;display:flex;align-items:center;gap:14px;text-align:left;margin-bottom:24px;">
+          ${thumb}
+          <span style="color:#2c2107;font-size:15px;font-weight:700;line-height:1.4;">${esc(courseName)}</span>
+        </div>
+        <a href="${acceptUrl}" style="display:inline-block;background:#c9a252;color:#1c1406;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:700;">선물 열어보기 →</a>
+        <p style="margin:20px 0 0;color:#6d8a78;font-size:12px;">발급일로부터 1년간 유효합니다.</p>
+      </td></tr>
+      <tr><td style="text-align:center;padding-top:20px;">
+        <p style="margin:0;color:#3d5040;font-size:11px;line-height:1.8;">
+          본 메일은 아이엠러닝 선물 자동 발송입니다.<br>
+          수신거부 문의: <a href="mailto:imkorea.mission@gmail.com" style="color:#6d8a78;text-decoration:none;">imkorea.mission@gmail.com</a>
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`
 }
 
 async function resendSend(to: string, subject: string, html: string) {
@@ -281,8 +301,9 @@ Deno.serve(async (req: Request) => {
       const senderName = String(data.senderName || '')
       const message = String(data.message || '')
       const giftCode = String(data.giftCode || '')
+      const thumbnailUrl = String(data.thumbnailUrl || '')
       const acceptUrl = `${SITE_URL}/gift.html?code=${encodeURIComponent(giftCode)}`
-      await resendSend(recipientEmail, '[아이엠러닝] 🎁 강의 선물이 도착했어요', giftHtml(courseName, senderName, message, acceptUrl))
+      await resendSend(recipientEmail, '[아이엠러닝] 강의 선물이 도착했어요', giftHtml(courseName, senderName, message, acceptUrl, thumbnailUrl))
       return ok({ sent: 1 })
     }
 

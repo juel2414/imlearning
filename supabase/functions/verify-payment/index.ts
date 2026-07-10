@@ -82,7 +82,7 @@ Deno.serve(async (req: Request) => {
 
     // ── 강좌 조회 + 서버사이드 가격 계산 (모든 경로 공통) ─────────────
     const { data: course } = await sb.from('courses')
-      .select('title, price, discount_price, discount_start, discount_end')
+      .select('title, price, discount_price, discount_start, discount_end, thumbnail_url')
       .eq('id', courseId_n).single();
     if (!course) return err('강좌를 찾을 수 없습니다', 404);
 
@@ -175,6 +175,7 @@ Deno.serve(async (req: Request) => {
             body: JSON.stringify({ type: 'gift', data: {
               recipientEmail, courseName: course.title ?? '강좌',
               senderName: prof?.name ?? '', message: message || '', giftCode: code,
+              thumbnailUrl: (course as any).thumbnail_url ?? '',
             }}),
           });
         } catch (e) { console.error('선물 메일 실패(무시):', e); }
