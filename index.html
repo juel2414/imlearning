@@ -59,16 +59,18 @@
       position: absolute; inset: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 2;
     }
+    /* hero 전용 container 폭 확장 */
+    .lp-hero .container { max-width: min(94vw, 1500px); }
     .lp-hero-inner {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 4rem; padding: 4rem 0 2rem; position: relative; z-index: 3;
+      display: flex; flex-direction: column; align-items: stretch;
+      gap: 12rem; padding: 8rem 0 5rem; position: relative; z-index: 3;
     }
     /* 센터 텍스트 블록 */
-    .lp-hero-center { text-align: center; width: 100%; max-width: 740px; }
+    .lp-hero-center { text-align: center; width: 100%; max-width: 740px; margin: 0 auto; }
     /* 와이드 쇼케이스 */
     .lp-hero-showcase {
-      width: 100%; max-width: 960px; position: relative;
-      padding-bottom: 0;
+      width: min(88vw, 1300px); position: relative;
+      padding-bottom: 0; margin: 0 auto; flex-shrink: 0;
       animation: lpSlideIn .8s .25s cubic-bezier(0.16,1,0.3,1) both;
     }
     /* 텍스트 등장 */
@@ -114,10 +116,10 @@
 
     /* 히어로 쇼케이스 이미지 — 가로형 */
     .lp-hero-img {
-      position:relative; width:100%; height:340px; border-radius:24px;
+      position:relative; width:100%; height:420px; border-radius:28px;
       background: linear-gradient(145deg,#c8eada,#a8d8c0);
       overflow:hidden;
-      box-shadow: 0 32px 80px rgba(45,155,111,.18), 0 8px 24px rgba(0,0,0,.08);
+      box-shadow: 0 40px 100px rgba(45,155,111,.18), 0 12px 32px rgba(0,0,0,.08);
     }
 
     /* ── 추천 강좌 슬라이더 ── */
@@ -146,19 +148,23 @@
       display:flex; align-items:center; justify-content:center;
       font-size:56px; color:#fff;
     }
-    .lp-feat-body { padding:2.5rem 2.5rem; flex:1; display:flex; flex-direction:column; gap:14px; justify-content:center; }
+    .lp-feat-body { padding:3.5rem 3.5rem; flex:1; display:flex; flex-direction:column; gap:16px; justify-content:center; }
     .lp-feat-badge {
       display:inline-flex; align-items:center; gap:4px;
       background:rgba(45,155,111,.1); color:var(--green,#2D9B6F);
-      font-size:10px; font-weight:700; padding:3px 10px;
+      font-size:11px; font-weight:700; padding:5px 12px;
       border-radius:20px; letter-spacing:.3px; width:fit-content;
     }
     .lp-feat-title {
-      font-size:22px; font-weight:800; color:var(--black,#111);
-      line-height:1.4; letter-spacing:-.3px;
+      font-size:28px; font-weight:800; color:var(--black,#111);
+      line-height:1.35; letter-spacing:-.5px;
       display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
     }
-    .lp-feat-price { font-size:20px; font-weight:900; color:var(--green,#2D9B6F); letter-spacing:-.5px; margin-top:0; }
+    .lp-feat-desc {
+      font-size:15px; color:var(--gray-500,#6B6B6B); line-height:1.7;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .lp-feat-price { font-size:24px; font-weight:900; color:var(--green,#2D9B6F); letter-spacing:-.5px; margin-top:4px; }
     .lp-feat-cta {
       display:inline-flex; align-items:center; gap:6px;
       margin-top:4px; padding:11px 20px;
@@ -479,12 +485,15 @@
 
     /* 반응형 */
     @media(max-width:960px){
-      .lp-hero-inner { padding: 3rem 0 2rem; gap: 2rem; }
+      .lp-hero .container { max-width: 100%; }
+      .lp-hero-inner { padding: 4rem 0 3rem; gap: 3rem; }
       .sc1, .sc2, .sc3 { display:none; }
-      .lp-hero-img { height:220px; }
-      .lp-feat-body { padding:1.5rem 1.25rem; gap:8px; }
-      .lp-feat-title { font-size:15px; -webkit-line-clamp:2; }
-      .lp-feat-price { font-size:17px; }
+      .lp-hero-showcase { max-width: 100%; }
+      .lp-hero-img { height:240px; }
+      .lp-feat-body { padding:1.75rem 1.5rem; gap:10px; }
+      .lp-feat-title { font-size:17px; -webkit-line-clamp:2; }
+      .lp-feat-price { font-size:18px; }
+      .lp-feat-desc { display:none; }
       .lp-hero-showcase .hero-steps-card { flex-direction:column; align-items:flex-start; gap:12px; padding:16px 20px; }
       .lp-hero-showcase .hero-steps-title { padding-right:0; margin-right:0; border-right:none; }
       .lp-hero-showcase .hero-steps-list { flex-direction:column; gap:10px; justify-content:flex-start; }
@@ -1246,10 +1255,12 @@ async function initFeaturedSlider() {
       const thumb = c.thumbnail_url
         ? `<div class="lp-feat-thumb-bg" style="background-image:url('${c.thumbnail_url}')"></div>`
         : `<div class="lp-feat-thumb-ph">📚</div>`;
+      const desc = c.description ? `<div class="lp-feat-desc">${c.description}</div>` : '';
       return `${thumb}
         <div class="lp-feat-body">
           <div class="lp-feat-badge">🎯 추천 강좌</div>
           <div class="lp-feat-title">${c.title}</div>
+          ${desc}
           <div class="lp-feat-price">${price}</div>
           <div class="lp-feat-cta">강좌 바로 보기 →</div>
         </div>`;
