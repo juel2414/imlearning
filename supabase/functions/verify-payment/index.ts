@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://juel2414.github.io',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -62,6 +62,12 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await sb.auth.getUser(token);
     if (authError || !user) return err('인증 실패', 401);
 
+    // ── Rate limiting: 10회 / 10분 / 사용자 ───────────────────────────
+    const { data: rlOk } = await sb.rpc('check_rate_limit', {
+      p_key: `pay:${user.id}`, p_max: 10, p_window_secs: 600,
+    });
+    if (!rlOk) return err('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', 429);
+
     const body = await req.json();
     const { paymentId, courseId, amount, couponCode, couponId, isGift, recipientEmail, message } = body;
     const isFree = amount === 0 && !isGift;
@@ -105,6 +111,14 @@ Deno.serve(async (req: Request) => {
 
       if (!allowFree)
         return err('이 강좌는 무료 등록이 허용되지 않습니다.', 403);
+
+      // 쿠폰 1인 1회 사용 체크
+      if (couponCode) {
+        const { data: prevUse } = await sb.from('orders')
+          .select('id').eq('user_id', user.id).eq('coupon_code', couponCode)
+          .eq('status', 'paid').maybeSingle();
+        if (prevUse) return err('이미 사용한 쿠폰입니다');
+      }
 
       const { data: existing } = await sb.from('orders')
         .select('id').eq('user_id', user.id).eq('course_id', courseId_n).eq('status', 'paid').maybeSingle();
@@ -188,6 +202,14 @@ Deno.serve(async (req: Request) => {
         ? Math.floor(serverBasePrice * (coupon.discount_value / 100))
         : Number(coupon.discount_value);
       expectedAmount = Math.max(0, serverBasePrice - discount);
+    }
+
+    // 쿠폰 1인 1회 사용 체크
+    if (couponCode) {
+      const { data: prevUse } = await sb.from('orders')
+        .select('id').eq('user_id', user.id).eq('coupon_code', couponCode)
+        .eq('status', 'paid').maybeSingle();
+      if (prevUse) return err('이미 사용한 쿠폰입니다');
     }
 
     // 서버 계산 금액과 실제 결제금액 비교

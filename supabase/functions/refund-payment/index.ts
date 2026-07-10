@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://juel2414.github.io',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -32,6 +32,16 @@ Deno.serve(async (req: Request) => {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
+    }
+
+    // Rate limiting: 5회 / 10분 / 사용자
+    const { data: rlOk } = await supabase.rpc('check_rate_limit', {
+      p_key: `refund:${user.id}`, p_max: 5, p_window_secs: 600,
+    });
+    if (!rlOk) {
+      return new Response(JSON.stringify({ success: false, error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // 2. 역할 조회 (admin 여부 확인용)

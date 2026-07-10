@@ -1,8 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://juel2414.github.io',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// 이메일 HTML 인젝션 방지 — 사용자 제공 값은 반드시 이 함수로 이스케이프
+function esc(s: string): string {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
@@ -44,7 +51,7 @@ function base(body: string) {
 
 function welcomeHtml(name: string) {
   return base(`
-    <h1 style="margin:0 0 10px;color:#111;font-size:22px;font-weight:900;">환영합니다, ${name}님! 🎉</h1>
+    <h1 style="margin:0 0 10px;color:#111;font-size:22px;font-weight:900;">환영합니다, ${esc(name)}님! 🎉</h1>
     <p style="margin:0 0 24px;color:#555;font-size:14px;line-height:1.8;">
       아이엠러닝 가족이 되신 것을 진심으로 환영합니다.<br>
       검정고시, 영어, 신앙 교육까지 — 모든 배움을 한 곳에서 시작하세요.
@@ -74,7 +81,7 @@ function paymentHtml(courseName: string, amount: number) {
       <p style="margin:0;color:#666;font-size:13px;">아래 영수증을 확인해주세요.</p>
     </div>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:28px;">
-      <tr style="background:#fafafa;"><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;width:36%;border-bottom:1px solid #eee;">강좌명</td><td style="padding:13px 18px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #eee;">${courseName}</td></tr>
+      <tr style="background:#fafafa;"><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;width:36%;border-bottom:1px solid #eee;">강좌명</td><td style="padding:13px 18px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #eee;">${esc(courseName)}</td></tr>
       <tr><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;border-bottom:1px solid #eee;">결제 금액</td><td style="padding:13px 18px;color:${BRAND};font-size:18px;font-weight:900;border-bottom:1px solid #eee;">₩${amtStr}</td></tr>
       <tr style="background:#fafafa;"><td style="padding:13px 18px;color:#888;font-size:12px;font-weight:600;">결제일시</td><td style="padding:13px 18px;color:#444;font-size:13px;">${dateStr}</td></tr>
     </table>
@@ -95,7 +102,7 @@ function completionHtml(courseName: string) {
     </div>
     <div style="background:linear-gradient(135deg,#f0faf5,#e0f5ec);border:1.5px solid ${BRAND};border-radius:12px;padding:24px;margin-bottom:28px;text-align:center;">
       <p style="margin:0 0 4px;color:${BRAND};font-size:12px;font-weight:700;letter-spacing:1px;">수 료 증</p>
-      <p style="margin:0 0 8px;color:#222;font-size:17px;font-weight:900;">${courseName}</p>
+      <p style="margin:0 0 8px;color:#222;font-size:17px;font-weight:900;">${esc(courseName)}</p>
       <p style="margin:0;color:#888;font-size:12px;">수료일: ${dateStr}</p>
     </div>
     <div style="text-align:center;margin-bottom:20px;">
@@ -117,7 +124,7 @@ function newCourseHtml(courseTitle: string, courseId: string | number, thumbnail
       <span style="display:inline-block;background:#fef9e7;color:#d97706;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:1px;margin-bottom:16px;">🆕 NEW OPEN</span>
       ${thumb}
       <h1 style="margin:0 0 8px;color:#111;font-size:20px;font-weight:900;">새 강좌가 오픈됐어요!</h1>
-      <p style="margin:0 0 6px;color:${BRAND};font-size:17px;font-weight:800;">${courseTitle}</p>
+      <p style="margin:0 0 6px;color:${BRAND};font-size:17px;font-weight:800;">${esc(courseTitle)}</p>
       <p style="margin:0 0 28px;color:#666;font-size:13px;line-height:1.7;">아이엠러닝에 새 강좌가 추가됐습니다.<br>지금 바로 확인해보세요!</p>
       <a href="${SITE_URL}/course-detail.html?id=${courseId}" style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:800;">강좌 보러가기 →</a>
     </div>
@@ -125,9 +132,9 @@ function newCourseHtml(courseTitle: string, courseId: string | number, thumbnail
 }
 
 function giftHtml(courseName: string, senderName: string, message: string, acceptUrl: string) {
-  const who = senderName ? `${senderName}님이` : '누군가'
+  const who = senderName ? `${esc(senderName)}님이` : '누군가'
   const msgBlock = message
-    ? `<div style="background:#f0faf5;border-radius:10px;padding:16px 20px;margin:0 0 24px;color:#333;font-size:14px;line-height:1.7;">${message}</div>`
+    ? `<div style="background:#f0faf5;border-radius:10px;padding:16px 20px;margin:0 0 24px;color:#333;font-size:14px;line-height:1.7;">${esc(message).replace(/\n/g, '<br>')}</div>`
     : ''
   return base(`
     <div style="text-align:center;margin-bottom:24px;">
@@ -136,7 +143,7 @@ function giftHtml(courseName: string, senderName: string, message: string, accep
       <p style="margin:0;color:#666;font-size:14px;">아래 강좌를 무료로 받아보세요.</p>
     </div>
     <div style="border:1px solid #e8e8e8;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
-      <p style="margin:0;color:#222;font-size:17px;font-weight:800;">${courseName}</p>
+      <p style="margin:0;color:#222;font-size:17px;font-weight:800;">${esc(courseName)}</p>
     </div>
     ${msgBlock}
     <div style="text-align:center;">
