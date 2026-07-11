@@ -109,17 +109,20 @@ async function createOrder(order) {
   return { data };
 }
 
-// ───── 특정 강좌 결제(구매) 여부 확인 ─────
+// ───── 특정 강좌 결제(구매) 여부 확인 (만료일 포함) ─────
 async function hasPurchased(userId, courseId) {
   const { data, error } = await supabaseClient
     .from('orders')
-    .select('id, refund_status')
+    .select('id, refund_status, expires_at')
     .eq('user_id', userId)
     .eq('course_id', courseId)
     .eq('status', 'paid');
   if (error) { console.error('구매 확인 실패:', error); return false; }
+  const now = new Date();
   return (data || []).some(function(o) {
-    return o.refund_status !== 'refunded' && o.refund_status !== 'partial';
+    if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
+    if (o.expires_at && new Date(o.expires_at) < now) return false; // 만료됨
+    return true;
   });
 }
 

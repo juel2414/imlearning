@@ -78,6 +78,24 @@
   .toast { display: none; position: fixed; top: 20px; right: 20px; background: #2D9B6F; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 999; }
   .toast.show { display: block; }
   .toast.error { background: #EF4444; }
+  /* 공개/비공개 토글 스위치 */
+  .status-toggle { position:relative; display:inline-flex; align-items:center; gap:7px; cursor:pointer; }
+  .status-toggle input { position:absolute; opacity:0; width:0; height:0; }
+  .toggle-track { width:34px; height:19px; background:#D1D5DB; border-radius:19px; transition:background .2s; flex-shrink:0; position:relative; }
+  .status-toggle input:checked ~ .toggle-track { background:#2D9B6F; }
+  .toggle-track::after { content:''; position:absolute; top:2px; left:2px; width:15px; height:15px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .2s; }
+  .status-toggle input:checked ~ .toggle-track::after { transform:translateX(15px); }
+  .toggle-text { font-size:11px; font-weight:600; white-space:nowrap; }
+  .toggle-text.on { color:#16A34A; }
+  .toggle-text.off { color:#9CA3AF; }
+  /* 비공개 강좌 패널 */
+  .hidden-panel { background:#FFF7ED; border:1px solid #FED7AA; border-radius:12px; padding:14px 18px; margin-bottom:16px; }
+  .hidden-panel-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .hidden-panel-title { font-size:13px; font-weight:700; color:#C2410C; }
+  .hidden-course-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(0,0,0,.05); font-size:13px; gap:12px; }
+  .hidden-course-row:last-child { border-bottom:none; }
+  .btn-activate { padding:4px 10px; font-size:11px; font-weight:600; border:1px solid #2D9B6F; color:#2D9B6F; background:#fff; border-radius:6px; cursor:pointer; white-space:nowrap; }
+  .btn-activate:hover { background:#2D9B6F; color:#fff; }
   .menu-btn { display: none; }
   @media (max-width: 1023px) {
     .layout { flex-direction: column; }
@@ -103,8 +121,23 @@
     <div class="stats-row">
       <div class="stat-card"><div class="stat-label">전체 강좌</div><div class="stat-value" id="stat-total">-</div></div>
       <div class="stat-card"><div class="stat-label">판매중</div><div class="stat-value green" id="stat-active">-</div></div>
+      <div class="stat-card" style="cursor:pointer;" onclick="document.getElementById('hidden-panel').style.display = document.getElementById('hidden-panel').style.display==='none'?'block':'none'">
+        <div class="stat-label">비공개</div>
+        <div class="stat-value" id="stat-hidden" style="color:#9CA3AF;">-</div>
+        <div style="font-size:11px;color:#C2410C;margin-top:4px;" id="stat-hidden-hint"></div>
+      </div>
       <div class="stat-card"><div class="stat-label">추천 강좌</div><div class="stat-value" id="stat-featured">-</div></div>
       <div class="stat-card"><div class="stat-label">총 수강생</div><div class="stat-value" id="stat-students">-</div></div>
+    </div>
+
+    <!-- 비공개 강좌 상세 목록 -->
+    <div class="hidden-panel" id="hidden-panel" style="display:none;">
+      <div class="hidden-panel-header">
+        <span>🔒</span>
+        <span class="hidden-panel-title">비공개 강좌 목록</span>
+        <span style="font-size:11px;color:#92400E;margin-left:auto;">클릭하여 바로 공개 전환 가능</span>
+      </div>
+      <div id="hidden-courses-list"><div style="color:#aaa;font-size:13px;">불러오는 중...</div></div>
     </div>
 
     <div class="card" id="course-form" style="display:none;">
@@ -244,6 +277,17 @@
       </div>
       <div class="card-body" id="lesson-stats-body">
         <div class="empty" style="color:#aaa;font-size:13px;">강좌를 선택하면 강의별 시청 통계를 확인할 수 있어요</div>
+      </div>
+    </div>
+
+    <!-- ─── 프리패스 관리 ─── -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-header">
+        <span class="card-title">🎫 프리패스 관리</span>
+        <button class="btn-save" id="pass-save-btn" onclick="savePassAdmin()" style="font-size:12px;padding:8px 18px;">변경사항 저장</button>
+      </div>
+      <div class="card-body">
+        <div id="pass-admin-area"><div class="empty">불러오는 중...</div></div>
       </div>
     </div>
 </div>
@@ -447,6 +491,49 @@ async function deleteCourse(id) {
 
 function filterCourses(q) { currentQuery = q.trim(); render(); }
 
+async function toggleStatus(id, checkbox) {
+  var newStatus = checkbox.checked ? 'active' : 'hidden';
+  checkbox.disabled = true;
+  try {
+    var result = await sb.from('courses').update({ status: newStatus }).eq('id', Number(id));
+    if (result.error) {
+      showToast('상태 변경 실패: ' + result.error.message, true);
+      checkbox.checked = !checkbox.checked;
+    } else {
+      for (var i = 0; i < courses.length; i++) {
+        if (Number(courses[i].id) === Number(id)) { courses[i].status = newStatus; break; }
+      }
+      var td     = checkbox.closest('td');
+      var label  = td ? td.querySelector('.toggle-text') : null;
+      if (label) {
+        label.textContent = newStatus === 'active' ? '판매중' : '비공개';
+        label.className   = 'toggle-text ' + (newStatus === 'active' ? 'on' : 'off');
+      }
+      updateStats();
+      showToast(newStatus === 'active' ? '판매중으로 전환됐습니다' : '비공개로 전환됐습니다');
+    }
+  } catch (err) {
+    showToast('상태 변경 중 오류 발생', true);
+    checkbox.checked = !checkbox.checked;
+  }
+  checkbox.disabled = false;
+}
+
+async function quickActivate(id) {
+  try {
+    var result = await sb.from('courses').update({ status: 'active' }).eq('id', Number(id));
+    if (result.error) { showToast('전환 실패: ' + result.error.message, true); return; }
+    for (var i = 0; i < courses.length; i++) {
+      if (Number(courses[i].id) === Number(id)) { courses[i].status = 'active'; break; }
+    }
+    updateStats();
+    render();
+    showToast('판매중으로 전환됐습니다');
+  } catch (err) {
+    showToast('전환 중 오류 발생', true);
+  }
+}
+
 function setView(view) {
   currentView = view;
   document.getElementById('view-section-btn').classList.toggle('active', view === 'section');
@@ -471,12 +558,32 @@ async function loadCourses() {
 }
 
 function updateStats() {
-  document.getElementById('stat-total').textContent = courses.length;
-  document.getElementById('stat-active').textContent = courses.filter(function(c){return c.status==='active';}).length;
-  document.getElementById('stat-featured').textContent = courses.filter(function(c){return c.featured;}).length;
-  var total = 0;
-  courses.forEach(function(c){ total += (c.students||0); });
+  var active  = courses.filter(function(c){ return c.status === 'active'; });
+  var hidden  = courses.filter(function(c){ return c.status !== 'active'; });
+  var total   = 0; courses.forEach(function(c){ total += (c.students || 0); });
+
+  document.getElementById('stat-total').textContent    = courses.length;
+  document.getElementById('stat-active').textContent   = active.length;
+  document.getElementById('stat-hidden').textContent   = hidden.length;
+  document.getElementById('stat-featured').textContent = courses.filter(function(c){ return c.featured; }).length;
   document.getElementById('stat-students').textContent = total.toLocaleString();
+
+  var hint = document.getElementById('stat-hidden-hint');
+  hint.textContent = hidden.length ? '클릭하여 목록 보기' : '';
+
+  var list = document.getElementById('hidden-courses-list');
+  if (hidden.length === 0) {
+    document.getElementById('hidden-panel').style.display = 'none';
+    list.innerHTML = '';
+  } else {
+    list.innerHTML = hidden.map(function(c) {
+      return '<div class="hidden-course-row">' +
+        '<span style="font-weight:500;">' + c.title + '</span>' +
+        '<span style="font-size:11px;color:#9CA3AF;flex-shrink:0;">' + (c.category ? c.category : '카테고리 없음') + '</span>' +
+        '<button class="btn-activate" onclick="quickActivate(' + c.id + ')">공개로 전환</button>' +
+      '</div>';
+    }).join('');
+  }
 }
 
 function getFiltered() {
@@ -532,7 +639,11 @@ function renderTable(list) {
       '<td>' + (c.instructor || '-') + '</td>' +
       '<td>' + priceHtml + '</td>' +
       '<td>' + (c.lessons ? c.lessons + '강' : '-') + '</td>' +
-      '<td><span class="badge ' + (c.status==='active'?'active':'hidden') + '">' + (c.status==='active'?'판매중':'비공개') + '</span>' + (c.featured ? '<span class="badge promo" style="margin-left:4px;">추천</span>' : '') + '</td>' +
+      '<td><label class="status-toggle" title="' + (c.status==='active'?'클릭하여 비공개 전환':'클릭하여 판매중 전환') + '" onclick="event.stopPropagation()">' +
+        '<input type="checkbox" ' + (c.status==='active'?'checked':'') + ' onchange="toggleStatus(' + c.id + ',this)">' +
+        '<span class="toggle-track"></span>' +
+        '<span class="toggle-text ' + (c.status==='active'?'on':'off') + '">' + (c.status==='active'?'판매중':'비공개') + '</span>' +
+      '</label>' + (c.featured ? '<span class="badge promo" style="margin-left:6px;">추천</span>' : '') + '</td>' +
       '<td><div class="action-btns">' +
         '<button class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;" onclick="openLessonMgmt(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\')">강의</button>' +
         '<button class="btn-sm edit" onclick="editCourse(' + c.id + ')">수정</button>' +
@@ -779,6 +890,135 @@ async function deleteLesson(lessonId) {
 
 loadInstructors();
 loadCourses();
+
+/* ──────────────────── 프리패스 관리 ──────────────────── */
+var passAdminData = null; // { pass_id, name, price, duration_days }
+var passAdminCourseIds = new Set(); // 현재 pass에 포함된 course id들
+
+async function loadPassAdmin() {
+  try {
+    // 패스 기본 정보
+    var { data: passes, error: pe } = await sb.from('passes').select('*').eq('status', 'active').limit(1);
+    if (pe || !passes || passes.length === 0) {
+      document.getElementById('pass-admin-area').innerHTML = '<div class="empty">활성 프리패스가 없어요. passes 테이블에 데이터를 추가해주세요.</div>';
+      return;
+    }
+    passAdminData = passes[0];
+
+    // 패스에 포함된 강좌 id
+    var { data: pcs } = await sb.from('pass_courses').select('course_id').eq('pass_id', passAdminData.id);
+    passAdminCourseIds = new Set((pcs || []).map(function(r) { return r.course_id; }));
+
+    // 전체 강좌 목록 (active만)
+    var { data: allCourses } = await sb.from('courses').select('id, title, category').order('category').order('title');
+
+    renderPassAdmin(allCourses || []);
+  } catch(e) {
+    document.getElementById('pass-admin-area').innerHTML = '<div class="empty">오류: ' + e.message + '</div>';
+  }
+}
+
+function renderPassAdmin(allCourses) {
+  var catLabels = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+
+  // 카테고리별 그룹핑
+  var bycat = {};
+  allCourses.forEach(function(c) {
+    var cat = c.category || '기타';
+    if (!bycat[cat]) bycat[cat] = [];
+    bycat[cat].push(c);
+  });
+
+  var checkedCount = passAdminCourseIds.size;
+
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">'
+    + '<div class="form-group"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">패스 이름</label>'
+    + '<input type="text" id="pa-name" value="' + escHtml(passAdminData.name) + '" style="width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:14px;"></div>'
+    + '<div class="form-group"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">가격 (원)</label>'
+    + '<input type="number" id="pa-price" value="' + passAdminData.price + '" style="width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:14px;"></div>'
+    + '<div class="form-group"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">이용 기간 (일)</label>'
+    + '<input type="number" id="pa-days" value="' + passAdminData.duration_days + '" style="width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:14px;"></div>'
+    + '</div>'
+    + '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">포함 강좌 선택 <span style="color:#2D9B6F;font-weight:600;" id="pass-checked-count">(' + checkedCount + '개 선택됨)</span></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">';
+
+  Object.keys(bycat).forEach(function(cat) {
+    html += '<div style="background:#F8F9FA;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px;">'
+      + '<div style="font-size:11px;font-weight:800;color:#2D9B6F;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">' + (catLabels[cat] || cat) + '</div>';
+    bycat[cat].forEach(function(c) {
+      var checked = passAdminCourseIds.has(c.id) ? ' checked' : '';
+      html += '<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;cursor:pointer;">'
+        + '<input type="checkbox" value="' + c.id + '" onchange="updatePassCount()"' + checked + ' style="accent-color:#2D9B6F;width:15px;height:15px;">'
+        + escHtml(c.title)
+        + '</label>';
+    });
+    html += '</div>';
+  });
+
+  html += '</div>';
+  document.getElementById('pass-admin-area').innerHTML = html;
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updatePassCount() {
+  var checked = document.querySelectorAll('#pass-admin-area input[type=checkbox]:checked').length;
+  var el = document.getElementById('pass-checked-count');
+  if (el) el.textContent = '(' + checked + '개 선택됨)';
+}
+
+async function savePassAdmin() {
+  if (!passAdminData) return;
+  var btn = document.getElementById('pass-save-btn');
+  btn.disabled = true; btn.textContent = '저장 중...';
+
+  try {
+    var newName  = document.getElementById('pa-name').value.trim();
+    var newPrice = parseInt(document.getElementById('pa-price').value);
+    var newDays  = parseInt(document.getElementById('pa-days').value);
+
+    if (!newName || isNaN(newPrice) || isNaN(newDays)) {
+      showToast('이름, 가격, 기간을 모두 입력해주세요.', true);
+      btn.disabled = false; btn.textContent = '변경사항 저장';
+      return;
+    }
+
+    // passes 테이블 업데이트
+    var { error: pe } = await sb.from('passes')
+      .update({ name: newName, price: newPrice, duration_days: newDays })
+      .eq('id', passAdminData.id);
+    if (pe) throw pe;
+
+    // 체크된 강좌 ids 수집
+    var checkboxes = document.querySelectorAll('#pass-admin-area input[type=checkbox]:checked');
+    var newCourseIds = Array.from(checkboxes).map(function(cb) { return parseInt(cb.value); });
+
+    // pass_courses 갱신: 기존 삭제 후 재삽입
+    var { error: de } = await sb.from('pass_courses').delete().eq('pass_id', passAdminData.id);
+    if (de) throw de;
+
+    if (newCourseIds.length > 0) {
+      var inserts = newCourseIds.map(function(cid) { return { pass_id: passAdminData.id, course_id: cid }; });
+      var { error: ie } = await sb.from('pass_courses').insert(inserts);
+      if (ie) throw ie;
+    }
+
+    passAdminData.name = newName;
+    passAdminData.price = newPrice;
+    passAdminData.duration_days = newDays;
+    passAdminCourseIds = new Set(newCourseIds);
+
+    showToast('프리패스 설정이 저장되었어요 ✓');
+  } catch(e) {
+    showToast('저장 실패: ' + e.message, true);
+  }
+
+  btn.disabled = false; btn.textContent = '변경사항 저장';
+}
+
+loadPassAdmin();
 </script>
 <script src="../js/email.js"></script>
 <script src="../js/admin-nav.js"></script>

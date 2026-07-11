@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>아이엠러닝 프리패스 — 전강좌 365일 무제한 수강</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  * { box-sizing: border-box; }
+  .pass-hero {
+    background: linear-gradient(135deg, #0f3d2a 0%, #1a6644 50%, #2D9B6F 100%);
+    color: #fff;
+    padding: 72px 2rem 56px;
+    text-align: center;
+  }
+  .pass-badge {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 20px;
+    padding: 5px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    margin-bottom: 20px;
+  }
+  .pass-hero-title {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 900;
+    margin: 0 0 12px;
+    letter-spacing: -1px;
+    line-height: 1.2;
+  }
+  .pass-hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,.8);
+    margin-bottom: 36px;
+  }
+  .pass-price-box {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px;
+    padding: 28px 48px;
+    backdrop-filter: blur(8px);
+    gap: 6px;
+  }
+  .pass-price-label { font-size: 13px; color: rgba(255,255,255,.7); font-weight: 600; letter-spacing: .5px; }
+  .pass-price-amount { font-size: 48px; font-weight: 900; letter-spacing: -2px; }
+  .pass-price-period { font-size: 13px; color: rgba(255,255,255,.8); }
+
+  .pass-features {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .pass-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255,255,255,.9);
+  }
+  .pass-feature-item::before { content: '✓'; font-weight: 900; color: #7DF0BB; }
+
+  .pass-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 56px 2rem;
+  }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 26px;
+    font-weight: 900;
+    margin: 0 0 6px;
+    letter-spacing: -.5px;
+  }
+  .section-sub {
+    font-size: 14px;
+    color: var(--gray-500);
+    margin-bottom: 32px;
+  }
+
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .course-card {
+    border: 1px solid rgba(0,0,0,.07);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    transition: box-shadow .2s, transform .2s;
+    cursor: pointer;
+  }
+  .course-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.1); transform: translateY(-2px); }
+  .course-card-thumb {
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, #e8f5ee, #c3e8d5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .course-card-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .course-card-body { padding: 12px; }
+  .course-card-title { font-size: 13px; font-weight: 600; color: var(--black); line-height: 1.4; }
+
+  .buy-section {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(0,0,0,.08);
+    padding: 16px 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 50;
+  }
+  .buy-section-price {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--black);
+    letter-spacing: -1px;
+  }
+  .buy-section-sub { font-size: 12px; color: var(--gray-500); }
+  .buy-btn {
+    padding: 14px 40px;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: -.3px;
+    transition: background .15s, transform .1s;
+    white-space: nowrap;
+  }
+  .buy-btn:hover { background: #23845d; transform: translateY(-1px); }
+  .buy-btn:disabled { background: #9CA3AF; cursor: not-allowed; transform: none; }
+  .buy-btn.already {
+    background: #fff;
+    color: var(--green);
+    border: 2px solid var(--green);
+  }
+
+  .loading-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .skeleton {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f0f0f0;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .skeleton-thumb { aspect-ratio: 16/9; background: #e0e0e0; }
+  .skeleton-body { padding: 12px; }
+  .skeleton-line { height: 12px; background: #e0e0e0; border-radius: 4px; margin-bottom: 8px; }
+  .skeleton-line.short { width: 60%; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+
+  .login-notice {
+    background: #F8F9FA;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--gray-700);
+    margin-bottom: 24px;
+  }
+  .login-notice a { color: var(--green); font-weight: 700; }
+
+  @media (max-width: 600px) {
+    .pass-price-box { padding: 20px 28px; }
+    .pass-price-amount { font-size: 36px; }
+    .buy-section { flex-direction: column; gap: 12px; }
+    .buy-btn { width: 100%; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <span class="navbar-logo-text">아이엠<span>러닝</span></span>
+    </a>
+    <ul class="navbar-menu">
+      <li><a href="courses.html">강좌</a></li>
+      <li><a href="pass.html" class="active">프리패스</a></li>
+      <li><a href="notices.html">공지사항</a></li>
+      <li><a href="about.html">소개</a></li>
+    </ul>
+    <div class="navbar-right">
+      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 히어로 -->
+<section class="pass-hero">
+  <div class="pass-badge">LIMITED — 아이엠러닝 프리패스</div>
+  <h1 class="pass-hero-title">전강좌 365일<br>무제한 수강</h1>
+  <p class="pass-hero-sub">신앙·교사·부모·영어·시험 — 모든 강좌를 하나의 이용권으로</p>
+  <div class="pass-price-box">
+    <span class="pass-price-label">프리패스 이용권</span>
+    <span class="pass-price-amount" id="hero-price">₩450,000</span>
+    <span class="pass-price-period" id="hero-period">365일 무제한 수강</span>
+  </div>
+  <div class="pass-features">
+    <span class="pass-feature-item">전 강좌 수강</span>
+    <span class="pass-feature-item">365일 무제한</span>
+    <span class="pass-feature-item">모바일 · PC</span>
+    <span class="pass-feature-item">수료증 발급</span>
+  </div>
+</section>
+
+<!-- 포함 강좌 -->
+<section class="pass-main">
+  <div class="section-eyebrow">INCLUDED COURSES</div>
+  <h2 class="section-title" id="course-count-title">포함된 강좌 불러오는 중...</h2>
+  <p class="section-sub">프리패스 하나로 아래 강좌를 모두 수강할 수 있어요.</p>
+
+  <div id="login-notice" style="display:none;" class="login-notice">
+    구매하려면 <a href="login.html">로그인</a>이 필요해요.
+    아직 회원이 아니라면 <a href="signup.html">30초 가입</a>으로 시작하세요!
+  </div>
+
+  <div id="course-grid" class="course-grid">
+    <div class="skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+    <div class="skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+    <div class="skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+    <div class="skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+    <div class="skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+    <div class="skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+  </div>
+</section>
+
+<!-- 하단 고정 구매 버튼 -->
+<div class="buy-section" id="buy-section" style="display:none;">
+  <div>
+    <div class="buy-section-price" id="footer-price">₩450,000</div>
+    <div class="buy-section-sub">365일 전강좌 무제한</div>
+  </div>
+  <button class="buy-btn" id="buy-btn" onclick="requestPassPayment()">프리패스 구매하기</button>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">아이엠<span>러닝</span></div>
+      <div class="footer-slogan">I'M Learning, I'M Running!</div>
+      <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
+    </div>
+    <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=edu">교사·부모</a><a href="courses.html?cat=mission">캠프·사역</a><a href="courses.html?cat=english">영어·시험</a><a href="pass.html">프리패스</a></div>
+    <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a><a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a></div>
+    <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+</footer>
+
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script src="js/nav.js"></script>
+<script>
+const PORTONE_STORE_ID   = 'store-e42ea706-d26a-47af-a1c9-6b28a573d01e';
+const PORTONE_CHANNEL_KEY = 'channel-key-5ea6245d-fa62-446d-9747-af21167e8a80';
+
+let passData   = null; // { pass_id, name, price, duration_days }
+let passUser   = null;
+let alreadyOwns = false;
+
+async function loadPass() {
+  try {
+    const { data, error } = await supabaseClient.rpc('get_active_pass');
+    if (error || !data || data.length === 0) {
+      document.getElementById('course-grid').innerHTML =
+        '<p style="color:var(--gray-500);">현재 프리패스 정보를 불러올 수 없어요.</p>';
+      return;
+    }
+
+    // 패스 공통 정보 (첫 행)
+    passData = {
+      pass_id:      data[0].pass_id,
+      name:         data[0].name,
+      price:        data[0].price,
+      duration_days: data[0].duration_days,
+    };
+
+    // 가격 업데이트
+    const priceStr = '₩' + Number(passData.price).toLocaleString();
+    document.getElementById('hero-price').textContent   = priceStr;
+    document.getElementById('hero-period').textContent  = passData.duration_days + '일 무제한 수강';
+    document.getElementById('footer-price').textContent = priceStr;
+    document.getElementById('course-count-title').textContent =
+      '포함된 강좌 ' + data.length + '개';
+
+    // 강좌 그리드 렌더
+    document.getElementById('course-grid').innerHTML = data.map(row => `
+      <a href="course-detail.html?id=${row.course_id}" class="course-card">
+        <div class="course-card-thumb">
+          ${row.course_thumbnail
+            ? `<img src="${row.course_thumbnail}" alt="${row.course_title}" loading="lazy">`
+            : '📚'}
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-title">${row.course_title}</div>
+        </div>
+      </a>`).join('');
+
+    // 로그인 상태 확인
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    passUser = user;
+
+    if (!user) {
+      document.getElementById('login-notice').style.display = 'block';
+    } else {
+      // 이미 유효한 프리패스 보유 여부 확인
+      const now = new Date().toISOString();
+      const { data: existing } = await supabaseClient
+        .from('orders')
+        .select('id, expires_at')
+        .eq('user_id', user.id)
+        .eq('status', 'paid')
+        .gt('expires_at', now)
+        .maybeSingle();
+      if (existing) {
+        alreadyOwns = true;
+        const btn = document.getElementById('buy-btn');
+        btn.textContent = '이미 이용 중 → 강의실 가기';
+        btn.classList.add('already');
+      }
+    }
+
+    document.getElementById('buy-section').style.display = 'flex';
+  } catch (e) {
+    console.error('프리패스 로드 오류:', e);
+  }
+}
+
+async function requestPassPayment() {
+  if (alreadyOwns) { window.location.href = 'my-courses.html'; return; }
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) {
+    window.location.href = 'login.html?next=pass.html';
+    return;
+  }
+
+  if (!passData) { alert('상품 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+
+  // 프로필에서 전화번호 조회
+  let profile = {};
+  try {
+    const { data } = await supabaseClient.from('profiles').select('name, phone').eq('id', user.id).maybeSingle();
+    if (data) profile = data;
+  } catch(e) {}
+
+  if (!profile.phone) {
+    const inputPhone = prompt('결제를 위해 휴대폰 번호를 입력해주세요.\n(예: 01012345678)', '');
+    if (!inputPhone || !inputPhone.trim()) {
+      alert('휴대폰 번호를 입력해야 결제를 진행할 수 있습니다.');
+      return;
+    }
+    profile.phone = inputPhone.trim().replace(/[^0-9]/g, '');
+    try {
+      await supabaseClient.from('profiles').upsert({ id: user.id, phone: profile.phone }, { onConflict: 'id' });
+    } catch(e) {}
+  }
+
+  const btn = document.getElementById('buy-btn');
+  btn.disabled = true;
+  btn.textContent = '결제 진행 중...';
+
+  const paymentId = crypto.randomUUID().replace(/-/g, '');
+
+  try {
+    const payment = await PortOne.requestPayment({
+      storeId: PORTONE_STORE_ID,
+      channelKey: PORTONE_CHANNEL_KEY,
+      paymentId: paymentId,
+      orderName: passData.name,
+      totalAmount: passData.price,
+      currency: 'KRW',
+      payMethod: 'CARD',
+      customer: (() => {
+        const c = { email: user.email || '', phoneNumber: profile.phone };
+        if (profile.name) c.fullName = profile.name;
+        else if (user.user_metadata?.full_name) c.fullName = user.user_metadata.full_name;
+        return c;
+      })(),
+    });
+
+    if (payment.code) {
+      alert(payment.code === 'FAILURE_TYPE_PG'
+        ? '결제에 실패했습니다: ' + (payment.message || '오류가 발생했습니다.')
+        : '결제가 취소되었습니다.');
+      btn.disabled = false;
+      btn.textContent = '프리패스 구매하기';
+      return;
+    }
+
+    // 서버 검증
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify({
+        paymentId: payment.paymentId,
+        isPass: true,
+        passId: passData.pass_id,
+        amount: passData.price,
+      }),
+    });
+
+    const verifyData = await verifyRes.json();
+    if (!verifyData.success) {
+      alert('결제 검증 실패: ' + (verifyData.error || '오류가 발생했습니다.'));
+      btn.disabled = false;
+      btn.textContent = '프리패스 구매하기';
+      return;
+    }
+
+    // 성공
+    window.location.href = 'payment-success.html'
+      + '?courseName=' + encodeURIComponent(passData.name)
+      + '&amount=' + passData.price
+      + '&isPass=true';
+  } catch (err) {
+    console.error('결제 오류:', err);
+    alert('결제 중 오류가 발생했습니다.');
+    btn.disabled = false;
+    btn.textContent = '프리패스 구매하기';
+  }
+}
+
+loadPass();
+</script>
+</body>
+</html>

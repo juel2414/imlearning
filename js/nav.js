@@ -43,12 +43,12 @@
     /* 모바일 인증 */
     '#nb-mob-auth{display:none;}',
 
-    /* 강좌 드롭다운 */
+    /* 드롭다운 공통 */
     '.nb-dropdown{position:relative;}',
     '.nb-dd-menu{display:none;position:absolute;top:calc(100% + 10px);left:50%;',
     'transform:translateX(-50%);background:#fff;border-radius:14px;',
     'box-shadow:0 8px 32px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.06);',
-    'padding:6px;min-width:175px;z-index:200;border:1px solid rgba(0,0,0,.07);}',
+    'padding:6px;min-width:160px;z-index:200;border:1px solid rgba(0,0,0,.07);}',
     '.nb-dropdown:hover .nb-dd-menu{display:block;}',
     '.nb-dd-menu a{display:block!important;padding:9px 14px!important;border-radius:8px!important;',
     'font-size:13px!important;font-weight:500!important;',
@@ -57,11 +57,16 @@
     '.nb-dd-menu a:hover{background:var(--green-light,#E8F5EE)!important;',
     'color:var(--green,#2D9B6F)!important;}',
     '.nb-dd-divider{height:1px;background:rgba(0,0,0,.08);margin:5px 6px;}',
+    '.nb-dd-label{padding:5px 14px 3px;font-size:11px;font-weight:700;',
+    'color:var(--gray-400,#aaa);text-transform:uppercase;letter-spacing:.06em;',
+    'display:block;pointer-events:none;}',
     '.nb-caret{font-size:10px;margin-left:2px;display:inline-block;',
     'transition:transform .2s;opacity:.6;}',
     '.nb-dropdown:hover .nb-caret{transform:rotate(180deg);opacity:1;}',
-    /* 링크→메뉴 사이 10px 갭을 보이지 않는 브리지로 채워 hover 유지 */
+    /* 링크→메뉴 사이 갭을 보이지 않는 브리지로 채워 hover 유지 */
     '.nb-dropdown::after{content:"";position:absolute;top:100%;left:-20px;right:-20px;height:14px;}',
+    /* 메뉴 간격 조정 (항목 수 증가) */
+    '.navbar-menu{gap:1.1rem!important;}',
 
     /* 모바일 반응형 */
     '@media(max-width:768px){',
@@ -116,18 +121,50 @@
     '  </a>',
     '  <ul class="navbar-menu" id="nb-menu">',
     '    <li class="nb-dropdown">',
-    '      <a href="courses.html">강좌 <span class="nb-caret">▾</span></a>',
+    '      <a href="courses.html?cat=faith">신앙 <span class="nb-caret">▾</span></a>',
     '      <div class="nb-dd-menu">',
-    '        <a href="courses.html">전체 강좌</a>',
-    '        <div class="nb-dd-divider"></div>',
-    '        <a href="courses.html?cat=faith">신앙</a>',
-    '        <a href="courses.html?cat=edu">교사·부모</a>',
-    '        <a href="courses.html?cat=mission">캠프·사역</a>',
-    '        <a href="courses.html?cat=english">영어·시험</a>',
-    '        <div class="nb-dd-divider"></div>',
-    '        <a href="courses.html?cat=freepass" style="color:var(--green,#2D9B6F);font-weight:700;">전강좌 무제한</a>',
+    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 - 복음">트리플 스쿨 - 복음</a>',
+    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 - 제자">트리플 스쿨 - 제자</a>',
+    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 - 소명">트리플 스쿨 - 소명</a>',
+    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 패키지">트리플 스쿨 패키지</a>',
     '      </div>',
     '    </li>',
+    '    <li class="nb-dropdown">',
+    '      <a href="courses.html?cat=edu">교사·부모 <span class="nb-caret">▾</span></a>',
+    '      <div class="nb-dd-menu">',
+    '        <span class="nb-dd-label">교사</span>',
+    '        <a href="courses.html?cat=edu&sub=교사 - CAS">CAS</a>',
+    '        <a href="courses.html?cat=edu&sub=교사 - CBUP">CBUP</a>',
+    '        <a href="courses.html?cat=edu&sub=교사 - 성교육">성교육</a>',
+    '        <a href="courses.html?cat=edu&sub=교사 - 교사양성">교사양성</a>',
+    '        <div class="nb-dd-divider"></div>',
+    '        <span class="nb-dd-label">부모</span>',
+    '        <a href="courses.html?cat=edu&sub=부모 - 부모학교">부모학교</a>',
+    '        <a href="courses.html?cat=edu&sub=부모 - 부모대안학교">부모대안학교</a>',
+    '        <a href="courses.html?cat=edu&sub=부모 - 강사과정">강사과정</a>',
+    '      </div>',
+    '    </li>',
+    '    <li class="nb-dropdown">',
+    '      <a href="courses.html?cat=mission">캠프·사역 <span class="nb-caret">▾</span></a>',
+    '      <div class="nb-dd-menu">',
+    '        <a href="courses.html?cat=mission&sub=선교 - 3C">선교 - 3C</a>',
+    '        <a href="courses.html?cat=mission&sub=캠프 행정 지원">캠프 행정 지원</a>',
+    '        <a href="courses.html?cat=mission&sub=CDG">CDG</a>',
+    '        <a href="courses.html?cat=mission&sub=IM의 비전과 사명">IM의 비전과 사명</a>',
+    '      </div>',
+    '    </li>',
+    '    <li class="nb-dropdown">',
+    '      <a href="courses.html?cat=english">영어·시험 <span class="nb-caret">▾</span></a>',
+    '      <div class="nb-dd-menu">',
+    '        <a href="courses.html?cat=english&sub=영단속 영어">영단속 영어</a>',
+    '        <a href="courses.html?cat=english&sub=ABS">ABS</a>',
+    '        <a href="courses.html?cat=english&sub=토익">토익</a>',
+    '        <div class="nb-dd-divider"></div>',
+    '        <a href="courses.html?cat=english&sub=고졸 검정고시">고졸 검정고시</a>',
+    '        <a href="courses.html?cat=english&sub=중졸 검정고시">중졸 검정고시</a>',
+    '      </div>',
+    '    </li>',
+    '    <li><a href="pass.html" style="color:var(--green,#2D9B6F);font-weight:700;">전강좌 무제한</a></li>',
     '    <li><a href="https://imbooks.kr" target="_blank" rel="noopener">아이엠북스</a></li>',
     '    <li><a href="notices.html">공지사항</a></li>',
     '    <li><a href="about.html">소개</a></li>',
@@ -225,6 +262,14 @@
     var hSearch = href.includes('?') ? href.slice(href.indexOf('?')) : '';
     if (hPath === curPath && (!hSearch || hSearch === curSearch)) a.classList.add('active');
     if (hPath === 'courses.html' && !hSearch && curPath === 'course-detail.html') a.classList.add('active');
+    // Mark category-level link active when browsing any sub of the same category
+    if (curPath === 'courses.html' && hPath === 'courses.html' && hSearch) {
+      var hp = new URLSearchParams(hSearch);
+      var cp = new URLSearchParams(curSearch);
+      if (hp.get('cat') && hp.get('cat') === cp.get('cat') && !hp.get('sub')) {
+        a.classList.add('active');
+      }
+    }
   });
 
   // ── 로그아웃 (전역) ───────────────────────────────────────────────

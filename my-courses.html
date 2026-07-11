@@ -327,7 +327,7 @@
         <div class="footer-slogan">I'M Learning, I'M Running!</div>
         <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열 · 전화: 010-5307-6139</div>
       </div>
-      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=edu">교사·부모</a></div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=edu">교사·부모</a><a href="pass.html">프리패스</a></div>
       <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a><a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a></div>
     </div>
     <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
@@ -492,19 +492,20 @@ function renderCourses(orders, coursesMap) {
     if (!course) return '';
     const progress   = order.progress || 0;
     const isComplete = progress >= 100;
+    const isExpired  = !!(order.expires_at && new Date(order.expires_at) < new Date());
     const catLabel   = CATEGORY_LABELS_LOCAL[course.category] || '';
     const courseId   = course.id;
     const plan       = gPlans[courseId];
     const todayCount = gTodayLogsByCourse[courseId] || 0;
 
     const thumbContent = course.thumbnail_url
-      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;${isExpired ? 'filter:grayscale(1);opacity:.5;' : ''}">`
       : '';
     const thumbEmoji = course.thumbnail_url ? '' : '📚';
 
-    // 플래너 섹션 (수료 완료 강좌 제외)
+    // 플래너 섹션 (수료 완료·만료 강좌 제외)
     let planHTML = '';
-    if (!isComplete) {
+    if (!isComplete && !isExpired) {
       const achieveIcon  = plan ? (todayCount >= plan.daily_goal ? '✅' : '🔥') : '';
       const planInfoHtml = plan
         ? `📌 하루 <strong>${plan.daily_goal}강</strong>씩 들으세요! (${plan.target_date}까지)`
@@ -546,13 +547,16 @@ function renderCourses(orders, coursesMap) {
             <div class="progress-bar" style="width:${progress}%"></div>
           </div>
           <div class="progress-text">${progress}% 완료${isComplete ? ' · ✅ 수료 완료' : ''}</div>
+          ${order.expires_at ? `<div style="font-size:11px;color:${isExpired ? '#EF4444' : '#9CA3AF'};margin-top:4px;">${isExpired ? '⏰ 이용 기간 만료됨' : '⏰ 프리패스 만료일: ' + new Date(order.expires_at).toLocaleDateString('ko-KR')}</div>` : ''}
           ${planHTML}
         </div>
         <div class="my-course-action">
-          ${isComplete
-            ? '<span class="badge-complete">✅ 수료 완료</span>'
-            : `<a href="course-detail.html?id=${course.id}" class="btn-continue">이어 보기 →</a>`}
-          ${progress === 0 ? '<span class="badge-new">🆕 시작 전</span>' : ''}
+          ${isExpired
+            ? '<span style="font-size:12px;color:#EF4444;font-weight:600;">만료됨</span><a href="pass.html" style="font-size:11px;color:#2D9B6F;display:block;margin-top:4px;">재구매 →</a>'
+            : isComplete
+              ? '<span class="badge-complete">✅ 수료 완료</span>'
+              : `<a href="course-detail.html?id=${course.id}" class="btn-continue">이어 보기 →</a>`}
+          ${!isExpired && progress === 0 ? '<span class="badge-new">🆕 시작 전</span>' : ''}
         </div>
       </div>`;
   }).join('');
@@ -931,6 +935,7 @@ function renderOrders(orders, coursesMap) {
           <div style="text-align:right;">
             ${isDisc ? `<div style="text-decoration:line-through;color:var(--gray-400);font-size:12px;">₩${Number(order.original_amount).toLocaleString()}</div>` : ''}
             <div class="order-amount ${isDisc ? 'discounted' : ''}">₩${Number(order.amount || 0).toLocaleString()}</div>
+            ${order.expires_at ? (() => { const exp = new Date(order.expires_at); const expired = exp < new Date(); return `<div style="font-size:11px;margin-top:4px;color:${expired ? '#EF4444' : '#6B6B6B'};">${expired ? '⏰ 만료됨' : '⏰ ~' + exp.toLocaleDateString('ko-KR')}</div>`; })() : ''}
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.05);">

@@ -69,10 +69,112 @@ Deno.serve(async (req: Request) => {
     if (!rlOk) return err('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', 429);
 
     const body = await req.json();
-    const { paymentId, courseId, amount, couponCode, couponId, isGift, recipientEmail, message } = body;
-    const isFree = amount === 0 && !isGift;
+    const { paymentId, courseId, amount, couponCode, couponId, isGift, recipientEmail, message,
+            isPass, passId } = body;
+    const isFree = amount === 0 && !isGift && !isPass;
 
+    // ══════════════════════════════════════════════════════════════════
+    // ── 프리패스 결제 분기 ────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+    if (isPass) {
+      if (!passId || amount === undefined || amount === null)
+        return err('필수 파라미터 누락 (passId, amount)');
+      if (!paymentId) return err('결제 ID 누락');
+
+      // 1. passes 테이블에서 price, duration_days 조회 (서버사이드 검증)
+      const { data: pass } = await sb.from('passes')
+        .select('id, name, price, duration_days')
+        .eq('id', Number(passId))
+        .eq('status', 'active')
+        .single();
+      if (!pass) return err('유효하지 않은 프리패스 상품입니다', 404);
+
+      // 2. PortOne 결제 금액 검증
+      if (PORTONE_API_SECRET) {
+        const pr = await fetch(`https://api.portone.io/payments/${encodeURIComponent(paymentId)}`,
+          { headers: { 'Authorization': `PortOne ${PORTONE_API_SECRET}` } });
+        if (!pr.ok) return err(`포트원 검증 실패: ${await pr.text()}`);
+        const payment = await pr.json();
+        if (payment.status !== 'PAID') return err(`결제 미완료: ${payment.status}`);
+        if (payment.amount?.total !== amount) return err('금액 불일치');
+      }
+      if (amount !== pass.price) return err(`결제금액 불일치 (예상: ${pass.price}원)`);
+
+      // 중복 결제 확인
+      const { data: existingPay } = await sb.from('orders')
+        .select('id').eq('payment_id', paymentId).maybeSingle();
+      if (existingPay)
+        return new Response(JSON.stringify({ success: true, pass: true, duplicate: true }), { headers: resHeaders });
+
+      // 3. pass_courses에서 강좌 목록 조회
+      const { data: passCourses } = await sb.from('pass_courses')
+        .select('course_id, courses(title)')
+        .eq('pass_id', Number(passId));
+      if (!passCourses || passCourses.length === 0)
+        return err('프리패스에 포함된 강좌가 없습니다', 500);
+
+      // 만료일 계산
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + (pass.duration_days || 365));
+
+      // 4. 각 강좌에 대해 orders 삽입 (개별 구매 영구 주문이 있으면 건너뜀)
+      let insertedCount = 0;
+      for (const pc of passCourses) {
+        // 이미 만료 없는 영구 주문이 있으면 스킵
+        const { data: perm } = await sb.from('orders')
+          .select('id, expires_at')
+          .eq('user_id', user.id)
+          .eq('course_id', pc.course_id)
+          .eq('status', 'paid')
+          .is('expires_at', null)
+          .maybeSingle();
+        if (perm) continue; // 영구 수강권 보유 → 프리패스로 덮어쓰지 않음
+
+        const courseTitle = (pc as any).courses?.title ?? '강좌';
+        const { error: oErr } = await sb.from('orders').insert({
+          user_id: user.id,
+          course_id: pc.course_id,
+          course_name: courseTitle,
+          payment_id: paymentId + '-' + pc.course_id,
+          amount: 0,          // 강좌별 금액은 0 (패스 전체 금액은 별도 집계)
+          original_amount: 0,
+          status: 'paid',
+          progress: 0,
+          expires_at: expiresAt.toISOString(),
+        });
+        if (!oErr) insertedCount++;
+      }
+
+      // 패스 자체 결제 기록 (pass 전체 금액, course_id = null 불가하므로 첫 강좌 ID 사용)
+      await sb.from('orders').insert({
+        user_id: user.id,
+        course_id: passCourses[0].course_id,
+        course_name: pass.name,
+        payment_id: paymentId,
+        amount: pass.price,
+        original_amount: pass.price,
+        status: 'paid',
+        progress: 0,
+        expires_at: expiresAt.toISOString(),
+      }).select().maybeSingle();
+
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ type: 'payment', data: { courseName: pass.name, amount: pass.price } }),
+        });
+      } catch (e) { console.error('영수증 메일 실패(무시):', e); }
+
+      return new Response(JSON.stringify({
+        success: true, pass: true, courseCount: insertedCount,
+        expiresAt: expiresAt.toISOString(),
+      }), { headers: resHeaders });
+    }
+
+    // ══════════════════════════════════════════════════════════════════
     // ── 기본 파라미터 검증 ──────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════
     if (!courseId || amount === undefined || amount === null) return err('필수 파라미터 누락');
     if (typeof amount !== 'number' || !Number.isInteger(amount) || amount < 0) return err('유효하지 않은 금액');
     if (!isFree && !paymentId) return err('필수 파라미터 누락');
@@ -88,7 +190,7 @@ Deno.serve(async (req: Request) => {
 
     const now = new Date();
     const serverBasePrice = calcServerPrice(course as CourseRow, now);
-    const originalAmount  = serverBasePrice;  // 쿠폰 적용 전 가격
+    const originalAmount  = serverBasePrice;
 
     // ── 무료 수강 신청 (amount === 0, 선물 아님) ──────────────────────
     if (isFree) {
@@ -112,7 +214,6 @@ Deno.serve(async (req: Request) => {
       if (!allowFree)
         return err('이 강좌는 무료 등록이 허용되지 않습니다.', 403);
 
-      // 쿠폰 1인 1회 사용 체크
       if (couponCode) {
         const { data: prevUse } = await sb.from('orders')
           .select('id').eq('user_id', user.id).eq('coupon_code', couponCode)
@@ -143,13 +244,11 @@ Deno.serve(async (req: Request) => {
       if (!pr.ok) return err(`포트원 검증 실패: ${await pr.text()}`);
       const payment = await pr.json();
       if (payment.status !== 'PAID') return err(`결제 미완료: ${payment.status}`);
-      // PortOne 금액과 클라이언트 요청 금액 일치 확인
       if (payment.amount?.total !== amount) return err('금액 불일치');
     }
 
     // ── 선물 결제 ────────────────────────────────────────────────────
     if (isGift) {
-      // 서버 가격과 실제 결제금액 비교 (쿠폰 없음)
       if (amount !== serverBasePrice)
         return err(`결제금액 불일치 (예상: ${serverBasePrice}원)`);
 
@@ -205,7 +304,6 @@ Deno.serve(async (req: Request) => {
       expectedAmount = Math.max(0, serverBasePrice - discount);
     }
 
-    // 쿠폰 1인 1회 사용 체크
     if (couponCode) {
       const { data: prevUse } = await sb.from('orders')
         .select('id').eq('user_id', user.id).eq('coupon_code', couponCode)
@@ -213,11 +311,9 @@ Deno.serve(async (req: Request) => {
       if (prevUse) return err('이미 사용한 쿠폰입니다');
     }
 
-    // 서버 계산 금액과 실제 결제금액 비교
     if (amount !== expectedAmount)
       return err(`결제금액 불일치 (예상: ${expectedAmount}원)`);
 
-    // ── 중복 결제 확인 ───────────────────────────────────────────────
     const { data: existing } = await sb.from('orders').select('id').eq('payment_id', paymentId).maybeSingle();
     if (existing) return new Response(JSON.stringify({ success: true, orderId: existing.id, duplicate: true }), { headers: resHeaders });
 
