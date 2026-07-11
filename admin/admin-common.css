@@ -1,9 +1,26 @@
 /* admin-common.css — 어드민 공통 반응형 스타일 v1 */
 /* 모든 어드민 페이지에서 로드. admin-nav.js와 함께 사용. */
 
+/* ── 폰트 ── */
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff2') format('woff2');
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+
 /* ── 기본 리셋 ── */
 * { box-sizing: border-box; word-break: keep-all; }
-body { margin: 0; font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; }
+body { margin: 0; font-family: 'S-CoreDream','Noto Sans KR',-apple-system,sans-serif; background:#F4F6F8; }
 
 /* ── 기존 정적 사이드바/레이아웃 무효화 ── */
 /* admin-nav.js가 aside.admin-sidebar를 숨기므로, admin-layout 그리드도 block으로 전환 */
@@ -24,8 +41,9 @@ body { margin: 0; font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothi
 
 /* ── 카드 ── */
 .admin-card {
-  background: #fff; border-radius: 12px;
+  background: #fff; border-radius: 14px;
   border: 1px solid rgba(0,0,0,.06); overflow: hidden; margin-bottom: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
 }
 .admin-card-header {
   padding: 16px 22px; border-bottom: 1px solid rgba(0,0,0,.05);
@@ -61,15 +79,19 @@ body { margin: 0; font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothi
 /* ── 버튼 ── */
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: 8px; font-size: 13px;
+  padding: 9px 18px; border-radius: 10px; font-size: 13px;
   font-weight: 700; cursor: pointer; border: none;
-  font-family: inherit; white-space: nowrap;
+  font-family: 'S-CoreDream','Noto Sans KR',-apple-system,sans-serif;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.btn-primary   { background: #2D9B6F; color: #fff; }
-.btn-primary:hover { background: #1A7A4A; }
-.btn-secondary { background: #fff; color: #555; border: 1px solid rgba(0,0,0,.12); }
-.btn-danger    { background: #fff; color: #EF4444; border: 1px solid #FCA5A5; }
-.btn-sm        { padding: 5px 12px; font-size: 12px; }
+.btn-primary   { background: #2D9B6F; color: #fff; box-shadow: 0 4px 12px rgba(45,155,111,0.22); }
+.btn-primary:hover { background: #1A7A4A; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(45,155,111,0.32); }
+.btn-secondary { background: #fff; color: #2D9B6F; border: 1.5px solid #2D9B6F; }
+.btn-secondary:hover { background: #E8F5EE; }
+.btn-danger    { background: #fff; color: #EF4444; border: 1.5px solid #FCA5A5; }
+.btn-danger:hover { background: #FFF5F5; }
+.btn-sm        { padding: 5px 12px; font-size: 12px; border-radius: 8px; }
 
 /* ── 테이블 ── */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }

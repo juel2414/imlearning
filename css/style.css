@@ -1,4 +1,34 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+/* ───── 폰트 정의 ───── */
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'S-CoreDream';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff2') format('woff2');
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Cafe24Surround';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
+  font-weight: normal; font-display: swap;
+}
 
 :root {
   --green: #2D9B6F;
@@ -12,13 +42,15 @@
   --gray-100: #F5F5F5;
   --white: #FFFFFF;
   --radius-sm: 8px;
-  --radius-md: 12px;
+  --radius-md: 14px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.06);
   --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
   --shadow-lg: 0 16px 48px rgba(0,0,0,0.14);
   --transition: 0.2s cubic-bezier(.4,0,.2,1);
+  --font-body: 'S-CoreDream', 'Noto Sans KR', -apple-system, sans-serif;
+  --font-accent: 'Cafe24Surround', 'S-CoreDream', sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,7 +58,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
   color: var(--gray-900);
   background: var(--white);
   line-height: 1.6;
@@ -49,19 +81,35 @@ ul, ol { list-style: none; }
   align-items: center;
   gap: 6px;
   padding: 12px 24px;
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
   font-size: 15px;
-  font-weight: 600;
-  transition: all var(--transition);
+  font-weight: 700;
+  font-family: var(--font-body);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+  border: none;
 }
-.btn-primary { background: var(--green); color: var(--white); }
-.btn-primary:hover { background: var(--green-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
-.btn-dark { background: var(--black); color: var(--white); }
-.btn-dark:hover { background: var(--gray-900); transform: translateY(-1px); box-shadow: var(--shadow-md); }
-.btn-outline { background: transparent; color: var(--gray-900); border: 1.5px solid var(--gray-300); }
-.btn-outline:hover { border-color: var(--green); color: var(--green); }
-.btn-sm { padding: 8px 16px; font-size: 13px; }
-.btn-lg { padding: 16px 32px; font-size: 16px; }
+.btn-primary {
+  background: var(--green);
+  color: var(--white);
+  box-shadow: 0 4px 14px rgba(45,155,111,0.25);
+}
+.btn-primary:hover {
+  background: var(--green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(45,155,111,0.35);
+}
+.btn-dark { background: var(--black); color: var(--white); box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+.btn-dark:hover { background: var(--gray-900); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.22); }
+.btn-outline {
+  background: transparent;
+  color: var(--gray-900);
+  border: 1.5px solid var(--gray-300);
+  box-shadow: none;
+}
+.btn-outline:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+.btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; }
+.btn-lg { padding: 16px 32px; font-size: 16px; border-radius: 12px; }
 
 /* ───── 네비게이션 ───── */
 .navbar {
@@ -171,7 +219,7 @@ ul, ol { list-style: none; }
   color: var(--black);
   margin-bottom: 1.25rem;
 }
-.hero-title em { color: var(--green); font-style: normal; }
+.hero-title em { color: var(--green); font-style: normal; font-family: var(--font-accent); }
 .hero-desc {
   font-size: 17px;
   color: var(--gray-500);
@@ -278,7 +326,7 @@ ul, ol { list-style: none; }
   color: var(--black);
   max-width: 700px;
 }
-.brand-title em { color: var(--green); font-style: normal; }
+.brand-title em { color: var(--green); font-style: normal; font-family: var(--font-accent); }
 .brand-desc {
   font-size: 17px;
   color: var(--gray-500);
@@ -423,7 +471,7 @@ ul, ol { list-style: none; }
 }
 .freepass-eyebrow { font-size: 12px; font-weight: 600; color: var(--green); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
 .freepass-title { font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; color: var(--white); line-height: 1.2; letter-spacing: -1px; margin-bottom: 1rem; }
-.freepass-title span { color: var(--green); }
+.freepass-title span { color: var(--green); font-family: var(--font-accent); }
 .freepass-desc { font-size: 16px; color: rgba(255,255,255,0.55); line-height: 1.75; margin-bottom: 2rem; }
 .freepass-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2.5rem; }
 .freepass-feature { display: flex; align-items: center; gap: 10px; font-size: 14px; color: rgba(255,255,255,0.8); }
