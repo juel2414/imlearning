@@ -41,6 +41,10 @@
     .error-msg { display: none; background: #FEE2E2; color: #EF4444; font-size: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 1rem; }
     .error-msg.show { display: block; }
 
+    .remember-row { display: flex; align-items: center; gap: 8px; margin: 0.75rem 0 1rem; }
+    .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #2D9B6F; cursor: pointer; flex-shrink: 0; }
+    .remember-row label { font-size: 13px; color: #555; cursor: pointer; user-select: none; }
+
     .top-logo-bar { padding: 1.25rem 2rem; }
     .top-logo-bar a { font-size: 18px; font-weight: 800; color: #111; text-decoration: none; }
     .top-logo-bar a span { color: #2D9B6F; }
@@ -68,6 +72,10 @@
       <div class="form-group">
         <label class="form-label">비밀번호</label>
         <input class="form-input" type="password" id="password" placeholder="비밀번호 입력" required>
+      </div>
+      <div class="remember-row">
+        <input type="checkbox" id="remember-me">
+        <label for="remember-me">이메일 저장</label>
       </div>
       <button type="submit" class="submit-btn" id="submit-btn">로그인하기</button>
     </form>
@@ -106,6 +114,15 @@
 var REDIRECT_URL = window.location.origin + window.location.pathname.replace(/login\.html.*$/, 'index.html');
 var _nextParam = new URLSearchParams(window.location.search).get('next') || '';
 var _nextUrl = (_nextParam && !_nextParam.startsWith('//') && !_nextParam.startsWith('http')) ? _nextParam : null;
+
+// 저장된 이메일 불러오기
+(function () {
+  var saved = localStorage.getItem('iml_saved_email');
+  if (saved) {
+    document.getElementById('email').value = saved;
+    document.getElementById('remember-me').checked = true;
+  }
+})();
 
 function showError(msg) {
   var el = document.getElementById('error-msg');
@@ -153,6 +170,12 @@ document.getElementById('login-form').addEventListener('submit', async function 
   btn.disabled = true;
   btn.textContent = '로그인 중...';
   try {
+    var rememberMe = document.getElementById('remember-me').checked;
+    if (rememberMe) {
+      localStorage.setItem('iml_saved_email', email);
+    } else {
+      localStorage.removeItem('iml_saved_email');
+    }
     var result = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
     if (result.error) {
       var msg = result.error.message;
