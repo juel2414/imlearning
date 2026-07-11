@@ -249,15 +249,18 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="../js/supabase-client.js"></script>
 <script>
+var SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 (async function checkAdminAccess() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     window.location.href = '../login.html?next=' + encodeURIComponent(location.pathname.split('/admin/')[1] ? 'admin/' + location.pathname.split('/admin/')[1] : 'admin/index.html');
     return;
   }
-  const { data: profile } = await supabaseClient
+  const { data: profile } = await sb
     .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
   if (!profile || profile.role !== 'admin') {
     alert('관리자 권한이 없는 계정입니다.');
@@ -265,10 +268,6 @@
     return;
   }
 })();
-
-var SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 var CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
 var courses = [];
