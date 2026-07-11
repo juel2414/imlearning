@@ -230,6 +230,41 @@ function giftHtml(courseName: string, senderName: string, message: string, accep
 </body></html>`
 }
 
+function contactInquiryHtml(name: string, phone: string, type: string, message: string) {
+  const dateStr = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+  return base(`
+    <h2 style="margin:0 0 20px;font-size:18px;font-weight:700;color:#111;">새 문의가 접수됐습니다</h2>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1.5px solid #e8e8e8;border-radius:10px;overflow:hidden;margin-bottom:24px;font-size:14px;">
+      <tr style="background:#f8faf9;">
+        <td style="padding:12px 16px;color:#888;font-weight:700;width:28%;border-bottom:1px solid #eee;">이름</td>
+        <td style="padding:12px 16px;color:#222;border-bottom:1px solid #eee;">${esc(name)}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;color:#888;font-weight:700;border-bottom:1px solid #eee;">연락처</td>
+        <td style="padding:12px 16px;color:#222;border-bottom:1px solid #eee;">${esc(phone || '미입력')}</td>
+      </tr>
+      <tr style="background:#f8faf9;">
+        <td style="padding:12px 16px;color:#888;font-weight:700;border-bottom:1px solid #eee;">문의 유형</td>
+        <td style="padding:12px 16px;color:#222;border-bottom:1px solid #eee;">${esc(type)}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;color:#888;font-weight:700;border-bottom:1px solid #eee;">접수 시간</td>
+        <td style="padding:12px 16px;color:#555;border-bottom:1px solid #eee;">${dateStr}</td>
+      </tr>
+      <tr style="background:#f8faf9;">
+        <td style="padding:12px 16px;color:#888;font-weight:700;vertical-align:top;">문의 내용</td>
+        <td style="padding:12px 16px;color:#222;line-height:1.8;white-space:pre-wrap;">${esc(message)}</td>
+      </tr>
+    </table>
+    <div style="text-align:center;">
+      <a href="https://lvglkxjzraznwnfilxvy.supabase.co/dashboard/table-editor?schema=public&table=contacts"
+         style="display:inline-block;background:#2D9B6F;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:700;">
+        Supabase에서 문의 확인 →
+      </a>
+    </div>
+  `)
+}
+
 async function resendSend(to: string, subject: string, html: string) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -270,6 +305,17 @@ Deno.serve(async (req: Request) => {
       const name  = String(data.name || '회원')
       if (!email.includes('@')) return err(400, '유효하지 않은 이메일')
       await resendSend(email, '아이엠러닝에 오신 것을 환영합니다! 🎉', welcomeHtml(name))
+      return ok({ sent: 1 })
+    }
+
+    if (type === 'contact_inquiry') {
+      const name    = String(data.name || '').trim()
+      const phone   = String(data.phone || '').trim()
+      const inquiryType = String(data.type || '기타').trim()
+      const message = String(data.message || '').trim()
+      if (!name || !message) return err(400, '이름과 문의 내용은 필수입니다')
+      const ADMIN_EMAIL = 'imkorea.mission@gmail.com'
+      await resendSend(ADMIN_EMAIL, `[아이엠러닝] 새 문의: ${name} (${inquiryType})`, contactInquiryHtml(name, phone, inquiryType, message))
       return ok({ sent: 1 })
     }
 

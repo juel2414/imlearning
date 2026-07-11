@@ -25,7 +25,11 @@
     .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--green); }
     .form-textarea { height: 140px; resize: vertical; }
     .form-submit { width: 100%; padding: 14px; background: var(--green); color: var(--white); border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; transition: all var(--transition); font-family: inherit; }
-    .form-submit:hover { background: var(--green-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .form-submit:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .form-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .form-msg { display: none; margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; }
+    .form-msg.ok  { display: block; background: #D1FAE5; color: #065F46; }
+    .form-msg.err { display: block; background: #FEE2E2; color: #991B1B; }
     @media(max-width:768px){.contact-inner{grid-template-columns:1fr;}}
   </style>
 </head>
@@ -80,16 +84,16 @@
       <div class="contact-form reveal reveal-delay-1">
         <h3 style="font-size:18px;font-weight:800;color:var(--black);margin-bottom:1.5rem;">문의 남기기</h3>
         <div class="form-group">
-          <label class="form-label">이름</label>
-          <input class="form-input" type="text" placeholder="이름을 입력해주세요">
+          <label class="form-label" for="contact-name">이름 <span style="color:var(--green)">*</span></label>
+          <input class="form-input" type="text" id="contact-name" placeholder="이름을 입력해주세요" maxlength="50">
         </div>
         <div class="form-group">
-          <label class="form-label">연락처</label>
-          <input class="form-input" type="tel" placeholder="010-0000-0000">
+          <label class="form-label" for="contact-phone">연락처</label>
+          <input class="form-input" type="tel" id="contact-phone" placeholder="010-0000-0000" maxlength="20">
         </div>
         <div class="form-group">
-          <label class="form-label">문의 유형</label>
-          <select class="form-select">
+          <label class="form-label" for="contact-type">문의 유형</label>
+          <select class="form-select" id="contact-type">
             <option>강좌 수강 문의</option>
             <option>프리패스 상담</option>
             <option>단체 수강 문의</option>
@@ -98,10 +102,11 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">문의 내용</label>
-          <textarea class="form-textarea" placeholder="문의하실 내용을 자유롭게 작성해주세요"></textarea>
+          <label class="form-label" for="contact-message">문의 내용 <span style="color:var(--green)">*</span></label>
+          <textarea class="form-textarea" id="contact-message" placeholder="문의하실 내용을 자유롭게 작성해주세요" maxlength="2000"></textarea>
         </div>
-        <button class="form-submit" onclick="alert('문의가 접수되었습니다. 빠르게 답변드리겠습니다!')">문의 보내기 →</button>
+        <button class="form-submit" id="contact-submit" onclick="submitContact()">문의 보내기 →</button>
+        <div class="form-msg" id="contact-msg"></div>
       </div>
     </div>
   </div>
@@ -125,5 +130,60 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
+<script>
+async function submitContact() {
+  const name    = document.getElementById('contact-name').value.trim();
+  const phone   = document.getElementById('contact-phone').value.trim();
+  const type    = document.getElementById('contact-type').value;
+  const message = document.getElementById('contact-message').value.trim();
+  const btn     = document.getElementById('contact-submit');
+  const msgEl   = document.getElementById('contact-msg');
+
+  msgEl.className = 'form-msg';
+  msgEl.textContent = '';
+
+  if (!name) { showMsg('이름을 입력해주세요.', false); return; }
+  if (!message) { showMsg('문의 내용을 입력해주세요.', false); return; }
+
+  btn.disabled = true;
+  btn.textContent = '전송 중...';
+
+  try {
+    // 1. Supabase contacts 테이블에 저장
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const { error: dbErr } = await supabaseClient.from('contacts').insert({
+      name, phone: phone || null, type, message,
+      user_id: user ? user.id : null,
+    });
+    if (dbErr) throw new Error(dbErr.message);
+
+    // 2. 관리자 알림 이메일 발송 (실패해도 DB 저장 성공이면 OK)
+    try {
+      const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+      await fetch(SUPABASE_URL + '/functions/v1/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': supabaseClient.supabaseKey || '' },
+        body: JSON.stringify({ type: 'contact_inquiry', data: { name, phone, type, message } }),
+      });
+    } catch (_) { /* 이메일 실패는 무시 — DB엔 저장됨 */ }
+
+    showMsg('문의가 접수됐습니다. 빠르게 답변드리겠습니다 😊', true);
+    document.getElementById('contact-name').value = '';
+    document.getElementById('contact-phone').value = '';
+    document.getElementById('contact-message').value = '';
+    document.getElementById('contact-type').selectedIndex = 0;
+    btn.textContent = '전송 완료 ✓';
+  } catch (e) {
+    showMsg('전송에 실패했습니다. 잠시 후 다시 시도하거나 전화로 문의해주세요.', false);
+    btn.disabled = false;
+    btn.textContent = '문의 보내기 →';
+  }
+
+  function showMsg(text, ok) {
+    msgEl.textContent = text;
+    msgEl.className = 'form-msg ' + (ok ? 'ok' : 'err');
+  }
+}
+</script>
 </body>
 </html>
