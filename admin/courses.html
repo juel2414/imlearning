@@ -272,6 +272,7 @@ var CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역
 var courses = [];
 var editingId = null;
 var thumbData = null;
+var thumbFile = null;
 var currentView = 'section';
 var currentQuery = '';
 
@@ -290,6 +291,7 @@ function toggleForm() {
 function resetForm() {
   editingId = null;
   thumbData = null;
+  thumbFile = null;
   document.getElementById('form-title').textContent = '새 강좌 추가';
   ['course-title','course-desc','course-cat','course-section','course-instructor','course-level',
    'course-lessons','course-students-count','course-price','course-discount-price',
@@ -306,10 +308,11 @@ function resetForm() {
 function previewThumb(input) {
   var file = input.files[0];
   if (!file) return;
+  thumbFile = file;
+  thumbData = null;
   var reader = new FileReader();
   reader.onload = function(e) {
-    thumbData = e.target.result;
-    document.getElementById('thumb-img').src = thumbData;
+    document.getElementById('thumb-img').src = e.target.result;
     document.getElementById('thumb-img').style.display = 'block';
   };
   reader.readAsDataURL(file);
@@ -322,6 +325,21 @@ async function saveCourse() {
   var btn = document.getElementById('save-btn');
   btn.disabled = true;
   btn.textContent = '저장 중...';
+
+  if (thumbFile) {
+    var ext = (thumbFile.name.split('.').pop() || 'jpg').toLowerCase();
+    var fileName = 'course-' + Date.now() + '.' + ext;
+    var uploadResult = await sb.storage
+      .from('course-thumbnails')
+      .upload(fileName, thumbFile, { upsert: true, contentType: thumbFile.type });
+    if (uploadResult.error) {
+      showToast('썸네일 업로드 실패: ' + uploadResult.error.message, true);
+      btn.disabled = false; btn.textContent = '강좌 저장하기';
+      return;
+    }
+    thumbData = sb.storage.from('course-thumbnails').getPublicUrl(fileName).data.publicUrl;
+    thumbFile = null;
+  }
 
   function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
   function numOrNull(v) { return v ? Number(v) : null; }
@@ -405,6 +423,7 @@ function editCourse(id) {
   document.getElementById('course-vimeo').value = c.vimeo_url || '';
   document.getElementById('course-status').value = c.status || 'active';
   document.getElementById('course-featured').value = c.featured ? 'true' : 'false';
+  thumbFile = null;
   if (c.thumbnail_url) {
     thumbData = c.thumbnail_url;
     document.getElementById('thumb-img').src = c.thumbnail_url;
