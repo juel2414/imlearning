@@ -65,16 +65,39 @@
     '.nb-dropdown:hover .nb-caret{transform:rotate(180deg);opacity:1;}',
     /* 링크→메뉴 사이 갭을 보이지 않는 브리지로 채워 hover 유지 */
     '.nb-dropdown::after{content:"";position:absolute;top:100%;left:-20px;right:-20px;height:14px;}',
-    /* 메뉴 간격 — 항목 수 감소로 여유 있게 */
+    /* 메뉴 간격 */
     '.navbar-menu{gap:1.8rem!important;}',
-    /* 강좌 드롭다운 내 카테고리 헤더 링크 */
-    '.nb-dd-cat{font-weight:700!important;color:var(--black,#111)!important;',
-    'font-size:13px!important;letter-spacing:-.01em!important;}',
-    '.nb-dd-cat:hover{color:var(--green,#2D9B6F)!important;}',
-    /* 카테고리 아래 세부 항목 — 살짝 들여쓰기 */
-    '.nb-dd-sub{padding-left:22px!important;font-size:12px!important;',
-    'color:var(--gray-500,#6b6b6b)!important;}',
-    '.nb-dd-sub:hover{color:var(--green,#2D9B6F)!important;}',
+
+    /* ── 강좌 메가메뉴 (데스크톱) ─────────────────────────── */
+    '.nb-mega-menu{display:none;position:fixed;top:64px;',
+    'left:50%;transform:translateX(-50%);background:#fff;border-radius:16px;',
+    'box-shadow:0 12px 40px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.06);',
+    'border:1px solid rgba(0,0,0,.07);z-index:200;',
+    'padding:28px 32px;min-width:740px;}',
+    '.nb-dropdown.mega-open .nb-mega-menu{display:grid;',
+    'grid-template-columns:repeat(4,minmax(160px,1fr));gap:28px;}',
+    /* 각 카테고리 열 */
+    '.mega-col{display:flex;flex-direction:column;gap:0;}',
+    '.mega-col-title{font-weight:800!important;font-size:13px!important;',
+    'color:var(--green,#2D9B6F)!important;display:block!important;',
+    'padding:0 0 10px!important;border-bottom:2px solid rgba(45,155,111,.15)!important;',
+    'margin-bottom:8px!important;text-decoration:none!important;',
+    'letter-spacing:-.01em!important;border-radius:0!important;}',
+    '.mega-col-title:hover{color:var(--green,#2D9B6F)!important;opacity:.75!important;}',
+    '.mega-col-items{display:flex;flex-direction:column;gap:1px;}',
+    '.mega-col-sublabel{font-size:10px!important;font-weight:800!important;',
+    'color:#c0c0c0!important;text-transform:uppercase!important;',
+    'letter-spacing:.08em!important;padding:8px 0 3px!important;',
+    'display:block!important;pointer-events:none!important;}',
+    '.mega-col a:not(.mega-col-title){font-size:13px!important;',
+    'color:var(--gray-700,#3d3d3d)!important;text-decoration:none!important;',
+    'padding:6px 8px!important;border-radius:7px!important;',
+    'display:block!important;transition:background .12s,color .12s!important;',
+    'white-space:nowrap!important;}',
+    '.mega-col a:not(.mega-col-title):hover{background:var(--green-light,#E8F5EE)!important;',
+    'color:var(--green,#2D9B6F)!important;}',
+    /* 아코디언 토글 버튼 (데스크톱에선 숨김) */
+    '.mega-acc-btn{display:none;}',
 
     /* 모바일 반응형 */
     '@media(max-width:768px){',
@@ -114,8 +137,30 @@
     'border-radius:0!important;min-width:auto!important;}',
     '.nb-dd-divider{display:none!important;}',
     '.nb-caret{display:none!important;}',
-    /* 모바일에서 강좌 드롭다운 max-height 해제 (사이드바 자체가 스크롤) */
-    '.nb-dd-menu{max-height:none!important;overflow-y:visible!important;}',
+    /* 메가메뉴 모바일: 세로 아코디언으로 전환 */
+    '.nb-mega-menu{display:block!important;position:static!important;',
+    'transform:none!important;box-shadow:none!important;border:none!important;',
+    'background:transparent!important;padding:0!important;',
+    'border-radius:0!important;min-width:auto!important;}',
+    '.mega-col{border-bottom:1px solid rgba(0,0,0,.05)!important;',
+    'padding:0!important;gap:0!important;}',
+    '.mega-col-title{padding:11px 16px!important;font-size:15px!important;',
+    'border-bottom:none!important;margin-bottom:0!important;',
+    'display:flex!important;justify-content:space-between!important;',
+    'align-items:center!important;color:var(--gray-700,#3d3d3d)!important;',
+    'font-weight:600!important;border-radius:10px!important;}',
+    '.mega-acc-btn{display:flex!important;align-items:center;justify-content:center;',
+    'width:28px;height:28px;border:none;background:none;',
+    'font-size:12px;color:#aaa;cursor:pointer;flex-shrink:0;',
+    'transition:transform .2s;border-radius:6px;}',
+    '.mega-col.open .mega-acc-btn{transform:rotate(180deg);}',
+    '.mega-col-items{display:none!important;flex-direction:column!important;',
+    'padding:0 0 8px 12px!important;}',
+    '.mega-col.open .mega-col-items{display:flex!important;}',
+    '.mega-col a:not(.mega-col-title){padding:9px 16px!important;',
+    'font-size:14px!important;border-radius:10px!important;',
+    'white-space:normal!important;}',
+    '.mega-col-sublabel{padding:4px 16px 2px!important;font-size:11px!important;}',
     '}',
   ].join('');
   document.head.appendChild(style);
@@ -132,40 +177,53 @@
     '  <ul class="navbar-menu" id="nb-menu">',
     '    <li class="nb-dropdown">',
     '      <a href="courses.html">강좌 <span class="nb-caret">▾</span></a>',
-    '      <div class="nb-dd-menu" style="min-width:210px;left:0;transform:none;max-height:82vh;overflow-y:auto;">',
+    '      <div class="nb-mega-menu">',
     /* 신앙 */
-    '        <a href="courses.html?cat=faith" class="nb-dd-cat">신앙</a>',
-    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 - 복음" class="nb-dd-sub">트리플 스쿨 - 복음</a>',
-    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 - 제자" class="nb-dd-sub">트리플 스쿨 - 제자</a>',
-    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 - 소명" class="nb-dd-sub">트리플 스쿨 - 소명</a>',
-    '        <a href="courses.html?cat=faith&sub=트리플 스쿨 패키지" class="nb-dd-sub">트리플 스쿨 패키지</a>',
-    '        <div class="nb-dd-divider"></div>',
+    '        <div class="mega-col">',
+    '          <a href="courses.html?cat=faith" class="mega-col-title">신앙</a>',
+    '          <div class="mega-col-items">',
+    '            <a href="courses.html?cat=faith&sub=트리플 스쿨 - 복음">트리플 스쿨 - 복음</a>',
+    '            <a href="courses.html?cat=faith&sub=트리플 스쿨 - 제자">트리플 스쿨 - 제자</a>',
+    '            <a href="courses.html?cat=faith&sub=트리플 스쿨 - 소명">트리플 스쿨 - 소명</a>',
+    '            <a href="courses.html?cat=faith&sub=트리플 스쿨 패키지">트리플 스쿨 패키지</a>',
+    '          </div>',
+    '        </div>',
     /* 교사·부모 */
-    '        <a href="courses.html?cat=edu" class="nb-dd-cat">교사·부모</a>',
-    '        <span class="nb-dd-label">교사</span>',
-    '        <a href="courses.html?cat=edu&sub=교사 - CAS" class="nb-dd-sub">CAS</a>',
-    '        <a href="courses.html?cat=edu&sub=교사 - CBUP" class="nb-dd-sub">CBUP</a>',
-    '        <a href="courses.html?cat=edu&sub=교사 - 성교육" class="nb-dd-sub">성교육</a>',
-    '        <a href="courses.html?cat=edu&sub=교사 - 교사양성" class="nb-dd-sub">교사양성</a>',
-    '        <span class="nb-dd-label">부모</span>',
-    '        <a href="courses.html?cat=edu&sub=부모 - 부모학교" class="nb-dd-sub">부모학교</a>',
-    '        <a href="courses.html?cat=edu&sub=부모 - 부모대안학교" class="nb-dd-sub">부모대안학교</a>',
-    '        <a href="courses.html?cat=edu&sub=부모 - 강사과정" class="nb-dd-sub">강사과정</a>',
-    '        <div class="nb-dd-divider"></div>',
+    '        <div class="mega-col">',
+    '          <a href="courses.html?cat=edu" class="mega-col-title">교사·부모</a>',
+    '          <div class="mega-col-items">',
+    '            <span class="mega-col-sublabel">교사</span>',
+    '            <a href="courses.html?cat=edu&sub=교사 - CAS">CAS</a>',
+    '            <a href="courses.html?cat=edu&sub=교사 - CBUP">CBUP</a>',
+    '            <a href="courses.html?cat=edu&sub=교사 - 성교육">성교육</a>',
+    '            <a href="courses.html?cat=edu&sub=교사 - 교사양성">교사양성</a>',
+    '            <span class="mega-col-sublabel">부모</span>',
+    '            <a href="courses.html?cat=edu&sub=부모 - 부모학교">부모학교</a>',
+    '            <a href="courses.html?cat=edu&sub=부모 - 부모대안학교">부모대안학교</a>',
+    '            <a href="courses.html?cat=edu&sub=부모 - 강사과정">강사과정</a>',
+    '          </div>',
+    '        </div>',
     /* 캠프·사역 */
-    '        <a href="courses.html?cat=mission" class="nb-dd-cat">캠프·사역</a>',
-    '        <a href="courses.html?cat=mission&sub=선교 - 3C" class="nb-dd-sub">선교 - 3C</a>',
-    '        <a href="courses.html?cat=mission&sub=캠프 행정 지원" class="nb-dd-sub">캠프 행정 지원</a>',
-    '        <a href="courses.html?cat=mission&sub=CDG" class="nb-dd-sub">CDG</a>',
-    '        <a href="courses.html?cat=mission&sub=IM의 비전과 사명" class="nb-dd-sub">IM의 비전과 사명</a>',
-    '        <div class="nb-dd-divider"></div>',
+    '        <div class="mega-col">',
+    '          <a href="courses.html?cat=mission" class="mega-col-title">캠프·사역</a>',
+    '          <div class="mega-col-items">',
+    '            <a href="courses.html?cat=mission&sub=선교 - 3C">선교 - 3C</a>',
+    '            <a href="courses.html?cat=mission&sub=캠프 행정 지원">캠프 행정 지원</a>',
+    '            <a href="courses.html?cat=mission&sub=CDG">CDG</a>',
+    '            <a href="courses.html?cat=mission&sub=IM의 비전과 사명">IM의 비전과 사명</a>',
+    '          </div>',
+    '        </div>',
     /* 영어·시험 */
-    '        <a href="courses.html?cat=english" class="nb-dd-cat">영어·시험</a>',
-    '        <a href="courses.html?cat=english&sub=영단속 영어" class="nb-dd-sub">영단속 영어</a>',
-    '        <a href="courses.html?cat=english&sub=ABS" class="nb-dd-sub">ABS</a>',
-    '        <a href="courses.html?cat=english&sub=토익" class="nb-dd-sub">토익</a>',
-    '        <a href="courses.html?cat=english&sub=고졸 검정고시" class="nb-dd-sub">고졸 검정고시</a>',
-    '        <a href="courses.html?cat=english&sub=중졸 검정고시" class="nb-dd-sub">중졸 검정고시</a>',
+    '        <div class="mega-col">',
+    '          <a href="courses.html?cat=english" class="mega-col-title">영어·시험</a>',
+    '          <div class="mega-col-items">',
+    '            <a href="courses.html?cat=english&sub=영단속 영어">영단속 영어</a>',
+    '            <a href="courses.html?cat=english&sub=ABS">ABS</a>',
+    '            <a href="courses.html?cat=english&sub=토익">토익</a>',
+    '            <a href="courses.html?cat=english&sub=고졸 검정고시">고졸 검정고시</a>',
+    '            <a href="courses.html?cat=english&sub=중졸 검정고시">중졸 검정고시</a>',
+    '          </div>',
+    '        </div>',
     '      </div>',
     '    </li>',
     '    <li><a href="pass.html" style="color:var(--green,#2D9B6F);font-weight:700;">전강좌 무제한</a></li>',
@@ -254,7 +312,42 @@
     if (menu.classList.contains('nb-open')) closeMenu(); else openMenu();
   });
   overlay.addEventListener('click', closeMenu);
-  menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', closeMenu); });
+  menu.querySelectorAll('a:not(.mega-col-title)').forEach(function (a) { a.addEventListener('click', closeMenu); });
+
+  // ── 메가메뉴 데스크톱 hover ──────────────────────────────────────────
+  var ddItem = menu.querySelector('.nb-dropdown');
+  var leaveTimer;
+  if (ddItem) {
+    ddItem.addEventListener('mouseenter', function () {
+      clearTimeout(leaveTimer);
+      if (window.innerWidth > 768) ddItem.classList.add('mega-open');
+    });
+    ddItem.addEventListener('mouseleave', function () {
+      leaveTimer = setTimeout(function () { ddItem.classList.remove('mega-open'); }, 80);
+    });
+    var megaMenu = ddItem.querySelector('.nb-mega-menu');
+    if (megaMenu) {
+      megaMenu.addEventListener('mouseenter', function () { clearTimeout(leaveTimer); });
+      megaMenu.addEventListener('mouseleave', function () {
+        leaveTimer = setTimeout(function () { ddItem.classList.remove('mega-open'); }, 80);
+      });
+    }
+  }
+
+  // ── 메가메뉴 모바일 아코디언 ───────────────────────────────────────
+  menu.querySelectorAll('.mega-col-title').forEach(function (titleLink) {
+    titleLink.addEventListener('click', function (e) {
+      if (window.innerWidth > 768) return;
+      var col = titleLink.closest('.mega-col');
+      if (col.classList.contains('open')) {
+        closeMenu();
+        return;
+      }
+      e.preventDefault();
+      menu.querySelectorAll('.mega-col.open').forEach(function (c) { c.classList.remove('open'); });
+      col.classList.add('open');
+    });
+  });
 
   // ── 현재 페이지 활성화 ────────────────────────────────────────────
   var curPath   = (window.location.pathname.split('/').pop() || 'index.html');
