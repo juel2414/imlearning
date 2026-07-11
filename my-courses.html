@@ -241,7 +241,7 @@
 <div class="my-header">
   <div class="container">
     <div class="my-header-inner">
-      <div class="my-avatar" id="user-avatar">👤</div>
+      <div class="my-avatar" id="user-avatar"><img src="icons/profile.svg" alt="" style="width:100%;height:100%;object-fit:contain;"></div>
       <div>
         <div class="my-name" id="user-name">불러오는 중...</div>
         <div class="my-email" id="user-email"></div>
@@ -269,11 +269,11 @@
   <div class="my-tabs">
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
     <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 통계</div>
-    <div class="my-tab" onclick="switchTab('badges', this)">🏅 나의 뱃지</div>
+    <div class="my-tab" onclick="switchTab('badges', this)"><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 나의 뱃지</div>
     <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
-    <div class="my-tab" onclick="switchTab('certs', this)">🎓 수료증</div>
-    <div class="my-tab" onclick="switchTab('wishlist', this)">❤️ 찜한 강좌</div>
-    <div class="my-tab" onclick="switchTab('gifts', this)">🎁 선물함</div>
+    <div class="my-tab" onclick="switchTab('certs', this)"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 수료증</div>
+    <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
+    <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물함</div>
   </div>
 </div>
 
@@ -811,19 +811,19 @@ function renderBadgesTab(earnedBadges) {
       : '';
     return `
       <div class="badge-item ${isEarned ? 'earned' : 'locked'}">
-        <div class="badge-item-icon">${def.icon}</div>
+        <div class="badge-item-icon"><img src="${def.icon}" alt="${def.name}" style="width:1.4em;height:1.4em;"></div>
         <div class="badge-item-name">${def.name}</div>
         <div class="badge-item-desc">${def.desc}</div>
         ${isEarned
           ? `<div class="badge-item-date">획득일: ${dateStr}</div>`
-          : `<div class="badge-item-lock">🔒 미획득</div>`}
+          : `<div class="badge-item-lock"><img src="icons/lock-closed.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 미획득</div>`}
       </div>`;
   }).join('');
 
   el.innerHTML = `
     <div style="margin-bottom:18px;">
       <div style="font-size:16px;font-weight:700;color:var(--black);margin-bottom:4px;">
-        🏅 나의 뱃지
+        <img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 나의 뱃지
         <span style="font-size:13px;color:var(--green);font-weight:600;margin-left:6px;">${earnedCount}/${defs.length} 획득</span>
       </div>
       <div style="font-size:13px;color:var(--gray-500);">학습을 꾸준히 하면 뱃지를 모을 수 있어요!</div>
@@ -839,7 +839,7 @@ function showBadgeToast(badge) {
   const toast = document.createElement('div');
   toast.className = 'badge-toast';
   toast.innerHTML = `
-    <div class="badge-toast-icon">${def.icon}</div>
+    <div class="badge-toast-icon"><img src="${def.icon}" alt="${def.name}" style="width:2em;height:2em;"></div>
     <div>
       <div class="badge-toast-title">🎉 뱃지 획득! ${def.name}</div>
       <div class="badge-toast-desc">${def.desc}</div>
@@ -950,7 +950,7 @@ function renderCerts(orders, coursesMap) {
   if (completed.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🎓</div>
+        <div class="empty-state-icon"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;"></div>
         <div class="empty-state-title">아직 수료증이 없어요</div>
         <div class="empty-state-desc">강좌를 100% 완료하면 수료증을 발급받을 수 있어요.</div>
         <a href="courses.html" class="btn btn-primary">강좌 시작하기</a>
@@ -964,7 +964,7 @@ function renderCerts(orders, coursesMap) {
     const date = new Date(order.updated_at || order.created_at).toLocaleDateString('ko-KR');
     return `
       <div class="cert-card">
-        <div class="cert-icon">🎓</div>
+        <div class="cert-icon"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;"></div>
         <div class="cert-title">${course.title}</div>
         <div class="cert-date">수료일: ${date}</div>
         <button class="btn-cert" onclick="downloadCert('${course.title}', '${date}')">수료증 다운로드</button>
@@ -1030,9 +1030,9 @@ function renderWishlist(wishCourses) {
   if (wishCourses.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🤍</div>
+        <div class="empty-state-icon"><img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;"></div>
         <div class="empty-state-title">찜한 강좌가 없어요</div>
-        <div class="empty-state-desc">관심 있는 강좌에 ❤️ 버튼을 눌러 저장해두세요!</div>
+        <div class="empty-state-desc">관심 있는 강좌에 <img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 버튼을 눌러 저장해두세요!</div>
         <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
       </div>`;
     return;
@@ -1071,9 +1071,9 @@ async function removeWish(courseId) {
   if (grid && grid.children.length === 0) {
     document.getElementById('wishlist-content').innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🤍</div>
+        <div class="empty-state-icon"><img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;"></div>
         <div class="empty-state-title">찜한 강좌가 없어요</div>
-        <div class="empty-state-desc">관심 있는 강좌에 ❤️ 버튼을 눌러 저장해두세요!</div>
+        <div class="empty-state-desc">관심 있는 강좌에 <img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 버튼을 눌러 저장해두세요!</div>
         <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
       </div>`;
   }
@@ -1280,7 +1280,7 @@ async function loadGifts(userId) {
   if (sent.length === 0 && received.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🎁</div>
+        <div class="empty-state-icon"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;"></div>
         <div class="empty-state-title">선물 내역이 없어요</div>
         <div class="empty-state-desc">강좌 상세 페이지에서 소중한 분께 강의를 선물해보세요!</div>
         <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>

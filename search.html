@@ -226,7 +226,7 @@ function courseCard(c) {
   return `
     <div class="course-card" style="display:block;" onclick="goDetail(${c.id})" data-id="${c.id}">
       <div class="course-thumb" style="position:relative;">${thumb}${badge}
-        <button class="wish-btn ${isWished?'active':''}" onclick="toggleWish(event,${c.id})" title="찜하기">${isWished?'❤️':'🤍'}</button>
+        <button class="wish-btn ${isWished?'active':''}" onclick="toggleWish(event,${c.id})" title="찜하기">${isWished?'<img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">':'<img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">'}</button>
       </div>
       <div class="course-body">
         <div class="course-cat">${esc(CAT_LABELS[c.category]||'')}</div>

@@ -169,12 +169,12 @@ async function toggleWish(e, courseId) {
   if (wishSet.has(courseId)) {
     await supabaseClient.from('wishlists').delete().eq('user_id', currentUser.id).eq('course_id', courseId);
     wishSet.delete(courseId);
-    btn.innerHTML = '🤍';
+    btn.innerHTML = '<img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">';
     btn.classList.remove('active');
   } else {
     await supabaseClient.from('wishlists').insert({ user_id: currentUser.id, course_id: courseId });
     wishSet.add(courseId);
-    btn.innerHTML = '❤️';
+    btn.innerHTML = '<img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">';
     btn.classList.add('active');
   }
   btn.disabled = false;
@@ -278,7 +278,7 @@ function renderCourseGrid() {
           ${thumbContent}
           ${thumbEmoji ? `<span style="font-size:32px;position:relative;z-index:1;">${thumbEmoji}</span>` : ''}
           ${badgeHtml}
-          <button class="wish-btn ${isWished ? 'active' : ''}" onclick="toggleWish(event, ${course.id})" title="찜하기">${isWished ? '❤️' : '🤍'}</button>
+          <button class="wish-btn ${isWished ? 'active' : ''}" onclick="toggleWish(event, ${course.id})" title="찜하기">${isWished ? '<img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">' : '<img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">'}</button>
         </div>
         <div class="course-body">
           <div class="course-cat">${esc(catLabel)}</div>

@@ -205,7 +205,7 @@
         <p class="detail-desc" id="course-desc"></p>
         <div class="detail-meta">
           <div class="detail-meta-item"><span class="detail-meta-icon">👥</span> <span id="course-students">-</span>명</div>
-          <div class="detail-meta-item"><span class="detail-meta-icon">⭐</span> 4.9점</div>
+          <div class="detail-meta-item"><span class="detail-meta-icon"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"></span> 4.9점</div>
           <div class="detail-meta-item"><span class="detail-meta-icon">♾️</span> 무제한 재수강</div>
           <div class="detail-meta-item"><span class="detail-meta-icon">📱</span> 모바일 수강 가능</div>
         </div>
@@ -279,7 +279,7 @@
         </div>
         <div class="tab-content" id="tab-review">
           <div class="review-card" style="padding:1.5rem;background:var(--gray-100);border-radius:var(--radius-md);margin-bottom:1rem;">
-            <div style="color:#F59E0B;margin-bottom:8px;">★★★★★</div>
+            <div style="margin-bottom:8px;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"></div>
             <p style="font-size:14px;color:var(--gray-700);margin-bottom:1rem;">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요. 이론과 실제가 균형 있게 잘 짜여있어서 현장에 바로 적용할 수 있었습니다."</p>
             <div style="font-size:13px;font-weight:700;color:var(--black);">김○○ 집사 <span style="color:var(--gray-500);font-weight:400;">· 2024년 4월 수강</span></div>
           </div>
@@ -292,7 +292,7 @@
       <!-- 구매 카드 -->
       <aside>
         <div class="purchase-card">
-          <div class="purchase-thumb">✝️</div>
+          <div class="purchase-thumb"><img src="icons/faith.svg" alt="" style="width:1em;height:1em;"></div>
           <!-- 수강 중 진도 표시 (수강 후에만 표시) -->
           <div id="enrolled-section" style="display:none;">
             <div class="enrolled-progress">
@@ -344,8 +344,8 @@
           </div>
           <div class="purchase-btns" id="purchase-btns-section">
             <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
-            <button class="btn btn-outline btn-lg" id="gift-btn" onclick="openGiftModal()" style="justify-content:center;width:100%;cursor:pointer;">🎁 선물하기</button>
-            <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()">🤍 찜하기</button>
+            <button class="btn btn-outline btn-lg" id="gift-btn" onclick="openGiftModal()" style="justify-content:center;width:100%;cursor:pointer;"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물하기</button>
+            <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()"><img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜하기</button>
           </div>
           <div class="purchase-includes">
             <div class="purchase-includes-title">수강 혜택</div>
@@ -389,7 +389,7 @@
 <div id="gift-modal" onclick="closeGiftModal(event)">
   <div id="gift-modal-box">
     <button id="gift-modal-close" onclick="closeGiftModal()">✕</button>
-    <h3>🎁 강의 선물하기</h3>
+    <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 강의 선물하기</h3>
     <p class="gift-sub">소중한 분께 강의를 선물해보세요!</p>
     <div class="gift-field">
       <label>받는 분 이메일 <span style="color:#888;font-weight:400;">(선택 — 비워두면 링크만 생성)</span></label>
@@ -456,7 +456,9 @@ async function loadWishState(userId, courseId) {
 function updateWishBtn() {
   const btn = document.getElementById('wish-btn');
   if (!btn) return;
-  btn.innerHTML = isWished ? '❤️ 찜 취소' : '🤍 찜하기';
+  btn.innerHTML = isWished
+    ? '<img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜 취소'
+    : '<img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜하기';
   btn.classList.toggle('wished', isWished);
 }
 
@@ -547,7 +549,7 @@ function applyProgressUI() {
 
       // 잠금 아이콘 숨기기 (수강 중이면 모든 강의 접근 가능)
       const lockEl = item.querySelector('.curriculum-lock:not(.preview-slot)');
-      if (lockEl) lockEl.textContent = '🔓';
+      if (lockEl) lockEl.innerHTML = '<img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">';
 
       // Vimeo 강의 클릭 핸들러
       if (!item.dataset.vimeoClickBound) {
@@ -1121,7 +1123,7 @@ async function loadTextbooks(courseId) {
     list.innerHTML = data.map(t => {
       const cover = t.cover_image_url
         ? `<img src="${esc(t.cover_image_url)}" alt="${esc(t.title)}" loading="lazy">`
-        : '📖';
+        : '<img src="icons/book.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">';
       const price = t.price ? `₩${Number(t.price).toLocaleString()}` : '';
       const desc = t.description ? `<p class="textbook-desc">${esc(t.description)}</p>` : '';
       const buyHref = /^https?:\/\//i.test(t.imbooks_url||'') ? esc(t.imbooks_url) : '#';
@@ -1173,7 +1175,7 @@ async function loadCurriculum(courseId) {
         return `<div class="curriculum-item" data-lesson="lesson-${l.num}" data-title="${safe}" data-video-url="${url}" data-free="${l.is_free_preview ? '1' : '0'}">
           <span class="curriculum-num">${l.num}</span>
           <span class="curriculum-item-title">${esc(l.title)}</span>
-          <span class="curriculum-lock-wrap">${l.is_free_preview ? '<span class="curriculum-lock preview-slot">🔓 미리보기</span>' : '<span class="curriculum-lock">🔒</span>'}</span>
+          <span class="curriculum-lock-wrap">${l.is_free_preview ? '<span class="curriculum-lock preview-slot"><img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"></span>'}</span>
         </div>`;
       }).join('')}
     </div>`;
@@ -1186,7 +1188,7 @@ async function loadCurriculum(courseId) {
   // 무료 미리보기 강의 수 안내
   const freeCount = lessons.filter(l => l.is_free_preview).length;
   if (freeCount > 0) {
-    notice.textContent = `🔓 ${freeCount}강은 무료로 미리 볼 수 있어요`;
+    notice.innerHTML = `<img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> ${freeCount}강은 무료로 미리 볼 수 있어요`;
     notice.style.display = '';
   }
 

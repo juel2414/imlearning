@@ -279,7 +279,7 @@
 
     // 잠금 안내
     var lockNotice = isLocked
-      ? '<p style="font-size:12px;color:#c9a252;margin:8px 0 0;text-align:center;">🔒 ' + esc(gift.masked_email) + ' 계정으로 로그인해야 받을 수 있어요</p>'
+      ? '<p style="font-size:12px;color:#c9a252;margin:8px 0 0;text-align:center;"><img src="icons/lock-closed.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> ' + esc(gift.masked_email) + ' 계정으로 로그인해야 받을 수 있어요</p>'
       : '';
 
     // 비로그인 → 로그인 버튼

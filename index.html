@@ -741,9 +741,9 @@
         <p class="lp-sub">실제 수강생들의 생생한 이야기</p>
       </div>
       <div class="lp-reviews-grid" id="js-reviews">
-        <div class="lp-rcard reveal"><div class="lp-rstars">★★★★★</div><p class="lp-rtext">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요."</p><div class="lp-rauthor"><div class="lp-ravatar">김</div><div><div class="lp-rname">김○○ 집사</div><div class="lp-rcourse">CBUP 수료과정</div></div></div></div>
-        <div class="lp-rcard reveal reveal-delay-1"><div class="lp-rstars">★★★★★</div><p class="lp-rtext">"부모대안학교 수강 후 아이와의 대화가 달라졌어요."</p><div class="lp-rauthor"><div class="lp-ravatar">박</div><div><div class="lp-rname">박○○ 권사</div><div class="lp-rcourse">부모대안학교</div></div></div></div>
-        <div class="lp-rcard reveal reveal-delay-2"><div class="lp-rstars">★★★★★</div><p class="lp-rtext">"영단속 영어기도 듣고 나서 자연스럽게 영어로 기도할 수 있게 됐어요!"</p><div class="lp-rauthor"><div class="lp-ravatar">이</div><div><div class="lp-rname">이○○ 성도</div><div class="lp-rcourse">영단속 영어기도</div></div></div></div>
+        <div class="lp-rcard reveal"><div class="lp-rstars"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"></div><p class="lp-rtext">"CBUP 과정을 통해 교회학교 사역의 방향이 완전히 바뀌었어요."</p><div class="lp-rauthor"><div class="lp-ravatar">김</div><div><div class="lp-rname">김○○ 집사</div><div class="lp-rcourse">CBUP 수료과정</div></div></div></div>
+        <div class="lp-rcard reveal reveal-delay-1"><div class="lp-rstars"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"></div><p class="lp-rtext">"부모대안학교 수강 후 아이와의 대화가 달라졌어요."</p><div class="lp-rauthor"><div class="lp-ravatar">박</div><div><div class="lp-rname">박○○ 권사</div><div class="lp-rcourse">부모대안학교</div></div></div></div>
+        <div class="lp-rcard reveal reveal-delay-2"><div class="lp-rstars"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"></div><p class="lp-rtext">"영단속 영어기도 듣고 나서 자연스럽게 영어로 기도할 수 있게 됐어요!"</p><div class="lp-rauthor"><div class="lp-ravatar">이</div><div><div class="lp-rname">이○○ 성도</div><div class="lp-rcourse">영단속 영어기도</div></div></div></div>
       </div>
     </div>
   </section>
@@ -763,7 +763,7 @@
           </ul>
         </div>
         <div class="lp-cert-vis reveal reveal-delay-2">
-          <div class="lp-cert-badge">🏅</div>
+          <div class="lp-cert-badge"><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;"></div>
           <div class="lp-cert-vis-title">수료증명서</div>
           <div class="lp-cert-vis-sub">Certificate of Completion</div>
           <div class="lp-cert-line"></div>
@@ -995,7 +995,7 @@ function applyReviews(c) {
   const dl = ['','reveal-delay-1','reveal-delay-2'];
   g.innerHTML = c.items.map((it,i) => `
     <div class="lp-rcard reveal ${dl[i]}">
-      <div class="lp-rstars">★★★★★</div>
+      <div class="lp-rstars"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"></div>
       <p class="lp-rtext">"${esc(it.text)}"</p>
       <div class="lp-rauthor">
         <div class="lp-ravatar">${esc(it.emoji)}</div>
@@ -1038,7 +1038,7 @@ async function loadInstructors() {
     g.innerHTML = list.map(i => `
       <div class="instructor-card reveal">
         <div class="instructor-avatar" style="overflow:hidden;">
-          ${i.photo_url ? `<img src="${esc(i.photo_url)}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
+          ${i.photo_url ? `<img src="${esc(i.photo_url)}" style="width:100%;height:100%;object-fit:cover;">` : '<img src="icons/profile.svg" alt="" style="width:100%;height:100%;object-fit:contain;">'}
         </div>
         <div class="instructor-name">${esc(i.name)}</div>
         <div class="instructor-role">${esc(i.role||'')}</div>

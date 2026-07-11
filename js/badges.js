@@ -4,17 +4,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BADGE_DEFINITIONS = [
-  { type: 'first_step',     icon: '🌱', name: '첫 걸음',    desc: '첫 번째 강의를 완료했어요!' },
-  { type: 'streak_3',       icon: '🔥', name: '3일 연속',   desc: '3일 연속 학습을 완료했어요!' },
-  { type: 'streak_7',       icon: '💪', name: '7일 연속',   desc: '7일 연속 학습을 완료했어요!' },
-  { type: 'streak_30',      icon: '⚡', name: '30일 연속',  desc: '30일 연속 학습을 완료했어요!' },
-  { type: 'lessons_10',     icon: '📚', name: '10강 달성',  desc: '10개 강의를 수강 완료했어요!' },
-  { type: 'goal_achieved',  icon: '🎯', name: '목표 달성',  desc: '오늘 학습 목표를 달성했어요!' },
-  { type: 'graduate',       icon: '🎓', name: '수료',       desc: '첫 강좌를 100% 완료했어요!' },
-  { type: 'multi_graduate', icon: '👑', name: '멀티 수료',  desc: '2개 이상의 강좌를 수료했어요!' },
-  { type: 'passion',        icon: '⭐', name: '열정왕',     desc: '30개 이상의 강의를 수강했어요!' },
-  { type: 'above_avg',      icon: '📊', name: '평균 초과',  desc: '전체 학습자 평균을 초과했어요!' },
-  { type: 'top_10',         icon: '🏆', name: '상위 10%',   desc: '상위 10% 학습자예요!' },
+  { type: 'first_step',     icon: 'icons/badge-first-step.svg',    name: '첫 걸음',    desc: '첫 번째 강의를 완료했어요!' },
+  { type: 'streak_3',       icon: 'icons/badge-streak-3.svg',      name: '3일 연속',   desc: '3일 연속 학습을 완료했어요!' },
+  { type: 'streak_7',       icon: 'icons/badge-streak-7.svg',      name: '7일 연속',   desc: '7일 연속 학습을 완료했어요!' },
+  { type: 'streak_30',      icon: 'icons/badge-streak-30.svg',     name: '30일 연속',  desc: '30일 연속 학습을 완료했어요!' },
+  { type: 'lessons_10',     icon: 'icons/badge-lessons-10.svg',    name: '10강 달성',  desc: '10개 강의를 수강 완료했어요!' },
+  { type: 'goal_achieved',  icon: 'icons/badge-goal-achieved.svg', name: '목표 달성',  desc: '오늘 학습 목표를 달성했어요!' },
+  { type: 'graduate',       icon: 'icons/badge-graduate.svg',      name: '수료',       desc: '첫 강좌를 100% 완료했어요!' },
+  { type: 'multi_graduate', icon: 'icons/badge-multi-graduate.svg',name: '멀티 수료',  desc: '2개 이상의 강좌를 수료했어요!' },
+  { type: 'passion',        icon: 'icons/badge-passion.svg',       name: '열정왕',     desc: '30개 이상의 강의를 수강했어요!' },
+  { type: 'above_avg',      icon: 'icons/badge-above-avg.svg',     name: '평균 초과',  desc: '전체 학습자 평균을 초과했어요!' },
+  { type: 'top_10',         icon: 'icons/badge-top-10.svg',        name: '상위 10%',   desc: '상위 10% 학습자예요!' },
 ];
 
 /**
