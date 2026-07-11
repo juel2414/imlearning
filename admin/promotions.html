@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>프로모션/쿠폰 관리 — 아이엠러닝 관리자</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="admin-common.css">
   <style>
@@ -257,9 +258,7 @@
 </div>
 
 <script>
-const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabaseClient;
 
 (async function checkAdminAccess() {
   const { data: { session } } = await sb.auth.getSession();

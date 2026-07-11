@@ -141,9 +141,11 @@
   // ── 로그아웃 ──────────────────────────────────────────────────────
   var logoutBtn = document.getElementById('an-logout');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', function () {
-      sessionStorage.removeItem('admin_auth');
-      window.location.href = 'login.html';
+    logoutBtn.addEventListener('click', async function () {
+      try {
+        if (window.supabaseClient) await window.supabaseClient.auth.signOut();
+      } catch (e) {}
+      window.location.href = '../index.html';
     });
   }
 
