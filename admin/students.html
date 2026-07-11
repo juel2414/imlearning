@@ -177,8 +177,22 @@ tr.dormant-row:hover td { background:#FFE8E8; }
   </div>
 </div>
 
+<script src="../js/supabase-client.js"></script>
 <script>
-if (!sessionStorage.getItem('admin_auth')) { window.location.href = 'login.html'; }
+(async function checkAdminAccess() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=' + encodeURIComponent(location.pathname.split('/admin/')[1] ? 'admin/' + location.pathname.split('/admin/')[1] : 'admin/index.html');
+    return;
+  }
+  const { data: profile } = await supabaseClient
+    .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+})();
 
 const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';

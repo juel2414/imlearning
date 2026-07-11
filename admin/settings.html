@@ -168,11 +168,23 @@
   </main>
 
 <script src="../js/main.js"></script>
+<script src="../js/supabase-client.js"></script>
 <script>
 // 인증 체크
-if (!sessionStorage.getItem('admin_auth')) {
-  window.location.href = 'login.html';
-}
+(async function checkAdminAccess() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=' + encodeURIComponent(location.pathname.split('/admin/')[1] ? 'admin/' + location.pathname.split('/admin/')[1] : 'admin/index.html');
+    return;
+  }
+  const { data: profile } = await supabaseClient
+    .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+})();
 
 // 저장된 설정 불러오기
 window.addEventListener('DOMContentLoaded', () => {
@@ -270,9 +282,9 @@ function resetAll() {
 }
 
 // 로그아웃
-function logout() {
-  sessionStorage.removeItem('admin_auth');
-  window.location.href = 'login.html';
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = '../index.html';
 }
 
 // 성공 메시지 표시
