@@ -60,6 +60,8 @@
     '.nb-caret{font-size:10px;margin-left:2px;display:inline-block;',
     'transition:transform .2s;opacity:.6;}',
     '.nb-dropdown:hover .nb-caret{transform:rotate(180deg);opacity:1;}',
+    /* 링크→메뉴 사이 10px 갭을 보이지 않는 브리지로 채워 hover 유지 */
+    '.nb-dropdown::after{content:"";position:absolute;top:100%;left:-20px;right:-20px;height:14px;}',
 
     /* 모바일 반응형 */
     '@media(max-width:768px){',

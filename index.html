@@ -1390,5 +1390,151 @@ function initHeroCanvas() {
   }
 }
 </script>
+
+<!-- ── 공지 팝업 ─────────────────────────────────────────── -->
+<style>
+#notice-popup-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.45);
+  align-items: center; justify-content: center;
+  padding: 20px;
+  animation: npFadeIn .2s ease;
+}
+#notice-popup-overlay.open { display: flex; }
+@keyframes npFadeIn { from{opacity:0} to{opacity:1} }
+#notice-popup {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  overflow: hidden;
+  animation: npSlideUp .25s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes npSlideUp { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
+.np-header {
+  background: linear-gradient(135deg, #1e7a52 0%, #2D9B6F 100%);
+  padding: 18px 22px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.np-badge {
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,.75);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.np-close-btn {
+  width: 28px; height: 28px; border: none; background: rgba(255,255,255,.15);
+  border-radius: 50%; color: #fff; font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.np-close-btn:hover { background: rgba(255,255,255,.28); }
+.np-body { padding: 22px 24px 20px; }
+.np-title {
+  font-size: 17px; font-weight: 800; color: #111;
+  margin-bottom: 12px; line-height: 1.4; word-break: keep-all;
+}
+.np-content {
+  font-size: 13px; color: #555; line-height: 1.85;
+  white-space: pre-line;
+  max-height: 160px; overflow-y: auto;
+  border-top: 1px solid rgba(0,0,0,.06); padding-top: 12px;
+}
+.np-footer {
+  padding: 14px 24px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+.np-dismiss-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: #888; cursor: pointer;
+}
+.np-dismiss-row input[type="checkbox"] {
+  width: 14px; height: 14px; accent-color: #2D9B6F; cursor: pointer;
+}
+.np-more-link {
+  font-size: 12px; color: #2D9B6F; font-weight: 700;
+  text-decoration: none;
+}
+.np-more-link:hover { text-decoration: underline; }
+</style>
+
+<div id="notice-popup-overlay">
+  <div id="notice-popup">
+    <div class="np-header">
+      <span class="np-badge">📢 공지사항</span>
+      <button class="np-close-btn" id="np-close">✕</button>
+    </div>
+    <div class="np-body">
+      <div class="np-title" id="np-title">불러오는 중...</div>
+      <div class="np-content" id="np-content"></div>
+    </div>
+    <div class="np-footer">
+      <label class="np-dismiss-row">
+        <input type="checkbox" id="np-dismiss-today">
+        오늘 하루 보지 않기
+      </label>
+      <a href="notices.html" class="np-more-link">전체 공지 보기 →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DISMISS_KEY = 'iml_notice_dismissed';
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  }
+
+  function closePopup() {
+    var overlay = document.getElementById('notice-popup-overlay');
+    if (!overlay) return;
+    if (document.getElementById('np-dismiss-today').checked) {
+      localStorage.setItem(DISMISS_KEY, todayStr());
+    }
+    overlay.classList.remove('open');
+  }
+
+  function showPopup(notice) {
+    var overlay  = document.getElementById('notice-popup-overlay');
+    var titleEl  = document.getElementById('np-title');
+    var contentEl = document.getElementById('np-content');
+    if (!overlay || !notice) return;
+
+    titleEl.textContent  = notice.title;
+    contentEl.textContent = notice.content;
+    overlay.classList.add('open');
+
+    document.getElementById('np-close').addEventListener('click', closePopup);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closePopup();
+    });
+  }
+
+  function initNoticePopup() {
+    // 오늘 닫은 기록 있으면 스킵
+    if (localStorage.getItem(DISMISS_KEY) === todayStr()) return;
+
+    var sb = window.supabaseClient;
+    if (!sb) { setTimeout(initNoticePopup, 80); return; }
+
+    sb.from('notices')
+      .select('id,title,content')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(function (res) {
+        if (res.data) showPopup(res.data);
+      })
+      .catch(function () {});
+  }
+
+  // 페이지 로드 후 0.8초 딜레이 (히어로 애니메이션 이후)
+  window.addEventListener('DOMContentLoaded', function () {
+    setTimeout(initNoticePopup, 800);
+  });
+})();
+</script>
 </body>
 </html>
