@@ -108,8 +108,9 @@
 }
 
 /* ── Vimeo 강의 플레이어 ── */
-.lesson-player-wrap { display:none; margin-bottom:1.5rem; }
-.lesson-player-wrap.show { display:block; }
+.player-sidebar-row { display:none; gap:14px; margin-bottom:1.5rem; align-items:flex-start; }
+.player-sidebar-row.show { display:flex; }
+.lesson-player-wrap { flex:1; min-width:0; }
 .lesson-player-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .lesson-player-title { font-size:15px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%; }
 .lesson-player-close { padding:6px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; background:#fff; font-size:12px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
@@ -126,6 +127,27 @@
 .curriculum-item.vimeo-clickable { cursor:pointer; transition:all .15s; }
 .curriculum-item.vimeo-clickable:hover { border-color:rgba(45,155,111,.3); background:rgba(45,155,111,.04); }
 .curriculum-item.vimeo-playing { border-color:var(--green)!important; background:rgba(45,155,111,.08)!important; }
+
+/* ── 강의 목록 사이드바 ── */
+.lesson-sidebar { width:264px; flex-shrink:0; background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:12px; box-shadow:0 2px 14px rgba(0,0,0,.07); display:flex; overflow:hidden; transition:width .25s ease; align-self:stretch; }
+.lesson-sidebar.collapsed { width:40px; }
+.lesson-sidebar.collapsed .sidebar-inner { opacity:0; pointer-events:none; }
+.sidebar-toggle-btn { width:40px; flex-shrink:0; background:#f8faf9; border:none; border-right:1px solid rgba(0,0,0,.07); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:12px 0; color:var(--green-dark); transition:background .12s; }
+.sidebar-toggle-btn:hover { background:#eef7f2; }
+.sidebar-toggle-icon { font-size:14px; }
+.sidebar-toggle-label { writing-mode:vertical-rl; font-size:10px; font-weight:800; letter-spacing:1.5px; color:var(--gray-500); }
+.sidebar-inner { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; transition:opacity .2s; }
+.sidebar-hdr { padding:11px 12px 9px; font-size:12px; font-weight:800; color:var(--black); border-bottom:1px solid rgba(0,0,0,.06); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
+.sidebar-count { font-size:11px; font-weight:400; color:var(--gray-400); }
+.sidebar-list { overflow-y:auto; flex:1; max-height:380px; }
+.sidebar-lesson-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid rgba(0,0,0,.04); cursor:pointer; font-size:12px; color:var(--gray-700); transition:background .1s; line-height:1.4; }
+.sidebar-lesson-item:hover { background:#f5f5f5; }
+.sidebar-lesson-item.active { background:#E8F5EE; color:var(--green-dark); font-weight:600; }
+.sidebar-status { width:20px; height:20px; border-radius:50%; background:var(--green-light); color:var(--green-dark); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
+.sidebar-lesson-item.active .sidebar-status { background:var(--green); color:#fff; }
+.sidebar-lesson-item.done .sidebar-status { background:var(--green); color:#fff; font-size:12px; }
+.sidebar-item-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:900px) { .player-sidebar-row { flex-direction:column; } .lesson-sidebar { width:100% !important; } .sidebar-list { max-height:220px; } }
 
 /* ── 후기 탭 ── */
 .rating-summary { display:flex; align-items:center; gap:20px; background:var(--gray-100); border-radius:var(--radius-md); padding:1.25rem 1.5rem; margin-bottom:1.5rem; }
@@ -256,27 +278,40 @@
           </ul>
         </div>
         <div class="tab-content" id="tab-curriculum">
-          <!-- 강의 영상 플레이어 (수강 시) -->
-          <div id="lesson-player-wrap" class="lesson-player-wrap">
-            <div class="lesson-player-header">
-              <span id="lesson-player-title" class="lesson-player-title">강의 선택</span>
-              <button class="lesson-player-close" onclick="closeLessonPlayer()">✕ 닫기</button>
-            </div>
-            <div class="resume-banner" id="resume-banner">
-              <span id="resume-banner-text"></span>
-              <div style="display:flex;gap:6px;margin-left:auto;">
-                <button class="resume-btn-yes" onclick="doResume()">이어보기</button>
-                <button class="resume-btn-no" onclick="doStartOver()">처음부터</button>
+          <!-- 강의 영상 플레이어 + 강의 목록 사이드바 -->
+          <div class="player-sidebar-row" id="playerSidebarRow">
+            <div id="lesson-player-wrap" class="lesson-player-wrap">
+              <div class="lesson-player-header">
+                <span id="lesson-player-title" class="lesson-player-title">강의 선택</span>
+                <button class="lesson-player-close" onclick="closeLessonPlayer()">✕ 닫기</button>
+              </div>
+              <div class="resume-banner" id="resume-banner">
+                <span id="resume-banner-text"></span>
+                <div style="display:flex;gap:6px;margin-left:auto;">
+                  <button class="resume-btn-yes" onclick="doResume()">이어보기</button>
+                  <button class="resume-btn-no" onclick="doStartOver()">처음부터</button>
+                </div>
+              </div>
+              <div class="lesson-iframe-wrap">
+                <div id="vimeo-player-container"></div>
+              </div>
+              <div class="watch-info">
+                <span>실제 시청: <strong id="watch-display">0초</strong></span>
+                <span id="watch-pct-text" style="font-weight:700;min-width:34px;text-align:right;"></span>
+                <div class="watch-pct-bar"><div class="watch-pct-fill" id="watch-pct-fill" style="width:0%"></div></div>
+                <span id="watch-done-badge" style="display:none;color:var(--green);font-weight:700;font-size:12px;">✅ 완료</span>
               </div>
             </div>
-            <div class="lesson-iframe-wrap">
-              <div id="vimeo-player-container"></div>
-            </div>
-            <div class="watch-info">
-              <span>실제 시청: <strong id="watch-display">0초</strong></span>
-              <span id="watch-pct-text" style="font-weight:700;min-width:34px;text-align:right;"></span>
-              <div class="watch-pct-bar"><div class="watch-pct-fill" id="watch-pct-fill" style="width:0%"></div></div>
-              <span id="watch-done-badge" style="display:none;color:var(--green);font-weight:700;font-size:12px;">✅ 완료</span>
+            <!-- 강의 목록 사이드바 -->
+            <div class="lesson-sidebar" id="lessonSidebar">
+              <button class="sidebar-toggle-btn" onclick="toggleLessonSidebar()">
+                <span class="sidebar-toggle-icon" id="sidebarToggleIcon">◀</span>
+                <span class="sidebar-toggle-label">목록</span>
+              </button>
+              <div class="sidebar-inner">
+                <div class="sidebar-hdr">강의 목록 <span class="sidebar-count" id="sidebarCount"></span></div>
+                <div class="sidebar-list" id="sidebarList"></div>
+              </div>
             </div>
           </div>
           <!-- 진도 요약 (수강 중일 때만 표시) -->
@@ -529,6 +564,8 @@ let progressMap = {};    // lessonId → true/false
 let isEnrolled = false;
 let lastWatchedLesson = null;
 let _prevCoursePct = -1; // 수료 이메일 중복 방지
+let curriculumLessons = []; // 사이드바용 강의 목록
+let sidebarRendered = false;
 
 async function loadProgress(userId, courseId) {
   const { data } = await supabaseClient
@@ -628,6 +665,16 @@ function applyProgressUI() {
     sendEmail('completion', { courseName: currentCourse.title });
   }
   _prevCoursePct = pct;
+
+  // 사이드바 완료 상태 업데이트
+  if (isEnrolled) {
+    if (!sidebarRendered && curriculumLessons.length > 0) {
+      renderSidebar();
+      sidebarRendered = true;
+    } else {
+      updateSidebarCompletion();
+    }
+  }
 }
 
 async function toggleLesson(lessonId, lessonTitle, completed) {
@@ -1193,6 +1240,14 @@ async function loadCurriculum(courseId) {
     sections[sec].push({ ...l, num: idx + 1 });
   });
 
+  // 사이드바용 강의 목록 저장
+  curriculumLessons = [];
+  sectionOrder.forEach(sec => {
+    sections[sec].forEach(l => {
+      curriculumLessons.push({ num: l.num, title: l.title, videoUrl: l.video_url || '' });
+    });
+  });
+
   content.innerHTML = sectionOrder.map(sec => {
     const items = sections[sec];
     return `<div class="curriculum-section">
@@ -1342,6 +1397,16 @@ class VimeoTracker {
         updated_at:             new Date().toISOString(),
       }, { onConflict: 'user_id,course_id,lesson_number' });
 
+      // progress 테이블에 시청 위치 저장 (completed는 건드리지 않음)
+      await window.supabaseClient.from('progress').upsert({
+        user_id:               this.userId,
+        course_id:             this.courseId,
+        lesson_id:             'lesson-' + this.lessonNum,
+        lesson_title:          this.lessonTitle,
+        last_position_seconds: Math.round(this.lastPos),
+        duration_seconds:      Math.round(this.totalSecs) || null,
+      }, { onConflict: 'user_id,course_id,lesson_id' });
+
       if (done && !this._completed) {
         this._completed = true;
         await window.supabaseClient.from('study_logs').upsert({
@@ -1373,8 +1438,9 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
   if (vimeoPlayer)   { try { vimeoPlayer.destroy(); } catch(_){} vimeoPlayer = null; }
   if (playingItem)   { playingItem.classList.remove('vimeo-playing'); playingItem = null; }
 
-  const wrap = document.getElementById('lesson-player-wrap');
-  wrap.classList.add('show');
+  const row = document.getElementById('playerSidebarRow');
+  row.classList.add('show');
+  updateSidebarActive(lessonNum);
   document.getElementById('lesson-player-title').textContent = lessonNum + '강 — ' + lessonTitle;
   document.getElementById('resume-banner').classList.remove('show');
   document.getElementById('watch-display').textContent = '0초';
@@ -1399,7 +1465,7 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
     }
     container.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" style="width:100%;height:100%;border:none;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
     if (watchInfo) watchInfo.style.display = 'none';
-    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
 
@@ -1439,7 +1505,8 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
     }
 
     activeTracker.start();
-    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    vimeoPlayer.on('pause', () => { if (activeTracker) activeTracker._persist(); });
+    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     console.error('Vimeo 플레이어 생성 오류:', e);
     container.innerHTML = '<div style="color:#fff;padding:2rem;text-align:center;font-size:14px;">영상을 불러올 수 없어요.</div>';
@@ -1454,7 +1521,8 @@ function closeLessonPlayer() {
   const container = document.getElementById('vimeo-player-container');
   const ytIframe = container && container.querySelector('iframe');
   if (ytIframe) ytIframe.src = ytIframe.src;
-  document.getElementById('lesson-player-wrap').classList.remove('show');
+  document.getElementById('playerSidebarRow').classList.remove('show');
+  updateSidebarActive(0);
 }
 
 async function doResume() {
@@ -1636,6 +1704,57 @@ async function submitReview() {
     if (btn) { btn.disabled = false; btn.textContent = '후기 등록하기'; }
   }
 }
+
+// ───── 강의 목록 사이드바 ─────
+function renderSidebar() {
+  const list = document.getElementById('sidebarList');
+  const countEl = document.getElementById('sidebarCount');
+  if (!list) return;
+  if (countEl) countEl.textContent = '총 ' + curriculumLessons.length + '강';
+  list.innerHTML = curriculumLessons.map(l => {
+    const completed = !!progressMap['lesson-' + l.num];
+    return `<div class="sidebar-lesson-item${completed ? ' done' : ''}" data-sidebar-num="${l.num}"
+      onclick="sidebarOpenLesson(${l.num},${JSON.stringify(l.title)},${JSON.stringify(l.videoUrl)})">
+      <span class="sidebar-status">${completed ? '✓' : l.num}</span>
+      <span class="sidebar-item-title">${esc(l.title)}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateSidebarActive(activeNum) {
+  document.querySelectorAll('.sidebar-lesson-item').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.sidebarNum) === activeNum);
+  });
+}
+
+function updateSidebarCompletion() {
+  document.querySelectorAll('.sidebar-lesson-item').forEach(el => {
+    const n = parseInt(el.dataset.sidebarNum);
+    const done = !!progressMap['lesson-' + n];
+    el.classList.toggle('done', done);
+    const s = el.querySelector('.sidebar-status');
+    if (s) s.textContent = done ? '✓' : String(n);
+  });
+}
+
+function toggleLessonSidebar() {
+  const sidebar = document.getElementById('lessonSidebar');
+  if (!sidebar) return;
+  sidebar.classList.toggle('collapsed');
+  const icon = document.getElementById('sidebarToggleIcon');
+  if (icon) icon.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+}
+
+function sidebarOpenLesson(num, title, videoUrl) {
+  const tabEl = document.querySelector('.detail-tab[onclick*="curriculum"]');
+  if (tabEl && !tabEl.classList.contains('active')) tabEl.click();
+  openLesson(num, title, videoUrl);
+}
+
+// 페이지 이탈 시 마지막 위치 저장
+window.addEventListener('beforeunload', () => {
+  if (activeTracker) activeTracker._persist();
+});
 
 // ───── 초기 실행 ─────
 loadCourse();
