@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수강생 후기 — 아이엠러닝</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .reviews-wrap { max-width: 900px; margin: 0 auto; padding: 48px 20px 80px; }
+    .reviews-header { margin-bottom: 32px; }
+    .reviews-header h1 { font-size: 26px; font-weight: 900; color: var(--black, #111); margin: 0 0 8px; }
+    .reviews-header p { font-size: 14px; color: var(--gray-500, #6B6B6B); margin: 0; }
+
+    .reviews-filter { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; align-items: center; }
+    .filter-label { font-size: 13px; font-weight: 600; color: var(--gray-700, #444); white-space: nowrap; }
+    .filter-select {
+      padding: 8px 14px; border: 1.5px solid rgba(0,0,0,.1); border-radius: 10px;
+      font-size: 13px; font-family: inherit; background: #fff; cursor: pointer;
+      color: var(--gray-700, #444); outline: none; min-width: 180px; max-width: 320px;
+    }
+    .filter-select:focus { border-color: var(--green, #2D9B6F); }
+
+    .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    .review-card {
+      background: #fff; border: 1.5px solid rgba(0,0,0,.07); border-radius: 14px;
+      padding: 20px; display: flex; flex-direction: column; gap: 12px;
+      transition: box-shadow .15s, border-color .15s;
+    }
+    .review-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.09); border-color: rgba(45,155,111,.2); }
+
+    .review-stars { font-size: 16px; letter-spacing: 1px; line-height: 1; }
+    .review-content {
+      font-size: 14px; color: var(--gray-700, #444); line-height: 1.75;
+      flex: 1; display: -webkit-box; -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .review-course {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; background: var(--gray-100, #f5f5f5);
+      border-radius: 8px; text-decoration: none;
+      transition: background .12s;
+    }
+    .review-course:hover { background: var(--green-light, #E8F5EE); }
+    .review-course-thumb {
+      width: 36px; height: 36px; border-radius: 6px; object-fit: cover;
+      background: var(--green-light, #E8F5EE); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .review-course-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+    .review-course-title {
+      font-size: 12px; font-weight: 600; color: var(--black, #111);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .review-meta { display: flex; align-items: center; justify-content: space-between; }
+    .review-author { font-size: 12px; font-weight: 700; color: var(--gray-700, #444); }
+    .review-date { font-size: 11px; color: var(--gray-400, #aaa); }
+
+    .loadmore-wrap { text-align: center; margin-top: 32px; }
+    .btn-loadmore {
+      padding: 12px 36px; border: 1.5px solid rgba(0,0,0,.12); border-radius: 10px;
+      background: #fff; font-size: 14px; font-weight: 700; color: var(--gray-700, #444);
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-loadmore:hover { background: var(--green-light, #E8F5EE); border-color: var(--green, #2D9B6F); color: var(--green, #2D9B6F); }
+    .btn-loadmore:disabled { opacity: .5; cursor: not-allowed; }
+
+    .empty-state { text-align: center; padding: 4rem 1rem; color: var(--gray-400, #aaa); }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state-text { font-size: 15px; font-weight: 600; }
+    .loading-state { text-align: center; padding: 3rem; color: var(--gray-400, #aaa); font-size: 14px; }
+
+    @media (max-width: 600px) {
+      .reviews-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-logo"><span class="navbar-logo-text">아이엠<span>러닝</span></span></a>
+    <ul class="navbar-menu"></ul>
+    <div class="navbar-right"></div>
+  </div>
+</nav>
+
+<div class="reviews-wrap">
+  <div class="reviews-header">
+    <h1>수강생 후기</h1>
+    <p>아이엠러닝 수강생들의 생생한 후기를 확인하세요.</p>
+  </div>
+
+  <div class="reviews-filter">
+    <span class="filter-label">강좌 선택</span>
+    <select class="filter-select" id="course-filter" onchange="onFilterChange()">
+      <option value="">전체 강좌</option>
+    </select>
+  </div>
+
+  <div class="reviews-grid" id="reviews-grid">
+    <div class="loading-state" style="grid-column:1/-1;">후기를 불러오는 중...</div>
+  </div>
+
+  <div class="loadmore-wrap" id="loadmore-wrap" style="display:none;">
+    <button class="btn-loadmore" id="loadmore-btn" onclick="loadMore()">더보기</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <img src="images/logo-horizontal.png" alt="아이엠러닝" style="height:32px;width:auto;display:block;margin-bottom:8px;">
+        <div class="footer-slogan">I'M Learning, I'M Running!</div>
+        <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열<br>사업자등록번호: 664-17-01515 · 전화: 010-5307-6139</div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">강좌</div>
+        <a href="courses.html">전체 강좌</a>
+        <a href="pass.html">프리패스</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">서비스</div>
+        <a href="instructor.html">강사 소개</a>
+        <a href="contact.html">문의하기</a>
+        <a href="reviews.html">수강생 후기</a>
+        <a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">About</div>
+        <a href="about.html">소개</a>
+        <a href="#">이용약관</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/main.js"></script>
+<script>
+(function () {
+  var PAGE_SIZE = 20;
+  var currentOffset = 0;
+  var currentCourseId = null;
+  var hasMore = true;
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function stars(n) {
+    var s = '';
+    for (var i = 1; i <= 5; i++) s += (i <= n ? '⭐' : '☆');
+    return s;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    return iso.slice(0, 10).replace(/-/g, '.');
+  }
+
+  function renderCards(list, append) {
+    var grid = document.getElementById('reviews-grid');
+    if (!append) {
+      if (!list.length) {
+        grid.innerHTML =
+          '<div class="empty-state" style="grid-column:1/-1;">' +
+          '<div class="empty-state-icon">💬</div>' +
+          '<div class="empty-state-text">아직 등록된 후기가 없어요.</div>' +
+          '</div>';
+        return;
+      }
+      grid.innerHTML = '';
+    }
+    list.forEach(function (r) {
+      var thumbHtml = r.course_thumbnail
+        ? '<img src="' + esc(r.course_thumbnail) + '" alt="">'
+        : '📚';
+      var card = document.createElement('div');
+      card.className = 'review-card';
+      card.innerHTML =
+        '<div class="review-stars">' + stars(r.rating) + '</div>' +
+        '<div class="review-content">' + esc(r.content) + '</div>' +
+        '<a href="course-detail.html?id=' + r.course_id + '" class="review-course">' +
+          '<div class="review-course-thumb">' + thumbHtml + '</div>' +
+          '<div class="review-course-title">' + esc(r.course_title) + '</div>' +
+        '</a>' +
+        '<div class="review-meta">' +
+          '<span class="review-author">' + esc(r.reviewer_display_name || '수강생') + '</span>' +
+          '<span class="review-date">' + formatDate(r.created_at) + '</span>' +
+        '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  async function loadReviews(append) {
+    var btn = document.getElementById('loadmore-btn');
+    if (btn) btn.disabled = true;
+
+    try {
+      var { data, error } = await supabaseClient.rpc('get_all_reviews', {
+        p_course_id: currentCourseId || null,
+        p_limit: PAGE_SIZE,
+        p_offset: currentOffset
+      });
+      if (error) throw error;
+      var list = data || [];
+      renderCards(list, append);
+      hasMore = (list.length === PAGE_SIZE);
+      currentOffset += list.length;
+      var wrap = document.getElementById('loadmore-wrap');
+      if (wrap) wrap.style.display = hasMore ? 'block' : 'none';
+    } catch (e) {
+      var grid = document.getElementById('reviews-grid');
+      if (!append) grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1;">후기를 불러오지 못했습니다.</div>';
+      console.error(e);
+    }
+
+    if (btn) btn.disabled = false;
+  }
+
+  window.onFilterChange = function () {
+    var sel = document.getElementById('course-filter');
+    currentCourseId = sel.value ? Number(sel.value) : null;
+    currentOffset = 0;
+    hasMore = true;
+    document.getElementById('reviews-grid').innerHTML =
+      '<div class="loading-state" style="grid-column:1/-1;">후기를 불러오는 중...</div>';
+    loadReviews(false);
+  };
+
+  window.loadMore = function () {
+    if (!hasMore) return;
+    loadReviews(true);
+  };
+
+  async function loadCourseFilter() {
+    try {
+      var { data } = await supabaseClient.from('courses')
+        .select('id, title').eq('status','active').order('title');
+      if (!data) return;
+      var sel = document.getElementById('course-filter');
+      data.forEach(function (c) {
+        var opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.title;
+        sel.appendChild(opt);
+      });
+    } catch (e) { console.error(e); }
+  }
+
+  loadCourseFilter();
+  loadReviews(false);
+})();
+</script>
+</body>
+</html>

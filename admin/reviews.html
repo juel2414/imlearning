@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>후기 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<link rel="stylesheet" href="admin-common.css">
+<style>
+* { box-sizing:border-box; word-break:keep-all; }
+body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
+a { text-decoration:none; color:inherit; }
+.admin-main { padding:2rem; }
+
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:1.5rem; flex-wrap:wrap; }
+.page-title  { font-size:24px; font-weight:800; margin:0; }
+.page-desc   { font-size:13px; color:#888; margin-top:4px; }
+
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin-bottom:1.25rem; }
+.kpi-card { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.06); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent,#2D9B6F); }
+.kpi-label { font-size:12px; color:#888; margin-bottom:8px; font-weight:600; }
+.kpi-value { font-size:28px; font-weight:900; line-height:1; }
+
+.card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.06); overflow:hidden; margin-bottom:1.25rem; }
+.card-header { padding:16px 22px; border-bottom:1px solid rgba(0,0,0,.05); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.card-title  { font-size:14px; font-weight:700; }
+.card-body   { padding:0; }
+
+.filter-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.search-input { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; width:200px; outline:none; }
+.search-input:focus { border-color:#2D9B6F; }
+.filter-select { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; cursor:pointer; outline:none; background:#fff; }
+.filter-select:focus { border-color:#2D9B6F; }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { padding:10px 14px; text-align:left; font-size:11px; color:#888; background:#F8F9FA; white-space:nowrap; font-weight:600; }
+td { padding:11px 14px; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#f8fdf9; }
+
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge-visible { background:#DCFCE7; color:#16A34A; }
+.badge-hidden  { background:#FEE2E2; color:#DC2626; }
+
+.stars { font-size:13px; letter-spacing:1px; white-space:nowrap; }
+.review-content-cell { max-width:280px; font-size:12px; color:#444; line-height:1.55; }
+.review-content-cell.truncate { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+
+.btn-sm { padding:5px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; border:1.5px solid; }
+.btn-hide { background:#fff; color:#F59E0B; border-color:#F59E0B; }
+.btn-hide:hover { background:#F59E0B; color:#fff; }
+.btn-show { background:#fff; color:#2D9B6F; border-color:#2D9B6F; }
+.btn-show:hover { background:#2D9B6F; color:#fff; }
+.btn-del  { background:#fff; color:#EF4444; border-color:#EF4444; }
+.btn-del:hover  { background:#EF4444; color:#fff; }
+.action-btns { display:flex; gap:5px; flex-wrap:wrap; }
+
+.empty { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
+.loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
+
+@media(max-width:1023px) { .admin-main { padding:1rem; } .kpi-row { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">⭐ 후기 관리</h1>
+      <div class="page-desc">수강생 후기를 확인하고 노출 여부를 관리해요</div>
+    </div>
+    <a href="index.html" style="font-size:13px;color:#888;">← 대시보드</a>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent:#2D9B6F;">
+      <div class="kpi-label">전체 후기</div>
+      <div class="kpi-value" id="k-total">-</div>
+    </div>
+    <div class="kpi-card" style="--accent:#16A34A;">
+      <div class="kpi-label">공개 중</div>
+      <div class="kpi-value" id="k-visible">-</div>
+    </div>
+    <div class="kpi-card" style="--accent:#DC2626;">
+      <div class="kpi-label">숨김 처리</div>
+      <div class="kpi-value" id="k-hidden">-</div>
+    </div>
+    <div class="kpi-card" style="--accent:#F59E0B;">
+      <div class="kpi-label">평균 별점</div>
+      <div class="kpi-value" id="k-avg">-</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">후기 목록</span>
+      <div class="filter-bar">
+        <select class="filter-select" id="f-course" onchange="renderTable()">
+          <option value="">전체 강좌</option>
+        </select>
+        <select class="filter-select" id="f-rating" onchange="renderTable()">
+          <option value="">전체 별점</option>
+          <option value="5">⭐⭐⭐⭐⭐ 5점</option>
+          <option value="4">⭐⭐⭐⭐ 4점</option>
+          <option value="3">⭐⭐⭐ 3점</option>
+          <option value="2">⭐⭐ 2점</option>
+          <option value="1">⭐ 1점</option>
+        </select>
+        <select class="filter-select" id="f-status" onchange="renderTable()">
+          <option value="">전체 상태</option>
+          <option value="visible">공개</option>
+          <option value="hidden">숨김</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>강좌</th>
+              <th>작성자</th>
+              <th>별점</th>
+              <th>내용</th>
+              <th>작성일</th>
+              <th>상태</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="reviews-tbody">
+            <tr><td colspan="7" class="loading">불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const sb = window.supabaseClient;
+
+(async function checkAdminAccess() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=admin/reviews.html';
+    return;
+  }
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+  init();
+})();
+
+let allReviews = [];
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function stars(n) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += (i <= n ? '⭐' : '☆');
+  return s;
+}
+function fmtDate(iso) {
+  return iso ? iso.slice(0,10).replace(/-/g,'.') : '';
+}
+
+async function init() {
+  await Promise.all([loadCourseFilter(), loadReviews()]);
+}
+
+async function loadCourseFilter() {
+  const { data } = await sb.from('courses').select('id,title').eq('status','active').order('title');
+  if (!data) return;
+  const sel = document.getElementById('f-course');
+  data.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.title;
+    sel.appendChild(opt);
+  });
+}
+
+async function loadReviews() {
+  const { data, error } = await sb
+    .from('reviews')
+    .select('*, courses(title)')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    document.getElementById('reviews-tbody').innerHTML =
+      '<tr><td colspan="7" class="empty">후기를 불러오지 못했습니다: ' + esc(error.message) + '</td></tr>';
+    return;
+  }
+
+  allReviews = data || [];
+  updateKpi();
+  renderTable();
+}
+
+function updateKpi() {
+  const visible = allReviews.filter(r => r.status === 'visible');
+  const hidden  = allReviews.filter(r => r.status !== 'visible');
+  const avg = allReviews.length
+    ? (allReviews.reduce((s, r) => s + (r.rating || 0), 0) / allReviews.length).toFixed(1)
+    : '-';
+  document.getElementById('k-total').textContent   = allReviews.length;
+  document.getElementById('k-visible').textContent = visible.length;
+  document.getElementById('k-hidden').textContent  = hidden.length;
+  document.getElementById('k-avg').textContent     = avg;
+}
+
+function renderTable() {
+  const courseId = document.getElementById('f-course').value;
+  const rating   = document.getElementById('f-rating').value;
+  const status   = document.getElementById('f-status').value;
+
+  let rows = allReviews;
+  if (courseId) rows = rows.filter(r => String(r.course_id) === courseId);
+  if (rating)   rows = rows.filter(r => String(r.rating) === rating);
+  if (status)   rows = rows.filter(r => r.status === status);
+
+  const tbody = document.getElementById('reviews-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">조건에 맞는 후기가 없어요.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const isVisible = r.status === 'visible';
+    const courseName = r.courses?.title || '(삭제된 강좌)';
+    return `<tr id="row-${r.id}">
+      <td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(courseName)}</td>
+      <td style="white-space:nowrap;">${esc(r.reviewer_display_name || '익명')}</td>
+      <td><span class="stars">${stars(r.rating)}</span></td>
+      <td><div class="review-content-cell truncate">${esc(r.content)}</div></td>
+      <td style="white-space:nowrap;color:#888;">${fmtDate(r.created_at)}</td>
+      <td><span class="badge ${isVisible ? 'badge-visible' : 'badge-hidden'}">${isVisible ? '공개' : '숨김'}</span></td>
+      <td>
+        <div class="action-btns">
+          ${isVisible
+            ? `<button class="btn-sm btn-hide" onclick="toggleStatus(${r.id},'hidden')">숨김</button>`
+            : `<button class="btn-sm btn-show" onclick="toggleStatus(${r.id},'visible')">공개</button>`}
+          <button class="btn-sm btn-del" onclick="deleteReview(${r.id})">삭제</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleStatus(id, newStatus) {
+  const { error } = await sb.from('reviews').update({ status: newStatus }).eq('id', id);
+  if (error) { alert('변경 실패: ' + error.message); return; }
+  const r = allReviews.find(x => x.id === id);
+  if (r) r.status = newStatus;
+  updateKpi();
+  renderTable();
+}
+
+async function deleteReview(id) {
+  const r = allReviews.find(x => x.id === id);
+  const preview = r ? '"' + (r.content || '').slice(0, 40) + (r.content?.length > 40 ? '...' : '') + '"' : '';
+  if (!confirm('이 후기를 완전히 삭제할까요?\n' + preview + '\n\n삭제 후 복구가 불가능합니다.')) return;
+  const { error } = await sb.from('reviews').delete().eq('id', id);
+  if (error) { alert('삭제 실패: ' + error.message); return; }
+  allReviews = allReviews.filter(x => x.id !== id);
+  updateKpi();
+  renderTable();
+}
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>

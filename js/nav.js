@@ -229,6 +229,7 @@
     '    <li><a href="pass.html" style="color:var(--green,#2D9B6F);font-weight:700;">전강좌 무제한</a></li>',
     '    <li><a href="https://imbooks.kr" target="_blank" rel="noopener">아이엠북스</a></li>',
     '    <li><a href="notices.html">공지사항</a></li>',
+    '    <li><a href="reviews.html">후기</a></li>',
     '    <li><a href="about.html">소개</a></li>',
     '    <li id="nb-admin-li" style="display:none"><a href="admin/index.html" style="color:#2D9B6F!important;font-weight:700!important;">어드민</a></li>',
     '    <li id="nb-mob-auth-li"><div id="nb-mob-auth">',
