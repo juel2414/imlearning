@@ -275,6 +275,7 @@
     <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
     <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물함</div>
     <div class="my-tab" onclick="switchTab('coupons', this)">🎟 내 쿠폰함</div>
+    <div class="my-tab" onclick="switchTab('account', this)">⚙ 계정 설정</div>
   </div>
 </div>
 
@@ -320,6 +321,19 @@
     <!-- 내 쿠폰함 탭 -->
     <div class="tab-panel" id="panel-coupons">
       <div id="coupons-content" class="loading-msg">불러오는 중...</div>
+    </div>
+
+    <!-- 계정 설정 탭 -->
+    <div class="tab-panel" id="panel-account">
+      <div style="max-width:480px; margin:0 auto; padding:2rem 0;">
+        <h3 style="font-size:18px; font-weight:800; margin-bottom:1.5rem;">연결된 소셜 계정</h3>
+        <p style="font-size:14px; color:var(--gray-500); margin-bottom:1.5rem; line-height:1.6;">
+          소셜 계정을 연결하면 구글 또는 카카오로 바로 로그인할 수 있습니다.
+        </p>
+        <div id="identity-list" style="display:flex; flex-direction:column; gap:12px;">
+          <div class="loading-msg">불러오는 중...</div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -384,6 +398,10 @@ function switchTab(id, el) {
   // 쿠폰함 탭
   if (id === 'coupons' && gUserId) {
     loadCoupons();
+  }
+  // 계정 설정 탭
+  if (id === 'account') {
+    loadAccountSettings();
   }
 }
 
@@ -1497,6 +1515,49 @@ async function submitRefund() {
     btn.disabled = false;
     btn.textContent = '환불 신청하기';
   }
+}
+
+// ───── 계정 설정 (소셜 계정 연결) ─────
+async function loadAccountSettings() {
+  const el = document.getElementById('identity-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-msg">불러오는 중...</div>';
+
+  const { data, error } = await supabaseClient.auth.getUserIdentities();
+  if (error) { el.innerHTML = '<div class="loading-msg">불러오기 실패</div>'; return; }
+
+  const identities = data?.identities || [];
+  const providers = ['google', 'kakao'];
+  const providerLabel = { google: '구글', kakao: '카카오' };
+  const providerIcon = { google: '🔵', kakao: '🟡' };
+
+  const linkedProviders = identities.map(i => i.provider);
+
+  el.innerHTML = providers.map(p => {
+    const linked = linkedProviders.includes(p);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:12px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:24px;">${providerIcon[p]}</span>
+        <div>
+          <div style="font-weight:700;font-size:15px;">${providerLabel[p]}</div>
+          <div style="font-size:12px;color:var(--gray-400);">${linked ? '연결됨' : '연결 안됨'}</div>
+        </div>
+      </div>
+      ${linked
+        ? `<span style="padding:6px 14px;background:#DCFCE7;color:#16A34A;border-radius:20px;font-size:12px;font-weight:700;">연결됨</span>`
+        : `<button onclick="linkProvider('${p}')" style="padding:8px 18px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">연결하기</button>`
+      }
+    </div>`;
+  }).join('');
+}
+
+async function linkProvider(provider) {
+  const redirectTo = window.location.href;
+  const { error } = await supabaseClient.auth.linkIdentity({
+    provider,
+    options: { redirectTo }
+  });
+  if (error) alert('연결 실패: ' + error.message);
 }
 
 // ───── 내 쿠폰함 ─────
