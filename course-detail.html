@@ -108,12 +108,16 @@
 }
 
 /* ── Vimeo 강의 플레이어 ── */
-.player-sidebar-row { display:none; gap:14px; margin-bottom:1.5rem; align-items:flex-start; }
-.player-sidebar-row.show { display:flex; }
-.lesson-player-wrap { flex:1; min-width:0; }
-.lesson-player-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.lesson-player-title { font-size:15px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%; }
-.lesson-player-close { padding:6px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; background:#fff; font-size:12px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.player-sidebar-row { display:none; margin-bottom:1.5rem; }
+.player-sidebar-row.show { display:block; }
+.lesson-player-wrap { }
+.lesson-player-header { display:flex; align-items:center; gap:8px; justify-content:space-between; margin-bottom:10px; }
+.lesson-player-title { font-size:15px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+.lesson-list-btn { padding:5px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; background:#fff; font-size:12px; cursor:pointer; white-space:nowrap; flex-shrink:0; color:var(--gray-700); transition:background .12s; }
+.lesson-list-btn:hover { background:var(--green-light); border-color:var(--green); color:var(--green-dark); }
+.lesson-list-btn.active { background:var(--green); border-color:var(--green); color:#fff; }
+.lesson-player-close { padding:5px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; background:#fff; font-size:12px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.lesson-video-area { position:relative; }
 .lesson-iframe-wrap { aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; }
 .lesson-iframe-wrap iframe { width:100%; height:100%; border:none; }
 #vimeo-player-container { width:100%; height:100%; }
@@ -128,18 +132,15 @@
 .curriculum-item.vimeo-clickable:hover { border-color:rgba(45,155,111,.3); background:rgba(45,155,111,.04); }
 .curriculum-item.vimeo-playing { border-color:var(--green)!important; background:rgba(45,155,111,.08)!important; }
 
-/* ── 강의 목록 사이드바 ── */
-.lesson-sidebar { width:264px; flex-shrink:0; background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:12px; box-shadow:0 2px 14px rgba(0,0,0,.07); display:flex; overflow:hidden; transition:width .25s ease; align-self:stretch; }
-.lesson-sidebar.collapsed { width:40px; }
-.lesson-sidebar.collapsed .sidebar-inner { opacity:0; pointer-events:none; }
-.sidebar-toggle-btn { width:40px; flex-shrink:0; background:#f8faf9; border:none; border-right:1px solid rgba(0,0,0,.07); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:12px 0; color:var(--green-dark); transition:background .12s; }
-.sidebar-toggle-btn:hover { background:#eef7f2; }
-.sidebar-toggle-icon { font-size:14px; }
-.sidebar-toggle-label { writing-mode:vertical-rl; font-size:10px; font-weight:800; letter-spacing:1.5px; color:var(--gray-500); }
-.sidebar-inner { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; transition:opacity .2s; }
+/* ── 강의 목록 오버레이 패널 ── */
+.lesson-sidebar { position:absolute; top:0; right:0; width:260px; height:100%; background:rgba(255,255,255,.97); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border-left:1px solid rgba(0,0,0,.1); border-radius:0 12px 12px 0; display:flex; flex-direction:column; transform:translateX(100%); transition:transform .25s ease; z-index:10; box-shadow:-4px 0 20px rgba(0,0,0,.12); }
+.lesson-sidebar.open { transform:translateX(0); }
 .sidebar-hdr { padding:11px 12px 9px; font-size:12px; font-weight:800; color:var(--black); border-bottom:1px solid rgba(0,0,0,.06); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
+.sidebar-hdr-left { display:flex; align-items:center; gap:6px; }
 .sidebar-count { font-size:11px; font-weight:400; color:var(--gray-400); }
-.sidebar-list { overflow-y:auto; flex:1; max-height:380px; }
+.sidebar-close-btn { background:none; border:none; cursor:pointer; font-size:16px; color:var(--gray-400); line-height:1; padding:2px; border-radius:4px; }
+.sidebar-close-btn:hover { color:var(--black); background:rgba(0,0,0,.05); }
+.sidebar-list { overflow-y:auto; flex:1; }
 .sidebar-lesson-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid rgba(0,0,0,.04); cursor:pointer; font-size:12px; color:var(--gray-700); transition:background .1s; line-height:1.4; }
 .sidebar-lesson-item:hover { background:#f5f5f5; }
 .sidebar-lesson-item.active { background:#E8F5EE; color:var(--green-dark); font-weight:600; }
@@ -147,7 +148,6 @@
 .sidebar-lesson-item.active .sidebar-status { background:var(--green); color:#fff; }
 .sidebar-lesson-item.done .sidebar-status { background:var(--green); color:#fff; font-size:12px; }
 .sidebar-item-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-@media (max-width:900px) { .player-sidebar-row { flex-direction:column; } .lesson-sidebar { width:100% !important; } .sidebar-list { max-height:220px; } }
 
 /* ── 후기 탭 ── */
 .rating-summary { display:flex; align-items:center; gap:20px; background:var(--gray-100); border-radius:var(--radius-md); padding:1.25rem 1.5rem; margin-bottom:1.5rem; }
@@ -283,6 +283,7 @@
             <div id="lesson-player-wrap" class="lesson-player-wrap">
               <div class="lesson-player-header">
                 <span id="lesson-player-title" class="lesson-player-title">강의 선택</span>
+                <button class="lesson-list-btn" id="lessonListBtn" onclick="toggleLessonSidebar()">☰ 목록</button>
                 <button class="lesson-player-close" onclick="closeLessonPlayer()">✕ 닫기</button>
               </div>
               <div class="resume-banner" id="resume-banner">
@@ -292,25 +293,24 @@
                   <button class="resume-btn-no" onclick="doStartOver()">처음부터</button>
                 </div>
               </div>
-              <div class="lesson-iframe-wrap">
-                <div id="vimeo-player-container"></div>
+              <div class="lesson-video-area">
+                <div class="lesson-iframe-wrap">
+                  <div id="vimeo-player-container"></div>
+                </div>
+                <!-- 강의 목록 오버레이 -->
+                <div class="lesson-sidebar" id="lessonSidebar">
+                  <div class="sidebar-hdr">
+                    <div class="sidebar-hdr-left">강의 목록 <span class="sidebar-count" id="sidebarCount"></span></div>
+                    <button class="sidebar-close-btn" onclick="toggleLessonSidebar()">✕</button>
+                  </div>
+                  <div class="sidebar-list" id="sidebarList"></div>
+                </div>
               </div>
               <div class="watch-info">
                 <span>실제 시청: <strong id="watch-display">0초</strong></span>
                 <span id="watch-pct-text" style="font-weight:700;min-width:34px;text-align:right;"></span>
                 <div class="watch-pct-bar"><div class="watch-pct-fill" id="watch-pct-fill" style="width:0%"></div></div>
                 <span id="watch-done-badge" style="display:none;color:var(--green);font-weight:700;font-size:12px;">✅ 완료</span>
-              </div>
-            </div>
-            <!-- 강의 목록 사이드바 -->
-            <div class="lesson-sidebar" id="lessonSidebar">
-              <button class="sidebar-toggle-btn" onclick="toggleLessonSidebar()">
-                <span class="sidebar-toggle-icon" id="sidebarToggleIcon">◀</span>
-                <span class="sidebar-toggle-label">목록</span>
-              </button>
-              <div class="sidebar-inner">
-                <div class="sidebar-hdr">강의 목록 <span class="sidebar-count" id="sidebarCount"></span></div>
-                <div class="sidebar-list" id="sidebarList"></div>
               </div>
             </div>
           </div>
@@ -1740,9 +1740,9 @@ function updateSidebarCompletion() {
 function toggleLessonSidebar() {
   const sidebar = document.getElementById('lessonSidebar');
   if (!sidebar) return;
-  sidebar.classList.toggle('collapsed');
-  const icon = document.getElementById('sidebarToggleIcon');
-  if (icon) icon.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+  const isOpen = sidebar.classList.toggle('open');
+  const btn = document.getElementById('lessonListBtn');
+  if (btn) btn.classList.toggle('active', isOpen);
 }
 
 function sidebarOpenLesson(num, title, videoUrl) {
