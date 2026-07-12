@@ -985,23 +985,30 @@ function applyFeatures(c) {
     </div>`).join('');
 }
 
-// 후기
-function applyReviews(c) {
-  if (!c) return;
-  const t = document.querySelector('.js-rev-title');
-  if (t) t.textContent = c.title||'';
+// 후기 (실제 DB 우선, 없으면 숨김)
+function applyReviews(_c) { /* 동기 fallback 없음 — loadRealReviews()가 대신 처리 */ }
+async function loadRealReviews() {
+  const section = document.querySelector('[data-section="reviews"]');
   const g = document.getElementById('js-reviews');
-  if (!g) return;
-  const dl = ['','reveal-delay-1','reveal-delay-2'];
-  g.innerHTML = c.items.map((it,i) => `
-    <div class="lp-rcard reveal ${dl[i]}">
-      <div class="lp-rstars"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;"></div>
-      <p class="lp-rtext">"${esc(it.text)}"</p>
-      <div class="lp-rauthor">
-        <div class="lp-ravatar">${esc(it.emoji)}</div>
-        <div><div class="lp-rname">${esc(it.name)}</div><div class="lp-rcourse">${esc(it.course)}</div></div>
-      </div>
-    </div>`).join('');
+  if (!g || !section) return;
+  try {
+    const { data } = await supabaseClient.rpc('get_top_reviews', { p_limit: 6 });
+    if (!data || data.length === 0) { section.style.display = 'none'; return; }
+    const dl = ['','reveal-delay-1','reveal-delay-2','','reveal-delay-1','reveal-delay-2'];
+    g.innerHTML = data.map((r, i) => {
+      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const first = (r.reviewer_display_name || '익명').charAt(0);
+      return `<div class="lp-rcard reveal ${dl[i]}">
+        <div class="lp-rstars" style="color:#FBBF24;font-size:15px;">${stars}</div>
+        <p class="lp-rtext">"${esc(r.content)}"</p>
+        <div class="lp-rauthor">
+          <div class="lp-ravatar">${esc(first)}</div>
+          <div><div class="lp-rname">${esc(r.reviewer_display_name || '익명')}</div><div class="lp-rcourse">${esc(r.course_title)}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+    section.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  } catch(e) { section.style.display = 'none'; }
 }
 
 // 수료증
@@ -1162,7 +1169,7 @@ async function init() {
   const trustSec = document.querySelector('[data-section="trust"]');
   if (trustSec) countObserver.observe(trustSec);
 
-  await Promise.all([loadInstructors(), loadCourses(), loadFaqs(), initFeaturedSlider()]);
+  await Promise.all([loadInstructors(), loadCourses(), loadFaqs(), initFeaturedSlider(), loadRealReviews()]);
 }
 
 // ── 최근 본 강좌 (localStorage) ──

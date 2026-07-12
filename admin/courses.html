@@ -290,6 +290,37 @@
         <div id="pass-admin-area"><div class="empty">불러오는 중...</div></div>
       </div>
     </div>
+
+    <!-- 교재 관리 -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-header">
+        <span class="card-title">📚 교재 관리 (아이엠북스 연동)</span>
+        <button class="btn-save" onclick="openTextbookForm()" style="font-size:12px;padding:8px 18px;">+ 교재 추가</button>
+      </div>
+      <div class="card-body">
+        <div id="textbook-admin-area"><div class="empty">불러오는 중...</div></div>
+        <!-- 교재 등록/수정 폼 -->
+        <div id="textbook-form-wrap" style="display:none;margin-top:20px;background:#f8faf9;border:1.5px solid #d4ede2;border-radius:12px;padding:20px 24px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:16px;" id="textbook-form-title">교재 추가</div>
+          <input type="hidden" id="tb-id">
+          <div class="form-grid">
+            <div class="form-group full"><label>제목 *</label><input type="text" id="tb-title" placeholder="교재 제목"></div>
+            <div class="form-group"><label>가격 (원)</label><input type="number" id="tb-price" placeholder="예: 15000"></div>
+            <div class="form-group"><label>표지 이미지 URL</label><input type="text" id="tb-cover" placeholder="https://..."></div>
+            <div class="form-group full"><label>아이엠북스 URL *</label><input type="text" id="tb-url" placeholder="https://imbooks.kr/..."></div>
+            <div class="form-group full"><label>설명</label><textarea id="tb-desc" style="height:60px;" placeholder="교재 간단 설명"></textarea></div>
+            <div class="form-group full">
+              <label>연결할 강좌 (다중 선택)</label>
+              <div id="tb-courses-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;max-height:180px;overflow-y:auto;padding:4px;"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn-save" onclick="saveTextbook()">저장</button>
+            <button class="btn-cancel" onclick="closeTextbookForm()">취소</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1019,6 +1050,138 @@ async function savePassAdmin() {
 }
 
 loadPassAdmin();
+
+/* ──────────────────── 교재 관리 ──────────────────── */
+var allCoursesForTb = [];
+
+async function loadTextbookAdmin() {
+  var area = document.getElementById('textbook-admin-area');
+  try {
+    var { data: tbs, error } = await sb.from('textbooks').select('id,title,price,cover_image_url,imbooks_url').order('id');
+    if (error) throw error;
+    if (!tbs || tbs.length === 0) {
+      area.innerHTML = '<div class="empty">등록된 교재가 없어요. 교재 추가 버튼을 눌러 시작하세요.</div>';
+      return;
+    }
+    // 각 교재에 연결된 강좌 수 조회
+    var { data: links } = await sb.from('course_textbooks').select('textbook_id, course_id');
+    var linkMap = {};
+    (links || []).forEach(function(l) {
+      if (!linkMap[l.textbook_id]) linkMap[l.textbook_id] = [];
+      linkMap[l.textbook_id].push(l.course_id);
+    });
+    var html = '<table><thead><tr><th>제목</th><th>가격</th><th>연결 강좌 수</th><th>아이엠북스 URL</th><th>관리</th></tr></thead><tbody>';
+    tbs.forEach(function(t) {
+      var cnt = (linkMap[t.id] || []).length;
+      html += '<tr>'
+        + '<td style="font-weight:600;">' + escHtml(t.title) + '</td>'
+        + '<td>' + (t.price ? '₩' + Number(t.price).toLocaleString() : '—') + '</td>'
+        + '<td>' + cnt + '개</td>'
+        + '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="' + escHtml(t.imbooks_url) + '" target="_blank" style="color:var(--green);">' + escHtml(t.imbooks_url) + '</a></td>'
+        + '<td style="white-space:nowrap;"><button onclick="openTextbookForm(' + t.id + ')" style="padding:4px 12px;border-radius:6px;border:1.5px solid rgba(0,0,0,.1);background:#fff;font-size:12px;cursor:pointer;margin-right:6px;">수정</button>'
+        + '<button onclick="deleteTextbook(' + t.id + ')" style="padding:4px 12px;border-radius:6px;border:1.5px solid #EF4444;background:#fff;color:#EF4444;font-size:12px;cursor:pointer;">삭제</button></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+    area.innerHTML = html;
+  } catch(e) {
+    area.innerHTML = '<div class="empty">오류: ' + e.message + '</div>';
+  }
+}
+
+async function openTextbookForm(id) {
+  document.getElementById('textbook-form-wrap').style.display = '';
+  document.getElementById('textbook-form-wrap').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('tb-id').value = id || '';
+  document.getElementById('textbook-form-title').textContent = id ? '교재 수정' : '교재 추가';
+
+  // 강좌 목록 로드 (최초 1회)
+  if (allCoursesForTb.length === 0) {
+    var { data: cs } = await sb.from('courses').select('id,title').order('id');
+    allCoursesForTb = cs || [];
+  }
+
+  // 이미 연결된 강좌
+  var linkedCourseIds = new Set();
+  if (id) {
+    var { data: lnks } = await sb.from('course_textbooks').select('course_id').eq('textbook_id', id);
+    (lnks || []).forEach(function(l) { linkedCourseIds.add(l.course_id); });
+    // 기존 값 채우기
+    var { data: tb } = await sb.from('textbooks').select('*').eq('id', id).single();
+    if (tb) {
+      document.getElementById('tb-title').value = tb.title || '';
+      document.getElementById('tb-price').value = tb.price || '';
+      document.getElementById('tb-cover').value = tb.cover_image_url || '';
+      document.getElementById('tb-url').value = tb.imbooks_url || '';
+      document.getElementById('tb-desc').value = tb.description || '';
+    }
+  } else {
+    ['tb-title','tb-price','tb-cover','tb-url','tb-desc'].forEach(function(i) { document.getElementById(i).value = ''; });
+  }
+
+  var wrap = document.getElementById('tb-courses-wrap');
+  wrap.innerHTML = allCoursesForTb.map(function(c) {
+    return '<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:6px;padding:4px 10px;">'
+      + '<input type="checkbox" value="' + c.id + '"' + (linkedCourseIds.has(c.id) ? ' checked' : '') + '> '
+      + escHtml(c.title) + '</label>';
+  }).join('');
+}
+
+function closeTextbookForm() {
+  document.getElementById('textbook-form-wrap').style.display = 'none';
+}
+
+async function saveTextbook() {
+  var id = document.getElementById('tb-id').value;
+  var title = document.getElementById('tb-title').value.trim();
+  var price = parseInt(document.getElementById('tb-price').value) || null;
+  var cover = document.getElementById('tb-cover').value.trim() || null;
+  var url = document.getElementById('tb-url').value.trim();
+  var desc = document.getElementById('tb-desc').value.trim() || null;
+  if (!title || !url) { showToast('제목과 아이엠북스 URL은 필수입니다.', true); return; }
+
+  var checkedCourseIds = Array.from(document.querySelectorAll('#tb-courses-wrap input:checked')).map(function(cb) { return parseInt(cb.value); });
+
+  try {
+    var tbId;
+    if (id) {
+      var { error: ue } = await sb.from('textbooks').update({ title, price, cover_image_url: cover, imbooks_url: url, description: desc }).eq('id', parseInt(id));
+      if (ue) throw ue;
+      tbId = parseInt(id);
+    } else {
+      var { data: ins, error: ie } = await sb.from('textbooks').insert({ title, price, cover_image_url: cover, imbooks_url: url, description: desc }).select('id').single();
+      if (ie) throw ie;
+      tbId = ins.id;
+    }
+
+    // 강좌 연결 갱신
+    await sb.from('course_textbooks').delete().eq('textbook_id', tbId);
+    if (checkedCourseIds.length > 0) {
+      var { error: linkErr } = await sb.from('course_textbooks').insert(checkedCourseIds.map(function(cid) { return { textbook_id: tbId, course_id: cid }; }));
+      if (linkErr) throw linkErr;
+    }
+
+    showToast('교재가 저장됐어요 ✓');
+    closeTextbookForm();
+    loadTextbookAdmin();
+  } catch(e) {
+    showToast('저장 실패: ' + e.message, true);
+  }
+}
+
+async function deleteTextbook(id) {
+  if (!confirm('이 교재를 삭제하면 강좌 연결도 함께 삭제됩니다. 계속할까요?')) return;
+  try {
+    var { error } = await sb.from('textbooks').delete().eq('id', id);
+    if (error) throw error;
+    showToast('교재가 삭제됐어요.');
+    loadTextbookAdmin();
+  } catch(e) {
+    showToast('삭제 실패: ' + e.message, true);
+  }
+}
+
+loadTextbookAdmin();
 </script>
 <script src="../js/email.js"></script>
 <script src="../js/admin-nav.js"></script>
