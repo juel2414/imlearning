@@ -987,9 +987,11 @@ async function checkAndAwardBadgesOnLoad(userId, recentLogs, totalCompleted, str
 /* ════════════════════════════════════════════════════════
    기존 렌더 함수
    ════════════════════════════════════════════════════════ */
-function renderOrders(orders, coursesMap) {
+function renderOrders(orders, coursesMap, gifts) {
   const el = document.getElementById('orders-content');
-  if (orders.length === 0) {
+  const giftItems = (gifts || []).filter(g => g.amount > 0);
+
+  if (orders.length === 0 && giftItems.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">🧾</div>
@@ -1000,22 +1002,23 @@ function renderOrders(orders, coursesMap) {
     return;
   }
 
-  const cards = orders.map(order => {
+  const GIFT_STATUS_LABEL = { pending:'대기 중', accepted:'수락됨', cancelled:'취소됨', expired:'만료', refunded:'환불됨', already_owned:'이미 보유' };
+  const GIFT_STATUS_COLOR = { pending:'#D97706', accepted:'#16A34A', cancelled:'#888', expired:'#888', refunded:'#EF4444', already_owned:'#92400E' };
+  const GIFT_STATUS_BG    = { pending:'#FEF3C7', accepted:'#DCFCE7', cancelled:'#F3F4F6', expired:'#F3F4F6', refunded:'#FEE2E2', already_owned:'#FEF3C7' };
+
+  const orderItems = orders.map(order => {
     const course     = coursesMap[order.course_id];
     const courseName = course ? course.title : order.course_name || '알 수 없는 강좌';
     const date       = new Date(order.created_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
     const isDisc     = order.original_amount && order.amount < order.original_amount;
     const rs         = order.refund_status || 'none';
-    const daysSince  = (Date.now() - new Date(order.created_at)) / 86400000;
     const canRefund  = rs === 'none' && order.status === 'paid';
-
-    let refundBadge = '';
+    let refundBadge  = '';
     if (rs === 'refunded')      refundBadge = '<span style="background:#DCFCE7;color:#16A34A;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">전액 환불</span>';
     else if (rs === 'partial')  refundBadge = '<span style="background:#FEF9C3;color:#92400E;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">부분 환불</span>';
     else if (rs === 'rejected') refundBadge = '<span style="background:#FEE2E2;color:#EF4444;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">환불 불가</span>';
-
     const safeTitle = courseName.replace(/'/g, "\\'");
-    return `
+    return { date: order.created_at, html: `
       <div class="order-card">
         <div class="order-header">
           <div>
@@ -1031,17 +1034,45 @@ function renderOrders(orders, coursesMap) {
           <div style="text-align:right;">
             ${isDisc ? `<div style="text-decoration:line-through;color:var(--gray-400);font-size:12px;">₩${Number(order.original_amount).toLocaleString()}</div>` : ''}
             <div class="order-amount ${isDisc ? 'discounted' : ''}">₩${Number(order.amount || 0).toLocaleString()}</div>
-            ${order.expires_at ? (() => { const exp = new Date(order.expires_at); const expired = exp < new Date(); return `<div style="font-size:11px;margin-top:4px;color:${expired ? '#EF4444' : '#6B6B6B'};">${expired ? '⏰ 만료됨' : '⏰ ~' + exp.toLocaleDateString('ko-KR')}</div>`; })() : ''}
+            ${order.expires_at ? (() => { const exp = new Date(order.expires_at); const expired = exp < new Date(); return `<div style="font-size:11px;margin-top:4px;color:${expired?'#EF4444':'#6B6B6B'};">${expired?'⏰ 만료됨':'⏰ ~'+exp.toLocaleDateString('ko-KR')}</div>`; })() : ''}
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.05);">
           <div>${refundBadge}</div>
           ${canRefund ? `<button onclick="openRefundModal('${order.id}','${safeTitle}',${order.amount},'${order.created_at}')" style="padding:6px 14px;border-radius:8px;border:1px solid #FCA5A5;background:#fff;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;">환불 신청</button>` : ''}
         </div>
-      </div>`;
-  }).join('');
+      </div>` };
+  });
 
-  el.innerHTML = `<div class="order-list">${cards}</div>`;
+  const giftCards = giftItems.map(g => {
+    const course     = coursesMap[g.course_id];
+    const courseName = course ? course.title : '강좌';
+    const date       = new Date(g.created_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+    const st         = g.status || 'pending';
+    const stLabel    = GIFT_STATUS_LABEL[st] || st;
+    const stColor    = GIFT_STATUS_COLOR[st] || '#888';
+    const stBg       = GIFT_STATUS_BG[st]    || '#F3F4F6';
+    const toStr      = g.recipient_email ? ` → ${g.recipient_email}` : '';
+    return { date: g.created_at, html: `
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="order-date">${date}</div>
+            <div class="order-id">🎁 선물 발송${toStr}</div>
+          </div>
+          <span style="background:${stBg};color:${stColor};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">${stLabel}</span>
+        </div>
+        <div class="order-body">
+          <div class="order-course-name">${courseName}</div>
+          <div style="text-align:right;">
+            <div class="order-amount">₩${Number(g.amount||0).toLocaleString()}</div>
+          </div>
+        </div>
+      </div>` };
+  });
+
+  const combined = [...orderItems, ...giftCards].sort((a, b) => new Date(b.date) - new Date(a.date));
+  el.innerHTML = `<div class="order-list">${combined.map(x => x.html).join('')}</div>`;
 }
 
 function renderCerts(orders, coursesMap) {
@@ -1220,13 +1251,11 @@ async function loadMyPage() {
   document.getElementById('user-email').textContent = user.email;
   document.getElementById('user-avatar').textContent= userName.charAt(0).toUpperCase();
 
-  // ── 주문 내역 조회 ──
-  const { data: orders, error: orderError } = await supabaseClient
-    .from('orders')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('status', 'paid')
-    .order('created_at', { ascending: false });
+  // ── 주문 내역 + 보낸 선물 조회 ──
+  const [{ data: orders, error: orderError }, { data: sentGifts }] = await Promise.all([
+    supabaseClient.from('orders').select('*').eq('user_id', user.id).eq('status', 'paid').order('created_at', { ascending: false }),
+    supabaseClient.from('gifts').select('*').eq('sender_id', user.id).order('created_at', { ascending: false }),
+  ]);
 
   if (orderError) {
     ['courses-content','orders-content','certs-content'].forEach(id => {
@@ -1244,10 +1273,14 @@ async function loadMyPage() {
     return;
   }
 
-  const myOrders = orders || [];
+  const myOrders  = orders || [];
+  const myGifts   = sentGifts || [];
 
-  // ── 강좌 정보 조회 ──
-  const courseIds = [...new Set(myOrders.map(o => o.course_id))];
+  // ── 강좌 정보 조회 (주문 + 선물 강좌 합산) ──
+  const courseIds = [...new Set([
+    ...myOrders.map(o => o.course_id),
+    ...myGifts.map(g => g.course_id),
+  ].filter(Boolean))];
 
   if (courseIds.length > 0) {
     const { data: coursesData } = await supabaseClient.from('courses').select('*').in('id', courseIds);
@@ -1336,7 +1369,7 @@ async function loadMyPage() {
   );
   updateStats(uniqueActiveOrders);
   renderCourses(uniqueActiveOrders, gCoursesMap);
-  renderOrders(paymentOrders, gCoursesMap);
+  renderOrders(paymentOrders, gCoursesMap, myGifts);
   renderCerts(uniqueActiveOrders, gCoursesMap);
   renderWishlist(wishItems);
 
