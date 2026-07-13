@@ -127,9 +127,9 @@ ul, ol { list-style: none; }
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 2rem;
+  width: 100%;
+  padding: 0 40px;
+  box-sizing: border-box;
 }
 .navbar-logo { display: flex; align-items: center; gap: 8px; }
 .navbar-logo img { height: 36px; object-fit: contain; }
@@ -142,6 +142,7 @@ ul, ol { list-style: none; }
   color: var(--gray-700);
   transition: color var(--transition);
   position: relative;
+  white-space: nowrap;
 }
 .navbar-menu a::after {
   content: '';
