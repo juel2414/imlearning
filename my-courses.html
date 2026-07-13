@@ -224,12 +224,20 @@
 .gm-step.active { display:block; }
 
 /* Step 1 — 강좌 선택 */
-.gm-search { width:100%; padding:10px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; font-size:14px; box-sizing:border-box; margin-bottom:1rem; font-family:inherit; }
+.gm-group-chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:10px; margin-bottom:12px; scrollbar-width:none; }
+.gm-group-chips::-webkit-scrollbar { display:none; }
+.gm-chip { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 14px; border-radius:12px; border:1.5px solid rgba(0,0,0,.08); background:#fff; cursor:pointer; transition:all .15s; min-width:70px; }
+.gm-chip:hover { border-color:#2D9B6F; background:#f0fdf8; }
+.gm-chip.active { border-color:#2D9B6F; background:#f0fdf8; }
+.gm-chip-icon { font-size:22px; line-height:1; }
+.gm-chip-label { font-size:11px; font-weight:700; color:#555; white-space:nowrap; text-align:center; }
+.gm-chip.active .gm-chip-label { color:#2D9B6F; }
+.gm-group-title { font-size:13px; font-weight:800; color:#111; margin-bottom:10px; }
+.gm-search { width:100%; padding:10px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; font-size:14px; box-sizing:border-box; margin-bottom:12px; font-family:inherit; }
 .gm-search:focus { outline:none; border-color:#2D9B6F; }
 .gm-course-list { display:flex; flex-direction:column; gap:8px; }
 .gm-course-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; border:1.5px solid rgba(0,0,0,.08); cursor:pointer; transition:all .15s; }
 .gm-course-item:hover { border-color:#2D9B6F; background:#f0fdf8; }
-.gm-course-item.selected { border-color:#2D9B6F; background:#f0fdf8; }
 .gm-course-thumb { width:56px; height:38px; border-radius:6px; background:linear-gradient(135deg,#e8f5ee,#c8eada); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; overflow:hidden; }
 .gm-course-thumb img { width:100%; height:100%; object-fit:cover; }
 .gm-course-info { flex:1; min-width:0; }
@@ -1691,6 +1699,33 @@ async function loadCoupons() {
 
     <!-- Step 1: 강좌 선택 -->
     <div class="gm-body gm-step active" id="gm-step1">
+      <div class="gm-group-chips" id="gm-group-chips">
+        <div class="gm-chip active" data-group="all" onclick="gmSelectGroup('all', this)">
+          <span class="gm-chip-icon">🎁</span>
+          <span class="gm-chip-label">전체</span>
+        </div>
+        <div class="gm-chip" data-group="beginner" onclick="gmSelectGroup('beginner', this)">
+          <span class="gm-chip-icon">🌱</span>
+          <span class="gm-chip-label">초신자를<br>위한</span>
+        </div>
+        <div class="gm-chip" data-group="teen" onclick="gmSelectGroup('teen', this)">
+          <span class="gm-chip-icon">🎒</span>
+          <span class="gm-chip-label">10대를<br>위한</span>
+        </div>
+        <div class="gm-chip" data-group="teacher" onclick="gmSelectGroup('teacher', this)">
+          <span class="gm-chip-icon">📚</span>
+          <span class="gm-chip-label">교사·부모<br>님께</span>
+        </div>
+        <div class="gm-chip" data-group="minister" onclick="gmSelectGroup('minister', this)">
+          <span class="gm-chip-icon">⛪</span>
+          <span class="gm-chip-label">사역자<br>에게</span>
+        </div>
+        <div class="gm-chip" data-group="english" onclick="gmSelectGroup('english', this)">
+          <span class="gm-chip-icon">🔤</span>
+          <span class="gm-chip-label">영어<br>교육</span>
+        </div>
+      </div>
+      <div class="gm-group-title" id="gm-group-title">전체 강좌</div>
       <input class="gm-search" type="search" placeholder="강좌 이름 검색..." oninput="gmFilterCourses(this.value)" id="gm-search-input">
       <div class="gm-course-list" id="gm-course-list">
         <div class="gm-empty">강좌를 불러오는 중...</div>
@@ -1746,9 +1781,19 @@ const GM_CHANNEL_KEY = 'channel-key-5ea6245d-fa62-446d-9747-af21167e8a80';
 const GM_SUPABASE   = 'https://lvglkxjzraznwnfilxvy.supabase.co';
 
 let _gmCourses    = [];
-let _gmFiltered   = [];
 let _gmSelected   = null;
 let _gmShareLink  = '';
+let _gmGroup      = 'all';
+let _gmSearchQ    = '';
+
+const GM_GROUPS = {
+  all:      { title: '전체 강좌',       filter: () => true },
+  beginner: { title: '초신자를 위한 강좌', filter: c => c.category === 'faith' || /초신자|입문|기초|처음|시작/.test(c.title) },
+  teen:     { title: '10대를 위한 강좌',  filter: c => /중학|고등|청소년|청년|10대|틴/.test(c.title) || c.category === 'faith' },
+  teacher:  { title: '교사·부모님께',    filter: c => c.category === 'edu' },
+  minister: { title: '사역자에게',       filter: c => c.category === 'mission' },
+  english:  { title: '영어 교육',        filter: c => c.category === 'english' },
+};
 
 function gmEsc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1757,6 +1802,9 @@ function gmEsc(s) {
 async function openGiftSelectModal() {
   document.getElementById('gm-overlay').classList.add('open');
   gmShowStep(1);
+  gmSelectGroup('all', document.querySelector('.gm-chip[data-group="all"]'), true);
+  document.getElementById('gm-search-input').value = '';
+  _gmSearchQ = '';
   if (!_gmCourses.length) await gmLoadCourses();
 }
 
@@ -1767,6 +1815,28 @@ function closeGiftSelectModal() {
   document.getElementById('gm-search-input').value = '';
   document.getElementById('gm-recipient-email').value = '';
   document.getElementById('gm-message').value = '';
+}
+
+function gmSelectGroup(group, chipEl, silent) {
+  _gmGroup = group;
+  _gmSearchQ = '';
+  if (!silent) document.getElementById('gm-search-input').value = '';
+  document.querySelectorAll('.gm-chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  const groupDef = GM_GROUPS[group] || GM_GROUPS.all;
+  document.getElementById('gm-group-title').textContent = groupDef.title;
+  gmApplyFilter();
+}
+
+function gmApplyFilter() {
+  const groupDef = GM_GROUPS[_gmGroup] || GM_GROUPS.all;
+  const q = _gmSearchQ.toLowerCase();
+  const filtered = _gmCourses.filter(c => {
+    const matchGroup = groupDef.filter(c);
+    const matchSearch = !q || c.title.toLowerCase().includes(q);
+    return matchGroup && matchSearch;
+  });
+  gmRenderCourses(filtered);
 }
 
 function gmOverlayClick(e) {
@@ -1797,8 +1867,7 @@ async function gmLoadCourses() {
     return;
   }
   _gmCourses = data;
-  _gmFiltered = data;
-  gmRenderCourses(data);
+  gmApplyFilter();
 }
 
 function gmRenderCourses(courses) {
@@ -1824,9 +1893,8 @@ function gmRenderCourses(courses) {
 }
 
 function gmFilterCourses(q) {
-  const query = q.trim().toLowerCase();
-  _gmFiltered = query ? _gmCourses.filter(c => c.title.toLowerCase().includes(query)) : _gmCourses;
-  gmRenderCourses(_gmFiltered);
+  _gmSearchQ = q.trim();
+  gmApplyFilter();
 }
 
 function gmSelectCourse(courseId) {
