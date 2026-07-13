@@ -25,6 +25,8 @@
     .badge-notice { background: #E8F5EE; color: #1A7A4A; }
     .badge-event  { background: #FEF3C7; color: #D97706; }
     .badge-info   { background: #EEF2FF; color: #4B6FD4; }
+    .badge-popup  { background: #FFF7ED; color: #EA580C; }
+    .badge-banner { background: #EFF6FF; color: #2563EB; }
     .notice-title-text { font-size: 14px; font-weight: 500; color: var(--black); flex: 1; min-width: 0; }
     .notice-date-text  { font-size: 12px; color: #6B6B6B; flex-shrink: 0; white-space: nowrap; }
     .action-btns  { display: flex; gap: 6px; flex-shrink: 0; }
@@ -34,6 +36,7 @@
     .btn-sm-del:hover { background: #FEE2E2; }
     .empty-state  { text-align: center; padding: 3rem; color: #6B6B6B; }
     .loading-state { text-align: center; padding: 3rem; color: #6B6B6B; }
+    .display-hint { font-size: 11px; color: #888; margin-top: 6px; padding: 8px 10px; background: #f8f9fa; border-radius: 6px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -72,6 +75,15 @@
         <div class="form-group">
           <label class="form-label">내용</label>
           <textarea class="form-textarea form-input" id="notice-content" placeholder="공지사항 내용을 입력해주세요"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">게시 방식</label>
+          <select class="form-select" id="notice-display-mode" onchange="updateDisplayHint()">
+            <option value="none">게시 안 함</option>
+            <option value="popup">팝업으로 표시</option>
+            <option value="banner">상단 배너로 표시</option>
+          </select>
+          <div class="display-hint" id="display-hint">게시하지 않습니다. 공지사항 목록(notices.html)에는 보입니다.</div>
         </div>
         <div class="form-actions">
           <button class="btn-cancel" onclick="cancelForm()">취소</button>
@@ -114,7 +126,19 @@
 
   var TYPE_LABELS = { notice:'공지', event:'이벤트', info:'안내' };
   var TYPE_BADGES = { notice:'badge-notice', event:'badge-event', info:'badge-info' };
+  var DISPLAY_LABELS = { none:'비게시', popup:'팝업', banner:'배너' };
+  var DISPLAY_BADGES = { popup:'badge-popup', banner:'badge-banner' };
+  var DISPLAY_HINTS = {
+    none:   '게시하지 않습니다. 공지사항 목록(notices.html)에는 보입니다.',
+    popup:  '메인 페이지(index.html) 접속 시 팝업으로 표시됩니다. 가장 최근 공지 1개만 표시되며, 방문자가 오늘 하루 보지 않기 선택 시 하루 동안 나타나지 않습니다.',
+    banner: '사이트 모든 페이지 상단에 배너 형태로 표시됩니다. 가장 최근 배너 공지 1개가 자동으로 노출됩니다.'
+  };
   var editingId = null;
+
+  function updateDisplayHint() {
+    var mode = document.getElementById('notice-display-mode').value;
+    document.getElementById('display-hint').textContent = DISPLAY_HINTS[mode] || '';
+  }
 
   // 오늘 날짜 기본값
   document.getElementById('notice-date').value = new Date().toISOString().split('T')[0];
@@ -143,8 +167,11 @@
     list.innerHTML = data.map(function(n) {
       var badge = TYPE_BADGES[n.type] || 'badge-notice';
       var label = TYPE_LABELS[n.type] || n.type;
+      var dm = n.display_mode || 'none';
+      var dmBadge = dm !== 'none' ? '<span class="badge ' + (DISPLAY_BADGES[dm] || '') + '" style="margin-left:4px;">' + (DISPLAY_LABELS[dm] || dm) + '</span>' : '';
       return '<div class="notice-row">' +
         '<span class="badge ' + badge + '">' + label + '</span>' +
+        dmBadge +
         '<span class="notice-title-text">' + escHtml(n.title) + '</span>' +
         '<span class="notice-date-text">' + (n.notice_date || '') + '</span>' +
         '<div class="action-btns">' +
@@ -168,7 +195,8 @@
     btn.disabled = true;
     btn.textContent = '저장 중...';
 
-    var payload = { type: type, title: title, notice_date: date || null, content: content || null };
+    var displayMode = document.getElementById('notice-display-mode').value;
+    var payload = { type: type, title: title, notice_date: date || null, content: content || null, display_mode: displayMode };
     var error;
 
     if (editingId) {
@@ -194,10 +222,12 @@
 
     editingId = id;
     document.getElementById('form-title').textContent = '공지사항 수정';
-    document.getElementById('notice-type').value    = data.type || 'notice';
-    document.getElementById('notice-date').value    = data.notice_date || '';
-    document.getElementById('notice-title').value   = data.title || '';
-    document.getElementById('notice-content').value = data.content || '';
+    document.getElementById('notice-type').value         = data.type || 'notice';
+    document.getElementById('notice-date').value         = data.notice_date || '';
+    document.getElementById('notice-title').value        = data.title || '';
+    document.getElementById('notice-content').value      = data.content || '';
+    document.getElementById('notice-display-mode').value = data.display_mode || 'none';
+    updateDisplayHint();
     document.getElementById('notice-form').style.display = 'block';
     document.getElementById('notice-form').scrollIntoView({ behavior: 'smooth' });
   }
@@ -226,10 +256,12 @@
   function cancelForm() {
     editingId = null;
     document.getElementById('form-title').textContent  = '공지사항 작성';
-    document.getElementById('notice-type').value       = 'notice';
-    document.getElementById('notice-date').value       = new Date().toISOString().split('T')[0];
-    document.getElementById('notice-title').value      = '';
-    document.getElementById('notice-content').value   = '';
+    document.getElementById('notice-type').value         = 'notice';
+    document.getElementById('notice-date').value         = new Date().toISOString().split('T')[0];
+    document.getElementById('notice-title').value        = '';
+    document.getElementById('notice-content').value      = '';
+    document.getElementById('notice-display-mode').value = 'none';
+    updateDisplayHint();
     document.getElementById('notice-form').style.display = 'none';
   }
 

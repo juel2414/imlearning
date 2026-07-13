@@ -1528,6 +1528,7 @@ function initHeroCanvas() {
 
     sb.from('notices')
       .select('id,title,content')
+      .eq('display_mode', 'popup')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()

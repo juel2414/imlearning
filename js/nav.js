@@ -509,4 +509,80 @@
   }
 
   initAuth();
+
+  // ── 상단 배너 공지 ────────────────────────────────────────────
+  var BANNER_KEY = 'iml_banner_dismissed';
+  var BANNER_ID  = 'im-notice-banner';
+
+  var bannerStyle = document.createElement('style');
+  bannerStyle.textContent = [
+    '#im-notice-banner{',
+    'display:none;width:100%;background:#1e40af;color:#fff;',
+    'font-size:13px;z-index:88;',
+    'animation:bnrSlide .3s ease;}',
+    '@keyframes bnrSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}',
+    '#im-notice-banner.open{display:flex;align-items:center;gap:10px;',
+    'padding:10px 18px;justify-content:space-between;flex-wrap:wrap;}',
+    '.bnr-type{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;',
+    'background:rgba(255,255,255,.18);border-radius:4px;padding:2px 7px;flex-shrink:0;}',
+    '.bnr-text{flex:1;min-width:0;font-weight:600;line-height:1.4;word-break:keep-all;}',
+    '.bnr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}',
+    '.bnr-link{font-size:11px;color:rgba(255,255,255,.8);text-decoration:none;white-space:nowrap;}',
+    '.bnr-link:hover{color:#fff;text-decoration:underline;}',
+    '.bnr-dismiss{background:none;border:none;color:rgba(255,255,255,.7);',
+    'cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;border-radius:4px;}',
+    '.bnr-dismiss:hover{color:#fff;background:rgba(255,255,255,.15);}',
+    'body.has-notice-banner #site-navbar{top:calc(var(--ab-h,0px) + 40px)!important;}',
+  ].join('');
+  document.head.appendChild(bannerStyle);
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function showNoticeBanner(notice) {
+    if (document.getElementById(BANNER_ID)) return;
+    var typeMap = { notice:'📢 공지', event:'🎉 이벤트', info:'ℹ️ 안내' };
+    var banner = document.createElement('div');
+    banner.id = BANNER_ID;
+    banner.innerHTML =
+      '<span class="bnr-type">' + (typeMap[notice.type] || '📢 공지') + '</span>' +
+      '<span class="bnr-text">' + String(notice.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' +
+      '<div class="bnr-right">' +
+        (notice.content ? '<a href="notices.html" class="bnr-link">자세히 보기 →</a>' : '') +
+        '<button class="bnr-dismiss" onclick="dismissBanner()" title="닫기">✕</button>' +
+      '</div>';
+    banner.classList.add('open');
+
+    var nb = document.getElementById('site-navbar');
+    if (nb && nb.parentNode) {
+      nb.parentNode.insertBefore(banner, nb.nextSibling);
+    } else {
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+    document.body.classList.add('has-notice-banner');
+  }
+
+  window.dismissBanner = function () {
+    var b = document.getElementById(BANNER_ID);
+    if (b) b.remove();
+    document.body.classList.remove('has-notice-banner');
+    localStorage.setItem(BANNER_KEY, todayStr());
+  };
+
+  function initNoticeBanner() {
+    if (localStorage.getItem(BANNER_KEY) === todayStr()) return;
+    var sb = window.supabaseClient;
+    if (!sb) { setTimeout(initNoticeBanner, 80); return; }
+    sb.from('notices')
+      .select('id,title,content,type')
+      .eq('display_mode', 'banner')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(function (res) { if (res.data) showNoticeBanner(res.data); })
+      .catch(function () {});
+  }
+
+  initNoticeBanner();
 })();
