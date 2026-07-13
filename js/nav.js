@@ -127,10 +127,11 @@
     /* 하위 항목 — 여백과 절제 */
     '.mega-col-items{display:flex;flex-direction:column;gap:0;}',
     '.mega-col a:not(.mega-col-title):not(.mega-col-thumb){',
-    'font-size:14px!important;color:#222!important;font-weight:400!important;',
+    'font-size:13px!important;color:#222!important;font-weight:400!important;',
     'text-decoration:none!important;padding:0!important;border-radius:0!important;',
-    'display:block!important;line-height:2.2!important;',
+    'display:block!important;line-height:1.9!important;',
     'transition:color .12s!important;white-space:nowrap!important;',
+    'overflow:hidden!important;text-overflow:ellipsis!important;',
     'background:transparent!important;}',
     '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):hover{',
     'color:var(--green,#2D9B6F)!important;',
