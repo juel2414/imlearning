@@ -27,7 +27,7 @@
 .curriculum-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 0; font-size: 13px; color: var(--gray-700); background: #fff; transition: background .12s; }
 .curriculum-item:last-child { border-bottom: none; }
 .curriculum-item:hover { background: #f5faf7; }
-.curriculum-num { width: 26px; height: 26px; background: #eee; color: #888; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; transition: background .15s, color .15s; }
+.curriculum-num { width: 30px; height: 30px; background: conic-gradient(#ddd 360deg); box-shadow: inset 0 0 0 4px #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; color: #888; transition: background .4s ease; }
 .curriculum-lock { margin-left: auto; font-size: 13px; color: var(--gray-300); flex-shrink: 0; }
 .purchase-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); position: sticky; top: 80px; }
 .purchase-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 1.25rem; }
@@ -67,9 +67,11 @@
 .curriculum-item-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:auto; }
 .curriculum-duration { font-size:11px; color:#aaa; white-space:nowrap; }
 .curriculum-resume-tag { font-size:10px; font-weight:700; background:var(--green); color:#fff; padding:2px 7px; border-radius:20px; white-space:nowrap; }
+/* 완료 — 꽉 찬 초록 원 */
+.curriculum-item.done .curriculum-num { background:var(--green) !important; box-shadow:none !important; color:#fff !important; }
 /* 현재 재생중 */
 .curriculum-item.vimeo-playing { background:rgba(45,155,111,.12) !important; border-left:3px solid var(--green); padding-left:13px; }
-.curriculum-item.vimeo-playing .curriculum-num { background:var(--green); color:#fff; }
+.curriculum-item.vimeo-playing .curriculum-num { background:var(--green) !important; box-shadow:none !important; color:#fff !important; }
 .curriculum-item.vimeo-playing .curriculum-item-title { color:var(--green-dark); font-weight:600; }
 /* 마지막 시청 (재생 안중일 때) */
 .curriculum-item.last-watched-item:not(.vimeo-playing) { background:rgba(45,155,111,.05); }
@@ -585,6 +587,7 @@ function closePreview(e) {
 
 // ───── 수강 진도 ─────
 let progressMap = {};    // lessonId → true/false
+let watchPctMap = {};    // lessonNum → 0~100
 let isEnrolled = false;
 let lastWatchedLesson = null;
 let _prevCoursePct = -1; // 수료 이메일 중복 방지
@@ -592,16 +595,26 @@ let curriculumLessons = []; // 사이드바용 강의 목록
 let sidebarRendered = false;
 
 async function loadProgress(userId, courseId) {
-  const { data } = await supabaseClient
-    .from('progress')
-    .select('lesson_id, completed, watched_at, lesson_title')
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .order('watched_at', { ascending: false });
+  const [progressRes, vpRes] = await Promise.all([
+    supabaseClient
+      .from('progress')
+      .select('lesson_id, completed, watched_at, lesson_title')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .order('watched_at', { ascending: false }),
+    supabaseClient
+      .from('video_progress')
+      .select('lesson_number, watch_percentage')
+      .eq('user_id', userId)
+      .eq('course_id', courseId),
+  ]);
 
-  if (data && data.length) {
-    data.forEach(r => { progressMap[r.lesson_id] = r.completed; });
-    lastWatchedLesson = data[0]; // 가장 최근에 본 강의
+  if (progressRes.data && progressRes.data.length) {
+    progressRes.data.forEach(r => { progressMap[r.lesson_id] = r.completed; });
+    lastWatchedLesson = progressRes.data[0];
+  }
+  if (vpRes.data) {
+    vpRes.data.forEach(r => { watchPctMap[r.lesson_number] = r.watch_percentage || 0; });
   }
   applyProgressUI();
 }
@@ -621,8 +634,22 @@ function applyProgressUI() {
     if (isEnrolled) {
       // 완료 상태 표시
       item.classList.toggle('done', completed);
+      const n = parseInt(lid.replace(/[^0-9]/g, '')) || 1;
       const numEl = item.querySelector('.curriculum-num');
-      if (numEl) numEl.textContent = completed ? '✓' : String(parseInt(lid.replace(/[^0-9]/g, '')) || '');
+      if (numEl) {
+        numEl.textContent = completed ? '✓' : String(n);
+        if (!completed) {
+          const pct = watchPctMap[n] || 0;
+          const deg = Math.round(pct * 3.6); // 0~100 → 0~360deg
+          numEl.style.background = deg > 0
+            ? `conic-gradient(var(--green) ${deg}deg, #ddd ${deg}deg)`
+            : 'conic-gradient(#ddd 360deg)';
+          numEl.style.color = pct > 0 ? 'var(--green-dark)' : '#aaa';
+        } else {
+          numEl.style.background = '';
+          numEl.style.color = '';
+        }
+      }
       const titleEl = item.querySelector('.curriculum-item-title');
       if (titleEl) titleEl.classList.toggle('done-text', completed);
 
