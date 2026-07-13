@@ -194,6 +194,7 @@
     var { data, error } = await supabaseClient
       .from('notices')
       .select('*')
+      .neq('display_mode', 'hidden')
       .order('notice_date', { ascending: false })
       .order('created_at', { ascending: false });
 
