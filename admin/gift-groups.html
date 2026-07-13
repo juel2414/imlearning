@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선물 그룹 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<link rel="stylesheet" href="admin-common.css">
+<style>
+body { background:#F8F9FA; }
+.group-list { display:flex; flex-direction:column; gap:0; }
+.group-row { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid rgba(0,0,0,.05); flex-wrap:wrap; }
+.group-row:last-child { border-bottom:none; }
+.group-icon-preview { font-size:26px; width:44px; text-align:center; flex-shrink:0; }
+.group-info { flex:1; min-width:0; }
+.group-label { font-size:15px; font-weight:700; color:#111; }
+.group-meta { font-size:12px; color:#888; margin-top:2px; }
+.group-btns { display:flex; gap:6px; flex-shrink:0; }
+.btn-edit { padding:5px 12px; font-size:12px; border:1px solid rgba(0,0,0,.1); border-radius:6px; background:#fff; cursor:pointer; }
+.btn-edit:hover { border-color:#2D9B6F; color:#2D9B6F; }
+.btn-del { padding:5px 12px; font-size:12px; border:1px solid #FCA5A5; border-radius:6px; color:#EF4444; background:#fff; cursor:pointer; }
+.btn-del:hover { background:#FEE2E2; }
+.badge-cat { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700; background:#E8F5EE; color:#1A7A4A; }
+.form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.empty-state { text-align:center; padding:3rem; color:#888; font-size:14px; }
+.hint { font-size:11px; color:#aaa; margin-top:4px; }
+.cat-options { font-size:12px; color:#666; margin-top:6px; background:#f8f9fa; padding:10px; border-radius:8px; line-height:2; }
+</style>
+</head>
+<body>
+<main class="admin-main">
+  <div class="admin-header">
+    <h1>🎁 선물 그룹 관리</h1>
+    <button class="btn-primary" onclick="openForm()">+ 그룹 추가</button>
+  </div>
+
+  <div class="page-grid-2">
+    <!-- 폼 -->
+    <div class="admin-card" id="group-form" style="display:none;">
+      <div class="admin-card-header">
+        <span class="admin-card-title" id="form-title">그룹 추가</span>
+      </div>
+      <div class="admin-card-body">
+        <div class="form-row-2" style="margin-bottom:1rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">아이콘 (이모지)</label>
+            <input class="form-input" type="text" id="f-icon" placeholder="🎁" maxlength="4">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">순서</label>
+            <input class="form-input" type="number" id="f-sort" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">그룹 이름</label>
+          <input class="form-input" type="text" id="f-label" placeholder="초신자를 위한">
+        </div>
+        <div class="form-group">
+          <label class="form-label">강좌 카테고리 필터</label>
+          <select class="form-select" id="f-category">
+            <option value="all">전체 (카테고리 무관)</option>
+            <option value="faith">신앙 (faith)</option>
+            <option value="edu">교사·부모 (edu)</option>
+            <option value="mission">캠프·사역 (mission)</option>
+            <option value="english">영어·시험 (english)</option>
+            <option value="any">키워드만 사용 (카테고리 무시)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">키워드 필터 <span style="font-weight:400;color:#aaa;">(선택)</span></label>
+          <input class="form-input" type="text" id="f-keywords" placeholder="초신자,입문,기초,처음">
+          <div class="hint">쉼표(,)로 구분. 강좌 제목에 키워드가 포함되면 이 그룹에 표시됩니다.</div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="cancelForm()">취소</button>
+          <button class="btn-save" onclick="saveGroup()">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 목록 -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">그룹 목록 <span id="group-count" style="color:#2D9B6F;"></span></span>
+      </div>
+      <div class="group-list" id="group-list">
+        <div class="empty-state">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="success-toast" id="toast"></div>
+
+<script>
+var sb = window.supabaseClient;
+var editingId = null;
+
+(async function checkAdmin() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '../login.html'; return; }
+  const { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!p || p.role !== 'admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; }
+})();
+
+const CAT_LABELS = {
+  all: '전체', faith: '신앙', edu: '교사·부모', mission: '캠프·사역', english: '영어·시험', any: '키워드만'
+};
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function loadGroups() {
+  const { data, error } = await sb.from('gift_groups').select('*').order('sort_order').order('id');
+  const list = document.getElementById('group-list');
+  if (error || !data) { list.innerHTML = '<div class="empty-state">불러오기 실패</div>'; return; }
+  document.getElementById('group-count').textContent = '(' + data.length + '개)';
+  if (!data.length) { list.innerHTML = '<div class="empty-state">그룹이 없습니다. 추가해보세요!</div>'; return; }
+  list.innerHTML = data.map(g => {
+    const kw = g.keywords ? '<br>키워드: ' + esc(g.keywords) : '';
+    return `<div class="group-row">
+      <div class="group-icon-preview">${esc(g.icon)}</div>
+      <div class="group-info">
+        <div class="group-label">${esc(g.label)}</div>
+        <div class="group-meta"><span class="badge-cat">${esc(CAT_LABELS[g.category]||g.category)}</span>${kw}</div>
+      </div>
+      <div class="group-btns">
+        <button class="btn-edit" onclick="editGroup(${g.id})">수정</button>
+        <button class="btn-del" onclick="deleteGroup(${g.id})">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openForm() {
+  editingId = null;
+  document.getElementById('form-title').textContent = '그룹 추가';
+  document.getElementById('f-icon').value = '';
+  document.getElementById('f-label').value = '';
+  document.getElementById('f-category').value = 'all';
+  document.getElementById('f-keywords').value = '';
+  document.getElementById('f-sort').value = '';
+  document.getElementById('group-form').style.display = 'block';
+  document.getElementById('group-form').scrollIntoView({ behavior:'smooth' });
+}
+
+async function editGroup(id) {
+  const { data, error } = await sb.from('gift_groups').select('*').eq('id', id).single();
+  if (error || !data) { alert('불러오기 실패'); return; }
+  editingId = id;
+  document.getElementById('form-title').textContent = '그룹 수정';
+  document.getElementById('f-icon').value = data.icon || '';
+  document.getElementById('f-label').value = data.label || '';
+  document.getElementById('f-category').value = data.category || 'all';
+  document.getElementById('f-keywords').value = data.keywords || '';
+  document.getElementById('f-sort').value = data.sort_order ?? '';
+  document.getElementById('group-form').style.display = 'block';
+  document.getElementById('group-form').scrollIntoView({ behavior:'smooth' });
+}
+
+async function saveGroup() {
+  const icon  = document.getElementById('f-icon').value.trim() || '🎁';
+  const label = document.getElementById('f-label').value.trim();
+  const cat   = document.getElementById('f-category').value;
+  const kw    = document.getElementById('f-keywords').value.trim();
+  const sort  = parseInt(document.getElementById('f-sort').value) || 0;
+  if (!label) { alert('그룹 이름을 입력해주세요.'); return; }
+
+  const payload = { icon, label, category: cat, keywords: kw, sort_order: sort };
+  const { error } = editingId
+    ? await sb.from('gift_groups').update(payload).eq('id', editingId)
+    : await sb.from('gift_groups').insert(payload);
+
+  if (error) { alert('저장 실패: ' + error.message); return; }
+  showToast(editingId ? '수정되었습니다!' : '추가되었습니다!');
+  cancelForm();
+  loadGroups();
+}
+
+async function deleteGroup(id) {
+  if (!confirm('이 그룹을 삭제할까요?')) return;
+  const { error } = await sb.from('gift_groups').delete().eq('id', id);
+  if (error) { alert('삭제 실패: ' + error.message); return; }
+  showToast('삭제되었습니다');
+  loadGroups();
+}
+
+function cancelForm() {
+  editingId = null;
+  document.getElementById('group-form').style.display = 'none';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✅ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadGroups();
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>

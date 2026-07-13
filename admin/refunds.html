@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환불 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<link rel="stylesheet" href="admin-common.css">
+<style>
+body { background:#F8F9FA; }
+.filter-tabs { display:flex; gap:6px; margin-bottom:1.25rem; flex-wrap:wrap; }
+.filter-tab { padding:7px 16px; border-radius:20px; border:1.5px solid rgba(0,0,0,.1); background:#fff; font-size:13px; font-weight:600; color:#777; cursor:pointer; transition:all .15s; }
+.filter-tab.active { background:#2D9B6F; border-color:#2D9B6F; color:#fff; }
+.refund-table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 14px; font-size:11px; font-weight:700; color:#888; border-bottom:2px solid rgba(0,0,0,.06); white-space:nowrap; }
+td { padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#fafafa; }
+.badge-rs { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge-rs.paid    { background:#F0FDF4; color:#16A34A; }
+.badge-rs.refunded { background:#FEE2E2; color:#EF4444; }
+.badge-rs.partial { background:#FEF3C7; color:#D97706; }
+.btn-refund { padding:5px 12px; border:1.5px solid #F59E0B; background:#fff; color:#D97706; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.btn-refund:hover { background:#F59E0B; color:#fff; }
+.btn-refund:disabled { opacity:.5; cursor:not-allowed; }
+.empty-state { text-align:center; padding:3rem; color:#aaa; font-size:14px; }
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin-bottom:1.5rem; }
+.kpi-card { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.06); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent,#2D9B6F); }
+.kpi-label { font-size:12px; color:#888; margin-bottom:6px; font-weight:600; }
+.kpi-value { font-size:26px; font-weight:900; line-height:1; }
+.name-cell { font-weight:600; color:#111; }
+.email-cell { font-size:11px; color:#888; margin-top:2px; }
+.course-cell { font-weight:500; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+</style>
+</head>
+<body>
+<main class="admin-main">
+  <div class="admin-header">
+    <h1>💰 환불 관리</h1>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">전체 결제</div><div class="kpi-value" id="kpi-total">-</div></div>
+    <div class="kpi-card" style="--accent:#EF4444;"><div class="kpi-label">환불 완료</div><div class="kpi-value" id="kpi-refunded">-</div></div>
+    <div class="kpi-card" style="--accent:#D97706;"><div class="kpi-label">부분 환불</div><div class="kpi-value" id="kpi-partial">-</div></div>
+    <div class="kpi-card" style="--accent:#2563EB;"><div class="kpi-label">환불 가능 건</div><div class="kpi-value" id="kpi-eligible">-</div></div>
+  </div>
+
+  <!-- 필터 탭 -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="setFilter('all', this)">전체</button>
+    <button class="filter-tab" onclick="setFilter('refundable', this)">환불 가능</button>
+    <button class="filter-tab" onclick="setFilter('refunded', this)">환불 완료</button>
+    <button class="filter-tab" onclick="setFilter('partial', this)">부분 환불</button>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-body" style="padding:0;">
+      <div class="refund-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>수강생</th>
+              <th>강좌</th>
+              <th>결제금액</th>
+              <th>결제일</th>
+              <th>상태</th>
+              <th>처리</th>
+            </tr>
+          </thead>
+          <tbody id="refund-tbody">
+            <tr><td colspan="6" class="empty-state">불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- 환불 처리 모달 -->
+<div id="refund-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <h3 style="margin:0 0 1rem;font-size:18px;font-weight:800;">환불 처리</h3>
+    <div id="refund-modal-info" style="font-size:14px;color:#555;line-height:1.8;margin-bottom:1rem;"></div>
+    <div id="refund-step1">
+      <div style="background:#FEF3C7;border-radius:8px;padding:12px 14px;font-size:12px;color:#92400E;margin-bottom:1.5rem;line-height:1.7;">
+        ⚠️ 관리자 환불은 시청률·기간 무관 <strong>전액 환불</strong>됩니다.<br>
+        처리 후 즉시 취소 불가능합니다.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeRefundModal()" style="padding:10px 20px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-weight:600;">취소</button>
+        <button id="refund-confirm-btn" onclick="showConfirmStep()" style="padding:10px 20px;border-radius:8px;background:#F59E0B;color:#fff;border:none;cursor:pointer;font-weight:700;">환불 처리</button>
+      </div>
+    </div>
+    <div id="refund-step2" style="display:none;">
+      <div style="background:#FEE2E2;border-radius:8px;padding:12px 14px;font-size:13px;color:#7F1D1D;margin-bottom:1.5rem;font-weight:700;">
+        ⛔ 정말 환불 처리하시겠습니까? 이 작업은 즉시 실행되며 되돌릴 수 없습니다.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="showStep1()" style="padding:10px 20px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-weight:600;">← 뒤로</button>
+        <button id="refund-final-btn" onclick="processRefund()" style="padding:10px 20px;border-radius:8px;background:#EF4444;color:#fff;border:none;cursor:pointer;font-weight:700;">최종 확인 — 환불</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="success-toast" id="toast"></div>
+
+<script>
+var sb = window.supabaseClient;
+var SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+var allOrders = [], allProfiles = [], allCourses = [];
+var curFilter = 'all';
+var curOrderId = null;
+
+(async function checkAdmin() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '../login.html'; return; }
+  const { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!p || p.role !== 'admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; }
+})();
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('ko-KR') : '-'; }
+function fmtMoney(n) { return '₩' + Number(n||0).toLocaleString(); }
+
+async function loadAll() {
+  const [ordersRes, profilesRes, coursesRes] = await Promise.all([
+    sb.from('orders').select('id, user_id, course_id, amount, status, refund_status, payment_id, created_at').eq('status', 'paid').order('created_at', { ascending: false }),
+    sb.from('profiles').select('id, name, email'),
+    sb.from('courses').select('id, title'),
+  ]);
+  allOrders   = ordersRes.data   || [];
+  allProfiles = profilesRes.data || [];
+  allCourses  = coursesRes.data  || [];
+  renderKPI();
+  renderTable();
+}
+
+function renderKPI() {
+  const refunded  = allOrders.filter(o => o.refund_status === 'refunded');
+  const partial   = allOrders.filter(o => o.refund_status === 'partial');
+  const eligible  = allOrders.filter(o => !o.refund_status || o.refund_status === 'none');
+  document.getElementById('kpi-total').textContent    = allOrders.length.toLocaleString();
+  document.getElementById('kpi-refunded').textContent = refunded.length.toLocaleString();
+  document.getElementById('kpi-partial').textContent  = partial.length.toLocaleString();
+  document.getElementById('kpi-eligible').textContent = eligible.length.toLocaleString();
+}
+
+function setFilter(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('refund-tbody');
+  let rows = allOrders;
+  if (curFilter === 'refunded')   rows = rows.filter(o => o.refund_status === 'refunded');
+  else if (curFilter === 'partial') rows = rows.filter(o => o.refund_status === 'partial');
+  else if (curFilter === 'refundable') rows = rows.filter(o => !o.refund_status || o.refund_status === 'none');
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">해당 건이 없습니다.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(o => {
+    const profile = allProfiles.find(p => p.id === o.user_id) || {};
+    const course  = allCourses.find(c => String(c.id) === String(o.course_id)) || {};
+    const rs = o.refund_status || 'none';
+    const statusHtml = rs === 'refunded'
+      ? '<span class="badge-rs refunded">환불 완료</span>'
+      : rs === 'partial'
+      ? '<span class="badge-rs partial">부분 환불</span>'
+      : '<span class="badge-rs paid">결제 완료</span>';
+    const canRefund = !o.refund_status || o.refund_status === 'none';
+    const refundBtn = canRefund
+      ? `<button class="btn-refund" onclick="openRefundModal(${o.id}, '${esc(profile.name||'')}', '${esc(course.title||'')}', ${o.amount||0})">환불 처리</button>`
+      : '<span style="font-size:12px;color:#aaa;">처리됨</span>';
+    return `<tr>
+      <td><div class="name-cell">${esc(profile.name||'-')}</div><div class="email-cell">${esc(profile.email||'-')}</div></td>
+      <td><div class="course-cell" title="${esc(course.title||'')}">${esc(course.title||'강좌 ID:'+o.course_id)}</div></td>
+      <td style="font-weight:700;">${fmtMoney(o.amount)}</td>
+      <td style="white-space:nowrap;">${fmtDate(o.created_at)}</td>
+      <td>${statusHtml}</td>
+      <td>${refundBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openRefundModal(orderId, name, courseTitle, amount) {
+  curOrderId = orderId;
+  document.getElementById('refund-modal-info').innerHTML =
+    '<strong>' + esc(name) + '</strong> 님의 구매 건<br>' +
+    '강좌: <strong>' + esc(courseTitle) + '</strong><br>' +
+    '결제금액: <strong>' + fmtMoney(amount) + '</strong>';
+  showStep1();
+  document.getElementById('refund-modal').style.display = 'flex';
+}
+
+function closeRefundModal() {
+  document.getElementById('refund-modal').style.display = 'none';
+  curOrderId = null;
+}
+
+function showStep1() {
+  document.getElementById('refund-step1').style.display = 'block';
+  document.getElementById('refund-step2').style.display = 'none';
+}
+
+function showConfirmStep() {
+  document.getElementById('refund-step1').style.display = 'none';
+  document.getElementById('refund-step2').style.display = 'block';
+}
+
+async function processRefund() {
+  if (!curOrderId) return;
+  const btn = document.getElementById('refund-final-btn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(SUPABASE_URL + '/functions/v1/refund-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ orderId: curOrderId }),
+    });
+    const result = await res.json();
+    if (result.success) {
+      closeRefundModal();
+      const msg = result.refund_amount > 0
+        ? fmtMoney(result.refund_amount) + ' 환불 완료'
+        : result.message || '환불 처리 완료';
+      showToast(msg);
+      await loadAll();
+    } else {
+      alert('환불 실패: ' + (result.message || result.error || '다시 시도해주세요.'));
+    }
+  } catch(e) {
+    alert('오류가 발생했습니다: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '최종 확인 — 환불';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✅ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadAll();
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>

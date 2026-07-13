@@ -1699,32 +1699,7 @@ async function loadCoupons() {
 
     <!-- Step 1: 강좌 선택 -->
     <div class="gm-body gm-step active" id="gm-step1">
-      <div class="gm-group-chips" id="gm-group-chips">
-        <div class="gm-chip active" data-group="all" onclick="gmSelectGroup('all', this)">
-          <span class="gm-chip-icon">🎁</span>
-          <span class="gm-chip-label">전체</span>
-        </div>
-        <div class="gm-chip" data-group="beginner" onclick="gmSelectGroup('beginner', this)">
-          <span class="gm-chip-icon">🌱</span>
-          <span class="gm-chip-label">초신자를<br>위한</span>
-        </div>
-        <div class="gm-chip" data-group="teen" onclick="gmSelectGroup('teen', this)">
-          <span class="gm-chip-icon">🎒</span>
-          <span class="gm-chip-label">10대를<br>위한</span>
-        </div>
-        <div class="gm-chip" data-group="teacher" onclick="gmSelectGroup('teacher', this)">
-          <span class="gm-chip-icon">📚</span>
-          <span class="gm-chip-label">교사·부모<br>님께</span>
-        </div>
-        <div class="gm-chip" data-group="minister" onclick="gmSelectGroup('minister', this)">
-          <span class="gm-chip-icon">⛪</span>
-          <span class="gm-chip-label">사역자<br>에게</span>
-        </div>
-        <div class="gm-chip" data-group="english" onclick="gmSelectGroup('english', this)">
-          <span class="gm-chip-icon">🔤</span>
-          <span class="gm-chip-label">영어<br>교육</span>
-        </div>
-      </div>
+      <div class="gm-group-chips" id="gm-group-chips"></div>
       <div class="gm-group-title" id="gm-group-title">전체 강좌</div>
       <input class="gm-search" type="search" placeholder="강좌 이름 검색..." oninput="gmFilterCourses(this.value)" id="gm-search-input">
       <div class="gm-course-list" id="gm-course-list">
@@ -1783,17 +1758,9 @@ const GM_SUPABASE   = 'https://lvglkxjzraznwnfilxvy.supabase.co';
 let _gmCourses    = [];
 let _gmSelected   = null;
 let _gmShareLink  = '';
-let _gmGroup      = 'all';
+let _gmGroupIdx   = 0;
 let _gmSearchQ    = '';
-
-const GM_GROUPS = {
-  all:      { title: '전체 강좌',       filter: () => true },
-  beginner: { title: '초신자를 위한 강좌', filter: c => c.category === 'faith' || /초신자|입문|기초|처음|시작/.test(c.title) },
-  teen:     { title: '10대를 위한 강좌',  filter: c => /중학|고등|청소년|청년|10대|틴/.test(c.title) || c.category === 'faith' },
-  teacher:  { title: '교사·부모님께',    filter: c => c.category === 'edu' },
-  minister: { title: '사역자에게',       filter: c => c.category === 'mission' },
-  english:  { title: '영어 교육',        filter: c => c.category === 'english' },
-};
+let _gmGroupData  = []; // loaded from Supabase
 
 function gmEsc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1802,10 +1769,20 @@ function gmEsc(s) {
 async function openGiftSelectModal() {
   document.getElementById('gm-overlay').classList.add('open');
   gmShowStep(1);
-  gmSelectGroup('all', document.querySelector('.gm-chip[data-group="all"]'), true);
   document.getElementById('gm-search-input').value = '';
   _gmSearchQ = '';
-  if (!_gmCourses.length) await gmLoadCourses();
+  _gmGroupIdx = 0;
+  const needGroups  = !_gmGroupData.length;
+  const needCourses = !_gmCourses.length;
+  if (needGroups || needCourses) {
+    await Promise.all([
+      needGroups  ? gmLoadGroups()  : Promise.resolve(),
+      needCourses ? gmLoadCourses() : Promise.resolve(),
+    ]);
+  } else {
+    gmRenderChips();
+    gmApplyFilter();
+  }
 }
 
 function closeGiftSelectModal() {
@@ -1817,22 +1794,50 @@ function closeGiftSelectModal() {
   document.getElementById('gm-message').value = '';
 }
 
-function gmSelectGroup(group, chipEl, silent) {
-  _gmGroup = group;
+async function gmLoadGroups() {
+  const { data } = await supabaseClient
+    .from('gift_groups').select('*').order('sort_order').order('id');
+  _gmGroupData = data || [];
+  gmRenderChips();
+}
+
+function gmRenderChips() {
+  const wrap = document.getElementById('gm-group-chips');
+  wrap.innerHTML = _gmGroupData.map((g, i) =>
+    `<div class="gm-chip${i === _gmGroupIdx ? ' active' : ''}" onclick="gmSelectGroup(${i}, this)">
+      <span class="gm-chip-icon">${g.icon}</span>
+      <span class="gm-chip-label">${g.label.replace(/·/g,'·<br>').replace(/를 /,'를<br>').replace(/에게/,'에게').replace(/님께/,'님께')}</span>
+    </div>`
+  ).join('');
+}
+
+function gmSelectGroup(idx, chipEl) {
+  _gmGroupIdx = idx;
   _gmSearchQ = '';
-  if (!silent) document.getElementById('gm-search-input').value = '';
+  document.getElementById('gm-search-input').value = '';
   document.querySelectorAll('.gm-chip').forEach(c => c.classList.remove('active'));
   if (chipEl) chipEl.classList.add('active');
-  const groupDef = GM_GROUPS[group] || GM_GROUPS.all;
-  document.getElementById('gm-group-title').textContent = groupDef.title;
+  const g = _gmGroupData[idx];
+  document.getElementById('gm-group-title').textContent = g ? g.label : '전체 강좌';
   gmApplyFilter();
 }
 
 function gmApplyFilter() {
-  const groupDef = GM_GROUPS[_gmGroup] || GM_GROUPS.all;
+  const g = _gmGroupData[_gmGroupIdx];
   const q = _gmSearchQ.toLowerCase();
   const filtered = _gmCourses.filter(c => {
-    const matchGroup = groupDef.filter(c);
+    let matchGroup = true;
+    if (g) {
+      const cat = g.category;
+      const kws = g.keywords ? g.keywords.split(',').map(k => k.trim()).filter(Boolean) : [];
+      if (cat === 'all') {
+        matchGroup = true;
+      } else if (cat === 'any') {
+        matchGroup = kws.length ? kws.some(k => c.title.includes(k)) : true;
+      } else {
+        matchGroup = c.category === cat || (kws.length && kws.some(k => c.title.includes(k)));
+      }
+    }
     const matchSearch = !q || c.title.toLowerCase().includes(q);
     return matchGroup && matchSearch;
   });
