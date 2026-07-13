@@ -582,7 +582,7 @@ function renderCourses(orders, coursesMap) {
           ${isExpired
             ? '<span style="font-size:12px;color:#EF4444;font-weight:600;">만료됨</span><a href="pass.html" style="font-size:11px;color:#2D9B6F;display:block;margin-top:4px;">재구매 →</a>'
             : isComplete
-              ? '<span class="badge-complete">✅ 수료 완료</span>'
+              ? `<span class="badge-complete">✅ 수료 완료</span><a href="course-detail.html?id=${course.id}" class="btn-continue" style="margin-top:6px;background:#fff;color:#2D9B6F;border:1.5px solid #2D9B6F;">다시 보기 →</a>`
               : `<a href="course-detail.html?id=${course.id}" class="btn-continue">이어 보기 →</a>`}
           ${!isExpired && progress === 0 ? '<span class="badge-new">🆕 시작 전</span>' : ''}
         </div>
@@ -1160,14 +1160,14 @@ async function loadMyPage() {
     .eq('status', 'paid')
     .order('created_at', { ascending: false });
 
-  if (orderError && orderError.code !== 'PGRST116') {
+  if (orderError) {
     ['courses-content','orders-content','certs-content'].forEach(id => {
       document.getElementById(id).innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">📚</div>
-          <div class="empty-state-title">아직 수강 중인 강좌가 없어요</div>
-          <div class="empty-state-desc">마음에 드는 강좌를 찾아 수강을 시작해보세요!</div>
-          <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+          <div class="empty-state-icon">⚠️</div>
+          <div class="empty-state-title">수강 내역을 불러오지 못했어요</div>
+          <div class="empty-state-desc">잠시 후 다시 시도해주세요.<br><small style="color:#aaa;">${orderError.message || ''}</small></div>
+          <button class="btn btn-primary" onclick="location.reload()">새로고침</button>
         </div>`;
     });
     updateStats([]);
