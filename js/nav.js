@@ -590,7 +590,7 @@
   var bannerStyle = document.createElement('style');
   bannerStyle.textContent = [
     '#im-notice-banner{',
-    'display:none;width:100%;background:#1e40af;color:#fff;',
+    'display:none;width:100%;background:#2D9B6F;color:#fff;',
     'font-size:13px;z-index:88;',
     'animation:bnrSlide .3s ease;}',
     '@keyframes bnrSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}',
