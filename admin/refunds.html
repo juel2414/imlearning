@@ -131,7 +131,7 @@ var curGiftCode = null;
   if (!p || p.role !== 'admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; }
 })();
 
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString('ko-KR') : '-'; }
 function fmtMoney(n) { return '₩' + Number(n||0).toLocaleString(); }
 
@@ -218,7 +218,7 @@ function renderTable() {
       : '<span class="badge-rs paid">결제 완료</span>';
     const canRefund = !o.refund_status || o.refund_status === 'none';
     const btn = canRefund
-      ? `<button class="btn-refund" onclick="openOrderRefundModal(${o.id},'${esc(profile.name||'')}','${esc(course.title||'')}',${o.amount||0})">환불 처리</button>`
+      ? `<button class="btn-refund" data-oid="${o.id}" data-name="${esc(profile.name||'')}" data-title="${esc(course.title||'')}" data-amount="${o.amount||0}" onclick="openOrderRefundModal(+this.dataset.oid,this.dataset.name,this.dataset.title,+this.dataset.amount)">환불 처리</button>`
       : '<span style="font-size:12px;color:#aaa;">처리됨</span>';
     return { date: o.created_at, html: `<tr>
       <td><div class="name-cell">${esc(profile.name||'-')}</div><div class="email-cell">${esc(profile.email||'-')}</div></td>
@@ -236,7 +236,7 @@ function renderTable() {
     const course = allCourses.find(c => String(c.id) === String(g.course_id)) || {};
     const canRefund = isGiftRefundable(g);
     const btn = canRefund
-      ? `<button class="btn-refund" onclick="openGiftRefundModal('${esc(g.gift_code)}','${esc(g.sender_name||senderProfile.name||'')}','${esc(course.title||'')}',${g.amount||0})">환불 처리</button>`
+      ? `<button class="btn-refund" data-gcode="${esc(g.gift_code)}" data-sender="${esc(g.sender_name||senderProfile.name||'')}" data-title="${esc(course.title||'')}" data-amount="${g.amount||0}" onclick="openGiftRefundModal(this.dataset.gcode,this.dataset.sender,this.dataset.title,+this.dataset.amount)">환불 처리</button>`
       : '<span style="font-size:12px;color:#aaa;">처리됨</span>';
     return { date: g.created_at, html: `<tr>
       <td><div class="name-cell">${esc(g.sender_name||senderProfile.name||'-')}</div><div class="email-cell">${esc(senderProfile.email||'-')}</div><div style="font-size:10px;color:#aaa;margin-top:2px;">→ ${esc(g.recipient_email||'-')}</div></td>
