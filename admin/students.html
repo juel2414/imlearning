@@ -54,6 +54,7 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 .badge-active   { background:#DCFCE7; color:#16A34A; }
 .badge-dormant  { background:#FEE2E2; color:#DC2626; }
 .badge-complete { background:#DBEAFE; color:#1D4ED8; }
+.badge-new      { background:#EDE9FE; color:#6D28D9; }
 
 /* 진행률 바 */
 .prog-bar-wrap { background:#f0f0f0; border-radius:10px; height:6px; width:80px; overflow:hidden; display:inline-block; vertical-align:middle; }
@@ -121,6 +122,11 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 
   <!-- 학습 현황 KPI -->
   <div class="kpi-row">
+    <div class="kpi-card" style="--accent:#6366F1;">
+      <div class="kpi-label">전체 회원</div>
+      <div class="kpi-value" id="ks-members">-</div>
+      <div class="kpi-delta">가입 계정 전체</div>
+    </div>
     <div class="kpi-card" style="--accent:#2D9B6F;">
       <div class="kpi-label">오늘 학습한 수강생</div>
       <div class="kpi-value" id="ks-today">-</div>
@@ -129,7 +135,7 @@ tr.dormant-row:hover td { background:#FFE8E8; }
     <div class="kpi-card" style="--accent:#3B82F6;">
       <div class="kpi-label">총 수강생</div>
       <div class="kpi-value" id="ks-total">-</div>
-      <div class="kpi-delta">수강 신청 수강생</div>
+      <div class="kpi-delta">유료 수강 회원</div>
     </div>
     <div class="kpi-card" style="--accent:#EF4444;">
       <div class="kpi-label">휴면 수강생</div>
@@ -154,6 +160,7 @@ tr.dormant-row:hover td { background:#FFE8E8; }
           <option value="active">활성</option>
           <option value="dormant">휴면</option>
           <option value="complete">수료</option>
+          <option value="no_course">미수강</option>
         </select>
       </div>
     </div>
@@ -274,11 +281,9 @@ function buildStudentRows() {
     }
   });
 
-  // 수강생 집합 (최소 1개 이상 paid order인 유저)
-  var enrolledUserIds = Object.keys(ordersByUser);
-
-  studentRows = enrolledUserIds.map(function(uid) {
-    var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
+  // 전체 프로필 기준으로 행 구성 (수강 여부 무관)
+  studentRows = allProfiles.map(function(profile) {
+    var uid     = profile.id;
     var orders  = ordersByUser[uid] || [];
     // course_id=null인 프리패스 영수증 order 제외 (강좌 수·진도 집계에서)
     var courseOrders = orders.filter(function(o){ return o.course_id != null; });
@@ -289,10 +294,10 @@ function buildStudentRows() {
     var daysSinceLast = daysSince(lastStudy);
 
     var status;
-    if (avgProgress >= 100) status = 'complete';
+    if (courseCount === 0) status = 'no_course';
+    else if (avgProgress >= 100) status = 'complete';
     else if (daysSinceLast > 14) status = 'dormant';
-    else if (daysSinceLast <= 7) status = 'active';
-    else status = 'active'; // 8-14일도 일단 active로
+    else status = 'active';
 
     return {
       uid:            uid,
@@ -307,7 +312,7 @@ function buildStudentRows() {
       daysSinceLast:  daysSinceLast,
       totalWatch:     totalWatch,
       status:         status,
-      isDormant:      daysSinceLast > 14,
+      isDormant:      courseCount > 0 && daysSinceLast > 14,
     };
   });
 }
@@ -315,6 +320,9 @@ function buildStudentRows() {
 // ── KPI 계산 ──
 function renderKPI() {
   var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+  // 전체 회원
+  document.getElementById('ks-members').textContent = allProfiles.length;
 
   // 오늘 학습한 수강생
   var todayLearners = new Set(
@@ -361,8 +369,8 @@ function renderTable() {
     '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
-    var badgeClass = r.status === 'complete' ? 'badge-complete' : r.status === 'dormant' ? 'badge-dormant' : 'badge-active';
-    var badgeText  = r.status === 'complete' ? '수료' : r.status === 'dormant' ? '휴면' : '활성';
+    var badgeClass = r.status === 'complete' ? 'badge-complete' : r.status === 'dormant' ? 'badge-dormant' : r.status === 'no_course' ? 'badge-new' : 'badge-active';
+    var badgeText  = r.status === 'complete' ? '수료' : r.status === 'dormant' ? '휴면' : r.status === 'no_course' ? '미수강' : '활성';
     var rowClass   = (r.isDormant ? 'dormant-row ' : '') + 'clickable-row';
     var lastTxt    = r.lastStudy ? fmtDate(r.lastStudy) + ' (' + r.daysSinceLast + '일 전)' : '미접속';
     var encBtn = r.isDormant ? '<button class="enc-btn" onclick="event.stopPropagation();encourage(\'' + r.uid + '\',\'' + r.name + '\')">독려 메시지</button>' : '';
