@@ -204,6 +204,16 @@
 .gs-email-notice { margin-top:10px; font-size:12px; color:#8fae9c; text-align:center; }
 .gs-close-btn { display:block; width:100%; margin-top:12px; padding:10px; font-size:13px; border-radius:8px; cursor:pointer; background:transparent; border:0.5px solid #2a4438; color:#6d8a78; font-family:inherit; }
 
+/* ── 자료실 탭 ── */
+.file-card { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid rgba(0,0,0,.07); border-radius:12px; margin-bottom:10px; transition:box-shadow .15s; }
+.file-card:hover { box-shadow:0 2px 10px rgba(0,0,0,.08); }
+.file-icon { width:44px; height:44px; border-radius:10px; background:#F3F0FF; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.file-info { flex:1; min-width:0; }
+.file-title { font-size:14px; font-weight:700; color:var(--black); margin-bottom:3px; }
+.file-meta { font-size:12px; color:var(--gray-500); }
+.file-download-btn { padding:8px 18px; background:#7C3AED; color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; text-decoration:none; display:inline-block; }
+.file-download-btn:hover { background:#6D28D9; }
+
 /* ── 관련 교재 탭 ── */
 .textbook-card { background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:16px; overflow:hidden; transition:transform .2s, box-shadow .2s; }
 .textbook-card:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.1); }
@@ -260,6 +270,7 @@
           <div class="detail-tab" onclick="switchTab('curriculum', this)">커리큘럼</div>
           <div class="detail-tab" onclick="switchTab('instructor', this)">강사 소개</div>
           <div class="detail-tab" onclick="switchTab('review', this)">수강 후기</div>
+          <div class="detail-tab" id="tab-files-btn" style="display:none;" onclick="switchTab('files', this)">📁 자료실</div>
           <div class="detail-tab" id="tab-textbooks-btn" style="display:none;" onclick="switchTab('textbooks', this)">📚 관련 교재</div>
         </div>
         <div class="tab-content active" id="tab-intro">
@@ -346,6 +357,9 @@
           </div>
           <div id="review-list"></div>
           <div id="review-form-area"></div>
+        </div>
+        <div class="tab-content" id="tab-files">
+          <div id="files-list"><div style="color:var(--gray-400);font-size:13px;padding:1rem 0;">자료를 불러오는 중...</div></div>
         </div>
         <div class="tab-content" id="tab-textbooks">
           <div id="textbook-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
@@ -869,6 +883,11 @@ async function loadCourse() {
     }
     await loadProgress(user.id, course.id);
     await loadWishState(user.id, course.id);
+    if (isEnrolled) {
+      supabaseClient.from('course_files').select('id', { count: 'exact', head: true }).eq('course_id', course.id).then(({ count }) => {
+        if (count > 0) { const btn = document.getElementById('tab-files-btn'); if (btn) btn.style.display = ''; }
+      });
+    }
   } else {
     // 비로그인: 쿠폰 창만 표시
     document.getElementById('coupon-section').style.display = '';
@@ -1546,6 +1565,7 @@ function switchTab(id, el) {
   el.classList.add('active');
   document.getElementById('tab-' + id).classList.add('active');
   if (id === 'review' && !reviewLoaded) loadReviews();
+  if (id === 'files') loadCourseFiles();
 }
 
 // ───── 후기 시스템 ─────
@@ -1755,6 +1775,46 @@ function sidebarOpenLesson(num, title, videoUrl) {
 window.addEventListener('beforeunload', () => {
   if (activeTracker) activeTracker._persist();
 });
+
+// ───── 자료실 ─────
+let filesLoaded = false;
+
+async function loadCourseFiles() {
+  if (filesLoaded || !currentCourse) return;
+  filesLoaded = true;
+
+  const STORAGE_BASE = SUPABASE_URL + '/storage/v1/object/public/course-materials/';
+  const { data, error } = await supabaseClient
+    .from('course_files')
+    .select('*')
+    .eq('course_id', currentCourse.id)
+    .order('sort_order')
+    .order('created_at');
+
+  const listEl = document.getElementById('files-list');
+  if (!listEl) return;
+
+  if (error || !data || data.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:1rem 0;">등록된 자료가 없어요.</div>';
+    return;
+  }
+
+  listEl.innerHTML = data.map(f => {
+    const ext = (f.file_name || '').split('.').pop().toLowerCase();
+    const icon = ext === 'pdf' ? '📄' : ext === 'zip' ? '🗜️' : ext.match(/xlsx?|csv/) ? '📊' : ext.match(/docx?/) ? '📝' : '📎';
+    const sizeText = f.file_size ? (f.file_size > 1048576 ? (f.file_size/1048576).toFixed(1)+'MB' : Math.round(f.file_size/1024)+'KB') : '';
+    const url = STORAGE_BASE + encodeURIComponent(f.file_path);
+    const date = new Date(f.created_at).toLocaleDateString('ko-KR');
+    return `<div class="file-card">
+      <div class="file-icon">${icon}</div>
+      <div class="file-info">
+        <div class="file-title">${esc(f.title)}</div>
+        <div class="file-meta">${esc(f.file_name)}${sizeText ? ' · ' + sizeText : ''} · ${date}</div>
+      </div>
+      <a href="${url}" download="${esc(f.file_name)}" class="file-download-btn">다운로드</a>
+    </div>`;
+  }).join('');
+}
 
 // ───── 초기 실행 ─────
 loadCourse();
