@@ -22,12 +22,13 @@
 .detail-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
-.curriculum-section { margin-bottom: 2rem; }
-.curriculum-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 10px; }
-.curriculum-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 14px; color: var(--gray-700); }
-.curriculum-num { width: 24px; height: 24px; background: var(--green-light); color: var(--green-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.curriculum-num.last-watched-ring { box-shadow: 0 0 0 2.5px #fff, 0 0 0 4px var(--green); }
-.curriculum-lock { margin-left: auto; font-size: 14px; color: var(--gray-300); }
+.curriculum-section { margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.09); border-radius: var(--radius-sm); overflow: hidden; }
+.curriculum-title { font-size: 13px; font-weight: 700; color: var(--gray-700); padding: 10px 16px; background: #F8F9FA; border-bottom: 1px solid rgba(0,0,0,0.07); }
+.curriculum-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 0; font-size: 13px; color: var(--gray-700); background: #fff; transition: background .12s; }
+.curriculum-item:last-child { border-bottom: none; }
+.curriculum-item:hover { background: #f5faf7; }
+.curriculum-num { width: 26px; height: 26px; background: #eee; color: #888; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; transition: background .15s, color .15s; }
+.curriculum-lock { margin-left: auto; font-size: 13px; color: var(--gray-300); flex-shrink: 0; }
 .purchase-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); position: sticky; top: 80px; }
 .purchase-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 1.25rem; }
 .purchase-original { font-size: 14px; color: var(--gray-300); text-decoration: line-through; margin-bottom: 4px; }
@@ -58,12 +59,20 @@
 .btn-resume { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:12px; background:var(--green); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px; }
 .btn-resume:hover { background:var(--green-dark); }
 
-/* 커리큘럼 체크박스 */
-.curriculum-check { width:18px; height:18px; accent-color:var(--green); cursor:pointer; flex-shrink:0; }
-.curriculum-item.done { background:rgba(45,155,111,.04); }
+/* 커리큘럼 상태 */
+.curriculum-check { display:none; }
 .curriculum-item.done .curriculum-num { background:var(--green); color:#fff; }
-.curriculum-item-title { flex:1; }
-.curriculum-item-title.done-text { text-decoration:line-through; color:var(--gray-400); }
+.curriculum-item-title { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.curriculum-item-title.done-text { color:var(--gray-400); text-decoration: none; }
+.curriculum-item-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:auto; }
+.curriculum-duration { font-size:11px; color:#aaa; white-space:nowrap; }
+.curriculum-resume-tag { font-size:10px; font-weight:700; background:var(--green); color:#fff; padding:2px 7px; border-radius:20px; white-space:nowrap; }
+/* 현재 재생중 */
+.curriculum-item.vimeo-playing { background:rgba(45,155,111,.12) !important; border-left:3px solid var(--green); padding-left:13px; }
+.curriculum-item.vimeo-playing .curriculum-num { background:var(--green); color:#fff; }
+.curriculum-item.vimeo-playing .curriculum-item-title { color:var(--green-dark); font-weight:600; }
+/* 마지막 시청 (재생 안중일 때) */
+.curriculum-item.last-watched-item:not(.vimeo-playing) { background:rgba(45,155,111,.05); }
 
 /* 진도 요약 바 (커리큘럼 탭 상단) */
 .prog-summary { background:var(--green-light); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:1.5rem; display:none; }
@@ -610,33 +619,22 @@ function applyProgressUI() {
     if (completed) done++;
 
     if (isEnrolled) {
-      // 이미 체크박스가 추가됐으면 건너뜀
-      if (!item.querySelector('.curriculum-check')) {
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.className = 'curriculum-check';
-        cb.checked = completed;
-        cb.dataset.lesson = lid;
-        cb.dataset.title = title;
-        cb.addEventListener('change', () => toggleLesson(lid, title, cb.checked));
-        item.appendChild(cb);
-      } else {
-        item.querySelector('.curriculum-check').checked = completed;
-      }
+      // 완료 상태 표시
       item.classList.toggle('done', completed);
+      const numEl = item.querySelector('.curriculum-num');
+      if (numEl) numEl.textContent = completed ? '✓' : String(parseInt(lid.replace(/[^0-9]/g, '')) || '');
       const titleEl = item.querySelector('.curriculum-item-title');
       if (titleEl) titleEl.classList.toggle('done-text', completed);
 
-      // 잠금 아이콘 숨기기 (수강 중이면 모든 강의 접근 가능)
+      // 잠금 아이콘 제거 (수강 중이면 모든 강의 접근 가능)
       const lockEl = item.querySelector('.curriculum-lock:not(.preview-slot)');
-      if (lockEl) lockEl.innerHTML = '<img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;">';
+      if (lockEl) lockEl.style.display = 'none';
 
-      // Vimeo 강의 클릭 핸들러
+      // 클릭 핸들러
       if (!item.dataset.vimeoClickBound) {
         item.dataset.vimeoClickBound = '1';
-        item.classList.add('vimeo-clickable');
-        item.addEventListener('click', function(e) {
-          if (e.target.type === 'checkbox') return;
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', function() {
           const n = parseInt(lid.replace(/[^0-9]/g, '')) || 1;
           const videoUrl = item.dataset.videoUrl || (currentCourse ? currentCourse.vimeo_url : null);
           if (!videoUrl) { alert('이 강의의 영상 링크가 없어요.'); return; }
@@ -659,14 +657,24 @@ function applyProgressUI() {
     if (lastWatchedLesson) {
       document.getElementById('resume-btn').textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
     }
-    // 마지막 시청 강의 번호 원에 링 표시
-    document.querySelectorAll('#curriculum-content .curriculum-num.last-watched-ring')
-      .forEach(el => el.classList.remove('last-watched-ring'));
+    // 마지막 시청 강의 행 강조 + 이어보기 태그
+    document.querySelectorAll('#curriculum-content .last-watched-item')
+      .forEach(el => {
+        el.classList.remove('last-watched-item');
+        const tag = el.querySelector('.curriculum-resume-tag');
+        if (tag) tag.remove();
+      });
     if (lastWatchedLesson) {
       const lwItem = document.querySelector(`[data-lesson="${lastWatchedLesson.lesson_id}"]`);
       if (lwItem) {
-        const numEl = lwItem.querySelector('.curriculum-num');
-        if (numEl) numEl.classList.add('last-watched-ring');
+        lwItem.classList.add('last-watched-item');
+        const meta = lwItem.querySelector('.curriculum-item-meta');
+        if (meta && !meta.querySelector('.curriculum-resume-tag')) {
+          const tag = document.createElement('span');
+          tag.className = 'curriculum-resume-tag';
+          tag.textContent = '이어보기';
+          meta.prepend(tag);
+        }
       }
     }
     // 결제 버튼 영역 숨기기 / 쿠폰 영역 숨기기 / 환불 정책 숨기기
@@ -1288,7 +1296,9 @@ async function loadCurriculum(courseId) {
         return `<div class="curriculum-item" data-lesson="lesson-${l.num}" data-title="${safe}" data-video-url="${url}" data-free="${l.is_free_preview ? '1' : '0'}">
           <span class="curriculum-num">${l.num}</span>
           <span class="curriculum-item-title">${esc(l.title)}</span>
-          <span class="curriculum-lock-wrap">${l.is_free_preview ? '<span class="curriculum-lock preview-slot"><img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"></span>'}</span>
+          <span class="curriculum-item-meta">
+            ${l.is_free_preview ? '<span class="curriculum-lock preview-slot" style="font-size:11px;color:var(--green-dark);font-weight:600;">미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:0.9em;height:0.9em;vertical-align:-0.1em;display:inline-block;opacity:.4;"></span>'}
+          </span>
         </div>`;
       }).join('')}
     </div>`;
