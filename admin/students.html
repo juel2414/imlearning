@@ -397,17 +397,17 @@ function renderTable() {
       roleBtn = '<button style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #2D9B6F;background:#fff;color:#2D9B6F;cursor:pointer;margin-top:4px;" onclick="event.stopPropagation();setRole(\'' + r.uid + '\',\'user\')">관리자 지정</button>';
     }
 
-    // 수강 강좌 태그 (최대 2개 표시 후 나머지 개수)
-    var courseTags = r.courseIds.map(function(cid) {
+    // 수강 강좌 태그 (최대 2개 표시 후 나머지 개수) — 클릭 시 강좌 페이지 오픈
+    var courseTagItems = r.courseIds.map(function(cid) {
       var c = allCourses.find(function(x){ return String(x.id) === String(cid); });
-      return c ? c.title : ('ID:' + cid);
+      return { id: cid, title: c ? c.title : ('ID:' + cid) };
     });
     var MAX_SHOW = 2;
-    var shownTags = courseTags.slice(0, MAX_SHOW).map(function(t) {
-      var short = t.length > 14 ? t.slice(0,14) + '…' : t;
-      return '<span class="course-tag" title="' + t + '">' + short + '</span>';
+    var shownTags = courseTagItems.slice(0, MAX_SHOW).map(function(item) {
+      var short = item.title.length > 14 ? item.title.slice(0,14) + '…' : item.title;
+      return '<a href="../course-detail.html?id=' + item.id + '" target="_blank" onclick="event.stopPropagation()" class="course-tag" title="' + item.title + '" style="cursor:pointer;">' + short + '</a>';
     }).join('');
-    if (courseTags.length > MAX_SHOW) shownTags += '<span class="course-tag" style="background:#f0f0f0;color:#888;border-color:#e0e0e0;">+' + (courseTags.length - MAX_SHOW) + '개</span>';
+    if (courseTagItems.length > MAX_SHOW) shownTags += '<span class="course-tag" style="background:#f0f0f0;color:#888;border-color:#e0e0e0;">+' + (courseTagItems.length - MAX_SHOW) + '개</span>';
 
     // 첫 열: 이름 + 이메일 + 전화번호 + 가입일
     var phoneTxt  = r.phone ? '<div style="font-size:11px;color:#666;margin-top:1px;">📞 ' + r.phone + '</div>' : '';
