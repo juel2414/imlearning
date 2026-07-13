@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>나의 강의실 — 아이엠러닝</title>
 <link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <style>
 /* ── 기존 레이아웃 ── */
 .my-page { padding: 2.5rem 0 5rem; }
@@ -210,6 +211,61 @@
 .gift-link-chip { background: #f4f5f6; padding: 5px 12px; border-radius: 8px; font-size: 11px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px; }
 .gift-btn-copy { padding: 5px 12px; border-radius: 8px; border: 1px solid #c8eada; background: #fff; color: #2D9B6F; font-size: 12px; font-weight: 700; cursor: pointer; }
 .gift-btn-cancel { padding: 5px 12px; border-radius: 8px; border: 1px solid #FCA5A5; background: #fff; color: #EF4444; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+/* ── 선물하기 모달 ── */
+#gm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:2000; align-items:center; justify-content:center; padding:1rem; }
+#gm-overlay.open { display:flex; }
+#gm-box { background:#fff; border-radius:20px; width:100%; max-width:480px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 12px 48px rgba(0,0,0,.2); overflow:hidden; }
+.gm-header { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem 1rem; border-bottom:1px solid rgba(0,0,0,.07); flex-shrink:0; }
+.gm-header h3 { margin:0; font-size:17px; font-weight:800; color:#111; }
+.gm-close-btn { background:none; border:none; font-size:20px; cursor:pointer; color:#888; padding:4px; line-height:1; }
+.gm-body { padding:1.25rem 1.5rem; overflow-y:auto; flex:1; }
+.gm-step { display:none; }
+.gm-step.active { display:block; }
+
+/* Step 1 — 강좌 선택 */
+.gm-search { width:100%; padding:10px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; font-size:14px; box-sizing:border-box; margin-bottom:1rem; font-family:inherit; }
+.gm-search:focus { outline:none; border-color:#2D9B6F; }
+.gm-course-list { display:flex; flex-direction:column; gap:8px; }
+.gm-course-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; border:1.5px solid rgba(0,0,0,.08); cursor:pointer; transition:all .15s; }
+.gm-course-item:hover { border-color:#2D9B6F; background:#f0fdf8; }
+.gm-course-item.selected { border-color:#2D9B6F; background:#f0fdf8; }
+.gm-course-thumb { width:56px; height:38px; border-radius:6px; background:linear-gradient(135deg,#e8f5ee,#c8eada); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; overflow:hidden; }
+.gm-course-thumb img { width:100%; height:100%; object-fit:cover; }
+.gm-course-info { flex:1; min-width:0; }
+.gm-course-title { font-size:13px; font-weight:700; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gm-course-price { font-size:12px; color:#2D9B6F; font-weight:700; margin-top:2px; }
+.gm-empty { text-align:center; padding:2rem; color:#aaa; font-size:14px; }
+
+/* Step 2 — 수신자 입력 */
+.gm-selected-course { display:flex; align-items:center; gap:10px; padding:12px; background:#f0fdf8; border-radius:10px; margin-bottom:1.25rem; }
+.gm-selected-thumb { width:48px; height:32px; border-radius:6px; background:linear-gradient(135deg,#e8f5ee,#c8eada); display:flex; align-items:center; justify-content:center; font-size:16px; overflow:hidden; flex-shrink:0; }
+.gm-selected-thumb img { width:100%; height:100%; object-fit:cover; }
+.gm-selected-title { font-size:13px; font-weight:700; color:#111; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gm-selected-price { font-size:13px; font-weight:800; color:#2D9B6F; flex-shrink:0; }
+.gm-field { margin-bottom:1rem; }
+.gm-field label { display:block; font-size:12px; font-weight:600; color:#111; margin-bottom:5px; }
+.gm-field input, .gm-field textarea { width:100%; padding:11px 13px; border:1.5px solid rgba(0,0,0,.12); border-radius:8px; font-size:14px; box-sizing:border-box; font-family:inherit; resize:none; }
+.gm-field input:focus, .gm-field textarea:focus { outline:none; border-color:#2D9B6F; }
+.gm-field .gm-hint { font-size:11px; color:#aaa; margin-top:4px; }
+.gm-pay-btn { width:100%; padding:14px; background:#2D9B6F; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:800; cursor:pointer; margin-top:.5rem; font-family:inherit; }
+.gm-pay-btn:disabled { background:#C4C4C4; cursor:not-allowed; }
+
+/* Step 3 — 성공 카드 */
+.gm-success-card { background:#12211b; border:0.5px solid #2a4438; border-radius:16px; padding:24px 20px 20px; text-align:center; margin-bottom:1rem; }
+.gm-success-badge { font-size:10px; letter-spacing:2px; color:#8fae9c; text-transform:uppercase; margin-bottom:12px; }
+.gm-success-thumb { width:64px; height:42px; border-radius:8px; background:#1c2f26; margin:0 auto 12px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:22px; }
+.gm-success-thumb img { width:100%; height:100%; object-fit:cover; }
+.gm-success-title { font-size:15px; font-weight:800; color:#fff; margin-bottom:4px; word-break:keep-all; }
+.gm-success-code { font-size:22px; font-weight:900; color:#c9a252; letter-spacing:3px; margin:14px 0 8px; font-family:monospace; }
+.gm-success-code-label { font-size:10px; color:#8fae9c; letter-spacing:1px; text-transform:uppercase; }
+.gm-success-btns { display:flex; gap:8px; margin-top:14px; }
+.gm-success-btn { flex:1; padding:10px; border-radius:8px; border:1px solid #2a4438; background:#1c2f26; color:#c9a252; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+.gm-success-btn:hover { background:#243d30; }
+.gm-success-email { font-size:11px; color:#8fae9c; margin-top:10px; }
+.gm-footer { padding:.75rem 1.5rem 1.25rem; flex-shrink:0; }
+.gm-back-btn { background:none; border:none; color:#888; font-size:13px; cursor:pointer; padding:0; font-family:inherit; }
+.gm-back-btn:hover { color:#2D9B6F; }
 </style>
 </head>
 <body>
@@ -317,7 +373,7 @@
     <div class="tab-panel" id="panel-gifts">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
         <div style="font-size:13px;color:#888;">강좌를 선택해 소중한 분께 강의를 선물해보세요.</div>
-        <a href="courses.html" class="btn btn-primary btn-sm" style="gap:6px;display:inline-flex;align-items:center;">🎁 선물하기</a>
+        <button onclick="openGiftSelectModal()" class="btn btn-primary btn-sm" style="gap:6px;display:inline-flex;align-items:center;cursor:pointer;">🎁 선물하기</button>
       </div>
       <div id="gifts-content" class="loading-msg">불러오는 중...</div>
     </div>
@@ -1621,6 +1677,295 @@ async function loadCoupons() {
       </div>`;
   } catch(e) {
     el.innerHTML = `<div class="loading-msg">쿠폰 정보를 불러오지 못했습니다: ${e.message}</div>`;
+  }
+}
+</script>
+
+<!-- 선물하기 모달 -->
+<div id="gm-overlay" onclick="gmOverlayClick(event)">
+  <div id="gm-box">
+    <div class="gm-header">
+      <h3 id="gm-title">🎁 강좌 선택</h3>
+      <button class="gm-close-btn" onclick="closeGiftSelectModal()">✕</button>
+    </div>
+
+    <!-- Step 1: 강좌 선택 -->
+    <div class="gm-body gm-step active" id="gm-step1">
+      <input class="gm-search" type="search" placeholder="강좌 이름 검색..." oninput="gmFilterCourses(this.value)" id="gm-search-input">
+      <div class="gm-course-list" id="gm-course-list">
+        <div class="gm-empty">강좌를 불러오는 중...</div>
+      </div>
+    </div>
+
+    <!-- Step 2: 수신자 정보 입력 -->
+    <div class="gm-body gm-step" id="gm-step2">
+      <div class="gm-selected-course" id="gm-selected-preview">
+        <div class="gm-selected-thumb" id="gm-sel-thumb">🎓</div>
+        <div class="gm-selected-title" id="gm-sel-title"></div>
+        <div class="gm-selected-price" id="gm-sel-price"></div>
+      </div>
+      <div class="gm-field">
+        <label>받으실 분 이메일 <span style="font-weight:400;color:#aaa;">(선택)</span></label>
+        <input type="email" id="gm-recipient-email" placeholder="example@email.com">
+        <div class="gm-hint">입력 시 해당 이메일로 선물 링크를 자동 발송합니다.</div>
+      </div>
+      <div class="gm-field">
+        <label>전달 메시지 <span style="font-weight:400;color:#aaa;">(선택)</span></label>
+        <textarea id="gm-message" rows="3" placeholder="마음을 담은 한 마디를 전해보세요..."></textarea>
+      </div>
+      <button class="gm-pay-btn" id="gm-pay-btn" onclick="gmRequestGift()">결제하고 선물 보내기</button>
+    </div>
+
+    <!-- Step 3: 선물 완료 -->
+    <div class="gm-body gm-step" id="gm-step3">
+      <div class="gm-success-card">
+        <div class="gm-success-badge">Gift Voucher · 아이엠러닝</div>
+        <div class="gm-success-thumb" id="gm-done-thumb">🎓</div>
+        <div class="gm-success-title" id="gm-done-title"></div>
+        <div class="gm-success-code-label">교환 코드</div>
+        <div class="gm-success-code" id="gm-done-code"></div>
+        <div class="gm-success-btns">
+          <button class="gm-success-btn" onclick="gmCopyLink()">링크 복사</button>
+          <button class="gm-success-btn" onclick="gmShare()">공유하기</button>
+        </div>
+        <div class="gm-success-email" id="gm-done-email" style="display:none;"></div>
+      </div>
+      <button class="gm-pay-btn" onclick="closeGiftSelectModal()">닫기</button>
+    </div>
+
+    <div class="gm-footer" id="gm-footer">
+      <button class="gm-back-btn" id="gm-back-btn" onclick="gmGoBack()" style="display:none;">← 뒤로</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── 선물하기 모달 ─────────────────────────────────────── */
+const GM_STORE_ID   = 'store-e42ea706-d26a-47af-a1c9-6b28a573d01e';
+const GM_CHANNEL_KEY = 'channel-key-5ea6245d-fa62-446d-9747-af21167e8a80';
+const GM_SUPABASE   = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+
+let _gmCourses    = [];
+let _gmFiltered   = [];
+let _gmSelected   = null;
+let _gmShareLink  = '';
+
+function gmEsc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function openGiftSelectModal() {
+  document.getElementById('gm-overlay').classList.add('open');
+  gmShowStep(1);
+  if (!_gmCourses.length) await gmLoadCourses();
+}
+
+function closeGiftSelectModal() {
+  document.getElementById('gm-overlay').classList.remove('open');
+  _gmSelected = null;
+  _gmShareLink = '';
+  document.getElementById('gm-search-input').value = '';
+  document.getElementById('gm-recipient-email').value = '';
+  document.getElementById('gm-message').value = '';
+}
+
+function gmOverlayClick(e) {
+  if (e.target === document.getElementById('gm-overlay')) closeGiftSelectModal();
+}
+
+function gmShowStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('gm-step'+i).classList.toggle('active', i===n);
+  });
+  const titles = { 1:'🎁 강좌 선택', 2:'받는 분 정보 입력', 3:'선물 완료!' };
+  document.getElementById('gm-title').textContent = titles[n];
+  document.getElementById('gm-back-btn').style.display = n === 2 ? '' : 'none';
+}
+
+function gmGoBack() { gmShowStep(1); }
+
+async function gmLoadCourses() {
+  const list = document.getElementById('gm-course-list');
+  list.innerHTML = '<div class="gm-empty">강좌를 불러오는 중...</div>';
+  const { data, error } = await supabaseClient
+    .from('courses')
+    .select('id, title, price, discount_price, discount_start, discount_end, thumbnail_url, category')
+    .gt('price', 0)
+    .order('created_at', { ascending: false });
+  if (error || !data) {
+    list.innerHTML = '<div class="gm-empty">강좌를 불러오지 못했습니다.</div>';
+    return;
+  }
+  _gmCourses = data;
+  _gmFiltered = data;
+  gmRenderCourses(data);
+}
+
+function gmRenderCourses(courses) {
+  const list = document.getElementById('gm-course-list');
+  if (!courses.length) {
+    list.innerHTML = '<div class="gm-empty">검색 결과가 없습니다.</div>';
+    return;
+  }
+  list.innerHTML = courses.map(c => {
+    const { currentPrice } = getCurrentPrice(c);
+    const priceStr = currentPrice ? '₩' + Number(currentPrice).toLocaleString() : '';
+    const thumb = c.thumbnail_url
+      ? `<img src="${gmEsc(c.thumbnail_url)}" alt="" loading="lazy">`
+      : '🎓';
+    return `<div class="gm-course-item" onclick="gmSelectCourse(${c.id})">
+      <div class="gm-course-thumb">${thumb}</div>
+      <div class="gm-course-info">
+        <div class="gm-course-title">${gmEsc(c.title)}</div>
+        <div class="gm-course-price">${priceStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function gmFilterCourses(q) {
+  const query = q.trim().toLowerCase();
+  _gmFiltered = query ? _gmCourses.filter(c => c.title.toLowerCase().includes(query)) : _gmCourses;
+  gmRenderCourses(_gmFiltered);
+}
+
+function gmSelectCourse(courseId) {
+  _gmSelected = _gmCourses.find(c => c.id === courseId);
+  if (!_gmSelected) return;
+  const { currentPrice } = getCurrentPrice(_gmSelected);
+
+  // 썸네일
+  const thumbEl = document.getElementById('gm-sel-thumb');
+  thumbEl.innerHTML = _gmSelected.thumbnail_url
+    ? `<img src="${gmEsc(_gmSelected.thumbnail_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+    : '🎓';
+  document.getElementById('gm-sel-title').textContent = _gmSelected.title;
+  document.getElementById('gm-sel-price').textContent = '₩' + Number(currentPrice).toLocaleString();
+
+  document.getElementById('gm-pay-btn').textContent = `₩${Number(currentPrice).toLocaleString()} 결제하고 선물 보내기`;
+
+  gmShowStep(2);
+}
+
+async function gmRequestGift() {
+  const btn = document.getElementById('gm-pay-btn');
+  const recipientEmail = document.getElementById('gm-recipient-email').value.trim();
+  const message = document.getElementById('gm-message').value.trim();
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) { alert('로그인이 필요합니다.'); window.location.href = 'login.html'; return; }
+
+  let profile = {};
+  try {
+    const { data } = await supabaseClient.from('profiles').select('name, phone').eq('id', user.id).maybeSingle();
+    if (data) profile = data;
+  } catch(e) {}
+
+  if (!profile.phone) {
+    const inputPhone = prompt('결제를 위해 휴대폰 번호를 입력해주세요.\n(예: 01012345678)', '');
+    if (!inputPhone || !inputPhone.trim()) { alert('휴대폰 번호를 입력해야 결제를 진행할 수 있습니다.'); return; }
+    profile.phone = inputPhone.trim().replace(/[^0-9]/g, '');
+    try { await supabaseClient.from('profiles').upsert({ id: user.id, phone: profile.phone }, { onConflict: 'id' }); } catch(e) {}
+  }
+
+  const { currentPrice } = getCurrentPrice(_gmSelected);
+  if (!currentPrice || currentPrice <= 0) { alert('무료 강의는 선물하기를 지원하지 않습니다.'); return; }
+
+  const paymentId = crypto.randomUUID().replace(/-/g, '');
+  btn.disabled = true;
+  btn.textContent = '결제 진행 중...';
+
+  try {
+    const payment = await PortOne.requestPayment({
+      storeId: GM_STORE_ID,
+      channelKey: GM_CHANNEL_KEY,
+      paymentId: paymentId,
+      orderName: '[선물] ' + _gmSelected.title,
+      totalAmount: currentPrice,
+      currency: 'KRW',
+      payMethod: 'CARD',
+      customer: (() => {
+        const c = { email: user.email || '', phoneNumber: profile.phone };
+        if (profile.name) c.fullName = profile.name;
+        else if (user.user_metadata?.full_name) c.fullName = user.user_metadata.full_name;
+        return c;
+      })(),
+    });
+
+    if (payment.code) {
+      alert(payment.code === 'FAILURE_TYPE_PG'
+        ? '결제에 실패했습니다: ' + (payment.message || '오류')
+        : '결제가 취소되었습니다.');
+      return;
+    }
+
+    btn.textContent = '선물 코드 발급 중...';
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    const res = await fetch(GM_SUPABASE + '/functions/v1/verify-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({
+        paymentId: payment.paymentId,
+        courseId: _gmSelected.id,
+        amount: currentPrice,
+        isGift: true,
+        recipientEmail: recipientEmail || null,
+        message: message || null,
+      }),
+    });
+
+    const resData = await res.json();
+    if (!resData.success || !resData.gift) {
+      alert('선물 코드 발급에 실패했습니다.\n결제번호: ' + payment.paymentId + '\n고객센터로 문의해주세요.');
+      return;
+    }
+
+    const giftCode = resData.giftCode;
+    _gmShareLink = GM_SUPABASE + '/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
+
+    // 성공 화면 채우기
+    const doneThumb = document.getElementById('gm-done-thumb');
+    doneThumb.innerHTML = _gmSelected.thumbnail_url
+      ? `<img src="${gmEsc(_gmSelected.thumbnail_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : '🎓';
+    document.getElementById('gm-done-title').textContent = _gmSelected.title;
+    document.getElementById('gm-done-code').textContent = giftCode;
+    const emailNotice = document.getElementById('gm-done-email');
+    if (recipientEmail) {
+      emailNotice.textContent = recipientEmail + '으로 선물 링크를 발송했어요.';
+      emailNotice.style.display = '';
+    } else {
+      emailNotice.style.display = 'none';
+    }
+
+    gmShowStep(3);
+    if (typeof loadGifts === 'function') loadGifts(user.id);
+
+  } catch(err) {
+    console.error('선물 결제 오류:', err);
+    alert('결제 중 오류가 발생했습니다.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '결제하고 선물 보내기';
+  }
+}
+
+function gmCopyLink() {
+  if (!_gmShareLink) return;
+  navigator.clipboard.writeText(_gmShareLink).then(() => {
+    const btns = document.querySelectorAll('.gm-success-btn');
+    btns[0].textContent = '복사됨!';
+    setTimeout(() => { btns[0].textContent = '링크 복사'; }, 1500);
+  }).catch(() => { prompt('아래 링크를 복사해주세요:', _gmShareLink); });
+}
+
+function gmShare() {
+  if (!_gmShareLink) return;
+  if (navigator.share) {
+    navigator.share({ title: '아이엠러닝 강의 선물', url: _gmShareLink }).catch(() => {});
+  } else {
+    gmCopyLink();
   }
 }
 </script>
