@@ -26,6 +26,7 @@
 .curriculum-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 10px; }
 .curriculum-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 14px; color: var(--gray-700); }
 .curriculum-num { width: 24px; height: 24px; background: var(--green-light); color: var(--green-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.curriculum-num.last-watched-ring { box-shadow: 0 0 0 2.5px #fff, 0 0 0 4px var(--green); }
 .curriculum-lock { margin-left: auto; font-size: 14px; color: var(--gray-300); }
 .purchase-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); position: sticky; top: 80px; }
 .purchase-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 48px; margin-bottom: 1.25rem; }
@@ -657,6 +658,16 @@ function applyProgressUI() {
     // 이어보기 버튼 텍스트
     if (lastWatchedLesson) {
       document.getElementById('resume-btn').textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
+    }
+    // 마지막 시청 강의 번호 원에 링 표시
+    document.querySelectorAll('#curriculum-content .curriculum-num.last-watched-ring')
+      .forEach(el => el.classList.remove('last-watched-ring'));
+    if (lastWatchedLesson) {
+      const lwItem = document.querySelector(`[data-lesson="${lastWatchedLesson.lesson_id}"]`);
+      if (lwItem) {
+        const numEl = lwItem.querySelector('.curriculum-num');
+        if (numEl) numEl.classList.add('last-watched-ring');
+      }
     }
     // 결제 버튼 영역 숨기기 / 쿠폰 영역 숨기기 / 환불 정책 숨기기
     document.getElementById('purchase-btns-section').style.display = 'none';
