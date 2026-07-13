@@ -196,6 +196,10 @@
 
 <script>
 (function () {
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   const params = new URLSearchParams(window.location.search);
   const courseId   = params.get('courseId');
   const amount     = Number(params.get('amount') || 0);
@@ -233,7 +237,7 @@
       document.getElementById('receipt-course').textContent = course.title;
       if (course.thumbnail_url) {
         const thumbEl = document.getElementById('course-thumb');
-        thumbEl.innerHTML = `<img src="${course.thumbnail_url}" alt="">`;
+        thumbEl.innerHTML = `<img src="${esc(course.thumbnail_url)}" alt="">`;
       }
     });
   }

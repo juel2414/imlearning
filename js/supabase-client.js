@@ -146,11 +146,15 @@ async function navLogout() {
 
 // 네비 로그인 상태 반영은 js/nav.js의 onAuthStateChange 리스너가 처리
 
+function _esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // ───── 강좌 카드 HTML 생성 (강좌 목록에서 사용) ─────
 function renderCourseCard(course) {
   const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
   const thumb = course.thumbnail_url
-    ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${_esc(course.thumbnail_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
     : '<span style="font-size:32px;position:relative;z-index:1;">📚</span>';
 
   const badgeHtml = isDiscounted
@@ -169,8 +173,8 @@ function renderCourseCard(course) {
       </div>
       <div class="course-body">
         <div class="course-cat">${CATEGORY_LABELS[course.category] || ''}</div>
-        <div class="course-title">${course.title}</div>
-        <div class="course-instructor">강사: ${course.instructor || '미정'}</div>
+        <div class="course-title">${_esc(course.title)}</div>
+        <div class="course-instructor">강사: ${_esc(course.instructor || '미정')}</div>
         <div class="course-footer">
           <span class="course-students">👥 ${course.students || 0}명</span>
           ${priceHtml}

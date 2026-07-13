@@ -258,7 +258,7 @@ function renderCourseGrid() {
 
     // 썸네일: 이미지가 있으면 img 태그, 없으면 이모지
     const thumbContent = course.thumbnail_url
-      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${esc(course.thumbnail_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
       : '';
     const thumbEmoji = course.thumbnail_url ? '' : '📚';
 
@@ -317,7 +317,7 @@ function renderTop3() {
     const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
     const catLabel = CATEGORY_LABELS[course.category] || '';
     const thumbContent = course.thumbnail_url
-      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${esc(course.thumbnail_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
       : `<span style="font-size:48px;position:absolute;right:16px;bottom:12px;z-index:1;">📚</span>`;
 
     const isEnrolledTop = purchasedSet.has(course.id);

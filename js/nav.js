@@ -267,6 +267,11 @@
     navEl.classList.toggle('scrolled', window.scrollY > 0);
   }, { passive: true });
 
+  // ── HTML 이스케이프 (XSS 방어) ──────────────────────────────────────
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
   var MEGA_CATS = [
     { key: 'faith',          label: '신앙' },
@@ -300,13 +305,13 @@
         MEGA_CATS.forEach(function (cat) {
           var courses = groups[cat.key] || [];
           var items = courses.map(function (c) {
-            return '<a href="course-detail.html?id=' + c.id + '">' + c.title + '</a>';
+            return '<a href="course-detail.html?id=' + c.id + '">' + esc(c.title) + '</a>';
           }).join('');
           // thumbnail: first course image
           var thumbUrl = courses.length && courses[0].thumbnail_url ? courses[0].thumbnail_url : '';
           var thumbHtml = thumbUrl
             ? '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-thumb">' +
-              '<img src="' + thumbUrl + '" alt=""></a>'
+              '<img src="' + esc(thumbUrl) + '" alt=""></a>'
             : '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
           html += '<div class="mega-col">' +
             thumbHtml +

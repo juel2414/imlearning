@@ -250,7 +250,7 @@ async function submitContact() {
       const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
       await fetch(SUPABASE_URL + '/functions/v1/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': supabaseClient.supabaseKey || '' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
         body: JSON.stringify({ type: 'contact_inquiry', data: { name, phone, type, message } }),
       });
     } catch (_) { /* 이메일 실패는 무시 — DB엔 저장됨 */ }

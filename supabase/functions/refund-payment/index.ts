@@ -278,30 +278,32 @@ Deno.serve(async (req: Request) => {
     // 8. 환불 가능한 경우 PortOne 취소 API 호출
     if (refundAmount > 0 && order.payment_id) {
       const portoneSecret = Deno.env.get('PORTONE_API_SECRET')
-      const portoneRes = await fetch(
-        `https://api.portone.io/payments/${order.payment_id}/cancel`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `PortOne ${portoneSecret}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            reason: isAdmin ? '관리자 환불 처리' : '수강생 환불 신청',
-            amount: refundAmount,
-          }),
-        }
-      )
-
-      if (!portoneRes.ok) {
-        const errText = await portoneRes.text()
-        return new Response(
-          JSON.stringify({ success: false, error: 'PortOne 환불 실패: ' + errText }),
+      if (portoneSecret) {
+        const portoneRes = await fetch(
+          `https://api.portone.io/payments/${order.payment_id}/cancel`,
           {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: {
+              Authorization: `PortOne ${portoneSecret}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reason: isAdmin ? '관리자 환불 처리' : '수강생 환불 신청',
+              amount: refundAmount,
+            }),
           }
         )
+
+        if (!portoneRes.ok) {
+          const errText = await portoneRes.text()
+          return new Response(
+            JSON.stringify({ success: false, error: 'PortOne 환불 실패: ' + errText }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          )
+        }
       }
     }
 

@@ -287,6 +287,8 @@
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <script src="js/nav.js"></script>
 <script>
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
 const PORTONE_STORE_ID   = 'store-e42ea706-d26a-47af-a1c9-6b28a573d01e';
 const PORTONE_CHANNEL_KEY = 'channel-key-5ea6245d-fa62-446d-9747-af21167e8a80';
 
@@ -324,11 +326,11 @@ async function loadPass() {
       <a href="course-detail.html?id=${row.course_id}" class="course-card">
         <div class="course-card-thumb">
           ${row.course_thumbnail
-            ? `<img src="${row.course_thumbnail}" alt="${row.course_title}" loading="lazy">`
+            ? `<img src="${esc(row.course_thumbnail)}" alt="${esc(row.course_title)}" loading="lazy">`
             : '📚'}
         </div>
         <div class="course-card-body">
-          <div class="course-card-title">${row.course_title}</div>
+          <div class="course-card-title">${esc(row.course_title)}</div>
         </div>
       </a>`).join('');
 

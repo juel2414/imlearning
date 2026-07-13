@@ -1026,11 +1026,15 @@ function applyCert(c) {
 function applyCta(c) {
   if (!c) return;
   const t = document.querySelector('.js-cta-title');
-  if (t) t.innerHTML = (c.title||'').replace(/\n/g,'<br>');
+  if (t) t.innerHTML = esc(c.title||'').replace(/\n/g,'<br>');
   const d = document.querySelector('.js-cta-desc');
-  if (d) d.innerHTML = (c.desc||'').replace(/\n/g,'<br>');
+  if (d) d.innerHTML = esc(c.desc||'').replace(/\n/g,'<br>');
   const btn = document.getElementById('js-cta-btn');
-  if (btn) { btn.textContent = (c.btn_text||'강좌 둘러보기')+' →'; btn.href = c.btn_url||'courses.html'; }
+  if (btn) {
+    btn.textContent = (c.btn_text||'강좌 둘러보기')+' →';
+    const rawUrl = c.btn_url||'courses.html';
+    btn.href = (!rawUrl.includes(':') || rawUrl.startsWith('http')) ? rawUrl : 'courses.html';
+  }
   const s = document.querySelector('[data-section="cta"]');
   if (s && c.bg_from) s.style.background = `linear-gradient(135deg,${c.bg_from} 0%,${c.bg_to||'#1a4a30'} 100%)`;
 }
@@ -1067,7 +1071,7 @@ async function loadCourses() {
       return `
         <a href="course-detail.html?id=${c.id}" class="lp-ccard reveal">
           <div class="lp-cthumb">
-            ${c.thumbnail_url ? `<img src="${c.thumbnail_url}">` : ''}
+            ${c.thumbnail_url ? `<img src="${esc(c.thumbnail_url)}">` : ''}
             ${c.featured ? '<div class="lp-cbadge">인기 강좌</div>' : ''}
           </div>
           <div class="lp-cbody">
@@ -1184,7 +1188,7 @@ function trackRecentCourse(course) {
 
 function miniCourseCard(c, progress) {
   const thumb = c.thumbnail_url
-    ? `<img src="${c.thumbnail_url}">`
+    ? `<img src="${esc(c.thumbnail_url)}">`
     : '📚';
   const progHtml = typeof progress === 'number'
     ? `<div class="lp-prog-bar"><div class="lp-prog-fill" style="width:${progress}%"></div></div>`
@@ -1283,7 +1287,7 @@ async function initFeaturedSlider() {
     function buildCardInner(c) {
       const price = (c.price > 0) ? `₩${Number(c.price).toLocaleString()}` : '무료';
       const thumb = c.thumbnail_url
-        ? `<div class="lp-feat-thumb-bg" style="background-image:url('${c.thumbnail_url}')"></div>`
+        ? `<div class="lp-feat-thumb-bg" style="background-image:url('${c.thumbnail_url.replace(/'/g, '%27')}')"></div>`
         : `<div class="lp-feat-thumb-ph">📚</div>`;
       const desc = c.description ? `<div class="lp-feat-desc">${c.description}</div>` : '';
       return `${thumb}

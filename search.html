@@ -217,7 +217,7 @@ function courseCard(c) {
   const { price, original } = getPrice(c);
   const isWished = wishSet.has(c.id);
   const thumb = c.thumbnail_url
-    ? `<img src="${c.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${esc(c.thumbnail_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
     : `<span style="font-size:32px;">${'📚'}</span>`;
   const badge = c.featured ? '<span class="course-badge">🔥 인기</span>' : '';
   const priceHtml = price === 0 ? '<span class="course-price" style="color:var(--green);">무료</span>'
@@ -312,7 +312,7 @@ function resetFilters() {
 function buildInstructorFilter() {
   const instructors = [...new Set(allCourses.filter(c => c.instructor).map(c => c.instructor))].sort();
   document.getElementById('instructor-list').innerHTML = instructors.map(i =>
-    `<label class="filter-option"><input type="checkbox" name="inst" value="${i}"> ${i}</label>`
+    `<label class="filter-option"><input type="checkbox" name="inst" value="${esc(i)}"> ${esc(i)}</label>`
   ).join('');
 }
 

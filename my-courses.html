@@ -428,6 +428,10 @@
 <script src="js/main.js"></script>
 <script src="js/badges.js"></script>
 <script>
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /* ════════════════════════════════════════════════════════
    전역 상태
    ════════════════════════════════════════════════════════ */
@@ -595,7 +599,7 @@ function renderCourses(orders, coursesMap) {
     const todayCount = gTodayLogsByCourse[courseId] || 0;
 
     const thumbContent = course.thumbnail_url
-      ? `<img src="${course.thumbnail_url}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;${isExpired ? 'filter:grayscale(1);opacity:.5;' : ''}">`
+      ? `<img src="${esc(course.thumbnail_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;${isExpired ? 'filter:grayscale(1);opacity:.5;' : ''}">`
       : '';
     const thumbEmoji = course.thumbnail_url ? '' : '📚';
 
@@ -637,8 +641,8 @@ function renderCourses(orders, coursesMap) {
         </div>
         <div class="my-course-info">
           <div class="my-course-cat">${catLabel}</div>
-          <div class="my-course-title">${course.title}</div>
-          <div class="my-course-instructor">강사: ${course.instructor || '미정'}</div>
+          <div class="my-course-title">${esc(course.title)}</div>
+          <div class="my-course-instructor">강사: ${esc(course.instructor || '미정')}</div>
           <div class="progress-bar-wrap">
             <div class="progress-bar" style="width:${progress}%"></div>
           </div>
@@ -1017,20 +1021,19 @@ function renderOrders(orders, coursesMap, gifts) {
     if (rs === 'refunded')      refundBadge = '<span style="background:#DCFCE7;color:#16A34A;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">전액 환불</span>';
     else if (rs === 'partial')  refundBadge = '<span style="background:#FEF9C3;color:#92400E;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">부분 환불</span>';
     else if (rs === 'rejected') refundBadge = '<span style="background:#FEE2E2;color:#EF4444;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;">환불 불가</span>';
-    const safeTitle = courseName.replace(/'/g, "\\'");
     return { date: order.created_at, html: `
       <div class="order-card">
         <div class="order-header">
           <div>
             <div class="order-date">${date}</div>
-            <div class="order-id">주문번호: ${order.payment_id || order.id}</div>
+            <div class="order-id">주문번호: ${esc(String(order.payment_id || order.id))}</div>
           </div>
           <span class="order-status ${order.status === 'paid' ? 'paid' : 'cancelled'}">
             ${order.status === 'paid' ? '✅ 결제 완료' : '❌ 취소됨'}
           </span>
         </div>
         <div class="order-body">
-          <div class="order-course-name">${courseName}</div>
+          <div class="order-course-name">${esc(courseName)}</div>
           <div style="text-align:right;">
             ${isDisc ? `<div style="text-decoration:line-through;color:var(--gray-400);font-size:12px;">₩${Number(order.original_amount).toLocaleString()}</div>` : ''}
             <div class="order-amount ${isDisc ? 'discounted' : ''}">₩${Number(order.amount || 0).toLocaleString()}</div>
@@ -1039,7 +1042,7 @@ function renderOrders(orders, coursesMap, gifts) {
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.05);">
           <div>${refundBadge}</div>
-          ${canRefund ? `<button onclick="openRefundModal('${order.id}','${safeTitle}',${order.amount},'${order.created_at}')" style="padding:6px 14px;border-radius:8px;border:1px solid #FCA5A5;background:#fff;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;">환불 신청</button>` : ''}
+          ${canRefund ? `<button data-order-id="${esc(String(order.id))}" data-title="${esc(courseName)}" data-amount="${Number(order.amount)}" data-date="${esc(order.created_at)}" onclick="openRefundModal(this.dataset.orderId,this.dataset.title,this.dataset.amount,this.dataset.date)" style="padding:6px 14px;border-radius:8px;border:1px solid #FCA5A5;background:#fff;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;">환불 신청</button>` : ''}
         </div>
       </div>` };
   });
@@ -1052,7 +1055,7 @@ function renderOrders(orders, coursesMap, gifts) {
     const stLabel    = GIFT_STATUS_LABEL[st] || st;
     const stColor    = GIFT_STATUS_COLOR[st] || '#888';
     const stBg       = GIFT_STATUS_BG[st]    || '#F3F4F6';
-    const toStr      = g.recipient_email ? ` → ${g.recipient_email}` : '';
+    const toStr      = g.recipient_email ? ` → ${esc(g.recipient_email)}` : '';
     return { date: g.created_at, html: `
       <div class="order-card">
         <div class="order-header">
@@ -1063,7 +1066,7 @@ function renderOrders(orders, coursesMap, gifts) {
           <span style="background:${stBg};color:${stColor};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">${stLabel}</span>
         </div>
         <div class="order-body">
-          <div class="order-course-name">${courseName}</div>
+          <div class="order-course-name">${esc(courseName)}</div>
           <div style="text-align:right;">
             <div class="order-amount">₩${Number(g.amount||0).toLocaleString()}</div>
           </div>
@@ -1097,9 +1100,9 @@ function renderCerts(orders, coursesMap) {
     return `
       <div class="cert-card">
         <div class="cert-icon"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;"></div>
-        <div class="cert-title">${course.title}</div>
+        <div class="cert-title">${esc(course.title)}</div>
         <div class="cert-date">수료일: ${date}</div>
-        <button class="btn-cert" onclick="downloadCert('${course.title}', '${date}')">수료증 다운로드</button>
+        <button class="btn-cert" data-title="${esc(course.title)}" data-date="${esc(date)}" onclick="downloadCert(this.dataset.title, this.dataset.date)">수료증 다운로드</button>
       </div>`;
   }).join('');
 
@@ -1704,11 +1707,11 @@ async function loadCoupons() {
               <div style="font-size:16px;font-weight:800;color:${isUsable ? 'var(--green)' : 'var(--gray-500)'};">${discStr}</div>
               <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${isUsable ? 'var(--green-light)' : '#f0f0f0'};color:${isUsable ? 'var(--green-dark)' : 'var(--gray-500)'};">${c.status}</span>
             </div>
-            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#333;background:#f8f8f8;padding:6px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:8px;">${c.code}</div>
+            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#333;background:#f8f8f8;padding:6px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:8px;">${esc(c.code)}</div>
             ${c.min_amount ? `<div style="font-size:11px;color:var(--gray-400);">₩${Number(c.min_amount).toLocaleString()} 이상 구매 시 사용</div>` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
               <div style="font-size:11px;color:var(--gray-400);">${expStr}</div>
-              ${isUsable ? `<button onclick="navigator.clipboard.writeText('${c.code}').then(()=>{this.textContent='복사됨!';setTimeout(()=>{this.textContent='코드 복사';},2000)})" style="padding:5px 14px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">코드 복사</button>` : ''}
+              ${isUsable ? `<button data-coupon-code="${esc(c.code)}" onclick="(function(btn){navigator.clipboard.writeText(btn.dataset.couponCode).then(()=>{btn.textContent='복사됨!';setTimeout(()=>{btn.textContent='코드 복사';},2000)})})(this)" style="padding:5px 14px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">코드 복사</button>` : ''}
             </div>
           </div>`;
         }).join('')}
