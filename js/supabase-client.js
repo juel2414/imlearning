@@ -109,21 +109,33 @@ async function createOrder(order) {
   return { data };
 }
 
-// ───── 특정 강좌 결제(구매) 여부 확인 (만료일 포함) ─────
+// ───── 특정 강좌 결제(구매) 여부 확인 (만료일 포함, 선물 수령 포함) ─────
 async function hasPurchased(userId, courseId) {
-  const { data, error } = await supabaseClient
-    .from('orders')
-    .select('id, refund_status, expires_at')
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .eq('status', 'paid');
-  if (error) { console.error('구매 확인 실패:', error); return false; }
-  const now = new Date();
-  return (data || []).some(function(o) {
-    if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
-    if (o.expires_at && new Date(o.expires_at) < now) return false; // 만료됨
-    return true;
-  });
+  const [orderRes, giftRes] = await Promise.all([
+    supabaseClient
+      .from('orders')
+      .select('id, refund_status, expires_at')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .eq('status', 'paid'),
+    supabaseClient
+      .from('gifts')
+      .select('id')
+      .eq('recipient_id', userId)
+      .eq('course_id', courseId)
+      .eq('status', 'accepted'),
+  ]);
+  if (!orderRes.error) {
+    const now = new Date();
+    const hasOrder = (orderRes.data || []).some(function(o) {
+      if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
+      if (o.expires_at && new Date(o.expires_at) < now) return false;
+      return true;
+    });
+    if (hasOrder) return true;
+  }
+  if (!giftRes.error && (giftRes.data || []).length > 0) return true;
+  return false;
 }
 
 // ───── 로그아웃 (네비 공용) ─────
