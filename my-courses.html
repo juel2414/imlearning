@@ -1252,10 +1252,24 @@ async function loadMyPage() {
   gBadges = badgesData || [];
 
   // ── 렌더 (기존) ──
-  updateStats(activeOrders);
-  renderCourses(activeOrders, gCoursesMap);
-  renderOrders(myOrders, gCoursesMap);
-  renderCerts(activeOrders, gCoursesMap);
+  // 프리패스: course_id=null인 영수증 order와 per-course ₩0 order가 섞임.
+  // renderCourses/Certs에는 course_id 기준으로 중복 제거 후 전달.
+  const seenCIds = new Set();
+  const uniqueActiveOrders = activeOrders.filter(o => {
+    if (o.course_id == null) return false;
+    if (seenCIds.has(o.course_id)) return false;
+    seenCIds.add(o.course_id);
+    return true;
+  });
+  // renderOrders(결제 내역)에는 프리패스 per-course ₩0 order 숨김
+  // (amount=0, original_amount=0, expires_at 있음 → 접근 레코드이지 영수증 아님)
+  const paymentOrders = myOrders.filter(o =>
+    !(o.amount === 0 && (o.original_amount === 0 || o.original_amount == null) && o.expires_at)
+  );
+  updateStats(uniqueActiveOrders);
+  renderCourses(uniqueActiveOrders, gCoursesMap);
+  renderOrders(paymentOrders, gCoursesMap);
+  renderCerts(uniqueActiveOrders, gCoursesMap);
   renderWishlist(wishItems);
 
   // ── 렌더 (신규) ──

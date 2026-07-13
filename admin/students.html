@@ -255,8 +255,10 @@ function buildStudentRows() {
   studentRows = enrolledUserIds.map(function(uid) {
     var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
     var orders  = ordersByUser[uid] || [];
-    var courseCount = orders.length;
-    var avgProgress = courseCount ? Math.round(orders.reduce(function(s,o){ return s+(o.progress||0); },0) / courseCount) : 0;
+    // course_id=null인 프리패스 영수증 order 제외 (강좌 수·진도 집계에서)
+    var courseOrders = orders.filter(function(o){ return o.course_id != null; });
+    var courseCount = courseOrders.length;
+    var avgProgress = courseCount ? Math.round(courseOrders.reduce(function(s,o){ return s+(o.progress||0); },0) / courseCount) : 0;
     var lastStudy   = lastStudyByUser[uid] || null;
     var totalWatch  = watchByUser[uid] || 0;
     var daysSinceLast = daysSince(lastStudy);
@@ -337,7 +339,9 @@ function renderTable() {
     var lastTxt    = r.lastStudy ? fmtDate(r.lastStudy) + ' (' + r.daysSinceLast + '일 전)' : '미접속';
     var encBtn = r.isDormant ? '<button class="enc-btn" onclick="event.stopPropagation();encourage(\'' + r.uid + '\',\'' + r.name + '\')">독려 메시지</button>' : '';
     var userOrders = allOrders.filter(function(o){ return o.user_id === r.uid; });
-    var refundableOrder = userOrders.find(function(o){ return !o.refund_status || o.refund_status === 'none'; });
+    var refundableOrder = userOrders
+      .filter(function(o){ return (!o.refund_status || o.refund_status === 'none') && o.status === 'paid' && (o.amount || 0) > 0; })
+      .sort(function(a,b){ return (b.amount||0) - (a.amount||0); })[0];
     var refundBtn = refundableOrder
       ? '<button class="refund-btn" onclick="event.stopPropagation();showRefundModal(\'' + r.uid + '\',' + refundableOrder.course_id + ',' + refundableOrder.id + ',' + refundableOrder.amount + ')">환불처리</button>'
       : '';
