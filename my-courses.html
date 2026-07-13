@@ -1115,7 +1115,7 @@ function downloadCert(title, date) {
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>수료증 — ${title}</title>
+<title>수료증 — ${esc(title)}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -1140,13 +1140,13 @@ function downloadCert(title, date) {
   <div class="logo">아이엠러닝 IMlearning</div>
   <div class="cert-label">CERTIFICATE OF COMPLETION</div>
   <div class="cert-title">수 료 증</div>
-  <div class="course-name">${title}</div>
+  <div class="course-name">${esc(title)}</div>
   <div class="cert-body">
     위 수강생은 아이엠러닝(IMlearning)에서 제공하는<br>
     위 과정을 성실히 이수하였음을 증명합니다.
   </div>
   <div class="cert-meta">
-    <div class="cert-date">수료일: ${date}</div>
+    <div class="cert-date">수료일: ${esc(date)}</div>
     <div class="cert-sign">
       <div style="font-size:13px;color:#888;margin-bottom:4px;">발행처</div>
       <div class="cert-sign-name">아이엠러닝 (IMlearning)</div>
@@ -1592,7 +1592,7 @@ function openRefundModal(orderId, courseTitle, amount, createdAt) {
   _refundOrderId = orderId;
   const days = Math.floor((Date.now() - new Date(createdAt)) / 86400000);
   document.getElementById('refund-modal-body').innerHTML =
-    `<strong style="font-size:15px;">${courseTitle}</strong><br><br>` +
+    `<strong style="font-size:15px;">${esc(courseTitle)}</strong><br><br>` +
     `결제금액: <strong>₩${Number(amount).toLocaleString()}</strong><br>` +
     `구매일: ${new Date(createdAt).toLocaleDateString('ko-KR')} (${days}일 경과)`;
   document.getElementById('refund-modal').style.display = 'flex';

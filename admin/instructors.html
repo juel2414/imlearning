@@ -163,6 +163,9 @@
 
 <script>
 var sb = window.supabaseClient;
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 (async function checkAdminAccess() {
   const { data: { session } } = await sb.auth.getSession();
@@ -312,10 +315,10 @@ function renderInstructors() {
   grid.innerHTML = instructors.map(function(i) {
     var stats = courseStatsFor(i.name);
     return '<div class="instructor-card">' +
-      '<div class="instructor-avatar">' + (i.photo_url ? '<img src="' + i.photo_url + '">' : '<img src="../icons/profile.svg" alt="" style="width:100%;height:100%;object-fit:contain;">') + '</div>' +
-      '<div class="instructor-name">' + i.name + '</div>' +
-      '<div class="instructor-role">' + (i.role || '') + '</div>' +
-      '<div class="instructor-desc">' + (i.bio || '') + '</div>' +
+      '<div class="instructor-avatar">' + (i.photo_url ? '<img src="' + esc(i.photo_url) + '">' : '<img src="../icons/profile.svg" alt="" style="width:100%;height:100%;object-fit:contain;">') + '</div>' +
+      '<div class="instructor-name">' + esc(i.name) + '</div>' +
+      '<div class="instructor-role">' + esc(i.role || '') + '</div>' +
+      '<div class="instructor-desc">' + esc(i.bio || '') + '</div>' +
       '<div class="instructor-stats"><div>담당 강좌<br><b>' + stats.count + '개</b></div><div>총 수강생<br><b>' + stats.students.toLocaleString() + '명</b></div></div>' +
       '<div class="action-btns"><button class="btn-sm edit" onclick="editInstructor(\'' + i.id + '\')">수정</button><button class="btn-sm del" onclick="deleteInstructor(\'' + i.id + '\')">삭제</button></div>' +
       '</div>';

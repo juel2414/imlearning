@@ -296,6 +296,10 @@ let allCourses = [];
 let allProfiles = [];
 const MONTHLY_GOAL = 1000000; // 월 목표 매출 (원)
 
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // ── 기간 계산 ──
 function getPeriodRange(period) {
   const now = new Date();
@@ -530,7 +534,7 @@ function renderTop5() {
   el.innerHTML = sorted.map((c, i) => `
     <div class="rank-row">
       <span class="rank-num">${i+1}</span>
-      <span class="rank-title">${c.title}</span>
+      <span class="rank-title">${esc(c.title)}</span>
       <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round((c.students||0)/max*100)}%"></div></div>
       <span class="rank-val">${(c.students||0).toLocaleString()}명</span>
     </div>`).join('');
@@ -547,7 +551,7 @@ function renderRecentPayments(filtered) {
       <div class="payment-item">
         <div class="payment-avatar">💳</div>
         <div class="payment-info">
-          <div class="payment-name">${o.course_name || '강좌명 없음'}</div>
+          <div class="payment-name">${esc(o.course_name || '강좌명 없음')}</div>
           <div class="payment-course">${o.user_id?.slice(0,8) || ''}...</div>
         </div>
         <div class="payment-amount">₩${Number(o.amount||0).toLocaleString()}</div>
@@ -575,9 +579,9 @@ function renderCourseTable() {
   let html = '<div class="table-wrap"><table><thead><tr><th>강좌명</th><th>카테고리</th><th>강사</th><th>가격</th><th>수강생</th><th>상태</th></tr></thead><tbody>';
   sorted.forEach(c => {
     html += `<tr>
-      <td style="font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.title}</td>
+      <td style="font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(c.title)}</td>
       <td>${CAT[c.category]||'-'}</td>
-      <td>${c.instructor||'-'}</td>
+      <td>${esc(c.instructor||'-')}</td>
       <td>${c.price ? '₩'+Number(c.price).toLocaleString() : '무료'}</td>
       <td><strong>${(c.students||0).toLocaleString()}</strong>명</td>
       <td><span class="badge ${c.status==='active'?'badge-paid':'badge-free'}">${c.status==='active'?'판매중':'비공개'}</span></td>
@@ -597,9 +601,9 @@ function renderOrdersTable(filtered) {
     const date = new Date(o.created_at).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
     html += `<tr>
       <td style="color:#888;">${date}</td>
-      <td>${o.course_name||'-'}</td>
+      <td>${esc(o.course_name||'-')}</td>
       <td><strong>₩${Number(o.amount||0).toLocaleString()}</strong></td>
-      <td style="font-size:11px;color:#888;">${o.coupon_code||'-'}</td>
+      <td style="font-size:11px;color:#888;">${esc(o.coupon_code||'-')}</td>
       <td><span class="badge badge-paid">완료</span></td>
     </tr>`;
   });

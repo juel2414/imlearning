@@ -237,6 +237,10 @@ var allCourses    = [];
 var studentRows   = []; // 계산된 행 데이터
 var currentUserId = null;
 
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function fmtSecs(s) {
   s = Math.floor(s || 0);
   if (s < 60)   return s + '초';
@@ -373,7 +377,7 @@ function renderTable() {
     var badgeText  = r.status === 'complete' ? '수료' : r.status === 'dormant' ? '휴면' : r.status === 'no_course' ? '미수강' : '활성';
     var rowClass   = (r.isDormant ? 'dormant-row ' : '') + 'clickable-row';
     var lastTxt    = r.lastStudy ? fmtDate(r.lastStudy) + ' (' + r.daysSinceLast + '일 전)' : '미접속';
-    var encBtn = r.isDormant ? '<button class="enc-btn" onclick="event.stopPropagation();encourage(\'' + r.uid + '\',\'' + r.name + '\')">독려 메시지</button>' : '';
+    var encBtn = r.isDormant ? '<button class="enc-btn" data-uid="' + esc(r.uid) + '" data-name="' + esc(r.name) + '" onclick="event.stopPropagation();encourage(this.dataset.uid,this.dataset.name)">독려 메시지</button>' : '';
     var userOrders = allOrders.filter(function(o){ return o.user_id === r.uid; });
     var refundableOrder = userOrders
       .filter(function(o){ return (!o.refund_status || o.refund_status === 'none') && o.status === 'paid' && (o.amount || 0) > 0; })
@@ -405,16 +409,16 @@ function renderTable() {
     var MAX_SHOW = 2;
     var shownTags = courseTagItems.slice(0, MAX_SHOW).map(function(item) {
       var short = item.title.length > 14 ? item.title.slice(0,14) + '…' : item.title;
-      return '<a href="../course-detail.html?id=' + item.id + '" target="_blank" onclick="event.stopPropagation()" class="course-tag" title="' + item.title + '" style="cursor:pointer;">' + short + '</a>';
+      return '<a href="../course-detail.html?id=' + item.id + '" target="_blank" onclick="event.stopPropagation()" class="course-tag" title="' + esc(item.title) + '" style="cursor:pointer;">' + esc(short) + '</a>';
     }).join('');
     if (courseTagItems.length > MAX_SHOW) shownTags += '<span class="course-tag" style="background:#f0f0f0;color:#888;border-color:#e0e0e0;">+' + (courseTagItems.length - MAX_SHOW) + '개</span>';
 
     // 첫 열: 이름 + 이메일 + 전화번호 + 가입일
-    var phoneTxt  = r.phone ? '<div style="font-size:11px;color:#666;margin-top:1px;">📞 ' + r.phone + '</div>' : '';
+    var phoneTxt  = r.phone ? '<div style="font-size:11px;color:#666;margin-top:1px;">📞 ' + esc(r.phone) + '</div>' : '';
     var joinedTxt = r.joinedAt ? '<div style="font-size:11px;color:#aaa;margin-top:1px;">가입 ' + fmtDate(r.joinedAt) + '</div>' : '';
     html += '<tr class="' + rowClass + '" onclick="openModal(\'' + r.uid + '\')">' +
-      '<td><div style="font-weight:600;">' + r.name + '</div>' +
-      '<div style="font-size:11px;color:#888;">' + r.email + '</div>' +
+      '<td><div style="font-weight:600;">' + esc(r.name) + '</div>' +
+      '<div style="font-size:11px;color:#888;">' + esc(r.email) + '</div>' +
       phoneTxt + joinedTxt + '</td>' +
       '<td>' + (shownTags || '<span style="color:#ccc;font-size:12px;">-</span>') + '</td>' +
       '<td><div style="display:flex;align-items:center;gap:8px;">' +
@@ -497,9 +501,9 @@ function renderModalBody(uid) {
   var totalSecs  = userVP.reduce(function(s,vp){ return s + (vp.actual_watched_seconds||0); }, 0);
 
   var html = '<div class="profile-card">' +
-    '<div class="profile-card-item"><div class="profile-card-label">이름</div><div class="profile-card-value">' + (profile.name || '-') + '</div></div>' +
-    '<div class="profile-card-item"><div class="profile-card-label">이메일</div><div class="profile-card-value">' + (profile.email || '-') + '</div></div>' +
-    '<div class="profile-card-item"><div class="profile-card-label">전화번호</div><div class="profile-card-value">' + (profile.phone || '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">이름</div><div class="profile-card-value">' + esc(profile.name || '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">이메일</div><div class="profile-card-value">' + esc(profile.email || '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">전화번호</div><div class="profile-card-value">' + esc(profile.phone || '-') + '</div></div>' +
     '<div class="profile-card-item"><div class="profile-card-label">가입일</div><div class="profile-card-value">' + (profile.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '-') + '</div></div>' +
     '<div class="profile-card-item"><div class="profile-card-label">권한</div><div class="profile-card-value">' + (profile.role === 'admin' ? '관리자' : profile.role === 'super_admin' ? '슈퍼관리자' : '일반') + '</div></div>' +
     '<div class="profile-card-item"><div class="profile-card-label">수강 강좌 수</div><div class="profile-card-value">' + userOrders.filter(function(o){ return o.course_id; }).length + '개</div></div>' +
@@ -517,7 +521,7 @@ function renderModalBody(uid) {
     var course = allCourses.find(function(c){ return String(c.id) === String(order.course_id); });
     var courseName = course ? course.title : ('강좌 ID: ' + order.course_id);
 
-    html += '<div class="modal-course-title">📚 ' + courseName + '</div>';
+    html += '<div class="modal-course-title">📚 ' + esc(courseName) + '</div>';
 
     // 이 강좌의 video_progress
     var courseVP = userVP.filter(function(vp){ return String(vp.course_id) === String(order.course_id); });
@@ -537,7 +541,7 @@ function renderModalBody(uid) {
       html += '<div class="lesson-card">' +
         '<div class="lesson-card-top">' +
           '<span class="lesson-num">' + vp.lesson_number + '강</span>' +
-          '<span class="lesson-title">' + (vp.lesson_title || '') + totalTxt + '</span>' +
+          '<span class="lesson-title">' + esc(vp.lesson_title || '') + totalTxt + '</span>' +
           '<span class="lesson-pct" style="color:' + barColor + ';">' + pct + '%' + doneText + '</span>' +
         '</div>' +
         '<div class="lesson-detail">실제 시청: ' + (vp.actual_watched_text || fmtSecs(vp.actual_watched_seconds)) + '</div>' +
@@ -591,7 +595,7 @@ function showRefundModal(userId, courseId, orderId, amount) {
   var daysAgo = order ? daysSince(order.created_at) : 0;
 
   document.getElementById('refund-modal-info').innerHTML =
-    '<strong>' + courseName + '</strong><br>' +
+    '<strong>' + esc(courseName) + '</strong><br>' +
     '결제금액: <strong>₩' + Number(amount).toLocaleString() + '</strong><br>' +
     '구매일: ' + purchaseDate + ' (' + daysAgo + '일 전)<br><br>' +
     '관리자 권한으로 시청률·기간 무관 전액 환불됩니다.<br>' +
@@ -610,7 +614,7 @@ function showRefundModal(userId, courseId, orderId, amount) {
 function showRefundStep2(orderId, courseName, amount) {
   document.getElementById('refund-step2-info').innerHTML =
     '<strong>정말 환불 처리하시겠습니까?</strong><br><br>' +
-    '강좌: ' + courseName + '<br>' +
+    '강좌: ' + esc(courseName) + '<br>' +
     '환불금액: <strong>₩' + Number(amount).toLocaleString() + '</strong><br><br>' +
     '이 작업은 즉시 실행되며 되돌릴 수 없습니다.';
 
@@ -665,20 +669,20 @@ async function processRefund(orderId) {
       document.getElementById('refund-step2-info').style.color = '#14532D';
       document.getElementById('refund-step2-info').innerHTML =
         '<span style="font-weight:700;">✅ 처리 완료</span><br>' +
-        (result.message || '') + '<br><br>' +
-        '<strong>' + refundText + '</strong>';
+        esc(result.message || '') + '<br><br>' +
+        '<strong>' + esc(refundText) + '</strong>';
       confirmBtn.style.display = 'none';
       document.querySelector('#refund-step2 button[onclick="showRefundStep1()"]').style.display = 'none';
       await loadAll();
     } else {
       document.getElementById('refund-step2-info').innerHTML =
-        '<span style="font-weight:700;">❌ 오류 발생</span><br>' + (result.error || '알 수 없는 오류');
+        '<span style="font-weight:700;">❌ 오류 발생</span><br>' + esc(result.error || '알 수 없는 오류');
       confirmBtn.disabled = false;
       confirmBtn.textContent = '다시 시도';
     }
   } catch(e) {
     document.getElementById('refund-step2-info').innerHTML =
-      '<span style="font-weight:700;">❌ 네트워크 오류</span><br>' + (e.message || '오류가 발생했습니다.');
+      '<span style="font-weight:700;">❌ 네트워크 오류</span><br>' + esc(e.message || '오류가 발생했습니다.');
     confirmBtn.disabled = false;
     confirmBtn.textContent = '다시 시도';
   }

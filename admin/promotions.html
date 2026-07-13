@@ -259,6 +259,9 @@
 
 <script>
 const sb = window.supabaseClient;
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 (async function checkAdminAccess() {
   const { data: { session } } = await sb.auth.getSession();
@@ -390,8 +393,8 @@ async function loadCoupons() {
     return `
       <div class="coupon-item ${expired ? 'inactive' : c.status}">
         <div>
-          <div class="coupon-badge-code">${c.code}</div>
-          <div class="coupon-desc">${c.description || '설명 없음'}</div>
+          <div class="coupon-badge-code">${esc(c.code)}</div>
+          <div class="coupon-desc">${esc(c.description || '설명 없음')}</div>
         </div>
         <div>
           <div class="coupon-meta"><strong>${discountLabel}</strong>${c.min_amount ? ' · 최소 ₩' + Number(c.min_amount).toLocaleString() : ''}</div>

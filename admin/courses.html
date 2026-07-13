@@ -622,7 +622,7 @@ function updateStats() {
   } else {
     list.innerHTML = hidden.map(function(c) {
       return '<div class="hidden-course-row">' +
-        '<span style="font-weight:500;">' + c.title + '</span>' +
+        '<span style="font-weight:500;">' + escHtml(c.title) + '</span>' +
         '<span style="font-size:11px;color:#9CA3AF;flex-shrink:0;">' + (c.category ? c.category : '카테고리 없음') + '</span>' +
         '<button class="btn-activate" onclick="quickActivate(' + c.id + ')">공개로 전환</button>' +
       '</div>';
@@ -661,7 +661,7 @@ function renderBySections(list) {
   });
   var html = '';
   Object.keys(groups).forEach(function(name) {
-    html += '<div class="section-group"><div class="section-group-header"><span class="dot"></span><span class="section-group-title">' + name + '</span><span class="section-group-count">' + groups[name].length + '개</span></div>' + renderTable(groups[name]) + '</div>';
+    html += '<div class="section-group"><div class="section-group-header"><span class="dot"></span><span class="section-group-title">' + escHtml(name) + '</span><span class="section-group-count">' + groups[name].length + '개</span></div>' + renderTable(groups[name]) + '</div>';
   });
   if (noSection.length > 0) {
     html += '<div class="section-group"><div class="section-group-header"><span class="dot" style="background:#C4C4C4;"></span><span class="section-group-title">섹션 미지정</span><span class="section-group-count">' + noSection.length + '개</span></div>' + renderTable(noSection) + '</div>';
@@ -676,11 +676,11 @@ function renderTable(list) {
       : (c.price ? '₩' + Number(c.price).toLocaleString() : '-');
     // ✅ id를 숫자로 data 속성에 저장, onclick에서 사용
     return '<tr>' +
-      '<td><div class="thumb-sm">' + (c.thumbnail_url ? '<img src="' + c.thumbnail_url + '">' : '📚') + '</div></td>' +
-      '<td style="font-weight:600;max-width:220px;">' + c.title + '</td>' +
+      '<td><div class="thumb-sm">' + (c.thumbnail_url ? '<img src="' + escHtml(c.thumbnail_url) + '">' : '📚') + '</div></td>' +
+      '<td style="font-weight:600;max-width:220px;">' + escHtml(c.title) + '</td>' +
       '<td>' + (CAT_LABELS[c.category] || '-') + '</td>' +
-      '<td>' + (c.level ? '<span class="badge level">' + c.level + '</span>' : '-') + '</td>' +
-      '<td>' + (c.instructor || '-') + '</td>' +
+      '<td>' + (c.level ? '<span class="badge level">' + escHtml(c.level) + '</span>' : '-') + '</td>' +
+      '<td>' + escHtml(c.instructor || '-') + '</td>' +
       '<td>' + priceHtml + '</td>' +
       '<td>' + (c.lessons ? c.lessons + '강' : '-') + '</td>' +
       '<td><label class="status-toggle" title="' + (c.status==='active'?'클릭하여 비공개 전환':'클릭하여 판매중 전환') + '" onclick="event.stopPropagation()">' +
@@ -689,10 +689,10 @@ function renderTable(list) {
         '<span class="toggle-text ' + (c.status==='active'?'on':'off') + '">' + (c.status==='active'?'판매중':'비공개') + '</span>' +
       '</label>' + (c.featured ? '<span class="badge promo" style="margin-left:6px;">추천</span>' : '') + '</td>' +
       '<td><div class="action-btns">' +
-        '<button class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;" onclick="openLessonMgmt(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\')">강의</button>' +
-        '<button class="btn-sm" style="border:1px solid #7C3AED;color:#7C3AED;" onclick="openFileMgmt(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\')">자료실</button>' +
+        '<button class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;" data-id="' + c.id + '" data-name="' + escHtml(c.title) + '" onclick="openLessonMgmt(+this.dataset.id, this.dataset.name)">강의</button>' +
+        '<button class="btn-sm" style="border:1px solid #7C3AED;color:#7C3AED;" data-id="' + c.id + '" data-name="' + escHtml(c.title) + '" onclick="openFileMgmt(+this.dataset.id, this.dataset.name)">자료실</button>' +
         '<button class="btn-sm edit" onclick="editCourse(' + c.id + ')">수정</button>' +
-        (c.status === 'active' ? '<button class="btn-sm" style="border:1px solid #d97706;color:#d97706;" onclick="notifyCourse(' + c.id + ',\'' + c.title.replace(/'/g,"\\'") + '\',' + JSON.stringify(c.thumbnail_url||'') + ')">📢</button>' : '') +
+        (c.status === 'active' ? '<button class="btn-sm" style="border:1px solid #d97706;color:#d97706;" data-id="' + c.id + '" data-title="' + escHtml(c.title) + '" data-thumb="' + escHtml(c.thumbnail_url||'') + '" onclick="notifyCourse(+this.dataset.id, this.dataset.title, this.dataset.thumb)">📢</button>' : '') +
         '<button class="btn-sm del" onclick="deleteCourse(' + c.id + ')">삭제</button>' +
       '</div></td>' +
       '</tr>';
@@ -805,7 +805,7 @@ async function loadLessonStats(courseId) {
     var warn     = ls.avgPct < 50 ? ' ⚠️' : '';
     var donePct  = ls.cnt ? Math.round(ls.doneCnt / ls.cnt * 100) : 0;
     html += '<tr>' +
-      '<td style="font-weight:600;">' + ls.n + '강' + (ls.title ? ' — ' + ls.title : '') + '</td>' +
+      '<td style="font-weight:600;">' + ls.n + '강' + (ls.title ? ' — ' + escHtml(ls.title) : '') + '</td>' +
       '<td>' + ls.cnt + '명</td>' +
       '<td>' + fmtSecs(ls.avgWatch) + '</td>' +
       '<td><div style="display:flex;align-items:center;gap:8px;">' +
@@ -849,8 +849,8 @@ async function loadLessons() {
     var platform = l.video_url ? (isYt ? '▶ YouTube' : '🎞 Vimeo') : '-';
     return '<tr>' +
       '<td style="font-weight:700;width:40px;">' + l.sort_order + '</td>' +
-      '<td style="font-weight:600;">' + l.title + '</td>' +
-      '<td style="color:#6B6B6B;font-size:12px;">' + (l.section_title || '-') + '</td>' +
+      '<td style="font-weight:600;">' + escHtml(l.title) + '</td>' +
+      '<td style="color:#6B6B6B;font-size:12px;">' + escHtml(l.section_title || '-') + '</td>' +
       '<td><span style="font-size:11px;color:#2D9B6F;">' + platform + '</span></td>' +
       '<td>' + (l.is_free_preview ? '<span class="badge active">무료</span>' : '<span class="badge hidden">잠금</span>') + '</td>' +
       '<td><div class="action-btns">' +
