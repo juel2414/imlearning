@@ -70,6 +70,19 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 .empty   { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
 .loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
 
+/* 강좌 태그 */
+.course-tag { display:inline-block; background:#F0FAF5; color:#2D9B6F; border:1px solid #d1f0e0;
+  border-radius:6px; font-size:11px; font-weight:600; padding:2px 7px; margin:2px 2px 0 0; white-space:nowrap; }
+
+/* 프로필 요약 카드 */
+.profile-card { background:#F8FAFB; border:1px solid rgba(0,0,0,.07); border-radius:12px;
+  padding:16px 18px; margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; }
+.profile-card-item { display:flex; flex-direction:column; gap:2px; }
+.profile-card-label { font-size:10px; color:#bbb; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.profile-card-value { font-size:13px; color:#111; font-weight:500; }
+.pass-badge { display:inline-block; background:#fef9c3; color:#a16207; border:1px solid #fde047;
+  border-radius:6px; font-size:11px; font-weight:700; padding:2px 8px; }
+
 /* ── 상세 모달 ── */
 .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:500; align-items:center; justify-content:center; padding:16px; }
 .modal-bg.open { display:flex; }
@@ -282,16 +295,20 @@ function buildStudentRows() {
     else status = 'active'; // 8-14일도 일단 active로
 
     return {
-      uid:          uid,
-      name:         profile.name || profile.email || uid.slice(0,8),
-      email:        profile.email || '-',
-      courseCount:  courseCount,
-      avgProgress:  avgProgress,
-      lastStudy:    lastStudy,
-      daysSinceLast: daysSinceLast,
-      totalWatch:   totalWatch,
-      status:       status,
-      isDormant:    daysSinceLast > 14,
+      uid:            uid,
+      name:           profile.name || profile.email || uid.slice(0,8),
+      email:          profile.email || '-',
+      phone:          profile.phone || '',
+      joinedAt:       profile.created_at || null,
+      hasPass:        !!profile.has_unlimited_pass,
+      courseCount:    courseCount,
+      courseIds:      courseOrders.map(function(o){ return o.course_id; }),
+      avgProgress:    avgProgress,
+      lastStudy:      lastStudy,
+      daysSinceLast:  daysSinceLast,
+      totalWatch:     totalWatch,
+      status:         status,
+      isDormant:      daysSinceLast > 14,
     };
   });
 }
@@ -373,9 +390,28 @@ function renderTable() {
       roleBtn = '<button style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #2D9B6F;background:#fff;color:#2D9B6F;cursor:pointer;margin-top:4px;" onclick="event.stopPropagation();setRole(\'' + r.uid + '\',\'user\')">관리자 지정</button>';
     }
 
+    // 수강 강좌 태그 (최대 2개 표시 후 나머지 개수)
+    var courseTags = r.courseIds.map(function(cid) {
+      var c = allCourses.find(function(x){ return String(x.id) === String(cid); });
+      return c ? c.title : ('ID:' + cid);
+    });
+    var MAX_SHOW = 2;
+    var shownTags = courseTags.slice(0, MAX_SHOW).map(function(t) {
+      var short = t.length > 14 ? t.slice(0,14) + '…' : t;
+      return '<span class="course-tag" title="' + t + '">' + short + '</span>';
+    }).join('');
+    if (courseTags.length > MAX_SHOW) shownTags += '<span class="course-tag" style="background:#f0f0f0;color:#888;border-color:#e0e0e0;">+' + (courseTags.length - MAX_SHOW) + '개</span>';
+
+    // 첫 열: 이름 + 이메일 + 전화번호 + 가입일
+    var phoneTxt  = r.phone ? '<div style="font-size:11px;color:#666;margin-top:1px;">📞 ' + r.phone + '</div>' : '';
+    var joinedTxt = r.joinedAt ? '<div style="font-size:11px;color:#aaa;margin-top:1px;">가입 ' + fmtDate(r.joinedAt) + '</div>' : '';
+    var passBadge = r.hasPass ? '<span style="font-size:10px;font-weight:700;color:#a16207;background:#fef9c3;border:1px solid #fde047;border-radius:5px;padding:1px 6px;margin-left:4px;">패스</span>' : '';
+
     html += '<tr class="' + rowClass + '" onclick="openModal(\'' + r.uid + '\')">' +
-      '<td><div style="font-weight:600;">' + r.name + '</div><div style="font-size:11px;color:#888;">' + r.email + '</div></td>' +
-      '<td>' + r.courseCount + '개</td>' +
+      '<td><div style="font-weight:600;">' + r.name + passBadge + '</div>' +
+      '<div style="font-size:11px;color:#888;">' + r.email + '</div>' +
+      phoneTxt + joinedTxt + '</td>' +
+      '<td>' + (shownTags || '<span style="color:#ccc;font-size:12px;">-</span>') + '</td>' +
       '<td><div style="display:flex;align-items:center;gap:8px;">' +
         '<div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:' + r.avgProgress + '%;"></div></div>' +
         '<span style="font-size:12px;font-weight:700;">' + r.avgProgress + '%</span>' +
@@ -447,18 +483,35 @@ function closeModal(e) {
 
 function renderModalBody(uid) {
   var body = document.getElementById('modal-body');
+  var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
 
-  // 이 수강생의 강좌별 video_progress
-  var userVP = allVideoProgress.filter(function(vp){ return vp.user_id === uid; });
-  // 이 수강생의 enrolled courses
+  // ── 프로필 요약 카드 ──
   var userOrders = allOrders.filter(function(o){ return o.user_id === uid && o.status === 'paid'; });
+  var totalPaid  = userOrders.reduce(function(s,o){ return s + (o.amount||0); }, 0);
+  var userVP     = allVideoProgress.filter(function(vp){ return vp.user_id === uid; });
+  var totalSecs  = userVP.reduce(function(s,vp){ return s + (vp.actual_watched_seconds||0); }, 0);
+
+  var passBadgeHtml = profile.has_unlimited_pass
+    ? '<span class="pass-badge">✅ 무제한 패스 보유</span>'
+    : '<span style="font-size:13px;color:#aaa;">없음</span>';
+
+  var html = '<div class="profile-card">' +
+    '<div class="profile-card-item"><div class="profile-card-label">이름</div><div class="profile-card-value">' + (profile.name || '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">이메일</div><div class="profile-card-value">' + (profile.email || '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">전화번호</div><div class="profile-card-value">' + (profile.phone || '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">가입일</div><div class="profile-card-value">' + (profile.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '-') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">권한</div><div class="profile-card-value">' + (profile.role === 'admin' ? '관리자' : profile.role === 'super_admin' ? '슈퍼관리자' : '일반') + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">무제한 패스</div><div class="profile-card-value">' + passBadgeHtml + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">수강 강좌 수</div><div class="profile-card-value">' + userOrders.filter(function(o){ return o.course_id; }).length + '개</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">총 결제금액</div><div class="profile-card-value">₩' + totalPaid.toLocaleString() + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">총 시청시간</div><div class="profile-card-value">' + fmtSecs(totalSecs) + '</div></div>' +
+    '<div class="profile-card-item"><div class="profile-card-label">UUID</div><div class="profile-card-value" style="font-size:11px;color:#bbb;word-break:break-all;">' + uid + '</div></div>' +
+    '</div>';
 
   if (!userOrders.length) {
-    body.innerHTML = '<div class="empty">수강 중인 강좌가 없어요</div>';
+    body.innerHTML = html + '<div class="empty">수강 중인 강좌가 없어요</div>';
     return;
   }
-
-  var html = '';
 
   userOrders.forEach(function(order) {
     var course = allCourses.find(function(c){ return String(c.id) === String(order.course_id); });
@@ -500,7 +553,7 @@ function renderModalBody(uid) {
 async function loadAll() {
   try {
     var [profilesRes, ordersRes, vpRes, logsRes, coursesRes] = await Promise.all([
-      sb.from('profiles').select('id, name, email, role, created_at').order('created_at', { ascending:false }),
+      sb.from('profiles').select('id, name, email, role, phone, has_unlimited_pass, created_at').order('created_at', { ascending:false }),
       sb.from('orders').select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, created_at').eq('status','paid'),
       sb.from('video_progress').select('user_id, course_id, lesson_number, lesson_title, actual_watched_seconds, actual_watched_text, total_seconds, watch_percentage, completed, updated_at'),
       sb.from('study_logs').select('user_id, course_id, lesson_number, studied_at'),
