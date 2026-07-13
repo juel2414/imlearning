@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
           status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
-      if (gift.sender_id !== user.id) {
+      if (!isAdmin && gift.sender_id !== user.id) {
         return new Response(JSON.stringify({ success: false, error: '권한이 없습니다.' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
           })
         }
         const daysSince = (Date.now() - acceptedAt.getTime()) / (1000 * 60 * 60 * 24)
-        if (daysSince > 7) {
+        if (!isAdmin && daysSince > 7) {
           return new Response(JSON.stringify({ success: false, error: '수락 후 7일이 지나 환불이 불가합니다.' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           })
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
           totalDuration += vp.total_seconds || 0
         }
         const watchRatio = totalDuration > 0 ? totalWatched / totalDuration : 0
-        if (watchRatio >= 1 / 3) {
+        if (!isAdmin && watchRatio >= 1 / 3) {
           return new Response(JSON.stringify({ success: false, error: '수령자가 강의를 1/3 이상 시청해 환불이 불가합니다.' }), {
             status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           })
@@ -248,7 +248,12 @@ Deno.serve(async (req: Request) => {
     let refundStatus = 'rejected'
     let message = ''
 
-    if (watchRatio === 0) {
+    if (isAdmin) {
+      // 어드민: 시청률·기간 무관 전액 강제 환불
+      refundAmount = order.amount
+      refundStatus = 'refunded'
+      message = '관리자 강제 환불'
+    } else if (watchRatio === 0) {
       // 수강 시작 전 → 전액 환불
       refundAmount = order.amount
       refundStatus = 'refunded'
