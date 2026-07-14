@@ -243,9 +243,10 @@
 .detail-tag-chip { display:inline-block; padding:4px 12px; background:#f0f5f2; color:#1e7a54; border-radius:20px; font-size:12px; font-weight:500; }
 
 /* ── 강의 정보 카드 ── */
-.course-info-card { background:#f8faf9; border:1px solid rgba(45,155,111,.14); border-radius:var(--radius-md); padding:1.1rem 1.5rem; margin-bottom:2rem; }
-.course-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 24px; }
-.course-info-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray-700); }
+.course-info-mini { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; padding:12px 0 10px; border-bottom:1px solid rgba(0,0,0,.06); margin-bottom:12px; }
+.course-info-mini .course-info-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--gray-600,#555); }
+.course-info-mini .course-info-icon { width:14px; height:14px; opacity:.7; flex-shrink:0; }
+.course-info-mini .course-info-label { color:#aaa; margin-right:2px; }
 .course-info-icon { width:15px; height:15px; flex-shrink:0; opacity:.6; }
 .course-info-label { color:var(--gray-400); margin-right:2px; }
 
@@ -359,10 +360,6 @@
         </div>
         <!-- 태그 칩 -->
         <div class="detail-tags" id="detail-tags"></div>
-        <!-- 강의 정보 카드 -->
-        <div class="course-info-card">
-          <div class="course-info-grid" id="course-info-grid"></div>
-        </div>
         <!-- 강좌 소개 요약 카드 (탭 위 항상 표시) -->
         <div class="course-intro-card">
           <div class="intro-card-col">
@@ -467,6 +464,8 @@
       <!-- 구매 카드 -->
       <aside>
         <div class="purchase-card">
+          <!-- 강의 정보 미니 그리드 -->
+          <div class="course-info-mini" id="course-info-grid"></div>
           <!-- 수강 중 진도 표시 (수강 후에만 표시) -->
           <div id="enrolled-section" style="display:none;">
             <div class="enrolled-progress">
