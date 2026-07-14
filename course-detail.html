@@ -144,8 +144,12 @@
 .watch-pct-fill { background:var(--green); border-radius:10px; height:4px; transition:width .3s; }
 /* 오른쪽: 강의 목록 패널 */
 .player-lesson-panel { width:260px; flex-shrink:0; background:#fff; border-left:1px solid rgba(0,0,0,.08); display:flex; flex-direction:column; }
-.panel-hdr { padding:12px 16px 11px; font-size:13px; font-weight:800; color:var(--black); border-bottom:1px solid rgba(0,0,0,.08); flex-shrink:0; }
-.sidebar-count { font-size:11px; font-weight:400; color:#aaa; margin-left:4px; }
+.panel-hdr { padding:12px 16px 11px; font-size:13px; font-weight:800; color:var(--black); border-bottom:1px solid rgba(0,0,0,.08); flex-shrink:0; display:flex; align-items:center; cursor:pointer; user-select:none; }
+.panel-hdr:hover { background:#f8f9fa; }
+.sidebar-count { font-size:11px; font-weight:400; color:#aaa; margin-left:4px; flex:1; }
+.panel-hdr-chevron { font-size:10px; color:#ccc; transition:transform .2s; }
+.player-lesson-panel.panel-collapsed .panel-hdr-chevron { transform:rotate(-90deg); }
+.player-lesson-panel.panel-collapsed .sidebar-list { display:none; }
 .sidebar-list { overflow-y:auto; flex:1; }
 /* 강의 목록 아이템 */
 .sidebar-lesson-item { display:flex; flex-direction:column; border-bottom:1px solid rgba(0,0,0,.05); font-size:12px; color:var(--gray-700); transition:background .1s; line-height:1.4; }
@@ -451,7 +455,7 @@
             </div>
             <!-- 오른쪽: 강의 목록 패널 -->
             <div class="player-lesson-panel">
-              <div class="panel-hdr">강의 목록 <span class="sidebar-count" id="sidebarCount"></span></div>
+              <div class="panel-hdr" onclick="this.closest('.player-lesson-panel').classList.toggle('panel-collapsed')">강의 목록 <span class="sidebar-count" id="sidebarCount"></span><span class="panel-hdr-chevron">▾</span></div>
               <div class="sidebar-list" id="sidebarList"></div>
             </div>
           </div>
