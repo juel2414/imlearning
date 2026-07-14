@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="css/style.css">
 <script src="https://player.vimeo.com/api/player.js"></script>
 <style>
-.detail-hero { background: linear-gradient(160deg, #f0faf5 0%, #fff 100%); padding: 3rem 0; }
+.detail-hero { background: #fff; padding: 2rem 0 3rem; }
 .detail-inner { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
 .detail-breadcrumb { font-size: 12px; color: var(--gray-500); margin-bottom: 1rem; }
 .detail-breadcrumb a { color: var(--green); }
@@ -272,6 +272,39 @@
 .purchase-countdown strong { font-variant-numeric:tabular-nums; font-weight:800; }
 /* 메가메뉴 카테고리 배지 */
 .mega-cat-badge { display:inline-block; font-size:9px; font-weight:800; padding:1px 6px; border-radius:20px; color:#fff; margin-left:5px; letter-spacing:.3px; vertical-align:1px; line-height:1.6; }
+
+/* ── 히어로 배너 (Fastcampus 스타일) ── */
+.course-hero-banner { background:#111; width:100%; overflow:hidden; }
+.hero-banner-inner { max-width:1160px; margin:0 auto; }
+.hero-thumb-box { width:100%; aspect-ratio:21/9; background:linear-gradient(135deg,#1a2e24 0%,#0f1f17 100%); overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
+.hero-thumb-box img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.hero-thumb-emoji { font-size:100px; opacity:.25; user-select:none; position:relative; }
+@media (max-width:767px) {
+  .course-hero-banner { background:transparent; padding:1.25rem 1rem 0; }
+  .hero-thumb-box { aspect-ratio:4/3; border-radius:20px; box-shadow:0 8px 28px rgba(0,0,0,.15); }
+}
+
+/* ── 강좌 소개 요약 카드 ── */
+.course-intro-card { display:grid; grid-template-columns:1fr 1fr; background:#f8fdf9; border:1.5px solid #d4ede2; border-radius:14px; overflow:hidden; margin-bottom:1.5rem; }
+.intro-card-col { padding:1.1rem 1.25rem; }
+.intro-card-col:first-child { border-right:1px solid #d4ede2; }
+.intro-card-col h4 { font-size:11px; font-weight:800; color:var(--green-dark); text-transform:uppercase; letter-spacing:.6px; margin:0 0 10px; }
+.intro-card-col ul { list-style:none; padding:0; margin:0; }
+.intro-card-col li { font-size:13px; color:var(--gray-700); padding:5px 0; line-height:1.5; border-bottom:1px solid rgba(0,0,0,.05); }
+.intro-card-col li:last-child { border-bottom:none; }
+@media (max-width:600px) {
+  .course-intro-card { grid-template-columns:1fr; }
+  .intro-card-col:first-child { border-right:none; border-bottom:1px solid #d4ede2; }
+}
+
+/* ── 커리큘럼 아코디언 ── */
+.curriculum-section-hdr { display:flex; align-items:center; gap:8px; padding:11px 16px; background:#F8F9FA; border-bottom:1px solid rgba(0,0,0,.07); cursor:pointer; user-select:none; transition:background .1s; }
+.curriculum-section-hdr:hover { background:#edf7f1; }
+.curriculum-section-name { font-size:13px; font-weight:700; color:var(--gray-700); flex:1; }
+.curriculum-section-count { font-size:11px; color:#aaa; flex-shrink:0; }
+.curriculum-chevron { font-size:11px; color:#bbb; flex-shrink:0; display:inline-block; transition:transform .18s; }
+.curriculum-section.collapsed .curriculum-chevron { transform:rotate(-90deg); }
+.curriculum-section.collapsed .curriculum-items { display:none; }
 </style>
 </head>
 <body>
@@ -295,6 +328,16 @@
     </div>
   </div>
 </nav>
+
+<!-- 히어로 배너 -->
+<div class="course-hero-banner">
+  <div class="hero-banner-inner">
+    <div class="hero-thumb-box" id="hero-thumb-box">
+      <span class="hero-thumb-emoji" id="hero-thumb-emoji">✝</span>
+      <img id="hero-thumb-img" alt="" style="display:none;">
+    </div>
+  </div>
+</div>
 
 <section class="detail-hero">
   <div class="container">
@@ -320,30 +363,35 @@
         <div class="course-info-card">
           <div class="course-info-grid" id="course-info-grid"></div>
         </div>
+        <!-- 강좌 소개 요약 카드 (탭 위 항상 표시) -->
+        <div class="course-intro-card">
+          <div class="intro-card-col">
+            <h4>이런 분들에게 추천해요</h4>
+            <ul>
+              <li>✅ 교회학교 교사로 처음 사역을 시작하는 분</li>
+              <li>✅ 기존 교육 방식에서 벗어나 새로운 시각을 원하는 분</li>
+              <li>✅ 성경적 세계관 교육의 이론과 실제를 배우고 싶은 분</li>
+              <li>✅ 다음 세대 교육에 열정을 가진 모든 분</li>
+            </ul>
+          </div>
+          <div class="intro-card-col">
+            <h4>수강 후 이런 것들을 할 수 있어요</h4>
+            <ul>
+              <li>🎯 성경적 세계관으로 아이들을 가르칠 수 있어요</li>
+              <li>🎯 트리플 스쿨 교육 과정을 직접 운영할 수 있어요</li>
+              <li>🎯 교회학교 커리큘럼을 직접 설계할 수 있어요</li>
+            </ul>
+          </div>
+        </div>
+
         <div class="detail-tabs">
-          <div class="detail-tab active" onclick="switchTab('intro', this)">강좌 소개</div>
-          <div class="detail-tab" onclick="switchTab('curriculum', this)">커리큘럼</div>
+          <div class="detail-tab active" onclick="switchTab('curriculum', this)">커리큘럼</div>
           <div class="detail-tab" onclick="switchTab('instructor', this)">강사 소개</div>
           <div class="detail-tab" onclick="switchTab('review', this)">수강 후기</div>
           <div class="detail-tab" id="tab-files-btn" style="display:none;" onclick="switchTab('files', this)">📁 자료실</div>
           <div class="detail-tab" id="tab-textbooks-btn" style="display:none;" onclick="switchTab('textbooks', this)">📚 관련 교재</div>
         </div>
-        <div class="tab-content active" id="tab-intro">
-          <h3 style="font-size:18px;font-weight:800;margin-bottom:1rem;color:var(--black);">이런 분들에게 추천해요</h3>
-          <ul style="margin-bottom:2rem;">
-            <li style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:14px;color:var(--gray-700);">✅ 교회학교 교사로 처음 사역을 시작하는 분</li>
-            <li style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:14px;color:var(--gray-700);">✅ 기존 교육 방식에서 벗어나 새로운 시각을 원하는 분</li>
-            <li style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:14px;color:var(--gray-700);">✅ 성경적 세계관 교육의 이론과 실제를 배우고 싶은 분</li>
-            <li style="padding:8px 0;font-size:14px;color:var(--gray-700);">✅ 다음 세대 교육에 열정을 가진 모든 분</li>
-          </ul>
-          <h3 style="font-size:18px;font-weight:800;margin-bottom:1rem;color:var(--black);">수강 후 이런 것들을 할 수 있어요</h3>
-          <ul>
-            <li style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:14px;color:var(--gray-700);">🎯 성경적 세계관으로 아이들을 가르칠 수 있어요</li>
-            <li style="padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:14px;color:var(--gray-700);">🎯 트리플 스쿨 교육 과정을 직접 운영할 수 있어요</li>
-            <li style="padding:8px 0;font-size:14px;color:var(--gray-700);">🎯 교회학교 커리큘럼을 직접 설계할 수 있어요</li>
-          </ul>
-        </div>
-        <div class="tab-content" id="tab-curriculum">
+        <div class="tab-content active" id="tab-curriculum">
           <!-- 강의 영상 플레이어 (한양사이버대 스타일 2열) -->
           <div class="player-sidebar-row" id="playerSidebarRow">
             <!-- 왼쪽: 동영상 -->
@@ -419,7 +467,6 @@
       <!-- 구매 카드 -->
       <aside>
         <div class="purchase-card">
-          <div class="purchase-thumb"><img src="icons/faith.svg" alt="" style="width:1em;height:1em;"></div>
           <!-- 수강 중 진도 표시 (수강 후에만 표시) -->
           <div id="enrolled-section" style="display:none;">
             <div class="enrolled-progress">
@@ -1014,11 +1061,13 @@ async function loadCourse() {
   document.getElementById('instructor-name').textContent = course.instructor || '미정';
   document.title = course.title + ' — 아이엠러닝';
 
-  // 구매 카드 썸네일 — 이미지 있으면 실제 이미지, 없으면 기존 이모지 유지
-  const thumbEl = document.querySelector('.purchase-thumb');
-  if (thumbEl && course.thumbnail_url) {
-    thumbEl.innerHTML = `<img src="${esc(course.thumbnail_url)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
-    thumbEl.style.cssText += ';position:relative;overflow:hidden;font-size:0;';
+  // 히어로 배너 썸네일
+  const heroImg = document.getElementById('hero-thumb-img');
+  const heroEmoji = document.getElementById('hero-thumb-emoji');
+  if (heroImg && course.thumbnail_url) {
+    heroImg.src = esc(course.thumbnail_url);
+    heroImg.style.display = 'block';
+    if (heroEmoji) heroEmoji.style.display = 'none';
   }
 
   // 메타 스트립 (duration, level)
@@ -1501,7 +1550,12 @@ async function loadCurriculum(courseId) {
   content.innerHTML = sectionOrder.map(sec => {
     const items = sections[sec];
     return `<div class="curriculum-section">
-      <div class="curriculum-title">${esc(sec)}</div>
+      <div class="curriculum-section-hdr" onclick="toggleCurriculumSection(this)">
+        <span class="curriculum-section-name">${esc(sec)}</span>
+        <span class="curriculum-section-count">${items.length}강</span>
+        <span class="curriculum-chevron">▾</span>
+      </div>
+      <div class="curriculum-items">
       ${items.map(l => {
         const safe = esc(l.title);
         const url  = esc(l.video_url || '');
@@ -1513,6 +1567,7 @@ async function loadCurriculum(courseId) {
           </span>
         </div>`;
       }).join('')}
+      </div>
     </div>`;
   }).join('');
 
@@ -1764,6 +1819,10 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
     console.error('Vimeo 플레이어 생성 오류:', e);
     container.innerHTML = '<div style="color:#fff;padding:2rem;text-align:center;font-size:14px;">영상을 불러올 수 없어요.</div>';
   }
+}
+
+function toggleCurriculumSection(hdrEl) {
+  hdrEl.closest('.curriculum-section').classList.toggle('collapsed');
 }
 
 function syncPlayerPanelHeight() {
