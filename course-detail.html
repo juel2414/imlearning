@@ -264,9 +264,6 @@
 /* 쿠폰 보유 배너 */
 .coupon-avail-banner { display:flex; align-items:center; gap:8px; background:#f0faf5; border:1.5px solid rgba(45,155,111,.35); border-radius:10px; padding:9px 14px; margin-bottom:10px; font-size:13px; font-weight:600; color:#1e7a54; cursor:pointer; transition:border-color .15s; }
 .coupon-avail-banner:hover { border-color:var(--green); }
-/* 커리큘럼 미리보기 CTA */
-.btn-curriculum-preview { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; padding:11px; background:transparent; border:1.5px solid rgba(0,0,0,.12); border-radius:10px; font-size:14px; font-weight:600; color:var(--gray-700); cursor:pointer; transition:all .15s; font-family:inherit; }
-.btn-curriculum-preview:hover { border-color:var(--green); color:var(--green); }
 /* 카운트다운 (할인 마감, 조건부) */
 .purchase-countdown { display:none; align-items:center; gap:6px; background:#FEF9EC; border:1px solid #F9E4A0; border-radius:8px; padding:8px 12px; margin-bottom:10px; font-size:12px; color:#A16207; }
 .purchase-countdown.show { display:flex; }
@@ -575,9 +572,6 @@
           <div class="purchase-btns" id="purchase-btns-section">
             <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
             <button class="btn btn-outline btn-lg" id="gift-btn" onclick="openGiftModal()" style="justify-content:center;width:100%;cursor:pointer;"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물하기</button>
-            <button class="btn-curriculum-preview" id="curriculum-preview-btn" onclick="switchTab('curriculum',this)">
-              <img src="icons/book.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 커리큘럼 미리보기
-            </button>
             <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()"><img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜하기</button>
           </div>
 
@@ -856,7 +850,6 @@ function applyProgressUI() {
     const oRow = document.getElementById('purchase-orig-row'); if (oRow) oRow.style.display = 'none';
     const cBanner = document.getElementById('coupon-avail-banner'); if (cBanner) cBanner.style.display = 'none';
     const cd = document.getElementById('purchase-countdown'); if (cd) cd.classList.remove('show');
-    const cpBtn = document.getElementById('curriculum-preview-btn'); if (cpBtn) cpBtn.style.display = 'none';
   } else {
     document.getElementById('coupon-section').style.display = '';
   }
@@ -1554,10 +1547,17 @@ async function fillLessonVideoUrls(courseId) {
   });
 }
 
+function fmtDuration(secs) {
+  if (!secs) return '';
+  const m = Math.floor(secs / 60);
+  const s = Math.round(secs % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
 async function loadCurriculum(courseId) {
   const { data: lessons } = await supabaseClient
     .from('lessons')
-    .select('id, title, section_title, sort_order, is_free_preview')
+    .select('id, title, section_title, sort_order, is_free_preview, duration_seconds')
     .eq('course_id', courseId)
     .order('sort_order');
 
@@ -1602,6 +1602,7 @@ async function loadCurriculum(courseId) {
           <span class="curriculum-num">${l.num}</span>
           <span class="curriculum-item-title">${esc(l.title)}</span>
           <span class="curriculum-item-meta">
+            ${l.duration_seconds ? `<span class="curriculum-duration">${fmtDuration(l.duration_seconds)}</span>` : ''}
             ${l.is_free_preview ? '<span class="curriculum-lock preview-slot" style="font-size:11px;color:var(--green-dark);font-weight:600;">미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:0.9em;height:0.9em;vertical-align:-0.1em;display:inline-block;opacity:.4;"></span>'}
           </span>
         </div>`;
@@ -1839,6 +1840,12 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
     vimeoPlayer = new Vimeo.Player(container, { id: vimeoId, responsive: true, autopause: false });
     const totalSecs = await vimeoPlayer.getDuration();
     activeTracker = new VimeoTracker(vimeoPlayer, user.id, currentCourse.id, lessonNum, lessonTitle, totalSecs);
+
+    // duration_seconds 자동 저장 (처음 재생 시 채워짐)
+    const lessonItem = curriculumLessons.find(c => c.num === lessonNum);
+    if (lessonItem?.id && totalSecs > 0) {
+      window.supabaseClient.from('lessons').update({ duration_seconds: Math.round(totalSecs) }).eq('id', lessonItem.id).then(() => {});
+    }
 
     if (vpData) {
       activeTracker.seed(vpData);
