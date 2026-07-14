@@ -1108,6 +1108,14 @@ async function loadCourse() {
     if (heroEmoji) heroEmoji.style.display = 'none';
   }
 
+  // 강좌별 히어로 배경색
+  if (course.hero_color) {
+    const heroBanner = document.querySelector('.course-hero-banner');
+    const heroBox = document.querySelector('.hero-thumb-box');
+    if (heroBanner) heroBanner.style.background = course.hero_color;
+    if (heroBox) heroBox.style.background = course.hero_color;
+  }
+
   // 메타 스트립 (duration, level)
   const lessonCount = course.lessons || 0;
   const estHours = lessonCount ? Math.ceil(lessonCount * 0.5) : null;

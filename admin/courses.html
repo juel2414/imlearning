@@ -214,6 +214,7 @@
           </div>
           <div class="form-group"><label>공개 상태</label><select id="course-status"><option value="active">판매중</option><option value="hidden">비공개</option></select></div>
           <div class="form-group"><label>추천 강좌 (메인 노출)</label><select id="course-featured"><option value="false">표시 안 함</option><option value="true">메인에 표시</option></select></div>
+          <div class="form-group"><label>히어로 배경색 <span style="font-weight:400;color:#999;font-size:11px;">(선택)</span></label><div style="display:flex;align-items:center;gap:10px;"><input type="color" id="course-hero-color" value="#dff0e9" style="width:48px;height:36px;padding:2px;border:1px solid #ddd;border-radius:6px;cursor:pointer;" oninput="document.getElementById('course-hero-color-text').value=this.value"><input type="text" id="course-hero-color-text" placeholder="#dff0e9" style="flex:1;font-size:13px;" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('course-hero-color').value=this.value"><button type="button" onclick="document.getElementById('course-hero-color-text').value='';document.getElementById('course-hero-color').value='#dff0e9'" style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;">초기화</button></div><div class="hint">강좌 상세 페이지 상단 배너 배경색 (비워두면 기본 민트색)</div></div>
           <div class="form-actions">
             <button class="btn-cancel" onclick="toggleForm()">취소</button>
             <button class="btn-save" id="save-btn" onclick="saveCourse()">강좌 저장하기</button>
@@ -389,6 +390,8 @@ function resetForm() {
   });
   document.getElementById('course-status').value = 'active';
   document.getElementById('course-featured').value = 'false';
+  document.getElementById('course-hero-color').value = '#dff0e9';
+  document.getElementById('course-hero-color-text').value = '';
   document.getElementById('thumb-img').style.display = 'none';
   document.getElementById('thumb-img').src = '';
 }
@@ -448,7 +451,8 @@ async function saveCourse() {
     vimeo_url: val('course-vimeo'),
     status: val('course-status'),
     featured: val('course-featured') === 'true',
-    thumbnail_url: thumbData || null
+    thumbnail_url: thumbData || null,
+    hero_color: document.getElementById('course-hero-color-text').value.trim() || document.getElementById('course-hero-color').value || null
   };
 
   try {
@@ -511,6 +515,8 @@ function editCourse(id) {
   document.getElementById('course-vimeo').value = c.vimeo_url || '';
   document.getElementById('course-status').value = c.status || 'active';
   document.getElementById('course-featured').value = c.featured ? 'true' : 'false';
+  document.getElementById('course-hero-color').value = c.hero_color || '#dff0e9';
+  document.getElementById('course-hero-color-text').value = c.hero_color || '';
   thumbFile = null;
   if (c.thumbnail_url) {
     thumbData = c.thumbnail_url;
