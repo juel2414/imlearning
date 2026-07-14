@@ -24,9 +24,13 @@
 .tab-content.active { display: block; }
 .curriculum-section { margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.09); border-radius: var(--radius-sm); overflow: hidden; }
 .curriculum-title { font-size: 13px; font-weight: 700; color: var(--gray-700); padding: 10px 16px; background: #F8F9FA; border-bottom: 1px solid rgba(0,0,0,0.07); }
-.curriculum-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 0; font-size: 13px; color: var(--gray-700); background: #fff; transition: background .12s; }
+.curriculum-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 0; font-size: 13px; color: var(--gray-700); background: #fff; transition: background .12s; }
 .curriculum-item:last-child { border-bottom: none; }
 .curriculum-item:hover { background: #f5faf7; }
+.curriculum-item-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.curriculum-lesson-chevron { flex-shrink:0; font-size:10px; color:#ccc; transition:transform .2s; cursor:pointer; padding:4px; margin:-4px; }
+.curriculum-item.lesson-collapsed .curriculum-lesson-chevron { transform:rotate(-90deg); }
+.curriculum-item.lesson-collapsed .curriculum-duration { display:none; }
 .curriculum-num { width: 30px; height: 30px; background: conic-gradient(#ddd 360deg); box-shadow: inset 0 0 0 4px #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; color: #888; transition: background .4s ease; }
 .curriculum-lock { margin-left: auto; font-size: 13px; color: var(--gray-300); flex-shrink: 0; }
 .purchase-card { background: var(--white); border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-md); position: sticky; top: 80px; }
@@ -62,9 +66,9 @@
 /* 커리큘럼 상태 */
 .curriculum-check { display:none; }
 .curriculum-item.done .curriculum-num { background:var(--green); color:#fff; }
-.curriculum-item-title { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.curriculum-item-title.done-text { color:var(--gray-400); text-decoration: none; }
-.curriculum-item-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:auto; }
+.curriculum-item-title { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
+.curriculum-item-title.done-text { color:var(--gray-400); }
+.curriculum-item-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .curriculum-duration { font-size:11px; color:#aaa; white-space:nowrap; }
 .curriculum-resume-tag { font-size:10px; font-weight:700; background:var(--green); color:#fff; padding:2px 7px; border-radius:20px; white-space:nowrap; }
 /* 완료 — 꽉 찬 초록 원 */
@@ -144,15 +148,22 @@
 .sidebar-count { font-size:11px; font-weight:400; color:#aaa; margin-left:4px; }
 .sidebar-list { overflow-y:auto; flex:1; }
 /* 강의 목록 아이템 */
-.sidebar-lesson-item { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; font-size:12px; color:var(--gray-700); transition:background .1s; line-height:1.4; }
+.sidebar-lesson-item { display:flex; flex-direction:column; border-bottom:1px solid rgba(0,0,0,.05); font-size:12px; color:var(--gray-700); transition:background .1s; line-height:1.4; }
 .sidebar-lesson-item:last-child { border-bottom:none; }
 .sidebar-lesson-item:hover { background:#f5faf7; }
-.sidebar-lesson-item.active { background:rgba(45,155,111,.12); border-left:3px solid var(--green); padding-left:11px; }
+.sidebar-lesson-item.active { background:rgba(45,155,111,.12); border-left:3px solid var(--green); }
 .sidebar-lesson-item.active .sidebar-item-title { color:var(--green-dark); font-weight:700; }
 .sidebar-status { width:24px; height:24px; border-radius:50%; background:#eee; color:#999; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
 .sidebar-lesson-item.done .sidebar-status { background:var(--green); color:#fff; }
 .sidebar-lesson-item.active .sidebar-status { background:var(--green); color:#fff; }
+.sli-header { display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer; }
+.sidebar-lesson-item.active .sli-header { padding-left:11px; }
 .sidebar-item-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sli-chevron { flex-shrink:0; font-size:10px; color:#ccc; transition:transform .2s; }
+.sidebar-lesson-item.lesson-collapsed .sli-chevron { transform:rotate(-90deg); }
+.sli-body { padding:0 14px 10px 48px; }
+.sidebar-lesson-item.lesson-collapsed .sli-body { display:none; }
+.sli-duration { font-size:11px; color:#aaa; }
 /* 모바일: 세로 쌓기 */
 @media (max-width:767px) {
   .player-sidebar-row.show { flex-direction:column; }
@@ -1582,7 +1593,7 @@ async function loadCurriculum(courseId) {
   curriculumLessons = [];
   sectionOrder.forEach(sec => {
     sections[sec].forEach(l => {
-      curriculumLessons.push({ id: l.id, num: l.num, title: l.title, videoUrl: '' });
+      curriculumLessons.push({ id: l.id, num: l.num, title: l.title, videoUrl: '', durationSeconds: l.duration_seconds || 0 });
     });
   });
 
@@ -1600,11 +1611,14 @@ async function loadCurriculum(courseId) {
         const url  = esc(l.video_url || '');
         return `<div class="curriculum-item" data-lesson="lesson-${l.num}" data-title="${safe}" data-video-url="${url}" data-free="${l.is_free_preview ? '1' : '0'}">
           <span class="curriculum-num">${l.num}</span>
-          <span class="curriculum-item-title">${esc(l.title)}</span>
-          <span class="curriculum-item-meta">
+          <div class="curriculum-item-info">
+            <span class="curriculum-item-title">${esc(l.title)}</span>
             ${l.duration_seconds ? `<span class="curriculum-duration">${fmtDuration(l.duration_seconds)}</span>` : ''}
+          </div>
+          <span class="curriculum-item-meta">
             ${l.is_free_preview ? '<span class="curriculum-lock preview-slot" style="font-size:11px;color:var(--green-dark);font-weight:600;">미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:0.9em;height:0.9em;vertical-align:-0.1em;display:inline-block;opacity:.4;"></span>'}
           </span>
+          <span class="curriculum-lesson-chevron" onclick="event.stopPropagation();this.closest('.curriculum-item').classList.toggle('lesson-collapsed')">▾</span>
         </div>`;
       }).join('')}
       </div>
@@ -2094,18 +2108,27 @@ function renderSidebar() {
   if (countEl) countEl.textContent = '총 ' + curriculumLessons.length + '강';
   list.innerHTML = curriculumLessons.map(l => {
     const completed = !!progressMap['lesson-' + l.num];
+    const dur = l.durationSeconds ? fmtDuration(l.durationSeconds) : '';
     return `<div class="sidebar-lesson-item${completed ? ' done' : ''}"
       data-sidebar-num="${l.num}"
       data-sidebar-title="${esc(l.title)}"
       data-sidebar-url="${esc(l.videoUrl)}">
-      <span class="sidebar-status">${completed ? '✓' : l.num}</span>
-      <span class="sidebar-item-title">${esc(l.title)}</span>
+      <div class="sli-header">
+        <span class="sidebar-status">${completed ? '✓' : l.num}</span>
+        <span class="sidebar-item-title">${esc(l.title)}</span>
+        <span class="sli-chevron">▾</span>
+      </div>
+      ${dur ? `<div class="sli-body"><span class="sli-duration">${dur}</span></div>` : ''}
     </div>`;
   }).join('');
 
   list.addEventListener('click', function(e) {
     const item = e.target.closest('.sidebar-lesson-item');
     if (!item) return;
+    if (e.target.closest('.sli-chevron')) {
+      item.classList.toggle('lesson-collapsed');
+      return;
+    }
     sidebarOpenLesson(
       parseInt(item.dataset.sidebarNum),
       item.dataset.sidebarTitle,
@@ -2116,7 +2139,9 @@ function renderSidebar() {
 
 function updateSidebarActive(activeNum) {
   document.querySelectorAll('.sidebar-lesson-item').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.sidebarNum) === activeNum);
+    const isActive = parseInt(el.dataset.sidebarNum) === activeNum;
+    el.classList.toggle('active', isActive);
+    if (isActive) el.classList.remove('lesson-collapsed');
   });
 }
 
