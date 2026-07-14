@@ -128,7 +128,7 @@
 .lesson-player-title { font-size:13px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; opacity:.9; }
 .lesson-player-close { background:rgba(255,255,255,.12); border:none; color:#fff; border-radius:6px; font-size:12px; padding:4px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background .12s; }
 .lesson-player-close:hover { background:rgba(255,255,255,.22); }
-.lesson-iframe-wrap { aspect-ratio:16/9; background:#000; overflow:hidden; flex:1; }
+.lesson-iframe-wrap { aspect-ratio:16/9; background:#000; overflow:hidden; flex-shrink:0; width:100%; }
 .lesson-iframe-wrap iframe { width:100%; height:100%; border:none; }
 #vimeo-player-container { width:100%; height:100%; }
 .resume-banner { display:none; background:#FEF3C7; border-bottom:1px solid #FDE68A; padding:10px 14px; align-items:center; gap:10px; font-size:13px; color:#92400E; flex-wrap:wrap; }
@@ -1692,6 +1692,7 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
 
   const row = document.getElementById('playerSidebarRow');
   row.classList.add('show');
+  syncPlayerPanelHeight();
   row.scrollIntoView({ behavior: 'smooth', block: 'start' });
   updateSidebarActive(lessonNum);
   document.getElementById('lesson-player-title').textContent = lessonNum + '강 — ' + lessonTitle;
@@ -1765,6 +1766,25 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
   }
 }
 
+function syncPlayerPanelHeight() {
+  const row = document.getElementById('playerSidebarRow');
+  if (!row || !row.classList.contains('show')) return;
+  if (window.innerWidth <= 767) return; // 모바일: CSS max-height 적용
+  requestAnimationFrame(() => {
+    const mainCol = document.getElementById('lesson-player-wrap');
+    const panel = row.querySelector('.player-lesson-panel');
+    if (!mainCol || !panel) return;
+    const header   = row.querySelector('.lesson-player-header');
+    const watchInfo = row.querySelector('.watch-info');
+    const videoW   = mainCol.clientWidth;
+    const headerH  = header   ? header.offsetHeight   : 40;
+    const watchH   = watchInfo ? watchInfo.offsetHeight : 35;
+    const totalH   = headerH + Math.round(videoW * 9 / 16) + watchH;
+    panel.style.maxHeight = totalH + 'px';
+  });
+}
+window.addEventListener('resize', syncPlayerPanelHeight);
+
 function closeLessonPlayer() {
   if (activeTracker) { activeTracker.stop(); activeTracker = null; }
   if (vimeoPlayer)   { try { vimeoPlayer.pause(); vimeoPlayer.destroy(); } catch(_){} vimeoPlayer = null; }
@@ -1773,7 +1793,10 @@ function closeLessonPlayer() {
   const container = document.getElementById('vimeo-player-container');
   const ytIframe = container && container.querySelector('iframe');
   if (ytIframe) ytIframe.src = ytIframe.src;
-  document.getElementById('playerSidebarRow').classList.remove('show');
+  const row = document.getElementById('playerSidebarRow');
+  row.classList.remove('show');
+  const panel = row && row.querySelector('.player-lesson-panel');
+  if (panel) panel.style.maxHeight = '';
   updateSidebarActive(0);
 }
 
