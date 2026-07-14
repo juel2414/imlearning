@@ -109,9 +109,10 @@ async function createOrder(order) {
   return { data };
 }
 
-// ───── 특정 강좌 결제(구매) 여부 확인 (만료일 포함, 선물 수령 포함) ─────
+// ───── 특정 강좌 결제(구매) 여부 확인 (만료일 포함, 선물 수령 포함, 프리패스 포함) ─────
 async function hasPurchased(userId, courseId) {
-  const [orderRes, giftRes] = await Promise.all([
+  const now = new Date();
+  const [orderRes, giftRes, passRes] = await Promise.all([
     supabaseClient
       .from('orders')
       .select('id, refund_status, expires_at')
@@ -124,9 +125,15 @@ async function hasPurchased(userId, courseId) {
       .eq('recipient_id', userId)
       .eq('course_id', courseId)
       .eq('status', 'accepted'),
+    // 프리패스(전강좌 무제한) 체크: course_id가 null인 paid 주문
+    supabaseClient
+      .from('orders')
+      .select('id, refund_status, expires_at')
+      .eq('user_id', userId)
+      .is('course_id', null)
+      .eq('status', 'paid'),
   ]);
   if (!orderRes.error) {
-    const now = new Date();
     const hasOrder = (orderRes.data || []).some(function(o) {
       if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
       if (o.expires_at && new Date(o.expires_at) < now) return false;
@@ -135,6 +142,15 @@ async function hasPurchased(userId, courseId) {
     if (hasOrder) return true;
   }
   if (!giftRes.error && (giftRes.data || []).length > 0) return true;
+  // 유효한 프리패스가 있으면 모든 강좌 접근 허용
+  if (!passRes.error) {
+    const hasPass = (passRes.data || []).some(function(o) {
+      if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
+      if (o.expires_at && new Date(o.expires_at) < now) return false;
+      return true;
+    });
+    if (hasPass) return true;
+  }
   return false;
 }
 
