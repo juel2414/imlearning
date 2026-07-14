@@ -275,9 +275,9 @@
   // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
   var MEGA_CATS = [
     { key: 'faith',          label: '신앙' },
-    { key: 'teacher_parent', label: '교사·부모교육' },
-    { key: 'school_subject', label: '중고등교과' },
-    { key: 'ged',            label: '검정고시' },
+    { key: 'teacher_parent', label: '교사·부모교육', badge: '추천',  badgeColor: '#2D9B6F' },
+    { key: 'school_subject', label: '중고등교과',    badge: '인기',  badgeColor: '#C6860B' },
+    { key: 'ged',            label: '검정고시',      badge: 'NEW',   badgeColor: '#2D9B6F' },
     { key: 'english_test',   label: '영어·시험' },
     { key: 'camp_mission',   label: '캠프·사역' },
   ];
@@ -313,9 +313,12 @@
             ? '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-thumb">' +
               '<img src="' + esc(thumbUrl) + '" alt=""></a>'
             : '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
+          var badgeHtml = cat.badge
+            ? '<span class="mega-cat-badge" style="background:' + cat.badgeColor + '">' + cat.badge + '</span>'
+            : '';
           html += '<div class="mega-col">' +
             thumbHtml +
-            '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-title">' + cat.label + '</a>' +
+            '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
             '<div class="mega-col-items">' + items + '</div>' +
             '</div>';
         });

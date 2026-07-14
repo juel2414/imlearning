@@ -235,6 +235,43 @@
 .textbook-desc { font-size:12px; color:var(--gray-500); line-height:1.65; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .textbook-buy-btn { display:block; text-align:center; padding:9px 14px; background:var(--green); color:#fff; border-radius:8px; font-size:13px; font-weight:700; text-decoration:none; transition:background .15s; }
 .textbook-buy-btn:hover { background:var(--green-dark); }
+
+/* ── 강좌 메타 스트립 ── */
+.detail-meta-strip { display:flex; align-items:center; flex-wrap:wrap; gap:0; font-size:13px; color:var(--gray-500); margin-bottom:10px; }
+.detail-meta-pipe { margin:0 8px; color:var(--gray-300); user-select:none; }
+.detail-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:1.5rem; }
+.detail-tag-chip { display:inline-block; padding:4px 12px; background:#f0f5f2; color:#1e7a54; border-radius:20px; font-size:12px; font-weight:500; }
+
+/* ── 강의 정보 카드 ── */
+.course-info-card { background:#f8faf9; border:1px solid rgba(45,155,111,.14); border-radius:var(--radius-md); padding:1.1rem 1.5rem; margin-bottom:2rem; }
+.course-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 24px; }
+.course-info-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray-700); }
+.course-info-icon { width:15px; height:15px; flex-shrink:0; opacity:.6; }
+.course-info-label { color:var(--gray-400); margin-right:2px; }
+
+/* ── 구매 패널 개선 ── */
+.purchase-discount-top { margin-bottom:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.purchase-discount { display:none; align-items:center; gap:4px; background:var(--green); color:#fff; font-size:13px; font-weight:800; padding:3px 12px; border-radius:20px; }
+.purchase-monthly-est { font-size:12px; color:var(--gray-400); }
+.price-breakdown { margin-bottom:1rem; }
+.price-breakdown-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:3px 0; }
+.price-breakdown-row .pb-label { color:var(--gray-500); }
+.price-breakdown-row .pb-val { color:var(--gray-400); text-decoration:line-through; }
+.price-breakdown-final { border-top:1px solid rgba(0,0,0,.07); margin-top:6px; padding-top:8px !important; }
+.price-breakdown-final .pb-label { font-size:13px; color:var(--gray-700); font-weight:600; }
+.price-breakdown-final .pb-val { font-size:26px; font-weight:900; color:var(--black); letter-spacing:-1px; text-decoration:none !important; }
+/* 쿠폰 보유 배너 */
+.coupon-avail-banner { display:flex; align-items:center; gap:8px; background:#f0faf5; border:1.5px solid rgba(45,155,111,.35); border-radius:10px; padding:9px 14px; margin-bottom:10px; font-size:13px; font-weight:600; color:#1e7a54; cursor:pointer; transition:border-color .15s; }
+.coupon-avail-banner:hover { border-color:var(--green); }
+/* 커리큘럼 미리보기 CTA */
+.btn-curriculum-preview { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; padding:11px; background:transparent; border:1.5px solid rgba(0,0,0,.12); border-radius:10px; font-size:14px; font-weight:600; color:var(--gray-700); cursor:pointer; transition:all .15s; font-family:inherit; }
+.btn-curriculum-preview:hover { border-color:var(--green); color:var(--green); }
+/* 카운트다운 (할인 마감, 조건부) */
+.purchase-countdown { display:none; align-items:center; gap:6px; background:#FEF9EC; border:1px solid #F9E4A0; border-radius:8px; padding:8px 12px; margin-bottom:10px; font-size:12px; color:#A16207; }
+.purchase-countdown.show { display:flex; }
+.purchase-countdown strong { font-variant-numeric:tabular-nums; font-weight:800; }
+/* 메가메뉴 카테고리 배지 */
+.mega-cat-badge { display:inline-block; font-size:9px; font-weight:800; padding:1px 6px; border-radius:20px; color:#fff; margin-left:5px; letter-spacing:.3px; vertical-align:1px; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -269,11 +306,19 @@
         <div class="detail-cat" id="course-category">불러오는 중...</div>
         <h1 class="detail-title" id="course-title">불러오는 중...</h1>
         <p class="detail-desc" id="course-desc"></p>
-        <div class="detail-meta">
-          <div class="detail-meta-item"><span class="detail-meta-icon">👥</span> <span id="course-students">-</span>명</div>
-          <div class="detail-meta-item"><span class="detail-meta-icon"><img src="icons/star.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"></span> 4.9점</div>
-          <div class="detail-meta-item"><span class="detail-meta-icon">♾️</span> 무제한 재수강</div>
-          <div class="detail-meta-item"><span class="detail-meta-icon">📱</span> 모바일 수강 가능</div>
+        <!-- 메타 스트립 -->
+        <div class="detail-meta-strip">
+          <span>평생소장</span>
+          <span class="detail-meta-pipe">|</span>
+          <span id="meta-duration">-</span>
+          <span class="detail-meta-pipe">|</span>
+          <span id="meta-level">입문·중급</span>
+        </div>
+        <!-- 태그 칩 -->
+        <div class="detail-tags" id="detail-tags"></div>
+        <!-- 강의 정보 카드 -->
+        <div class="course-info-card">
+          <div class="course-info-grid" id="course-info-grid"></div>
         </div>
         <div class="detail-tabs">
           <div class="detail-tab active" onclick="switchTab('intro', this)">강좌 소개</div>
@@ -389,9 +434,30 @@
             <button class="btn-resume" id="resume-btn" onclick="resumeCourse()">▶ 이어보기</button>
           </div>
 
-          <div id="purchase-original" class="purchase-original" style="display:none;"></div>
-          <div class="purchase-price" id="purchase-price">불러오는 중...</div>
-          <div class="purchase-discount" id="purchase-discount" style="display:none;">🎯 할인 중</div>
+          <!-- 할인 배지 + 월 환산 -->
+          <div class="purchase-discount-top">
+            <div class="purchase-discount" id="purchase-discount" style="display:none;"></div>
+            <span class="purchase-monthly-est" id="purchase-monthly" style="display:none;"></span>
+          </div>
+
+          <!-- 가격 3단 비교 -->
+          <div class="price-breakdown">
+            <div class="price-breakdown-row" id="purchase-orig-row" style="display:none;">
+              <span class="pb-label">정가</span>
+              <span id="purchase-original" class="pb-val"></span>
+            </div>
+            <div class="price-breakdown-final price-breakdown-row">
+              <span class="pb-label">결제금액</span>
+              <span id="purchase-price" class="pb-val">불러오는 중...</span>
+            </div>
+          </div>
+
+          <!-- 쿠폰 보유 배너 (로그인 + 쿠폰 있을 때) -->
+          <div class="coupon-avail-banner" id="coupon-avail-banner" style="display:none;" onclick="scrollToCoupon()">
+            <span>🎫</span>
+            <span id="coupon-avail-text">사용 가능한 쿠폰이 있어요!</span>
+            <span style="margin-left:auto;font-size:12px;opacity:.7;">→ 적용하기</span>
+          </div>
 
           <!-- 쿠폰 입력 (미수강 시에만 표시) -->
           <div class="coupon-wrap" id="coupon-section" style="display:none;">
@@ -407,11 +473,18 @@
             </div>
           </div>
 
+          <!-- 할인 마감 카운트다운 (discount_end 있을 때만 표시) -->
+          <div class="purchase-countdown" id="purchase-countdown">
+            ⏰ 할인 마감까지 <strong id="countdown-text">-</strong>
+          </div>
+
           <div class="purchase-options">
             <div class="purchase-option"><span>강의 수</span><span id="lesson-count-display">-</span></div>
             <div class="purchase-option"><span>수강 기간</span><span>무제한</span></div>
             <div class="purchase-option"><span>수강 방식</span><span>온라인 영상</span></div>
           </div>
+
+          <!-- 환불 정책 (버튼 위로 이동) -->
           <div class="refund-policy-box" id="refund-policy-box">
             <div class="refund-policy-title">📋 환불 정책</div>
             <ul class="refund-policy-list">
@@ -424,11 +497,17 @@
               <input type="checkbox" id="refund-agree"> 환불 정책을 확인했으며 동의합니다
             </label>
           </div>
+
+          <!-- CTA 버튼 2단 -->
           <div class="purchase-btns" id="purchase-btns-section">
             <button class="btn btn-primary btn-lg" id="buy-btn" onclick="requestPayment()" style="justify-content:center;width:100%;border:none;cursor:pointer;">지금 수강 신청하기</button>
             <button class="btn btn-outline btn-lg" id="gift-btn" onclick="openGiftModal()" style="justify-content:center;width:100%;cursor:pointer;"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물하기</button>
+            <button class="btn-curriculum-preview" id="curriculum-preview-btn" onclick="switchTab('curriculum',this)">
+              <img src="icons/book.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 커리큘럼 미리보기
+            </button>
             <button class="wish-card-btn" id="wish-btn" onclick="toggleWish()"><img src="icons/heart-outline.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜하기</button>
           </div>
+
           <div class="purchase-includes">
             <div class="purchase-includes-title">수강 혜택</div>
             <div class="purchase-include-item">강의 영상 (HD)</div>
@@ -701,6 +780,10 @@ function applyProgressUI() {
     document.getElementById('purchase-btns-section').style.display = 'none';
     document.getElementById('coupon-section').style.display = 'none';
     document.getElementById('refund-policy-box').style.display = 'none';
+    const oRow = document.getElementById('purchase-orig-row'); if (oRow) oRow.style.display = 'none';
+    const cBanner = document.getElementById('coupon-avail-banner'); if (cBanner) cBanner.style.display = 'none';
+    const cd = document.getElementById('purchase-countdown'); if (cd) cd.classList.remove('show');
+    const cpBtn = document.getElementById('curriculum-preview-btn'); if (cpBtn) cpBtn.style.display = 'none';
   } else {
     document.getElementById('coupon-section').style.display = '';
   }
@@ -844,6 +927,62 @@ async function applyCoupon() {
   }
 }
 
+// ───── 쿠폰 보유 배너 ─────
+async function checkUserCoupons(userId) {
+  try {
+    const { data } = await supabaseClient
+      .from('user_coupons')
+      .select('id, coupon_id, coupons(code, description, status, expires_at)')
+      .eq('user_id', userId)
+      .limit(10);
+    if (!data || !data.length) return;
+    const valid = data.filter(uc => {
+      const c = uc.coupons;
+      if (!c || c.status !== 'active') return false;
+      if (c.expires_at && new Date(c.expires_at) < new Date()) return false;
+      return true;
+    });
+    if (!valid.length) return;
+    const banner = document.getElementById('coupon-avail-banner');
+    const text   = document.getElementById('coupon-avail-text');
+    if (!banner) return;
+    text.textContent = `사용 가능한 쿠폰이 ${valid.length}개 있어요!`;
+    banner.style.display = 'flex';
+    document.getElementById('coupon-section').style.display = '';
+    if (valid[0].coupons?.code) {
+      const inp = document.getElementById('coupon-input');
+      if (inp && !inp.value) inp.placeholder = valid[0].coupons.code + ' (쿠폰 코드 자동 입력 가능)';
+    }
+  } catch(e) {}
+}
+
+function scrollToCoupon() {
+  const el = document.getElementById('coupon-section');
+  if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); el.querySelector('input')?.focus(); }
+}
+
+// ───── 할인 카운트다운 ─────
+let _countdownTimer = null;
+function startCountdown(endDate) {
+  const el = document.getElementById('purchase-countdown');
+  const txt = document.getElementById('countdown-text');
+  if (!el || !txt) return;
+  function tick() {
+    const diff = endDate - new Date();
+    if (diff <= 0) { el.classList.remove('show'); clearInterval(_countdownTimer); return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    txt.textContent = d > 0
+      ? `${d}일 ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    el.classList.add('show');
+  }
+  tick();
+  _countdownTimer = setInterval(tick, 1000);
+}
+
 // ───── 강좌 데이터 불러오기 ─────
 async function loadCourse() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -871,7 +1010,7 @@ async function loadCourse() {
   document.getElementById('breadcrumb-title').textContent = course.title;
   document.getElementById('breadcrumb-cat').textContent = catLabel;
   document.getElementById('course-desc').textContent = course.description || '';
-  document.getElementById('course-students').textContent = course.students || 0;
+  // course-students 요소는 meta strip 교체로 제거됨 (students는 태그칩에서 표시)
   document.getElementById('instructor-name').textContent = course.instructor || '미정';
   document.title = course.title + ' — 아이엠러닝';
 
@@ -882,6 +1021,41 @@ async function loadCourse() {
     thumbEl.style.cssText += ';position:relative;overflow:hidden;font-size:0;';
   }
 
+  // 메타 스트립 (duration, level)
+  const lessonCount = course.lessons || 0;
+  const estHours = lessonCount ? Math.ceil(lessonCount * 0.5) : null;
+  document.getElementById('meta-duration').textContent = estHours ? `약 ${estHours}시간` : '-';
+  const LEVEL_MAP = { beginner:'입문', intermediate:'중급', advanced:'고급', all:'입문·중급' };
+  document.getElementById('meta-level').textContent = LEVEL_MAP[course.level] || '입문·중급';
+
+  // 태그 칩
+  const tagSRC = [
+    CATEGORY_LABELS[course.category],
+    { faith:'신앙', teacher_parent:'교사·부모', school_subject:'중고등', ged:'검정고시', english_test:'영어·시험', camp_mission:'캠프·사역' }[course.subcategory],
+    course.level ? (LEVEL_MAP[course.level] || course.level) : null,
+    '온라인',
+    course.students >= 100 ? '수강생 ' + Number(course.students).toLocaleString() + '명+' : null,
+  ].filter(Boolean);
+  const tagSet = [...new Set(tagSRC)];
+  document.getElementById('detail-tags').innerHTML = tagSet.map(t => `<span class="detail-tag-chip">#${esc(t)}</span>`).join('');
+
+  // 강의 정보 카드
+  const infoItems = [
+    { icon:'icons/book.svg',    label:'강의 형태', value:'온라인 영상' },
+    { icon:'icons/profile.svg', label:'강사',      value: esc(course.instructor || '미정') },
+    { icon:'icons/faith.svg',   label:'강의 수',   value: lessonCount ? lessonCount + '강' : '-' },
+    { icon:'icons/star.svg',    label:'난이도',    value: LEVEL_MAP[course.level] || '입문·중급' },
+    { icon:'icons/completion.svg', label:'수료증', value: '발급 가능' },
+    { icon:'icons/sprout.svg',  label:'수강 기간', value: '무제한' },
+  ];
+  if (course.preview_url) infoItems.push({ icon:'icons/lock-open.svg', label:'미리보기', value:'제공' });
+  document.getElementById('course-info-grid').innerHTML = infoItems.map(it =>
+    `<div class="course-info-item">
+      <img src="${it.icon}" alt="" class="course-info-icon">
+      <span><span class="course-info-label">${it.label}</span>${it.value}</span>
+    </div>`
+  ).join('');
+
   // 가격 정보
   const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
   if (!currentPrice) {
@@ -890,13 +1064,30 @@ async function loadCourse() {
     if (buyBtn) buyBtn.textContent = '무료 수강 신청하기';
   } else {
     document.getElementById('purchase-price').textContent = '₩' + Number(currentPrice).toLocaleString();
+    // 월 환산 (12개월 할부 기준)
+    const monthly = Math.round(currentPrice / 12);
+    const mEl = document.getElementById('purchase-monthly');
+    if (mEl && currentPrice > 50000) {
+      mEl.textContent = '12개월 시 월 ₩' + Number(monthly).toLocaleString() + '~';
+      mEl.style.display = '';
+    }
   }
 
   if (isDiscounted) {
+    const origRow = document.getElementById('purchase-orig-row');
     const origEl = document.getElementById('purchase-original');
     origEl.textContent = '₩' + Number(originalPrice).toLocaleString();
-    origEl.style.display = '';
-    document.getElementById('purchase-discount').style.display = 'inline-flex';
+    if (origRow) origRow.style.display = '';
+    const pct = Math.round((1 - currentPrice / originalPrice) * 100);
+    const discEl = document.getElementById('purchase-discount');
+    discEl.textContent = pct + '% 할인';
+    discEl.style.display = 'inline-flex';
+
+    // 할인 마감 카운트다운 (discount_end 있을 때만)
+    if (course.discount_end) {
+      const endDate = new Date(course.discount_end);
+      if (endDate > new Date()) startCountdown(endDate);
+    }
   }
 
   // 커리큘럼 동적 로드
@@ -920,6 +1111,7 @@ async function loadCourse() {
         document.body.appendChild(badge);
       }
     }
+    if (!isEnrolled) checkUserCoupons(user.id);
     await loadProgress(user.id, course.id);
     await loadWishState(user.id, course.id);
     if (isEnrolled) {
