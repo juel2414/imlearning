@@ -55,6 +55,7 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 .badge-dormant  { background:#FEE2E2; color:#DC2626; }
 .badge-complete { background:#DBEAFE; color:#1D4ED8; }
 .badge-new      { background:#EDE9FE; color:#6D28D9; }
+.badge-grant    { background:#E0E7FF; color:#4338CA; }
 
 /* 진행률 바 */
 .prog-bar-wrap { background:#f0f0f0; border-radius:10px; height:6px; width:80px; overflow:hidden; display:inline-block; vertical-align:middle; }
@@ -194,6 +195,41 @@ tr.dormant-row:hover td { background:#FFE8E8; }
   </div>
 </div>
 
+<!-- 강좌 부여 모달 -->
+<div id="grant-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;width:min(480px,95vw);max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-size:16px;font-weight:800;">강좌 열어주기</div>
+        <div id="grant-modal-user" style="font-size:13px;color:#888;margin-top:2px;"></div>
+      </div>
+      <button onclick="closeGrantModal()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(0,0,0,.1);background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="padding:16px 24px;flex:1;overflow-y:auto;">
+      <div style="margin-bottom:10px;">
+        <input type="text" id="grant-course-search" placeholder="강좌 검색..." oninput="renderGrantCourseList()"
+          style="width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+      </div>
+      <div id="grant-course-list" style="max-height:220px;overflow-y:auto;border:1px solid rgba(0,0,0,.08);border-radius:10px;"></div>
+      <div id="grant-selected-wrap" style="display:none;margin-top:12px;padding:10px 14px;background:#EEF2FF;border:1.5px solid #4338CA;border-radius:10px;">
+        <div style="font-size:11px;color:#4338CA;font-weight:700;margin-bottom:3px;">선택된 강좌</div>
+        <div id="grant-selected-title" style="font-size:13px;font-weight:600;color:#111;"></div>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:5px;">부여 사유 <span style="color:#aaa;font-weight:400;">(선택)</span></label>
+        <textarea id="grant-reason" placeholder="예: 강사 본인, 테스트 계정, 특별 지원 등" rows="2"
+          style="width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;outline:none;resize:none;font-family:inherit;box-sizing:border-box;"></textarea>
+      </div>
+      <div id="grant-error" style="display:none;margin-top:10px;padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:13px;color:#DC2626;line-height:1.5;"></div>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid rgba(0,0,0,.06);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;">
+      <button onclick="closeGrantModal()" style="padding:9px 18px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;">취소</button>
+      <button id="grant-confirm-btn" onclick="doGrantCourse()"
+        style="padding:9px 18px;border-radius:8px;background:#4338CA;color:#fff;border:none;cursor:pointer;font-weight:700;font-size:13px;">강좌 열어주기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 수강생 상세 모달 -->
 <div class="modal-bg" id="student-modal" onclick="closeModal(event)">
   <div class="modal-box">
@@ -202,7 +238,10 @@ tr.dormant-row:hover td { background:#FFE8E8; }
         <div class="modal-name" id="modal-name">-</div>
         <div class="modal-email" id="modal-email">-</div>
       </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <button id="modal-grant-btn" style="padding:7px 14px;border-radius:8px;background:#4338CA;color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">+ 강좌 열어주기</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
     </div>
     <div class="modal-body" id="modal-body">
       <div class="loading">불러오는 중...</div>
@@ -266,7 +305,7 @@ function buildStudentRows() {
 
   // user_id별 orders 그룹
   var ordersByUser = {};
-  allOrders.filter(function(o){ return o.status === 'paid'; }).forEach(function(o) {
+  allOrders.filter(function(o){ return o.status === 'paid' || o.status === 'completed'; }).forEach(function(o) {
     if (!ordersByUser[o.user_id]) ordersByUser[o.user_id] = [];
     ordersByUser[o.user_id].push(o);
   });
@@ -337,7 +376,7 @@ function renderKPI() {
 
   // 총 수강생 (paid order 있는 유저)
   var enrolled = new Set(
-    allOrders.filter(function(o){ return o.status==='paid'; }).map(function(o){ return o.user_id; })
+    allOrders.filter(function(o){ return o.status==='paid' || o.status==='completed'; }).map(function(o){ return o.user_id; })
   );
   document.getElementById('ks-total').textContent = enrolled.size;
 
@@ -478,6 +517,7 @@ function openModal(uid) {
 
   document.getElementById('modal-name').textContent  = row.name;
   document.getElementById('modal-email').textContent = row.email;
+  document.getElementById('modal-grant-btn').onclick = function(e) { e.stopPropagation(); openGrantModal(uid); };
   document.getElementById('student-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 
@@ -495,7 +535,7 @@ function renderModalBody(uid) {
   var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
 
   // ── 프로필 요약 카드 ──
-  var userOrders = allOrders.filter(function(o){ return o.user_id === uid && o.status === 'paid'; });
+  var userOrders = allOrders.filter(function(o){ return o.user_id === uid && (o.status === 'paid' || o.status === 'completed'); });
   var totalPaid  = userOrders.reduce(function(s,o){ return s + (o.amount||0); }, 0);
   var userVP     = allVideoProgress.filter(function(vp){ return vp.user_id === uid; });
   var totalSecs  = userVP.reduce(function(s,vp){ return s + (vp.actual_watched_seconds||0); }, 0);
@@ -521,7 +561,12 @@ function renderModalBody(uid) {
     var course = allCourses.find(function(c){ return String(c.id) === String(order.course_id); });
     var courseName = course ? course.title : ('강좌 ID: ' + order.course_id);
 
-    html += '<div class="modal-course-title">📚 ' + esc(courseName) + '</div>';
+    var grantBadge = order.grant_type === 'admin_grant'
+      ? ' <span class="badge badge-grant" style="font-size:10px;vertical-align:middle;">관리자부여</span>'
+      : order.grant_type === 'gift'
+        ? ' <span class="badge" style="background:#FDF4FF;color:#7E22CE;font-size:10px;vertical-align:middle;">선물</span>'
+        : '';
+    html += '<div class="modal-course-title">📚 ' + esc(courseName) + grantBadge + '</div>';
 
     // 이 강좌의 video_progress
     var courseVP = userVP.filter(function(vp){ return String(vp.course_id) === String(order.course_id); });
@@ -558,7 +603,7 @@ async function loadAll() {
   try {
     var [profilesRes, ordersRes, vpRes, logsRes, coursesRes] = await Promise.all([
       sb.from('profiles').select('id, name, email, role, phone, created_at').order('created_at', { ascending:false }),
-      sb.from('orders').select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, created_at').eq('status','paid'),
+      sb.from('orders').select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, grant_type, grant_reason, created_at').in('status',['paid','completed']),
       sb.from('video_progress').select('user_id, course_id, lesson_number, lesson_title, actual_watched_seconds, actual_watched_text, total_seconds, watch_percentage, completed, updated_at'),
       sb.from('study_logs').select('user_id, course_id, lesson_number, studied_at'),
       sb.from('courses').select('id, title'),
@@ -685,6 +730,109 @@ async function processRefund(orderId) {
       '<span style="font-weight:700;">❌ 네트워크 오류</span><br>' + esc(e.message || '오류가 발생했습니다.');
     confirmBtn.disabled = false;
     confirmBtn.textContent = '다시 시도';
+  }
+}
+
+// ── 강좌 부여 모달 ──
+var grantTargetUid = null;
+var grantSelectedCourseId = null;
+
+function openGrantModal(uid) {
+  grantTargetUid = uid;
+  grantSelectedCourseId = null;
+  var row = studentRows.find(function(r){ return r.uid === uid; }) || {};
+  document.getElementById('grant-modal-user').textContent = (row.name || uid) + ' (' + (row.email || '') + ')';
+  document.getElementById('grant-course-search').value = '';
+  document.getElementById('grant-reason').value = '';
+  document.getElementById('grant-error').style.display = 'none';
+  document.getElementById('grant-selected-wrap').style.display = 'none';
+  document.getElementById('grant-selected-title').textContent = '';
+  var btn = document.getElementById('grant-confirm-btn');
+  btn.disabled = false;
+  btn.textContent = '강좌 열어주기';
+  renderGrantCourseList();
+  document.getElementById('grant-modal').style.display = 'flex';
+}
+
+function closeGrantModal() {
+  document.getElementById('grant-modal').style.display = 'none';
+  grantTargetUid = null;
+  grantSelectedCourseId = null;
+}
+
+function renderGrantCourseList() {
+  var q = (document.getElementById('grant-course-search').value || '').toLowerCase();
+  var owned = new Set(
+    allOrders
+      .filter(function(o){ return o.user_id === grantTargetUid && (o.status === 'paid' || o.status === 'completed') && o.course_id; })
+      .map(function(o){ return String(o.course_id); })
+  );
+  var list = allCourses.filter(function(c){ return !q || c.title.toLowerCase().includes(q); });
+  if (!list.length) {
+    document.getElementById('grant-course-list').innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa;font-size:13px;">강좌가 없어요</div>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(c) {
+    var isOwned    = owned.has(String(c.id));
+    var isSelected = String(c.id) === String(grantSelectedCourseId);
+    html += '<div' +
+      (isOwned ? '' : ' onclick="selectGrantCourse(' + c.id + ')"') +
+      ' style="padding:10px 14px;border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;gap:10px;' +
+      (isOwned   ? 'opacity:.45;cursor:not-allowed;background:#fafafa;' : 'cursor:pointer;') +
+      (isSelected ? 'background:#EEF2FF;' : '') + '">' +
+      '<div style="flex:1;font-size:13px;font-weight:' + (isOwned ? '400' : '600') + ';color:#111;">' + esc(c.title) + '</div>' +
+      (isOwned
+        ? '<span style="font-size:11px;color:#2D9B6F;font-weight:700;background:#e8f8f0;padding:2px 8px;border-radius:10px;">보유중</span>'
+        : (isSelected ? '<span style="font-size:14px;color:#4338CA;">✓</span>' : '')) +
+      '</div>';
+  });
+  document.getElementById('grant-course-list').innerHTML = html;
+}
+
+function selectGrantCourse(courseId) {
+  grantSelectedCourseId = courseId;
+  var course = allCourses.find(function(c){ return c.id == courseId; });
+  document.getElementById('grant-selected-title').textContent = course ? course.title : '';
+  document.getElementById('grant-selected-wrap').style.display = 'block';
+  document.getElementById('grant-error').style.display = 'none';
+  renderGrantCourseList();
+}
+
+async function doGrantCourse() {
+  if (!grantTargetUid || !grantSelectedCourseId) {
+    document.getElementById('grant-error').textContent = '강좌를 선택해주세요.';
+    document.getElementById('grant-error').style.display = 'block';
+    return;
+  }
+  var reason = (document.getElementById('grant-reason').value || '').trim();
+  var btn = document.getElementById('grant-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  document.getElementById('grant-error').style.display = 'none';
+
+  try {
+    var { data, error } = await sb.rpc('admin_grant_course', {
+      p_user_id:  grantTargetUid,
+      p_course_id: Number(grantSelectedCourseId),
+      p_reason:   reason || null,
+    });
+    if (error) {
+      document.getElementById('grant-error').textContent = error.message || '알 수 없는 오류가 발생했습니다.';
+      document.getElementById('grant-error').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '강좌 열어주기';
+      return;
+    }
+    var savedUid = grantTargetUid;
+    closeGrantModal();
+    await loadAll();
+    openModal(savedUid);
+  } catch(e) {
+    document.getElementById('grant-error').textContent = e.message || '오류가 발생했습니다.';
+    document.getElementById('grant-error').style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '강좌 열어주기';
   }
 }
 
