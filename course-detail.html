@@ -1187,6 +1187,7 @@ async function loadCourse() {
       }
     }
     if (!isEnrolled) checkUserCoupons(user.id);
+    if (isEnrolled) fillLessonVideoUrls(course.id);
     await loadProgress(user.id, course.id);
     await loadWishState(user.id, course.id);
     if (isEnrolled) {
@@ -1541,10 +1542,22 @@ async function loadTextbooks(courseId) {
 }
 
 // ───── 커리큘럼 동적 로드 ─────
+async function fillLessonVideoUrls(courseId) {
+  const { data } = await supabaseClient
+    .from('lessons')
+    .select('id, video_url')
+    .eq('course_id', courseId);
+  if (!data) return;
+  data.forEach(l => {
+    const item = curriculumLessons.find(c => c.id === l.id);
+    if (item) item.videoUrl = l.video_url || '';
+  });
+}
+
 async function loadCurriculum(courseId) {
   const { data: lessons } = await supabaseClient
     .from('lessons')
-    .select('*')
+    .select('id, title, section_title, sort_order, is_free_preview')
     .eq('course_id', courseId)
     .order('sort_order');
 
@@ -1569,7 +1582,7 @@ async function loadCurriculum(courseId) {
   curriculumLessons = [];
   sectionOrder.forEach(sec => {
     sections[sec].forEach(l => {
-      curriculumLessons.push({ num: l.num, title: l.title, videoUrl: l.video_url || '' });
+      curriculumLessons.push({ id: l.id, num: l.num, title: l.title, videoUrl: '' });
     });
   });
 
