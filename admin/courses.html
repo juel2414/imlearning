@@ -152,6 +152,7 @@
               <img id="thumb-img" src="" style="display:none;">
             </div>
             <input type="file" id="thumb-input" accept="image/*" style="display:none;" onchange="previewThumb(this)">
+            <button type="button" id="thumb-remove-btn" onclick="removeThumb()" style="display:none;margin-top:6px;font-size:12px;padding:4px 12px;border:1px solid #f44;color:#f44;background:#fff;border-radius:6px;cursor:pointer;">✕ 썸네일 제거</button>
             <div class="hint">권장 사이즈: 1280×720px (16:9)</div>
           </div>
           <div class="form-group full"><label>강좌 제목</label><input type="text" id="course-title" placeholder="예: [4세대] CBUP 수료과정"></div>
@@ -394,6 +395,7 @@ function resetForm() {
   document.getElementById('course-hero-color-text').value = '';
   document.getElementById('thumb-img').style.display = 'none';
   document.getElementById('thumb-img').src = '';
+  document.getElementById('thumb-remove-btn').style.display = 'none';
 }
 
 function previewThumb(input) {
@@ -403,10 +405,67 @@ function previewThumb(input) {
   thumbData = null;
   var reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('thumb-img').src = e.target.result;
+    var src = e.target.result;
+    document.getElementById('thumb-img').src = src;
     document.getElementById('thumb-img').style.display = 'block';
+    document.getElementById('thumb-remove-btn').style.display = 'inline-block';
+    // 썸네일에서 dominant color 추출 → hero_color 자동 설정
+    extractDominantColor(src, function(hex) {
+      document.getElementById('course-hero-color').value = hex;
+      document.getElementById('course-hero-color-text').value = hex;
+    });
   };
   reader.readAsDataURL(file);
+}
+
+function extractDominantColor(src, callback) {
+  var img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    var size = 50; // 작게 리사이즈해서 빠르게 샘플링
+    canvas.width = size; canvas.height = size;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    var data = ctx.getImageData(0, 0, size, size).data;
+    var r = 0, g = 0, b = 0, count = 0;
+    for (var i = 0; i < data.length; i += 4) {
+      // 너무 밝거나(배경 흰색) 너무 어두운 픽셀 제외
+      var br = (data[i] + data[i+1] + data[i+2]) / 3;
+      if (br < 240 && br > 20) {
+        r += data[i]; g += data[i+1]; b += data[i+2]; count++;
+      }
+    }
+    if (!count) { callback('#dff0e9'); return; }
+    r = Math.round(r / count);
+    g = Math.round(g / count);
+    b = Math.round(b / count);
+    // 채도 낮추고 밝게 → 배경색에 적합하게
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var sat = max ? (max - min) / max : 0;
+    if (sat > 0.15) {
+      // 색이 있으면 파스텔화: 흰색 방향으로 블렌딩
+      r = Math.round(r * 0.3 + 220 * 0.7);
+      g = Math.round(g * 0.3 + 235 * 0.7);
+      b = Math.round(b * 0.3 + 225 * 0.7);
+    } else {
+      r = Math.min(240, r + 40);
+      g = Math.min(245, g + 40);
+      b = Math.min(240, b + 40);
+    }
+    callback('#' + [r,g,b].map(function(v){ return ('0'+v.toString(16)).slice(-2); }).join(''));
+  };
+  img.onerror = function() { callback('#dff0e9'); };
+  img.src = src;
+}
+
+function removeThumb() {
+  thumbFile = null;
+  thumbData = '';
+  document.getElementById('thumb-img').src = '';
+  document.getElementById('thumb-img').style.display = 'none';
+  document.getElementById('thumb-input').value = '';
+  document.getElementById('thumb-remove-btn').style.display = 'none';
 }
 
 async function saveCourse() {
@@ -522,6 +581,10 @@ function editCourse(id) {
     thumbData = c.thumbnail_url;
     document.getElementById('thumb-img').src = c.thumbnail_url;
     document.getElementById('thumb-img').style.display = 'block';
+    document.getElementById('thumb-remove-btn').style.display = 'inline-block';
+  } else {
+    thumbData = null;
+    document.getElementById('thumb-remove-btn').style.display = 'none';
   }
   document.getElementById('course-form').style.display = 'block';
   document.getElementById('course-form').scrollIntoView({ behavior: 'smooth' });
