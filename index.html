@@ -900,7 +900,7 @@ function applyHero(c) {
 
   const sl = s.querySelector('.js-slogan');
   if (sl) {
-    const lines = (c.slogan||'').split('\n');
+    const lines = (c.slogan||'').split('\n').map(esc);
     if (lines.length > 1) {
       lines[lines.length - 1] = '<em>' + lines[lines.length - 1] + '</em>';
     }
@@ -908,10 +908,11 @@ function applyHero(c) {
   }
   const su = s.querySelector('.js-sub');
   if (su) su.textContent = c.subcopy||'';
+  const safeHref = (url, fallback) => !url || (url.includes(':') && !url.startsWith('http')) ? fallback : url;
   const a1 = document.getElementById('js-cta1');
-  if (a1) { a1.textContent = c.cta1_text; a1.href = c.cta1_url||'courses.html'; }
+  if (a1) { a1.textContent = c.cta1_text; a1.href = safeHref(c.cta1_url, 'courses.html'); }
   const a2 = document.getElementById('js-cta2');
-  if (a2) { a2.textContent = c.cta2_text; a2.href = c.cta2_url||'about.html'; }
+  if (a2) { a2.textContent = c.cta2_text; a2.href = safeHref(c.cta2_url, 'about.html'); }
   if (c.font) s.style.fontFamily = c.font;
 }
 
@@ -926,8 +927,8 @@ function applyTrust(c) {
     const dl = ['','reveal-delay-1','reveal-delay-2','reveal-delay-3'];
     g.innerHTML = items.map((it,i) => `
       <div class="lp-trust-item reveal ${dl[i]}">
-        <div class="lp-tnum" data-target="${it.value}" data-suffix="${it.unit}">0${it.unit}</div>
-        <div class="lp-tlbl">${it.label}</div>
+        <div class="lp-tnum" data-target="${esc(String(it.value))}" data-suffix="${esc(it.unit)}">0${esc(it.unit)}</div>
+        <div class="lp-tlbl">${esc(it.label)}</div>
       </div>`).join('');
   }
 
@@ -935,7 +936,7 @@ function applyTrust(c) {
   const hs = document.getElementById('js-hero-stats');
   if (hs) {
     hs.innerHTML = items.slice(0, 3).map(it =>
-      `<div><div class="lp-hstat-num">${Number(it.value).toLocaleString()}<span>${it.unit}</span></div><div class="lp-hstat-lbl">${it.label}</div></div>`
+      `<div><div class="lp-hstat-num">${Number(it.value).toLocaleString()}<span>${esc(it.unit)}</span></div><div class="lp-hstat-lbl">${esc(it.label)}</div></div>`
     ).join('');
   }
 
@@ -946,7 +947,7 @@ function applyTrust(c) {
     if (!el || !it) return;
     const val = el.querySelector('.lp-scard-val');
     const lbl = el.querySelector('.lp-scard-lbl');
-    if (val) val.innerHTML = `${Number(it.value).toLocaleString()}<span>${it.unit}</span>`;
+    if (val) val.innerHTML = `${Number(it.value).toLocaleString()}<span>${esc(it.unit)}</span>`;
     if (lbl) lbl.textContent = it.label;
   });
 }
@@ -1289,11 +1290,11 @@ async function initFeaturedSlider() {
       const thumb = c.thumbnail_url
         ? `<div class="lp-feat-thumb-bg" style="background-image:url('${c.thumbnail_url.replace(/'/g, '%27')}')"></div>`
         : `<div class="lp-feat-thumb-ph">📚</div>`;
-      const desc = c.description ? `<div class="lp-feat-desc">${c.description}</div>` : '';
+      const desc = c.description ? `<div class="lp-feat-desc">${esc(c.description)}</div>` : '';
       return `${thumb}
         <div class="lp-feat-body">
           <div class="lp-feat-badge">🎯 추천 강좌</div>
-          <div class="lp-feat-title">${c.title}</div>
+          <div class="lp-feat-title">${esc(c.title)}</div>
           ${desc}
           <div class="lp-feat-price">${price}</div>
           <div class="lp-feat-cta">강좌 바로 보기 →</div>

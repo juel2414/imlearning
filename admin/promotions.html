@@ -418,7 +418,7 @@ async function loadPromoForm() {
   const { data } = await sb.from('courses').select('id, title').eq('status', 'active').order('title');
   const sel = document.getElementById('promo-course-select');
   if (data && data.length) {
-    sel.innerHTML = '<option value="">강좌 선택</option>' + data.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+    sel.innerHTML = '<option value="">강좌 선택</option>' + data.map(c => `<option value="${c.id}">${esc(c.title)}</option>`).join('');
   }
 }
 
@@ -470,8 +470,8 @@ async function loadStats() {
         const expired = c.expires_at && new Date(c.expires_at) < now;
         const badge = expired ? '<span class="badge badge-expired">만료</span>' : c.status === 'active' ? '<span class="badge badge-active">활성</span>' : '<span class="badge badge-inactive">비활성</span>';
         return `<tr>
-          <td style="font-weight:700;font-family:monospace;color:#2D9B6F;">${c.code}</td>
-          <td>${c.description || '-'}</td>
+          <td style="font-weight:700;font-family:monospace;color:#2D9B6F;">${esc(c.code)}</td>
+          <td>${esc(c.description || '-')}</td>
           <td>${c.discount_type==='rate' ? c.discount_value+'%' : '₩'+Number(c.discount_value).toLocaleString()}</td>
           <td>${c.used_count} / ${c.max_uses || '∞'}</td>
           <td>${c.expires_at ? new Date(c.expires_at).toLocaleDateString('ko-KR') : '무기한'}</td>

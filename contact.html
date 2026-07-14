@@ -237,23 +237,20 @@ async function submitContact() {
   btn.textContent = '전송 중...';
 
   try {
-    // 1. Supabase contacts 테이블에 저장
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    const { error: dbErr } = await supabaseClient.from('contacts').insert({
-      name, phone: phone || null, type, message,
-      user_id: user ? user.id : null,
+    // send-email Edge Function이 DB 저장 + 이메일 전송을 함께 처리 (rate limit 적용)
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+    if (session?.access_token) headers['Authorization'] = 'Bearer ' + session.access_token;
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-email', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ type: 'contact_inquiry', data: { name, phone, type, message } }),
     });
-    if (dbErr) throw new Error(dbErr.message);
-
-    // 2. 관리자 알림 이메일 발송 (실패해도 DB 저장 성공이면 OK)
-    try {
-      const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
-      await fetch(SUPABASE_URL + '/functions/v1/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
-        body: JSON.stringify({ type: 'contact_inquiry', data: { name, phone, type, message } }),
-      });
-    } catch (_) { /* 이메일 실패는 무시 — DB엔 저장됨 */ }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || '전송 실패');
+    }
 
     showMsg('문의가 접수됐습니다. 빠르게 답변드리겠습니다 😊', true);
     document.getElementById('contact-name').value = '';

@@ -457,7 +457,7 @@
     } else if (path === 'courses.html') {
       links = [{ label: '+ 새 강좌', href: 'admin/courses.html' }];
     } else if (path === 'course-detail.html' && id) {
-      links = [{ label: '✏️ 이 강좌 편집', href: 'admin/courses.html?edit=' + id }];
+      links = [{ label: '✏️ 이 강좌 편집', href: 'admin/courses.html?edit=' + encodeURIComponent(id) }];
     } else if (path === 'about.html' || path === 'contact.html') {
       links = [{ label: '⚙️ 사이트 설정', href: 'admin/settings.html' }];
     }

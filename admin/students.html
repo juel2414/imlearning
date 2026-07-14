@@ -589,7 +589,7 @@ function renderModalBody(uid) {
           '<span class="lesson-title">' + esc(vp.lesson_title || '') + totalTxt + '</span>' +
           '<span class="lesson-pct" style="color:' + barColor + ';">' + pct + '%' + doneText + '</span>' +
         '</div>' +
-        '<div class="lesson-detail">실제 시청: ' + (vp.actual_watched_text || fmtSecs(vp.actual_watched_seconds)) + '</div>' +
+        '<div class="lesson-detail">실제 시청: ' + esc(vp.actual_watched_text || fmtSecs(vp.actual_watched_seconds)) + '</div>' +
         '<div class="lesson-bar-wrap"><div class="lesson-bar-fill" style="background:' + barColor + ';width:' + pct + '%;"></div></div>' +
         '</div>';
     });

@@ -130,7 +130,7 @@ var _nextUrl = (_nextParam && !_nextParam.startsWith('//') && !_nextParam.starts
 
 function showError(msg) {
   var el = document.getElementById('error-msg');
-  el.innerHTML = '❌ ' + msg;
+  el.textContent = '❌ ' + msg;
   el.classList.add('show');
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

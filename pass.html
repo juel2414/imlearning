@@ -342,16 +342,20 @@ async function loadPass() {
       document.getElementById('login-notice').style.display = 'block';
     } else {
       // 이미 유효한 프리패스 보유 여부 확인
+      // .is('course_id', null): 프리패스는 course_id가 null
+      // refund_status 필터: NULL NOT IN (...) = NULL(false)이므로 JS에서 처리
       const now = new Date().toISOString();
       const { data: existing } = await supabaseClient
         .from('orders')
-        .select('id, expires_at')
+        .select('id, expires_at, refund_status')
         .eq('user_id', user.id)
+        .is('course_id', null)
         .eq('status', 'paid')
-        .gt('expires_at', now)
-        .not('refund_status', 'in', '("refunded","partial")')
-        .maybeSingle();
-      if (existing) {
+        .gt('expires_at', now);
+      const validPass = (existing || []).find(o =>
+        o.refund_status !== 'refunded' && o.refund_status !== 'partial'
+      );
+      if (validPass) {
         alreadyOwns = true;
         const btn = document.getElementById('buy-btn');
         btn.textContent = '이미 이용 중 → 강의실 가기';

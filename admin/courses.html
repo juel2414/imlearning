@@ -1287,12 +1287,12 @@ async function loadCourseFiles() {
     body.innerHTML = '<div class="empty">등록된 파일이 없어요. [+ 파일 업로드]를 눌러 추가해보세요.</div>';
     return;
   }
-  var SUPABASE_STORAGE = SUPABASE_URL + '/storage/v1/object/public/course-materials/';
-  var rows = data.map(function(f) {
+  var rows = await Promise.all(data.map(async function(f) {
+    var sd = await sb.storage.from('course-materials').createSignedUrl(f.file_path, 3600);
+    var signedUrl = (sd.data && sd.data.signedUrl) ? sd.data.signedUrl : '';
     var sizeText = f.file_size ? (f.file_size > 1048576 ? (f.file_size/1048576).toFixed(1)+'MB' : Math.round(f.file_size/1024)+'KB') : '-';
     var ext = (f.file_name || '').split('.').pop().toLowerCase();
     var icon = ext === 'pdf' ? '📄' : (ext === 'zip' ? '🗜️' : (ext.match(/xlsx?|csv/) ? '📊' : (ext.match(/docx?/) ? '📝' : '📎')));
-    var publicUrl = SUPABASE_STORAGE + encodeURIComponent(f.file_path);
     return '<tr>' +
       '<td style="width:30px;text-align:center;font-size:18px;">' + icon + '</td>' +
       '<td style="font-weight:600;">' + escHtml(f.title) + '</td>' +
@@ -1300,12 +1300,12 @@ async function loadCourseFiles() {
       '<td style="color:#6B6B6B;font-size:12px;">' + sizeText + '</td>' +
       '<td style="color:#6B6B6B;font-size:12px;">' + new Date(f.created_at).toLocaleDateString('ko-KR') + '</td>' +
       '<td><div class="action-btns">' +
-        '<a href="' + publicUrl + '" target="_blank" class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;text-decoration:none;">다운로드</a>' +
+        (signedUrl ? '<a href="' + escHtml(signedUrl) + '" target="_blank" class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;text-decoration:none;">다운로드</a>' : '') +
         '<button class="btn-sm del" onclick="deleteCourseFile(\'' + f.id + '\',\'' + escHtml(f.file_path) + '\')">삭제</button>' +
       '</div></td>' +
       '</tr>';
-  }).join('');
-  body.innerHTML = '<div class="table-wrap"><table><thead><tr><th></th><th>파일명(제목)</th><th>원본파일</th><th>크기</th><th>업로드일</th><th>관리</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }));
+  body.innerHTML = '<div class="table-wrap"><table><thead><tr><th></th><th>파일명(제목)</th><th>원본파일</th><th>크기</th><th>업로드일</th><th>관리</th></tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
 }
 
 async function uploadFiles(files) {

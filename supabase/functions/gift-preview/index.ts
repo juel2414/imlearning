@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const SITE_URL = "https://juel2414.github.io/imlearning";
+const SITE_URL = Deno.env.get('SITE_URL') || "https://juel2414.github.io/imlearning";
 const DEFAULT_IMAGE = `${SITE_URL}/images/logo-horizontal.png`;
 
 function esc(s: string): string {

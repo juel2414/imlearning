@@ -242,14 +242,43 @@
     });
   }
 
-  // 비로그인 상태면 로그인 페이지로 + 결제 영수증 이메일 발송
+  // 비로그인 상태면 로그인 페이지로 + 결제 영수증 이메일 발송 (DB에서 실제 금액 조회)
   supabaseClient.auth.getUser().then(({ data: { user } }) => {
     if (!user) {
       window.location.href = 'login.html';
       return;
     }
-    const displayName = decodeURIComponent(courseName || '강좌');
-    sendEmail('payment', { courseName: displayName, amount: amount });
+    if (courseId) {
+      supabaseClient.from('orders')
+        .select('amount, course_name')
+        .eq('user_id', user.id)
+        .eq('course_id', courseId)
+        .eq('status', 'paid')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+        .then(({ data: order }) => {
+          const realAmount = order?.amount ?? amount;
+          const displayName = order?.course_name || decodeURIComponent(courseName || '강좌');
+          document.getElementById('receipt-amount').textContent = '₩' + realAmount.toLocaleString();
+          sendEmail('payment', { courseName: displayName, amount: realAmount });
+        });
+    } else {
+      supabaseClient.from('orders')
+        .select('amount, course_name')
+        .eq('user_id', user.id)
+        .is('course_id', null)
+        .eq('status', 'paid')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+        .then(({ data: order }) => {
+          const realAmount = order?.amount ?? amount;
+          const displayName = order?.course_name || decodeURIComponent(courseName || '강좌');
+          document.getElementById('receipt-amount').textContent = '₩' + realAmount.toLocaleString();
+          sendEmail('payment', { courseName: displayName, amount: realAmount });
+        });
+    }
   });
 })();
 </script>

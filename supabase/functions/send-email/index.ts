@@ -1,8 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://juel2414.github.io',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = new Set<string>(
+  ['https://juel2414.github.io', Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
+);
+
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://juel2414.github.io',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
 }
 
 // 이메일 HTML 인젝션 방지 — 사용자 제공 값은 반드시 이 함수로 이스케이프
@@ -15,10 +22,11 @@ function esc(s: string): string {
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const SITE_URL = 'https://juel2414.github.io/imlearning'
+const SITE_ORIGIN = Deno.env.get('SITE_ORIGIN') || 'https://juel2414.github.io'
+const SITE_URL = `${SITE_ORIGIN}/imlearning`
 const FROM = '아이엠러닝 <noreply@imlearning.co.kr>'
 const BRAND = '#2D9B6F'
-const LOGO_URL = 'https://juel2414.github.io/imlearning/images/logo-horizontal.png'
+const LOGO_URL = `${SITE_ORIGIN}/imlearning/images/logo-horizontal.png`
 
 function base(body: string, heroHtml = '') {
   return `<!DOCTYPE html>
@@ -204,7 +212,7 @@ function giftHtml(courseName: string, senderName: string, message: string, accep
   <tr><td align="center">
     <table width="100%" style="max-width:480px;">
       <tr><td style="text-align:center;padding-bottom:20px;">
-        <img src="https://juel2414.github.io/imlearning/images/logo-horizontal.png" alt="아이엠러닝" style="height:36px;display:inline-block;">
+        <img src="${LOGO_URL}" alt="아이엠러닝" style="height:36px;display:inline-block;">
       </td></tr>
       <tr><td style="background:#0f1a15;border:0.5px solid #24382e;border-radius:16px;padding:36px 28px;text-align:center;">
         <div style="font-size:10px;letter-spacing:2px;color:#8fae9c;margin-bottom:10px;text-transform:uppercase;">IMLEARNING GIFT</div>
@@ -291,10 +299,11 @@ async function resendBatch(emails: Array<{ to: string; subject: string; html: st
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  const cors = corsHeaders(req);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const ok = (body: unknown) => new Response(JSON.stringify(body), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-  const err = (status: number, msg: string) => new Response(JSON.stringify({ error: msg }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  const ok = (body: unknown) => new Response(JSON.stringify(body), { headers: { ...cors, 'Content-Type': 'application/json' } })
+  const err = (status: number, msg: string) => new Response(JSON.stringify({ error: msg }), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
   try {
     const { type, data = {} } = await req.json() as { type: string; data: Record<string, unknown> }
@@ -304,16 +313,49 @@ Deno.serve(async (req: Request) => {
       const email = String(data.email || '')
       const name  = String(data.name || '회원')
       if (!email.includes('@')) return err(400, '유효하지 않은 이메일')
-      await resendSend(email, '아이엠러닝에 오신 것을 환영합니다! 🎉', welcomeHtml(name))
+
+      // IP 기반 rate limiting: 시간당 10회 (이메일 열거 방지)
+      const ipW = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown').split(',')[0].trim()
+      const { data: rlWelcome } = await adminClient.rpc('check_rate_limit', {
+        p_key: `welcome:${ipW}`, p_max: 10, p_window_secs: 3600,
+      })
+      if (!rlWelcome) return err(429, '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.')
+
+      // 이메일 존재 여부에 관계없이 동일한 응답 반환 (열거 방지)
+      const { data: exists } = await adminClient.from('profiles').select('id').eq('email', email).maybeSingle()
+      if (exists) {
+        await resendSend(email, '아이엠러닝에 오신 것을 환영합니다! 🎉', welcomeHtml(name))
+      }
       return ok({ sent: 1 })
     }
 
     if (type === 'contact_inquiry') {
-      const name    = String(data.name || '').trim()
-      const phone   = String(data.phone || '').trim()
-      const inquiryType = String(data.type || '기타').trim()
-      const message = String(data.message || '').trim()
+      const name    = String(data.name || '').slice(0, 100).trim()
+      const phone   = String(data.phone || '').slice(0, 50).trim()
+      const inquiryType = String(data.type || '기타').slice(0, 50).trim()
+      const message = String(data.message || '').slice(0, 2000).trim()
       if (!name || !message) return err(400, '이름과 문의 내용은 필수입니다')
+
+      // IP 기반 rate limiting: 시간당 5회 제한
+      const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown').split(',')[0].trim()
+      const { data: rlOk } = await adminClient.rpc('check_rate_limit', {
+        p_key: `contact:${ip}`, p_max: 5, p_window_secs: 3600,
+      })
+      if (!rlOk) return err(429, '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.')
+
+      // contacts 테이블 저장 (service role — 직접 DB INSERT 우회 방지)
+      const authHeader2 = req.headers.get('Authorization')
+      let contactUserId: string | null = null
+      if (authHeader2) {
+        const tok = authHeader2.replace('Bearer ', '')
+        const { data: { user: cUser } } = await adminClient.auth.getUser(tok)
+        contactUserId = cUser?.id ?? null
+      }
+      await adminClient.from('contacts').insert({
+        name, phone: phone || null, type: inquiryType, message,
+        user_id: contactUserId,
+      })
+
       const ADMIN_EMAIL = 'imkorea.mission@gmail.com'
       await resendSend(ADMIN_EMAIL, `[아이엠러닝] 새 문의: ${name} (${inquiryType})`, contactInquiryHtml(name, phone, inquiryType, message))
       return ok({ sent: 1 })
@@ -347,7 +389,9 @@ Deno.serve(async (req: Request) => {
       const senderName = String(data.senderName || '')
       const message = String(data.message || '')
       const giftCode = String(data.giftCode || '')
-      const thumbnailUrl = String(data.thumbnailUrl || '')
+      const rawThumb = String(data.thumbnailUrl || '')
+      // URL injection 방지: https:// 로 시작하고 따옴표/꺽쇠 없는 URL만 허용
+      const thumbnailUrl = (rawThumb.startsWith('https://') && !/["'<>]/.test(rawThumb)) ? rawThumb : ''
       const acceptUrl = `${SITE_URL}/gift.html?code=${encodeURIComponent(giftCode)}`
       await resendSend(recipientEmail, '[아이엠러닝] 강의 선물이 도착했어요', giftHtml(courseName, senderName, message, acceptUrl, thumbnailUrl))
       return ok({ sent: 1 })
@@ -359,7 +403,8 @@ Deno.serve(async (req: Request) => {
       if (!allProfiles?.length) return ok({ sent: 0 })
       const courseTitle  = String(data.courseTitle || '')
       const courseId     = data.courseId
-      const thumbnailUrl = data.thumbnailUrl as string | undefined
+      const rawThumb = String(data.thumbnailUrl || '')
+      const thumbnailUrl = (rawThumb.startsWith('https://') && !/["'<>]/.test(rawThumb)) ? rawThumb : undefined
       const emails = allProfiles.map(p => ({
         to: p.email as string,
         subject: '[아이엠러닝] 새 강좌가 오픈됐어요!',
@@ -373,6 +418,6 @@ Deno.serve(async (req: Request) => {
 
   } catch (e) {
     console.error('send-email error:', e)
-    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } })
   }
 })

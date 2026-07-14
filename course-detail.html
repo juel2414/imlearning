@@ -402,26 +402,6 @@
         </div>
         <!-- 태그 칩 -->
         <div class="detail-tags" id="detail-tags"></div>
-        <!-- 강좌 소개 요약 카드 (탭 위 항상 표시) -->
-        <div class="course-intro-card">
-          <div class="intro-card-col">
-            <h4>이런 분들에게 추천해요</h4>
-            <ul>
-              <li>✅ 교회학교 교사로 처음 사역을 시작하는 분</li>
-              <li>✅ 기존 교육 방식에서 벗어나 새로운 시각을 원하는 분</li>
-              <li>✅ 성경적 세계관 교육의 이론과 실제를 배우고 싶은 분</li>
-              <li>✅ 다음 세대 교육에 열정을 가진 모든 분</li>
-            </ul>
-          </div>
-          <div class="intro-card-col">
-            <h4>수강 후 이런 것들을 할 수 있어요</h4>
-            <ul>
-              <li>🎯 성경적 세계관으로 아이들을 가르칠 수 있어요</li>
-              <li>🎯 트리플 스쿨 교육 과정을 직접 운영할 수 있어요</li>
-              <li>🎯 교회학교 커리큘럼을 직접 설계할 수 있어요</li>
-            </ul>
-          </div>
-        </div>
 
         <div class="detail-tabs">
           <div class="detail-tab active" onclick="switchTab('curriculum', this)">커리큘럼</div>
@@ -915,14 +895,9 @@ async function toggleLesson(lessonId, lessonTitle, completed) {
   if (completed) lastWatchedLesson = { lesson_id: lessonId, lesson_title: lessonTitle };
   applyProgressUI();
 
-  // orders 진도율 동기화 — SECURITY DEFINER 함수로 progress 컬럼만 허용
-  const items = document.querySelectorAll('#curriculum-content .curriculum-item[data-lesson]');
-  const total = items.length;
-  const done = Object.values(progressMap).filter(Boolean).length;
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  // orders 진도율 동기화 — 서버에서 progress 테이블 기반 계산 (p_progress 클라이언트 주입 불가)
   await supabaseClient.rpc('update_order_progress', {
     p_course_id: currentCourse.id,
-    p_progress: pct
   });
 }
 
@@ -957,12 +932,9 @@ async function applyCoupon() {
   msgEl.className = 'coupon-msg';
 
   try {
-    const { data, error } = await supabaseClient
-      .from('coupons')
-      .select('*')
-      .eq('code', code)
-      .eq('status', 'active')
-      .maybeSingle();
+    const { data: rows, error } = await supabaseClient
+      .rpc('lookup_coupon', { p_code: code });
+    const data = rows && rows.length > 0 ? rows[0] : null;
 
     if (error || !data) {
       msgEl.textContent = '유효하지 않은 쿠폰 코드예요.';
@@ -1583,7 +1555,7 @@ function fmtDuration(secs) {
 
 async function loadCurriculum(courseId) {
   const { data: lessons } = await supabaseClient
-    .from('lessons')
+    .from('lessons_curriculum')
     .select('id, title, section_title, sort_order, is_free_preview, duration_seconds')
     .eq('course_id', courseId)
     .order('sort_order');
@@ -2191,7 +2163,6 @@ async function loadCourseFiles() {
   if (filesLoaded || !currentCourse) return;
   filesLoaded = true;
 
-  const STORAGE_BASE = SUPABASE_URL + '/storage/v1/object/public/course-materials/';
   const { data, error } = await supabaseClient
     .from('course_files')
     .select('*')
@@ -2207,11 +2178,12 @@ async function loadCourseFiles() {
     return;
   }
 
-  listEl.innerHTML = data.map(f => {
+  const fileCards = await Promise.all(data.map(async f => {
+    const { data: sd } = await supabaseClient.storage.from('course-materials').createSignedUrl(f.file_path, 3600);
+    const url = sd?.signedUrl || '';
     const ext = (f.file_name || '').split('.').pop().toLowerCase();
     const icon = ext === 'pdf' ? '📄' : ext === 'zip' ? '🗜️' : ext.match(/xlsx?|csv/) ? '📊' : ext.match(/docx?/) ? '📝' : '📎';
     const sizeText = f.file_size ? (f.file_size > 1048576 ? (f.file_size/1048576).toFixed(1)+'MB' : Math.round(f.file_size/1024)+'KB') : '';
-    const url = STORAGE_BASE + encodeURIComponent(f.file_path);
     const date = new Date(f.created_at).toLocaleDateString('ko-KR');
     return `<div class="file-card">
       <div class="file-icon">${icon}</div>
@@ -2219,9 +2191,10 @@ async function loadCourseFiles() {
         <div class="file-title">${esc(f.title)}</div>
         <div class="file-meta">${esc(f.file_name)}${sizeText ? ' · ' + sizeText : ''} · ${date}</div>
       </div>
-      <a href="${url}" download="${esc(f.file_name)}" class="file-download-btn">다운로드</a>
+      ${url ? `<a href="${esc(url)}" download="${esc(f.file_name)}" class="file-download-btn">다운로드</a>` : '<span style="color:var(--gray-400);font-size:12px;">준비 중</span>'}
     </div>`;
-  }).join('');
+  }));
+  listEl.innerHTML = fileCards.join('');
 }
 
 // ───── 초기 실행 ─────

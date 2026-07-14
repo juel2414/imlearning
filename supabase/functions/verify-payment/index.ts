@@ -1,11 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://juel2414.github.io',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+const ALLOWED_ORIGINS = new Set<string>(
+  ['https://juel2414.github.io', Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
+);
+
+function corsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://juel2414.github.io',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
 
 function randomGiftCode() {
   const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -44,8 +51,9 @@ function calcServerPrice(course: CourseRow, now: Date): number {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
-  const resHeaders = { ...CORS_HEADERS, 'Content-Type': 'application/json' };
+  const cors = corsHeaders(req);
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+  const resHeaders = { ...cors, 'Content-Type': 'application/json' };
 
   const err = (msg: string, status = 400) =>
     new Response(JSON.stringify({ success: false, error: msg }), { status, headers: resHeaders });
@@ -145,10 +153,11 @@ Deno.serve(async (req: Request) => {
         if (!oErr) insertedCount++;
       }
 
-      // 패스 자체 결제 기록 (pass 전체 금액, course_id = null 불가하므로 첫 강좌 ID 사용)
+      // 패스 자체 결제 기록 (course_id = null = 프리패스 식별자)
+      // hasPurchased()와 RLS 정책에서 course_id IS NULL로 패스 보유 여부를 확인함
       await sb.from('orders').insert({
         user_id: user.id,
-        course_id: passCourses[0].course_id,
+        course_id: null,
         course_name: pass.name,
         payment_id: paymentId,
         amount: pass.price,
@@ -185,7 +194,7 @@ Deno.serve(async (req: Request) => {
     // ── 강좌 조회 + 서버사이드 가격 계산 (모든 경로 공통) ─────────────
     const { data: course } = await sb.from('courses')
       .select('title, price, discount_price, discount_start, discount_end, thumbnail_url')
-      .eq('id', courseId_n).single();
+      .eq('id', courseId_n).eq('status', 'active').single();
     if (!course) return err('강좌를 찾을 수 없습니다', 404);
 
     const now = new Date();
@@ -225,6 +234,12 @@ Deno.serve(async (req: Request) => {
         .select('id').eq('user_id', user.id).eq('course_id', courseId_n).eq('status', 'paid').maybeSingle();
       if (existing) return new Response(JSON.stringify({ success: true, orderId: existing.id, duplicate: true }), { headers: resHeaders });
 
+      // use_coupon을 주문 생성 전에 호출: 동시 요청 레이스컨디션 방지
+      if (couponId) {
+        const { data: couponUsed } = await sb.rpc('use_coupon', { p_coupon_id: couponId });
+        if (!couponUsed) return err('쿠폰 사용 한도를 초과했습니다.');
+      }
+
       const { data: order, error: orderError } = await sb.from('orders').insert({
         user_id: user.id, course_id: courseId_n, course_name: course.title ?? '강좌',
         payment_id: `free-${user.id}-${courseId}-${Date.now()}`,
@@ -233,7 +248,6 @@ Deno.serve(async (req: Request) => {
       }).select().single();
       if (orderError) return err(`주문 저장 실패: ${orderError.message}`, 500);
 
-      if (couponId) await sb.rpc('use_coupon', { p_coupon_id: couponId });
       return new Response(JSON.stringify({ success: true, orderId: order.id }), { headers: resHeaders });
     }
 
@@ -317,6 +331,20 @@ Deno.serve(async (req: Request) => {
     const { data: existing } = await sb.from('orders').select('id').eq('payment_id', paymentId).maybeSingle();
     if (existing) return new Response(JSON.stringify({ success: true, orderId: existing.id, duplicate: true }), { headers: resHeaders });
 
+    // 동일 사용자+강좌 중복 구매 방지 (환불된 주문 제외)
+    const { data: existingCourse } = await sb.from('orders')
+      .select('id').eq('user_id', user.id).eq('course_id', courseId_n)
+      .eq('status', 'paid')
+      .or('refund_status.is.null,refund_status.eq.none')
+      .maybeSingle();
+    if (existingCourse) return new Response(JSON.stringify({ success: true, orderId: existingCourse.id, duplicate: true }), { headers: resHeaders });
+
+    // use_coupon을 주문 생성 전에 호출: 동시 요청 레이스컨디션 방지
+    if (couponId) {
+      const { data: couponUsed } = await sb.rpc('use_coupon', { p_coupon_id: couponId });
+      if (!couponUsed) return err('쿠폰 사용 한도를 초과했습니다 (동시 사용 충돌).');
+    }
+
     const { data: order, error: orderError } = await sb.from('orders').insert({
       user_id: user.id, course_id: courseId_n, course_name: course.title ?? '강좌',
       payment_id: paymentId, amount, original_amount: originalAmount,
@@ -332,7 +360,6 @@ Deno.serve(async (req: Request) => {
       });
     } catch (e) { console.error('영수증 메일 실패(무시):', e); }
 
-    if (couponId) await sb.rpc('use_coupon', { p_coupon_id: couponId });
     return new Response(JSON.stringify({ success: true, orderId: order.id }), { headers: resHeaders });
 
   } catch (e) {

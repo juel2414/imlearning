@@ -105,18 +105,10 @@ async function checkAndAwardBadges(supabaseClient, userId, options = {}) {
 
   for (const [type, condition] of Object.entries(conditions)) {
     if (!earnedTypes.has(type) && condition) {
-      const { data, error } = await supabaseClient
-        .from('badges')
-        .upsert(
-          { user_id: userId, badge_type: type, earned_at: now },
-          { onConflict: 'user_id,badge_type' }
-        )
-        .select()
-        .single();
-
-      if (!error && data) {
+      const { error } = await supabaseClient.rpc('award_badge', { p_badge_type: type });
+      if (!error) {
         const def = BADGE_DEFINITIONS.find(d => d.type === type);
-        newBadges.push({ ...data, ...def });
+        newBadges.push({ user_id: userId, badge_type: type, earned_at: now, ...def });
         earnedTypes.add(type);
       }
     }

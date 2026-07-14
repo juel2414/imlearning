@@ -170,9 +170,9 @@
 
     list.innerHTML = data.map(function(n) {
       var badge = TYPE_BADGES[n.type] || 'badge-notice';
-      var label = TYPE_LABELS[n.type] || n.type;
+      var label = TYPE_LABELS[n.type] || escHtml(n.type);
       var dm = n.display_mode || 'none';
-      var dmBadge = '<span class="badge ' + (DISPLAY_BADGES[dm] || 'badge-list') + '" style="margin-left:4px;">' + (DISPLAY_LABELS[dm] || dm) + '</span>';
+      var dmBadge = '<span class="badge ' + (DISPLAY_BADGES[dm] || 'badge-list') + '" style="margin-left:4px;">' + (DISPLAY_LABELS[dm] || escHtml(dm)) + '</span>';
       return '<div class="notice-row">' +
         '<span class="badge ' + badge + '">' + label + '</span>' +
         dmBadge +
