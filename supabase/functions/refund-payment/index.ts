@@ -109,7 +109,7 @@ Deno.serve(async (req: Request) => {
         let totalWatched = 0
         for (const vp of vpData || []) totalWatched += vp.actual_watched_seconds || 0
         const totalDuration = (giftLessons || []).reduce((s, l) => s + (l.duration_seconds || 0), 0)
-        const watchRatio = totalDuration > 0 ? totalWatched / totalDuration : 0
+        const watchRatio = totalDuration > 0 ? totalWatched / totalDuration : (totalWatched > 0 ? 1 : 0)
         if (!isAdmin && watchRatio >= 1 / 3) {
           return new Response(JSON.stringify({ success: false, error: '수령자가 강의를 1/3 이상 시청해 환불이 불가합니다.' }), {
             status: 400, headers: { ...cors, 'Content-Type': 'application/json' },
@@ -292,7 +292,10 @@ Deno.serve(async (req: Request) => {
       for (const vp of vpData) totalWatched += vp.actual_watched_seconds || 0
     }
     const totalDuration = (lessonsData || []).reduce((s, l) => s + (l.duration_seconds || 0), 0)
-    const watchRatio = totalDuration > 0 ? totalWatched / totalDuration : 0
+    // totalDuration=0(미설정)이고 시청 기록이 있으면 완료로 간주 → 환불 차단
+    const watchRatio = totalDuration > 0
+      ? totalWatched / totalDuration
+      : (totalWatched > 0 ? 1 : 0)
 
     // 6. 구매 후 경과 일수 계산
     const daysSincePurchase =
