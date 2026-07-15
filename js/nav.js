@@ -274,12 +274,12 @@
 
   // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
   var MEGA_CATS = [
-    { key: 'faith',          label: '신앙' },
-    { key: 'teacher_parent', label: '교사·부모교육', badge: '추천',  badgeColor: '#2D9B6F' },
-    { key: 'school_subject', label: '중고등교과',    badge: '인기',  badgeColor: '#C6860B' },
-    { key: 'ged',            label: '검정고시',      badge: 'NEW',   badgeColor: '#2D9B6F' },
-    { key: 'english_test',   label: '영어·시험' },
-    { key: 'camp_mission',   label: '캠프·사역' },
+    { key: 'faith',          label: '신앙',          catParam: 'faith' },
+    { key: 'teacher_parent', label: '교사·부모교육', catParam: 'edu',     badge: '추천', badgeColor: '#2D9B6F' },
+    { key: 'school_subject', label: '중고등교과',    catParam: 'edu',     badge: '인기', badgeColor: '#C6860B' },
+    { key: 'ged',            label: '검정고시',      catParam: 'edu',     badge: 'NEW',  badgeColor: '#2D9B6F' },
+    { key: 'english_test',   label: '영어·시험',     catParam: 'english' },
+    { key: 'camp_mission',   label: '캠프·사역',     catParam: 'mission' },
   ];
 
   function loadMegaCourses() {
@@ -309,16 +309,17 @@
           }).join('');
           // thumbnail: first course image
           var thumbUrl = courses.length && courses[0].thumbnail_url ? courses[0].thumbnail_url : '';
+          var catHref = 'courses.html?cat=' + (cat.catParam || 'all');
           var thumbHtml = thumbUrl
-            ? '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-thumb">' +
+            ? '<a href="' + catHref + '" class="mega-col-thumb">' +
               '<img src="' + esc(thumbUrl) + '" alt=""></a>'
-            : '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
+            : '<a href="' + catHref + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
           var badgeHtml = cat.badge
             ? '<span class="mega-cat-badge" style="background:' + cat.badgeColor + '">' + cat.badge + '</span>'
             : '';
           html += '<div class="mega-col">' +
             thumbHtml +
-            '<a href="courses.html?subcategory=' + cat.key + '" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
+            '<a href="' + catHref + '" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
             '<div class="mega-col-items">' + items + '</div>' +
             '</div>';
         });
