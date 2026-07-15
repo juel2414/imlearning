@@ -423,16 +423,16 @@ function extractDominantColor(src, callback) {
   img.crossOrigin = 'anonymous';
   img.onload = function() {
     var canvas = document.createElement('canvas');
-    var size = 50; // 작게 리사이즈해서 빠르게 샘플링
+    var size = 50;
     canvas.width = size; canvas.height = size;
     var ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, size, size);
     var data = ctx.getImageData(0, 0, size, size).data;
     var r = 0, g = 0, b = 0, count = 0;
     for (var i = 0; i < data.length; i += 4) {
-      // 너무 밝거나(배경 흰색) 너무 어두운 픽셀 제외
+      // 극단값(어두운 배경·흰색) 제외: 60~220
       var br = (data[i] + data[i+1] + data[i+2]) / 3;
-      if (br < 240 && br > 20) {
+      if (br > 60 && br < 220) {
         r += data[i]; g += data[i+1]; b += data[i+2]; count++;
       }
     }
@@ -440,18 +440,25 @@ function extractDominantColor(src, callback) {
     r = Math.round(r / count);
     g = Math.round(g / count);
     b = Math.round(b / count);
-    // 채도 낮추고 밝게 → 배경색에 적합하게
     var max = Math.max(r, g, b), min = Math.min(r, g, b);
     var sat = max ? (max - min) / max : 0;
     if (sat > 0.15) {
-      // 색이 있으면 파스텔화: 흰색 방향으로 블렌딩
       r = Math.round(r * 0.3 + 220 * 0.7);
       g = Math.round(g * 0.3 + 235 * 0.7);
       b = Math.round(b * 0.3 + 225 * 0.7);
     } else {
-      r = Math.min(240, r + 40);
-      g = Math.min(245, g + 40);
-      b = Math.min(240, b + 40);
+      // 무채색: 흰색 방향 블렌딩으로 밝게
+      r = Math.round(r * 0.5 + 220 * 0.5);
+      g = Math.round(g * 0.5 + 230 * 0.5);
+      b = Math.round(b * 0.5 + 225 * 0.5);
+    }
+    // 최소 밝기 보장 (배경색이 너무 어두우면 추가 보정)
+    var brFinal = (r + g + b) / 3;
+    if (brFinal < 155) {
+      var t = brFinal / 155;
+      r = Math.round(r * t + 220 * (1 - t));
+      g = Math.round(g * t + 230 * (1 - t));
+      b = Math.round(b * t + 225 * (1 - t));
     }
     callback('#' + [r,g,b].map(function(v){ return ('0'+v.toString(16)).slice(-2); }).join(''));
   };
