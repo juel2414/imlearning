@@ -1,5 +1,5 @@
 /* ───── 폰트 정의 ───── */
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 @font-face {
   font-family: 'S-CoreDream';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff') format('woff');
@@ -50,7 +50,7 @@
   --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
   --shadow-lg: 0 16px 48px rgba(0,0,0,0.14);
   --transition: 0.2s cubic-bezier(.4,0,.2,1);
-  --font-body: 'Nanum Gothic', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-body: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-accent: 'Cafe24Surround', 'S-CoreDream', sans-serif;
 }
 
