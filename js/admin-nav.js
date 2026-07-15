@@ -160,7 +160,7 @@
 
     try {
       // 이미 초기화된 클라이언트가 있으면 재사용, 없으면 직접 생성
-      var _sb = window.supabaseClient || window.sb;
+      var _sb = window.supabaseClient;
       if (!_sb && window.supabase) {
         _sb = window.supabase.createClient(
           'https://lvglkxjzraznwnfilxvy.supabase.co',

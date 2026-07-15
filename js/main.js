@@ -75,25 +75,7 @@ function initCatTabs() {
   });
 }
 
-// ───── 네비게이션 활성화 ─────
-function initNavActive() {
-  const path = window.location.pathname.split('/').pop();
-  document.querySelectorAll('.navbar-menu a').forEach(a => {
-    const href = a.getAttribute('href');
-    if (href === path || (path === '' && href === 'index.html')) {
-      a.classList.add('active');
-    }
-  });
-}
-
 // ───── 초기화 ─────
 document.addEventListener('DOMContentLoaded', () => {
-  initNavActive();
   initCatTabs();
-
-  // 프로모션 카운트다운 (임시 날짜 — admin에서 수정 예정)
-  const promoEnd = document.getElementById('promo-end-date');
-  if (promoEnd) {
-    updateCountdown(promoEnd.dataset.date, 'countdown-timer');
-  }
 });

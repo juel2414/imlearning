@@ -1293,19 +1293,14 @@ async function initPersonal() {
 document.addEventListener('DOMContentLoaded', function() {
   init();
   initPersonal();
-  startHeroSlideshow();
   initHeroCanvas();
 });
-
-function startHeroSlideshow() {
-  // 추천 강좌 슬라이더로 대체 — initFeaturedSlider() 참조
-}
 
 // ── 히어로 슬라이더: 배너 우선, 없으면 추천 강좌 ──
 async function initFeaturedSlider() {
   const bgSlides = Array.from(document.querySelectorAll('.hero-bg-slide'));
   let bgIdx = 0;
-  const interval = Number(localStorage.getItem('carousel_interval')) || 4000;
+  const interval = 5000;
 
   function nextBg() {
     if (bgSlides.length < 2) return;

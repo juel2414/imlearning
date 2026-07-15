@@ -196,34 +196,13 @@
       </div>
     </div>
 
-    <!-- 전환 속도 설정 -->
+    <!-- 전환 속도: 5초 고정 -->
     <div class="admin-card">
       <div class="admin-card-header">
         <div class="admin-card-title">캐러셀 전환 설정</div>
       </div>
       <div class="admin-card-body">
-        <div class="form-row">
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">자동 전환 간격</label>
-            <select class="form-select" id="carousel-interval">
-              <option value="3000">3초</option>
-              <option value="5000" selected>5초</option>
-              <option value="7000">7초</option>
-              <option value="10000">10초</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label class="form-label">자동 전환</label>
-            <div style="display:flex;align-items:center;gap:10px;padding-top:10px;">
-              <label class="toggle-switch">
-                <input type="checkbox" id="carousel-auto" checked>
-                <span class="toggle-slider"></span>
-              </label>
-              <span style="font-size:13px;color:#3D3D3D;">자동 전환 켜기</span>
-            </div>
-          </div>
-        </div>
-        <button class="btn-save" onclick="saveCarousel()">저장하기</button>
+        <p style="font-size:13px;color:#6B6B6B;margin:0;">자동 전환 간격은 <strong>5초</strong>로 고정되어 있습니다.</p>
       </div>
     </div>
 
@@ -266,9 +245,6 @@ async function loadBanners() {
     const tog = get('s'+n+'-active');
     if (tog) tog.checked = b.is_active;
   });
-  // 저장된 캐러셀 간격 복원
-  const savedInterval = localStorage.getItem('carousel_interval');
-  if (savedInterval) document.getElementById('carousel-interval').value = savedInterval;
 }
 
 async function logout() { await sb.auth.signOut(); window.location.href = '../index.html'; }
@@ -300,11 +276,6 @@ async function saveSlides() {
 
   if (failed) { alert('저장 실패: ' + failed.error.message); return; }
   showToast('슬라이드가 저장되었습니다!');
-}
-
-function saveCarousel() {
-  localStorage.setItem('carousel_interval', document.getElementById('carousel-interval').value);
-  showToast('캐러셀 설정이 저장되었습니다!');
 }
 
 function showToast(msg) {

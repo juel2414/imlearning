@@ -169,6 +169,19 @@
             </select>
           </div>
           <div class="form-group">
+            <label>세부 분류 (메가메뉴)</label>
+            <select id="course-subcategory">
+              <option value="">선택 안 함</option>
+              <option value="faith">신앙</option>
+              <option value="teacher_parent">교사·부모교육</option>
+              <option value="school_subject">중고등교과</option>
+              <option value="ged">검정고시</option>
+              <option value="english_test">영어·시험</option>
+              <option value="camp_mission">캠프·사역</option>
+            </select>
+            <div class="hint">상단 메가메뉴 각 열에 강좌가 노출됩니다</div>
+          </div>
+          <div class="form-group">
             <label>노출 섹션</label>
             <select id="course-section">
               <option value="">섹션 선택 안 함</option>
@@ -383,7 +396,7 @@ function resetForm() {
   thumbData = null;
   thumbFile = null;
   document.getElementById('form-title').textContent = '새 강좌 추가';
-  ['course-title','course-desc','course-cat','course-section','course-instructor','course-level',
+  ['course-title','course-desc','course-cat','course-subcategory','course-section','course-instructor','course-level',
    'course-lessons','course-students-count','course-price','course-discount-price',
    'course-discount-start','course-discount-end','course-vimeo'].forEach(function(id){
     var el = document.getElementById(id);
@@ -505,6 +518,7 @@ async function saveCourse() {
     title: title,
     description: val('course-desc'),
     category: val('course-cat'),
+    subcategory: val('course-subcategory') || null,
     section: val('course-section') || null,
     instructor: val('course-instructor'),
     level: val('course-level') || null,
@@ -569,6 +583,7 @@ function editCourse(id) {
   document.getElementById('course-title').value = c.title || '';
   document.getElementById('course-desc').value = c.description || '';
   document.getElementById('course-cat').value = c.category || '';
+  document.getElementById('course-subcategory').value = c.subcategory || '';
   document.getElementById('course-section').value = c.section || '';
   document.getElementById('course-instructor').value = c.instructor || '';
   document.getElementById('course-level').value = c.level || '';
@@ -1355,7 +1370,6 @@ async function deleteCourseFile(fileId, filePath) {
   await loadCourseFiles();
 }
 </script>
-<script src="../js/email.js"></script>
 <script src="../js/admin-nav.js"></script>
 </body>
 </html>

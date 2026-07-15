@@ -154,13 +154,7 @@ async function hasPurchased(userId, courseId) {
   return false;
 }
 
-// ───── 로그아웃 (네비 공용) ─────
-async function navLogout() {
-  await supabaseClient.auth.signOut();
-  window.location.href = 'index.html';
-}
-
-// 네비 로그인 상태 반영은 js/nav.js의 onAuthStateChange 리스너가 처리
+// 로그아웃은 js/nav.js의 navLogout()이 처리
 
 function _esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
