@@ -1301,10 +1301,11 @@ function startHeroSlideshow() {
   // 추천 강좌 슬라이더로 대체 — initFeaturedSlider() 참조
 }
 
-// ── 추천 강좌 슬라이더 + 배경 동기화 ──
+// ── 히어로 슬라이더: 배너 우선, 없으면 추천 강좌 ──
 async function initFeaturedSlider() {
   const bgSlides = Array.from(document.querySelectorAll('.hero-bg-slide'));
   let bgIdx = 0;
+  const interval = Number(localStorage.getItem('carousel_interval')) || 4000;
 
   function nextBg() {
     if (bgSlides.length < 2) return;
@@ -1312,16 +1313,22 @@ async function initFeaturedSlider() {
     bgIdx = (bgIdx + 1) % bgSlides.length;
   }
 
-  try {
-    const { data, error } = await supabaseClient.rpc('get_featured_courses');
-    const imgWrap = document.getElementById('js-hero-img');
-    if (!imgWrap) { setInterval(nextBg, 4000); return; }
+  const imgWrap = document.getElementById('js-hero-img');
 
-    if (error || !data || data.length === 0) {
-      // 강좌 없으면 배경만 순환
-      setInterval(nextBg, 4000);
+  try {
+    // 1. 배너 테이블 우선 로드
+    const { data: banners } = await supabaseClient
+      .from('banners').select('*').eq('is_active', true).order('sort_order');
+
+    if (banners && banners.length > 0) {
+      buildBannerSlider(imgWrap, banners, nextBg, interval);
       return;
     }
+
+    // 2. 활성 배너 없으면 추천 강좌 폴백
+    if (!imgWrap) { setInterval(nextBg, interval); return; }
+    const { data, error } = await supabaseClient.rpc('get_featured_courses');
+    if (error || !data || data.length === 0) { setInterval(nextBg, interval); return; }
 
     function buildCardInner(c) {
       const price = c.price > 0 ? `₩${Number(c.price).toLocaleString()}` : '무료';
@@ -1343,7 +1350,6 @@ async function initFeaturedSlider() {
     const dots = data.map((_, i) =>
       `<span class="lp-feat-dot${i === 0 ? ' active' : ''}" data-idx="${i}"></span>`
     ).join('');
-
     imgWrap.innerHTML = `<div class="lp-feat-slider">
       <a class="lp-feat-slide active" id="hero-feat-card" href="course-detail.html?id=${data[0].course_id}">
         ${buildCardInner(data[0])}
@@ -1354,37 +1360,68 @@ async function initFeaturedSlider() {
     let cur = 0;
     const card = () => document.getElementById('hero-feat-card');
     const allDots = () => imgWrap.querySelectorAll('.lp-feat-dot');
-
     function goToCard(idx) {
       const c = data[idx];
       const el = card();
       if (el) {
         el.style.opacity = '0';
         el.style.transition = 'opacity 0.4s ease';
-        setTimeout(() => {
-          el.href = `course-detail.html?id=${c.course_id}`;
-          el.innerHTML = buildCardInner(c);
-          el.style.opacity = '1';
-        }, 400);
+        setTimeout(() => { el.href = `course-detail.html?id=${c.course_id}`; el.innerHTML = buildCardInner(c); el.style.opacity = '1'; }, 400);
       }
       allDots().forEach((d, i) => d.classList.toggle('active', i === idx));
       cur = idx;
     }
-
-    // 도트 클릭
     imgWrap.querySelectorAll('.lp-feat-dot').forEach(dot => {
       dot.addEventListener('click', e => { e.preventDefault(); goToCard(Number(dot.dataset.idx)); });
     });
-
-    // 배경 + 카드 동시 전환 (4초 단일 타이머)
-    setInterval(() => {
-      nextBg();
-      goToCard((cur + 1) % data.length);
-    }, 4000);
+    setInterval(() => { nextBg(); goToCard((cur + 1) % data.length); }, interval);
 
   } catch(e) {
-    setInterval(nextBg, 4000);
+    setInterval(nextBg, interval);
   }
+}
+
+function buildBannerSlider(imgWrap, banners, nextBg, interval) {
+  if (!imgWrap) { setInterval(nextBg, interval); return; }
+
+  function bannerInner(b) {
+    return `<div class="lp-feat-color-bg" style="background-color:${esc(b.color||'#1a3a28')}"></div>
+      <div class="lp-feat-body" style="justify-content:center;padding:2rem 1.5rem;">
+        ${b.badge_text ? `<div class="lp-feat-badge">${esc(b.badge_text)}</div>` : ''}
+        <div class="lp-feat-title">${esc(b.title)}</div>
+        ${b.description ? `<div style="font-size:13px;color:rgba(255,255,255,.8);margin:6px 0 12px;line-height:1.5;">${esc(b.description)}</div>` : ''}
+        <div class="lp-feat-cta">자세히 보기 →</div>
+      </div>`;
+  }
+
+  const dots = banners.map((_, i) =>
+    `<span class="lp-feat-dot${i === 0 ? ' active' : ''}" data-idx="${i}"></span>`
+  ).join('');
+  imgWrap.innerHTML = `<div class="lp-feat-slider">
+    <a class="lp-feat-slide active" id="hero-feat-card" href="${esc(banners[0].link_url || '#')}">
+      ${bannerInner(banners[0])}
+    </a>
+    <div class="lp-feat-dots">${dots}</div>
+  </div>`;
+
+  let cur = 0;
+  const card = () => document.getElementById('hero-feat-card');
+  const allDots = () => imgWrap.querySelectorAll('.lp-feat-dot');
+  function goToBanner(idx) {
+    const b = banners[idx];
+    const el = card();
+    if (el) {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.4s ease';
+      setTimeout(() => { el.href = esc(b.link_url || '#'); el.innerHTML = bannerInner(b); el.style.opacity = '1'; }, 400);
+    }
+    allDots().forEach((d, i) => d.classList.toggle('active', i === idx));
+    cur = idx;
+  }
+  imgWrap.querySelectorAll('.lp-feat-dot').forEach(dot => {
+    dot.addEventListener('click', e => { e.preventDefault(); goToBanner(Number(dot.dataset.idx)); });
+  });
+  setInterval(() => { nextBg(); goToBanner((cur + 1) % banners.length); }, interval);
 }
 
 function initHeroCanvas() {
