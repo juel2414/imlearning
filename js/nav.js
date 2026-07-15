@@ -234,7 +234,7 @@
     '      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
     '    </div></li>',
     '  </ul>',
-    '  <button id="nb-search-btn" aria-label="검색">🔍</button>',
+    '  <button id="nb-search-btn" aria-label="검색"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.8"/><line x1="11.5" y1="11.5" x2="16" y2="16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>',
     '  <div class="navbar-right" id="nb-right">',
     '    <a href="login.html" class="btn btn-outline btn-sm">로그인</a>',
     '    <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
