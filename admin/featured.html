@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>히어로 슬라이더 관리 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <link rel="stylesheet" href="admin-common.css">
+  <style>
+    body { background: #F8F9FA; }
+
+    /* ── 통계 ── */
+    .stats-row { display:flex; gap:14px; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .stat-card { flex:1 1 140px; background:#fff; border-radius:12px; border:1px solid rgba(0,0,0,.06); padding:18px 20px; }
+    .stat-label { font-size:12px; color:#6B6B6B; margin-bottom:6px; }
+    .stat-value { font-size:26px; font-weight:800; }
+    .stat-value.green { color:#2D9B6F; }
+
+    /* ── 강좌 추가 ── */
+    .add-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .add-row select { flex:1; min-width:200px; padding:10px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:14px; font-family:inherit; background:#fff; }
+    .btn-add { padding:10px 22px; background:#2D9B6F; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; font-family:inherit; }
+    .btn-add:hover { background:#1A7A4A; }
+    .btn-add:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* ── 슬라이더 목록 ── */
+    .feat-list { display:flex; flex-direction:column; gap:0; }
+    .feat-row {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 20px; border-bottom:1px solid rgba(0,0,0,.05);
+      transition:background .12s;
+    }
+    .feat-row:last-child { border-bottom:none; }
+    .feat-row:hover { background:#F8FBF9; }
+    .feat-order { font-size:18px; font-weight:900; color:#C4C4C4; width:24px; text-align:center; flex-shrink:0; }
+    .feat-thumb { width:72px; height:46px; border-radius:8px; object-fit:cover; background:#EEE; flex-shrink:0; }
+    .feat-thumb-ph { width:72px; height:46px; border-radius:8px; background:#E8F5EE; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .feat-info { flex:1; min-width:0; }
+    .feat-title { font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .feat-price { font-size:12px; color:#6B6B6B; margin-top:2px; }
+    .feat-controls { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .btn-order { width:28px; height:28px; border:1px solid rgba(0,0,0,.1); border-radius:6px; background:#fff; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; }
+    .btn-order:hover { border-color:#2D9B6F; color:#2D9B6F; }
+    .btn-order:disabled { opacity:.3; cursor:not-allowed; }
+    .btn-remove { padding:5px 12px; font-size:11px; border:1px solid #FCA5A5; border-radius:6px; color:#EF4444; background:#fff; cursor:pointer; white-space:nowrap; }
+    .btn-remove:hover { background:#FEE2E2; }
+
+    /* 활성 토글 */
+    .tog-wrap { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+    .tog-wrap input { position:absolute; opacity:0; width:0; height:0; }
+    .tog-track { width:34px; height:19px; background:#D1D5DB; border-radius:19px; transition:background .2s; flex-shrink:0; position:relative; }
+    .tog-wrap input:checked ~ .tog-track { background:#2D9B6F; }
+    .tog-track::after { content:''; position:absolute; top:2px; left:2px; width:15px; height:15px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .2s; }
+    .tog-wrap input:checked ~ .tog-track::after { transform:translateX(15px); }
+    .tog-label { font-size:11px; font-weight:600; color:#6B6B6B; white-space:nowrap; }
+
+    .empty-state { text-align:center; padding:3rem; color:#6B6B6B; }
+    .loading-state { text-align:center; padding:3rem; color:#6B6B6B; }
+
+    /* 토스트 */
+    .toast { display:none; position:fixed; top:20px; right:20px; background:#2D9B6F; color:#fff; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:600; z-index:999; box-shadow:0 4px 16px rgba(0,0,0,.15); }
+    .toast.show { display:block; animation:fadeIn .2s; }
+    .toast.error { background:#EF4444; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+
+    /* 미리보기 힌트 */
+    .hint-box { background:#F0FDF4; border:1px solid #BBF7D0; border-radius:10px; padding:12px 16px; font-size:12px; color:#166534; margin-bottom:1.2rem; }
+  </style>
+</head>
+<body>
+<div class="admin-main">
+
+  <div class="admin-header">
+    <div>
+      <h1>🎠 히어로 슬라이더 관리</h1>
+      <p style="margin:4px 0 0;font-size:13px;color:#6B6B6B;">메인 페이지 상단 추천 강좌 슬라이더를 설정해요</p>
+    </div>
+    <a href="../index.html" target="_blank" style="padding:9px 16px;border:1px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;font-weight:600;color:#3D3D3D;background:#fff;text-decoration:none;">🌐 사이트 보기</a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">슬라이더 표시 중</div>
+      <div class="stat-value green" id="stat-active">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">전체 등록</div>
+      <div class="stat-value" id="stat-total">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">최대 권장</div>
+      <div class="stat-value" style="color:#9CA3AF;">5개</div>
+    </div>
+  </div>
+
+  <div class="hint-box">
+    슬라이더는 <strong>활성(ON)</strong> 상태인 강좌만 메인 페이지에 표시돼요. 순서 버튼으로 노출 순서를 바꿀 수 있어요.
+  </div>
+
+  <!-- 강좌 추가 -->
+  <div class="admin-card" style="margin-bottom:1.2rem;">
+    <div class="admin-card-header">
+      <span style="font-size:14px;font-weight:700;">슬라이더에 강좌 추가</span>
+    </div>
+    <div style="padding:18px 22px;">
+      <div class="add-row">
+        <select id="course-select">
+          <option value="">강좌를 선택하세요</option>
+        </select>
+        <button class="btn-add" onclick="addFeatured()" id="btn-add">추가</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 슬라이더 목록 -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <span style="font-size:14px;font-weight:700;">슬라이더 목록</span>
+      <span style="font-size:12px;color:#6B6B6B;">위에서부터 순서대로 표시돼요</span>
+    </div>
+    <div id="feat-list-wrap">
+      <div class="loading-state">불러오는 중...</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/admin-nav.js"></script>
+<script>
+const sb = window.supabase;
+
+let featuredRows = [];   // { id, course_id, active, sort_order, courses:{title,thumbnail_url,price} }
+let allCourses   = [];   // 전체 활성 강좌
+
+async function init() {
+  await Promise.all([loadFeatured(), loadAllCourses()]);
+}
+
+async function loadFeatured() {
+  const { data, error } = await sb
+    .from('featured_courses')
+    .select('id, course_id, active, sort_order, courses(title, thumbnail_url, price)')
+    .order('sort_order', { ascending: true });
+
+  if (error) { showToast('목록 로드 실패: ' + error.message, true); return; }
+  featuredRows = data || [];
+  renderList();
+  updateStats();
+}
+
+async function loadAllCourses() {
+  const { data } = await sb
+    .from('courses')
+    .select('id, title, price')
+    .eq('status', 'active')
+    .order('title', { ascending: true });
+  allCourses = data || [];
+  renderCourseSelect();
+}
+
+function renderCourseSelect() {
+  const sel = document.getElementById('course-select');
+  const existingIds = new Set(featuredRows.map(r => r.course_id));
+  const available = allCourses.filter(c => !existingIds.has(c.id));
+  sel.innerHTML = '<option value="">강좌를 선택하세요</option>' +
+    available.map(c => `<option value="${c.id}">${c.title}${c.price ? ' — ₩' + Number(c.price).toLocaleString() : ' (무료)'}</option>`).join('');
+}
+
+function renderList() {
+  const wrap = document.getElementById('feat-list-wrap');
+  if (!featuredRows.length) {
+    wrap.innerHTML = '<div class="empty-state">등록된 강좌가 없어요. 위에서 추가해보세요.</div>';
+    return;
+  }
+
+  wrap.innerHTML = '<div class="feat-list">' +
+    featuredRows.map((r, i) => {
+      const c = r.courses || {};
+      const thumb = c.thumbnail_url
+        ? `<img class="feat-thumb" src="${esc(c.thumbnail_url)}" alt="">`
+        : `<div class="feat-thumb-ph">📚</div>`;
+      const price = c.price > 0 ? '₩' + Number(c.price).toLocaleString() : '무료';
+      const togId = 'tog-' + r.id;
+      return `<div class="feat-row" id="row-${r.id}">
+        <span class="feat-order">${i + 1}</span>
+        ${thumb}
+        <div class="feat-info">
+          <div class="feat-title">${esc(c.title || '(제목 없음)')}</div>
+          <div class="feat-price">${price}</div>
+        </div>
+        <div class="feat-controls">
+          <label class="tog-wrap">
+            <input type="checkbox" id="${togId}" ${r.active ? 'checked' : ''} onchange="toggleActive(${r.id}, this.checked)">
+            <span class="tog-track"></span>
+            <span class="tog-label">${r.active ? '표시 중' : '숨김'}</span>
+          </label>
+          <button class="btn-order" onclick="moveRow(${r.id}, -1)" ${i === 0 ? 'disabled' : ''} title="위로">▲</button>
+          <button class="btn-order" onclick="moveRow(${r.id}, 1)" ${i === featuredRows.length - 1 ? 'disabled' : ''} title="아래로">▼</button>
+          <button class="btn-remove" onclick="removeRow(${r.id}, '${esc(c.title || '')}')">삭제</button>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+
+  // 토글 라벨 실시간 업데이트
+  featuredRows.forEach(r => {
+    const inp = document.getElementById('tog-' + r.id);
+    if (inp) inp.addEventListener('change', function() {
+      const lbl = this.closest('.tog-wrap').querySelector('.tog-label');
+      if (lbl) lbl.textContent = this.checked ? '표시 중' : '숨김';
+    });
+  });
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = featuredRows.length;
+  document.getElementById('stat-active').textContent = featuredRows.filter(r => r.active).length;
+}
+
+async function addFeatured() {
+  const sel = document.getElementById('course-select');
+  const courseId = parseInt(sel.value);
+  if (!courseId) { showToast('강좌를 선택해주세요', true); return; }
+
+  const btn = document.getElementById('btn-add');
+  btn.disabled = true; btn.textContent = '추가 중...';
+
+  const maxOrder = featuredRows.length ? Math.max(...featuredRows.map(r => r.sort_order)) : 0;
+  const { error } = await sb.from('featured_courses').insert({
+    course_id: courseId,
+    active: true,
+    sort_order: maxOrder + 1,
+  });
+
+  btn.disabled = false; btn.textContent = '추가';
+  if (error) { showToast('추가 실패: ' + error.message, true); return; }
+  showToast('슬라이더에 추가됐어요');
+  await loadFeatured();
+  renderCourseSelect();
+}
+
+async function toggleActive(id, active) {
+  const { error } = await sb.from('featured_courses').update({ active }).eq('id', id);
+  if (error) { showToast('저장 실패', true); return; }
+  const row = featuredRows.find(r => r.id === id);
+  if (row) row.active = active;
+  updateStats();
+}
+
+async function moveRow(id, dir) {
+  const idx = featuredRows.findIndex(r => r.id === id);
+  const swapIdx = idx + dir;
+  if (swapIdx < 0 || swapIdx >= featuredRows.length) return;
+
+  const a = featuredRows[idx];
+  const b = featuredRows[swapIdx];
+  const tmpOrder = a.sort_order;
+
+  const [r1, r2] = await Promise.all([
+    sb.from('featured_courses').update({ sort_order: b.sort_order }).eq('id', a.id),
+    sb.from('featured_courses').update({ sort_order: tmpOrder }).eq('id', b.id),
+  ]);
+
+  if (r1.error || r2.error) { showToast('순서 변경 실패', true); return; }
+  await loadFeatured();
+}
+
+async function removeRow(id, title) {
+  if (!confirm(`"${title}" 을(를) 슬라이더에서 제거할까요?`)) return;
+  const { error } = await sb.from('featured_courses').delete().eq('id', id);
+  if (error) { showToast('삭제 실패: ' + error.message, true); return; }
+  showToast('슬라이더에서 제거했어요');
+  await loadFeatured();
+  renderCourseSelect();
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.className = 'toast', 3000);
+}
+
+init();
+</script>
+</body>
+</html>

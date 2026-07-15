@@ -22,6 +22,7 @@
     { type: 'section', label: '콘텐츠' },
     { href: 'notices.html',     icon: '📢', label: '공지사항' },
     { href: 'banners.html',     icon: '🖼️', label: '배너 관리' },
+    { href: 'featured.html',    icon: '🎠', label: '히어로 슬라이더' },
     { href: 'landing.html',     icon: '🏠', label: '랜딩 빌더' },
     { href: 'theme.html',       icon: '🎨', label: '테마 관리' },
     { type: 'section', label: '설정' },
