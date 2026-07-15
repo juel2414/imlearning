@@ -140,13 +140,24 @@ async function init() {
 }
 
 async function loadFeatured() {
-  const { data, error } = await sb
+  const { data: fRows, error } = await sb
     .from('featured_courses')
-    .select('id, course_id, active, sort_order, courses(title, thumbnail_url, price)')
+    .select('id, course_id, active, sort_order')
     .order('sort_order', { ascending: true });
 
   if (error) { showToast('목록 로드 실패: ' + error.message, true); return; }
-  featuredRows = data || [];
+  if (!fRows || !fRows.length) { featuredRows = []; renderList(); updateStats(); return; }
+
+  const courseIds = fRows.map(r => r.course_id);
+  const { data: cRows } = await sb
+    .from('courses')
+    .select('id, title, thumbnail_url, price')
+    .in('id', courseIds);
+
+  const courseMap = {};
+  (cRows || []).forEach(c => { courseMap[c.id] = c; });
+
+  featuredRows = fRows.map(r => ({ ...r, courses: courseMap[r.course_id] || {} }));
   renderList();
   updateStats();
 }
