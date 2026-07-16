@@ -87,9 +87,18 @@
                 <label class="form-label">제목</label>
                 <input class="form-input" id="s1-title">
               </div>
-              <div class="form-group">
-                <label class="form-label">설명</label>
-                <input class="form-input" id="s1-desc">
+              <div class="form-row" style="margin-top:0;">
+                <div class="form-group">
+                  <label class="form-label">설명</label>
+                  <input class="form-input" id="s1-desc">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">배경 색상</label>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="color" id="s1-color" value="#2D9B6F" style="width:44px;height:38px;padding:2px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;cursor:pointer;">
+                    <input class="form-input" id="s1-color-hex" placeholder="#2D9B6F" style="flex:1;" oninput="syncColorFromHex(1)">
+                  </div>
+                </div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
                 <label class="toggle-switch"><input type="checkbox" id="s1-active" checked><span class="toggle-slider"></span></label>
@@ -118,9 +127,18 @@
                 <label class="form-label">제목</label>
                 <input class="form-input" id="s2-title">
               </div>
-              <div class="form-group">
-                <label class="form-label">설명</label>
-                <input class="form-input" id="s2-desc">
+              <div class="form-row" style="margin-top:0;">
+                <div class="form-group">
+                  <label class="form-label">설명</label>
+                  <input class="form-input" id="s2-desc">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">배경 색상</label>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="color" id="s2-color" value="#4B6FD4" style="width:44px;height:38px;padding:2px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;cursor:pointer;">
+                    <input class="form-input" id="s2-color-hex" placeholder="#4B6FD4" style="flex:1;" oninput="syncColorFromHex(2)">
+                  </div>
+                </div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
                 <label class="toggle-switch"><input type="checkbox" id="s2-active" checked><span class="toggle-slider"></span></label>
@@ -149,9 +167,18 @@
                 <label class="form-label">제목</label>
                 <input class="form-input" id="s3-title">
               </div>
-              <div class="form-group">
-                <label class="form-label">설명</label>
-                <input class="form-input" id="s3-desc">
+              <div class="form-row" style="margin-top:0;">
+                <div class="form-group">
+                  <label class="form-label">설명</label>
+                  <input class="form-input" id="s3-desc">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">배경 색상</label>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="color" id="s3-color" value="#D4822D" style="width:44px;height:38px;padding:2px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;cursor:pointer;">
+                    <input class="form-input" id="s3-color-hex" placeholder="#D4822D" style="flex:1;" oninput="syncColorFromHex(3)">
+                  </div>
+                </div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
                 <label class="toggle-switch"><input type="checkbox" id="s3-active" checked><span class="toggle-slider"></span></label>
@@ -180,9 +207,18 @@
                 <label class="form-label">제목</label>
                 <input class="form-input" id="s4-title">
               </div>
-              <div class="form-group">
-                <label class="form-label">설명</label>
-                <input class="form-input" id="s4-desc">
+              <div class="form-row" style="margin-top:0;">
+                <div class="form-group">
+                  <label class="form-label">설명</label>
+                  <input class="form-input" id="s4-desc">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">배경 색상</label>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="color" id="s4-color" value="#2D9B7A" style="width:44px;height:38px;padding:2px;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;cursor:pointer;">
+                    <input class="form-input" id="s4-color-hex" placeholder="#2D9B7A" style="flex:1;" oninput="syncColorFromHex(4)">
+                  </div>
+                </div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
                 <label class="toggle-switch"><input type="checkbox" id="s4-active" checked><span class="toggle-slider"></span></label>
@@ -233,17 +269,25 @@ const sb = window.supabaseClient;
 
 async function loadBanners() {
   const { data, error } = await sb.from('banners').select('*').order('sort_order');
-  if (error || !data) return;
+  if (error || !data) { showToast('배너 데이터를 불러오지 못했습니다.'); return; }
   data.forEach(b => {
     const n = b.sort_order;
     const get = id => document.getElementById(id);
-    if (get('s'+n+'-badge')) get('s'+n+'-badge').value = b.badge_text || '';
-    if (get('s'+n+'-title')) get('s'+n+'-title').value = b.title || '';
-    if (get('s'+n+'-desc'))  get('s'+n+'-desc').value  = b.description || '';
-    if (get('s'+n+'-link'))  get('s'+n+'-link').value  = b.link_url || '';
-    // is_active 토글 반영
+    if (get('s'+n+'-badge'))  get('s'+n+'-badge').value  = b.badge_text || '';
+    if (get('s'+n+'-title'))  get('s'+n+'-title').value  = b.title || '';
+    if (get('s'+n+'-desc'))   get('s'+n+'-desc').value   = b.description || '';
+    if (get('s'+n+'-link'))   get('s'+n+'-link').value   = b.link_url || '';
+    if (get('s'+n+'-color'))  get('s'+n+'-color').value  = b.color || '#1a3a28';
+    if (get('s'+n+'-color-hex')) get('s'+n+'-color-hex').value = b.color || '#1a3a28';
     const tog = get('s'+n+'-active');
     if (tog) tog.checked = b.is_active;
+    // 색상 피커 변경 시 hex 입력도 동기화
+    const picker = get('s'+n+'-color');
+    if (picker) picker.oninput = () => {
+      const hex = get('s'+n+'-color');
+      const hexInput = get('s'+n+'-color-hex');
+      if (hexInput) hexInput.value = hex.value;
+    };
   });
 }
 
@@ -253,6 +297,14 @@ function toggleSlide(n) {
   document.getElementById('slide-body-' + n).classList.toggle('open');
 }
 
+function syncColorFromHex(n) {
+  const hexInput = document.getElementById('s'+n+'-color-hex');
+  const picker   = document.getElementById('s'+n+'-color');
+  if (!hexInput || !picker) return;
+  const val = hexInput.value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) picker.value = val;
+}
+
 async function saveSlides() {
   const btn = document.querySelector('.btn-save');
   btn.disabled = true;
@@ -260,11 +312,15 @@ async function saveSlides() {
 
   const updates = [];
   for (let i = 1; i <= 4; i++) {
+    const colorHex = document.getElementById('s'+i+'-color-hex');
+    const colorPicker = document.getElementById('s'+i+'-color');
+    const color = (colorHex && colorHex.value.trim()) || (colorPicker && colorPicker.value) || '#1a3a28';
     updates.push(sb.from('banners').update({
       badge_text:  document.getElementById('s'+i+'-badge').value,
       title:       document.getElementById('s'+i+'-title').value,
       description: document.getElementById('s'+i+'-desc').value,
       link_url:    document.getElementById('s'+i+'-link').value,
+      color:       color,
       is_active:   document.getElementById('s'+i+'-active') ? document.getElementById('s'+i+'-active').checked : true,
     }).eq('sort_order', i));
   }
