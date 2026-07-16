@@ -557,12 +557,29 @@
       .lp-online-grid { grid-template-columns:1fr; }
     }
     @media(max-width:640px){
-      .lp-feat-thumb-frame, .lp-feat-thumb-ph { display:none; }
-      .lp-feat-body { margin:0 5%; width:90%; padding:1.5rem; gap:10px; }
-      .lp-feat-title { font-size:16px; -webkit-line-clamp:3; }
-      .lp-feat-price { font-size:18px; }
-      .lp-feat-cta { font-size:12px; padding:9px 16px; }
-      .lp-hero-img { height:220px; }
+      .lp-hero-img { height:300px; }
+      /* 썸네일(위) + 텍스트 패널(아래) 세로 스택 */
+      .lp-feat-slide { flex-direction:column; align-items:stretch; }
+      .lp-feat-thumb-frame {
+        width:100%; height:52%; margin:0;
+        border-radius:0; transform:none;
+        box-shadow:none;
+      }
+      .lp-feat-thumb-ph {
+        width:100%; height:52%; margin:0;
+        border-radius:0; transform:none;
+        font-size:48px;
+      }
+      .lp-feat-body {
+        flex:1; margin:0; width:auto;
+        border-radius:0 0 24px 24px;
+        padding:0.85rem 1.1rem;
+        gap:5px;
+      }
+      .lp-feat-badge { font-size:10px; padding:3px 9px; }
+      .lp-feat-title { font-size:14px; -webkit-line-clamp:2; }
+      .lp-feat-price { font-size:16px; }
+      .lp-feat-cta { font-size:11px; padding:7px 13px; }
     }
     @media(max-width:480px){
       .lp-hero-btns { flex-direction:column; }
