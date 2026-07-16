@@ -171,6 +171,15 @@ function fmtDate(iso) {
   return iso ? iso.slice(0,10) : '';
 }
 
+function slugFromLink(link) {
+  if (!link) return '';
+  try {
+    const m = decodeURIComponent(link).match(/\/course\/([^/#]+)/);
+    if (m) return m[1].replace(/-/g, ' ').trim();
+  } catch(e) {}
+  return '';
+}
+
 let wpComments = [];
 let supabaseCourses = [];
 let existingKeys = new Set();
@@ -261,7 +270,7 @@ async function fetchWpComments() {
       content: stripHtml(c.content?.rendered || ''),
       date: fmtDate(c.date),
       postId: c.post,
-      postTitle: postTitles[c.post] || '(알 수 없음)',
+      postTitle: postTitles[c.post] || slugFromLink(c.link) || '(알 수 없음)',
       rating: c.meta?.rating || c.meta?.Rating || 5,
     }));
 
