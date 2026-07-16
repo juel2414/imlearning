@@ -219,22 +219,22 @@ async function fetchWpComments() {
       return;
     }
 
-    // Fetch post titles
+    // Fetch post titles — try each post type in order until title found
     const postIds = [...new Set(allComments.map(c => c.post).filter(Boolean))];
     const postTitles = {};
-    if (postIds.length) {
-      const res = await fetch(`${wpUrl}/wp-json/wp/v2/posts?include=${postIds.join(',')}&per_page=100&_fields=id,title`, { headers });
-      if (res.ok) {
-        const posts = await res.json();
-        posts.forEach(p => { postTitles[p.id] = stripHtml(p.title.rendered || p.title); });
+    const POST_TYPES = ['product', 'posts', 'pages'];
+    await Promise.all(postIds.map(async (postId) => {
+      for (const ep of POST_TYPES) {
+        try {
+          const res = await fetch(`${wpUrl}/wp-json/wp/v2/${ep}/${postId}?_fields=id,title`, { headers });
+          if (res.ok) {
+            const data = await res.json();
+            const raw = data.title?.rendered ?? data.title;
+            if (raw) { postTitles[postId] = stripHtml(raw); break; }
+          }
+        } catch(e) {}
       }
-      // Also try products (WooCommerce)
-      const res2 = await fetch(`${wpUrl}/wp-json/wp/v2/product?include=${postIds.join(',')}&per_page=100&_fields=id,title`, { headers });
-      if (res2.ok) {
-        const prods = await res2.json();
-        prods.forEach(p => { postTitles[p.id] = stripHtml(p.title.rendered || p.title); });
-      }
-    }
+    }));
 
     // Load Supabase courses
     const { data: courses } = await sb.from('courses').select('id,title').order('title');
