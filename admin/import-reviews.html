@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WP 댓글 임포트 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<link rel="stylesheet" href="admin-common.css">
+<style>
+* { box-sizing:border-box; word-break:keep-all; }
+body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
+a { text-decoration:none; color:inherit; }
+.admin-main { padding:2rem; max-width:1300px; }
+
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:1.5rem; flex-wrap:wrap; }
+.page-title  { font-size:24px; font-weight:800; margin:0; }
+.page-desc   { font-size:13px; color:#888; margin-top:4px; }
+
+.card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.06); overflow:hidden; margin-bottom:1.25rem; }
+.card-header { padding:16px 22px; border-bottom:1px solid rgba(0,0,0,.05); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.card-title  { font-size:14px; font-weight:700; }
+.card-body   { padding:20px 22px; }
+
+.form-group  { margin-bottom:14px; }
+.form-label  { display:block; font-size:12px; font-weight:700; color:#555; margin-bottom:6px; }
+.form-input  { width:100%; padding:9px 13px; border:1.5px solid rgba(0,0,0,.1); border-radius:9px; font-size:13px; font-family:inherit; outline:none; }
+.form-input:focus { border-color:#2D9B6F; }
+.form-row    { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-hint   { font-size:11px; color:#aaa; margin-top:4px; }
+
+.btn-primary { padding:10px 22px; background:#2D9B6F; color:#fff; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-primary:hover { background:#248A60; }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+.btn-outline { padding:8px 18px; background:#fff; color:#2D9B6F; border:1.5px solid #2D9B6F; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-outline:hover { background:#F0FBF6; }
+
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { padding:9px 12px; text-align:left; font-size:11px; color:#888; background:#F8F9FA; white-space:nowrap; font-weight:600; }
+td { padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr.checked td { background:#F0FBF6; }
+
+.stars-select { border:1.5px solid rgba(0,0,0,.1); border-radius:7px; padding:4px 8px; font-size:12px; background:#fff; cursor:pointer; }
+.course-select { border:1.5px solid rgba(0,0,0,.1); border-radius:7px; padding:4px 8px; font-size:12px; background:#fff; cursor:pointer; min-width:180px; max-width:240px; }
+.course-select.matched { border-color:#2D9B6F; background:#F0FBF6; }
+
+.content-cell { max-width:260px; font-size:12px; color:#444; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.author-cell  { font-weight:700; white-space:nowrap; }
+.date-cell    { color:#aaa; white-space:nowrap; font-size:11px; }
+.post-cell    { font-size:11px; color:#666; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.summary-bar { display:flex; align-items:center; gap:16px; padding:14px 22px; background:#F8F9FA; border-bottom:1px solid rgba(0,0,0,.05); font-size:13px; flex-wrap:wrap; }
+.summary-count { font-weight:700; color:#2D9B6F; }
+
+.status-msg { padding:14px 18px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:14px; }
+.status-msg.error   { background:#FEE2E2; color:#DC2626; }
+.status-msg.success { background:#DCFCE7; color:#16A34A; }
+.status-msg.info    { background:#EFF6FF; color:#2563EB; }
+
+.empty { text-align:center; padding:3rem; color:#aaa; font-size:13px; }
+
+.guide-box { background:#FFFBEB; border:1px solid #FDE68A; border-radius:10px; padding:14px 18px; font-size:12px; color:#92400E; line-height:1.8; margin-bottom:14px; }
+.guide-box strong { font-weight:700; }
+
+input[type="checkbox"] { width:16px; height:16px; cursor:pointer; accent-color:#2D9B6F; }
+
+@media(max-width:900px) { .form-row { grid-template-columns:1fr; } .admin-main { padding:1rem; } }
+</style>
+</head>
+<body>
+
+<div class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">📥 워드프레스 댓글 임포트</h1>
+      <div class="page-desc">imlearning.co.kr 수강 후기 댓글을 Supabase로 가져옵니다</div>
+    </div>
+    <a href="reviews.html" style="font-size:13px;color:#888;">← 후기 관리</a>
+  </div>
+
+  <div id="status-area"></div>
+
+  <!-- Step 1: WP 연결 -->
+  <div class="card" id="step1-card">
+    <div class="card-header">
+      <span class="card-title">① WordPress 연결 정보</span>
+    </div>
+    <div class="card-body">
+      <div class="guide-box">
+        <strong>애플리케이션 비밀번호 생성 방법:</strong><br>
+        WordPress 어드민 → 사용자 → 내 프로필 → 맨 아래 <strong>애플리케이션 비밀번호</strong> 섹션<br>
+        → 새 이름 입력(예: "임포트") → <strong>새 애플리케이션 비밀번호 추가</strong> 클릭 → 생성된 비밀번호 복사
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">WP 사이트 URL</label>
+          <input class="form-input" id="wp-url" value="https://imlearning.co.kr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">사용자명</label>
+          <input class="form-input" id="wp-user" placeholder="WordPress 관리자 ID">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">애플리케이션 비밀번호</label>
+        <input class="form-input" id="wp-pass" type="password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx">
+        <div class="form-hint">일반 로그인 비밀번호가 아닌 애플리케이션 비밀번호를 입력하세요</div>
+      </div>
+      <button class="btn-primary" id="fetch-btn" onclick="fetchWpComments()">댓글 불러오기</button>
+    </div>
+  </div>
+
+  <!-- Step 2: 미리보기 (숨김) -->
+  <div class="card" id="preview-card" style="display:none;">
+    <div class="card-header">
+      <span class="card-title">② 가져올 댓글 선택</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <label style="font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="select-all" onchange="toggleAll(this.checked)">전체 선택
+        </label>
+        <button class="btn-primary" id="import-btn" onclick="importSelected()">선택 항목 가져오기</button>
+      </div>
+    </div>
+    <div class="summary-bar" id="summary-bar">불러오는 중...</div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="head-check" onchange="toggleAll(this.checked)"></th>
+            <th>작성자</th>
+            <th>별점</th>
+            <th>내용</th>
+            <th>WP 강좌명</th>
+            <th>Supabase 강좌 매핑</th>
+            <th>작성일</th>
+          </tr>
+        </thead>
+        <tbody id="preview-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const sb = window.supabaseClient;
+
+(async function checkAdminAccess() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=admin/import-reviews.html';
+    return;
+  }
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+})();
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function stripHtml(html) {
+  return (html || '').replace(/<[^>]*>/g, '').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').trim();
+}
+
+function fmtDate(iso) {
+  return iso ? iso.slice(0,10) : '';
+}
+
+let wpComments = [];
+let supabaseCourses = [];
+let existingKeys = new Set();
+
+async function fetchWpComments() {
+  const wpUrl = document.getElementById('wp-url').value.trim().replace(/\/$/, '');
+  const username = document.getElementById('wp-user').value.trim();
+  const password = document.getElementById('wp-pass').value.trim();
+
+  if (!wpUrl || !username || !password) {
+    showStatus('모든 필드를 입력해주세요.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('fetch-btn');
+  btn.disabled = true;
+  btn.textContent = '불러오는 중...';
+  clearStatus();
+
+  try {
+    const auth = btoa(`${username}:${password}`);
+    const headers = { 'Authorization': `Basic ${auth}` };
+
+    // Fetch all comments (paginated)
+    let allComments = [];
+    let page = 1;
+    while (true) {
+      const res = await fetch(`${wpUrl}/wp-json/wp/v2/comments?per_page=100&page=${page}&status=approve`, { headers });
+      if (!res.ok) {
+        if (res.status === 401) throw new Error('인증 실패: 사용자명/비밀번호를 확인하세요.');
+        if (res.status === 403) throw new Error('권한 없음: 관리자 계정인지 확인하세요.');
+        throw new Error(`WP API 오류 (${res.status})`);
+      }
+      const data = await res.json();
+      if (!data.length) break;
+      allComments = allComments.concat(data);
+      const totalPages = parseInt(res.headers.get('X-WP-TotalPages') || '1');
+      if (page >= totalPages) break;
+      page++;
+    }
+
+    if (!allComments.length) {
+      showStatus('승인된 댓글이 없습니다.', 'info');
+      btn.disabled = false;
+      btn.textContent = '댓글 불러오기';
+      return;
+    }
+
+    // Fetch post titles
+    const postIds = [...new Set(allComments.map(c => c.post).filter(Boolean))];
+    const postTitles = {};
+    if (postIds.length) {
+      const res = await fetch(`${wpUrl}/wp-json/wp/v2/posts?include=${postIds.join(',')}&per_page=100&_fields=id,title`, { headers });
+      if (res.ok) {
+        const posts = await res.json();
+        posts.forEach(p => { postTitles[p.id] = stripHtml(p.title.rendered || p.title); });
+      }
+      // Also try products (WooCommerce)
+      const res2 = await fetch(`${wpUrl}/wp-json/wp/v2/product?include=${postIds.join(',')}&per_page=100&_fields=id,title`, { headers });
+      if (res2.ok) {
+        const prods = await res2.json();
+        prods.forEach(p => { postTitles[p.id] = stripHtml(p.title.rendered || p.title); });
+      }
+    }
+
+    // Load Supabase courses
+    const { data: courses } = await sb.from('courses').select('id,title').order('title');
+    supabaseCourses = courses || [];
+
+    // Load existing reviews for duplicate detection
+    const { data: existingReviews } = await sb.from('reviews').select('reviewer_display_name,content');
+    existingKeys = new Set((existingReviews || []).map(r =>
+      (r.reviewer_display_name || '') + '||' + (r.content || '').slice(0, 50)
+    ));
+
+    wpComments = allComments.map(c => ({
+      wpId: c.id,
+      authorName: c.author_name || '익명',
+      content: stripHtml(c.content?.rendered || ''),
+      date: fmtDate(c.date),
+      postId: c.post,
+      postTitle: postTitles[c.post] || '(알 수 없음)',
+      rating: c.meta?.rating || c.meta?.Rating || 5,
+    }));
+
+    renderPreview();
+    document.getElementById('preview-card').style.display = '';
+
+  } catch (e) {
+    if (e.name === 'TypeError' && e.message.includes('fetch')) {
+      showStatus('네트워크 오류: CORS 차단이거나 WP URL이 잘못됐습니다. WP 사이트의 CORS 설정을 확인하세요.', 'error');
+    } else {
+      showStatus(e.message || '알 수 없는 오류가 발생했습니다.', 'error');
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '댓글 불러오기';
+}
+
+function autoMatchCourse(postTitle) {
+  if (!postTitle || postTitle === '(알 수 없음)') return '';
+  const pt = postTitle.toLowerCase().replace(/\s+/g,'');
+  let best = '', bestScore = 0;
+  supabaseCourses.forEach(c => {
+    const ct = c.title.toLowerCase().replace(/\s+/g,'');
+    // simple overlap scoring
+    let score = 0;
+    for (let i = 0; i < Math.min(pt.length, ct.length); i++) {
+      if (pt.includes(ct.slice(0,i+4))) score++;
+    }
+    if (ct.includes(pt.slice(0,6)) || pt.includes(ct.slice(0,6))) score += 5;
+    if (score > bestScore) { bestScore = score; best = c.id; }
+  });
+  return bestScore >= 3 ? String(best) : '';
+}
+
+function isDuplicate(c) {
+  return existingKeys.has((c.authorName || '') + '||' + (c.content || '').slice(0, 50));
+}
+
+function renderPreview() {
+  const tbody = document.getElementById('preview-tbody');
+  const dups = wpComments.filter(c => isDuplicate(c)).length;
+  const total = wpComments.length;
+
+  document.getElementById('summary-bar').innerHTML =
+    `총 <span class="summary-count">${total}개</span> 댓글 불러옴` +
+    (dups ? ` · <span style="color:#F59E0B;font-weight:700;">${dups}개</span> 이미 존재 (체크 해제됨)` : '') +
+    ` · 가져올 항목을 선택 후 <strong>선택 항목 가져오기</strong> 클릭`;
+
+  tbody.innerHTML = wpComments.map((c, i) => {
+    const dup = isDuplicate(c);
+    const matchedId = autoMatchCourse(c.postTitle);
+    const optionsHtml = supabaseCourses.map(sc =>
+      `<option value="${sc.id}" ${matchedId == sc.id ? 'selected' : ''}>${esc(sc.title)}</option>`
+    ).join('');
+    const ratingOpts = [1,2,3,4,5].map(n =>
+      `<option value="${n}" ${c.rating == n ? 'selected' : ''}>${n}점</option>`
+    ).join('');
+    return `<tr id="row-${i}" class="${!dup ? 'checked' : ''}">
+      <td><input type="checkbox" id="chk-${i}" ${dup ? '' : 'checked'} onchange="updateRow(${i})"></td>
+      <td class="author-cell">${esc(c.authorName)}${dup ? ' <span style="font-size:10px;color:#F59E0B;font-weight:600;">중복</span>' : ''}</td>
+      <td><select class="stars-select" id="rating-${i}">${ratingOpts}</select></td>
+      <td><div class="content-cell">${esc(c.content)}</div></td>
+      <td class="post-cell" title="${esc(c.postTitle)}">${esc(c.postTitle)}</td>
+      <td>
+        <select class="course-select ${matchedId ? 'matched' : ''}" id="course-${i}">
+          <option value="">-- 강좌 선택 --</option>
+          ${optionsHtml}
+        </select>
+      </td>
+      <td class="date-cell">${c.date}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateRow(i) {
+  const chk = document.getElementById('chk-' + i);
+  const row = document.getElementById('row-' + i);
+  row.className = chk.checked ? 'checked' : '';
+}
+
+function toggleAll(checked) {
+  document.getElementById('select-all').checked = checked;
+  document.getElementById('head-check').checked = checked;
+  wpComments.forEach((_, i) => {
+    const chk = document.getElementById('chk-' + i);
+    if (chk) {
+      chk.checked = checked;
+      updateRow(i);
+    }
+  });
+}
+
+async function importSelected() {
+  const btn = document.getElementById('import-btn');
+  const rows = [];
+  wpComments.forEach((c, i) => {
+    const chk = document.getElementById('chk-' + i);
+    if (!chk || !chk.checked) return;
+    const courseId = document.getElementById('course-' + i)?.value;
+    const rating = parseInt(document.getElementById('rating-' + i)?.value || '5');
+    if (!courseId) return; // skip if no course mapped
+    rows.push({
+      course_id: parseInt(courseId),
+      reviewer_display_name: c.authorName,
+      content: c.content,
+      rating,
+      status: 'visible',
+      is_imported: true,
+      is_homepage: false,
+      created_at: c.date ? new Date(c.date).toISOString() : new Date().toISOString(),
+    });
+  });
+
+  const noCourseCnt = wpComments.filter((_, i) => {
+    const chk = document.getElementById('chk-' + i);
+    const courseId = document.getElementById('course-' + i)?.value;
+    return chk?.checked && !courseId;
+  }).length;
+
+  if (!rows.length) {
+    showStatus(noCourseCnt ? `강좌가 매핑되지 않은 ${noCourseCnt}개 항목은 건너뜁니다. 체크된 항목 중 강좌를 선택하세요.` : '가져올 항목이 없습니다.', 'info');
+    return;
+  }
+
+  if (!confirm(`${rows.length}개 후기를 가져올까요?${noCourseCnt ? `\n(강좌 미매핑 ${noCourseCnt}개는 제외됩니다)` : ''}`)) return;
+
+  btn.disabled = true;
+  btn.textContent = '가져오는 중...';
+
+  const { error } = await sb.from('reviews').insert(rows);
+  if (error) {
+    showStatus('가져오기 실패: ' + error.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '선택 항목 가져오기';
+    return;
+  }
+
+  showStatus(`✅ ${rows.length}개 후기를 성공적으로 가져왔습니다! <a href="reviews.html" style="color:#16A34A;text-decoration:underline;">후기 관리로 이동 →</a>`, 'success');
+
+  // Update existing keys to prevent reimport
+  rows.forEach(r => {
+    existingKeys.add((r.reviewer_display_name || '') + '||' + (r.content || '').slice(0, 50));
+  });
+  renderPreview();
+
+  btn.disabled = false;
+  btn.textContent = '선택 항목 가져오기';
+}
+
+function showStatus(msg, type) {
+  document.getElementById('status-area').innerHTML =
+    `<div class="status-msg ${type}">${msg}</div>`;
+}
+function clearStatus() {
+  document.getElementById('status-area').innerHTML = '';
+}
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>
