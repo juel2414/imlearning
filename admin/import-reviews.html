@@ -175,6 +175,15 @@ let wpComments = [];
 let supabaseCourses = [];
 let existingKeys = new Set();
 
+// WP postId → Supabase courseId 매핑 (localStorage 영구 저장)
+const MAPPING_KEY = 'wp_review_course_mapping';
+let courseMapping = {};
+try { courseMapping = JSON.parse(localStorage.getItem(MAPPING_KEY) || '{}'); } catch(e) {}
+
+function saveMappingToStorage() {
+  localStorage.setItem(MAPPING_KEY, JSON.stringify(courseMapping));
+}
+
 async function fetchWpComments() {
   const wpUrl = document.getElementById('wp-url').value.trim().replace(/\/$/, '');
   const username = document.getElementById('wp-user').value.trim();
@@ -271,21 +280,54 @@ async function fetchWpComments() {
   btn.textContent = '댓글 불러오기';
 }
 
+function normStr(s) {
+  return (s || '').toLowerCase().replace(/[\[\]()]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 function autoMatchCourse(postTitle) {
   if (!postTitle || postTitle === '(알 수 없음)') return '';
-  const pt = postTitle.toLowerCase().replace(/\s+/g,'');
+  const pt = normStr(postTitle);
   let best = '', bestScore = 0;
   supabaseCourses.forEach(c => {
-    const ct = c.title.toLowerCase().replace(/\s+/g,'');
-    // simple overlap scoring
+    const ct = normStr(c.title);
     let score = 0;
-    for (let i = 0; i < Math.min(pt.length, ct.length); i++) {
-      if (pt.includes(ct.slice(0,i+4))) score++;
+    if (ct === pt) score += 100;
+    else if (ct.includes(pt) || pt.includes(ct)) score += 30;
+    else {
+      // 키워드 겹침 점수
+      const ptW = pt.split(' ').filter(w => w.length > 1);
+      const ctW = ct.split(' ').filter(w => w.length > 1);
+      ptW.forEach(w => { if (ct.includes(w)) score += 4; });
+      ctW.forEach(w => { if (pt.includes(w)) score += 4; });
     }
-    if (ct.includes(pt.slice(0,6)) || pt.includes(ct.slice(0,6))) score += 5;
     if (score > bestScore) { bestScore = score; best = c.id; }
   });
-  return bestScore >= 3 ? String(best) : '';
+  return bestScore >= 8 ? String(best) : '';
+}
+
+function getCourseForComment(c) {
+  // 저장된 매핑 우선
+  if (c.postId && courseMapping[c.postId]) return String(courseMapping[c.postId]);
+  return autoMatchCourse(c.postTitle);
+}
+
+function onCourseChange(i) {
+  const courseId = document.getElementById('course-' + i)?.value;
+  const postId = wpComments[i]?.postId;
+  if (!postId) return;
+  // 매핑 저장
+  if (courseId) courseMapping[postId] = parseInt(courseId);
+  else delete courseMapping[postId];
+  saveMappingToStorage();
+  // 같은 WP 상품에 달린 다른 댓글도 일괄 반영
+  wpComments.forEach((c, j) => {
+    if (j === i || c.postId !== postId) return;
+    const sel = document.getElementById('course-' + j);
+    if (sel) {
+      sel.value = courseId;
+      sel.className = 'course-select' + (courseId ? ' matched' : '');
+    }
+  });
 }
 
 function isDuplicate(c) {
@@ -297,14 +339,16 @@ function renderPreview() {
   const dups = wpComments.filter(c => isDuplicate(c)).length;
   const total = wpComments.length;
 
+  const savedCount = Object.keys(courseMapping).length;
   document.getElementById('summary-bar').innerHTML =
     `총 <span class="summary-count">${total}개</span> 댓글 불러옴` +
     (dups ? ` · <span style="color:#F59E0B;font-weight:700;">${dups}개</span> 이미 존재 (체크 해제됨)` : '') +
-    ` · 가져올 항목을 선택 후 <strong>선택 항목 가져오기</strong> 클릭`;
+    (savedCount ? ` · <span style="color:#2D9B6F;font-weight:700;">강좌 매핑 ${savedCount}개</span> 저장됨 <button onclick="clearMapping()" style="font-size:11px;padding:2px 8px;border:1px solid #ccc;border-radius:5px;cursor:pointer;background:#fff;margin-left:4px;">초기화</button>` : '') +
+    ` · 강좌 선택 후 <strong>선택 항목 가져오기</strong> 클릭`;
 
   tbody.innerHTML = wpComments.map((c, i) => {
     const dup = isDuplicate(c);
-    const matchedId = autoMatchCourse(c.postTitle);
+    const matchedId = getCourseForComment(c);
     const optionsHtml = supabaseCourses.map(sc =>
       `<option value="${sc.id}" ${matchedId == sc.id ? 'selected' : ''}>${esc(sc.title)}</option>`
     ).join('');
@@ -318,7 +362,7 @@ function renderPreview() {
       <td><div class="content-cell">${esc(c.content)}</div></td>
       <td class="post-cell" title="${esc(c.postTitle)}">${esc(c.postTitle)}</td>
       <td>
-        <select class="course-select ${matchedId ? 'matched' : ''}" id="course-${i}">
+        <select class="course-select ${matchedId ? 'matched' : ''}" id="course-${i}" onchange="onCourseChange(${i})">
           <option value="">-- 강좌 선택 --</option>
           ${optionsHtml}
         </select>
@@ -401,6 +445,13 @@ async function importSelected() {
 
   btn.disabled = false;
   btn.textContent = '선택 항목 가져오기';
+}
+
+function clearMapping() {
+  if (!confirm('저장된 강좌 매핑을 모두 초기화할까요?')) return;
+  courseMapping = {};
+  saveMappingToStorage();
+  renderPreview();
 }
 
 function showStatus(msg, type) {
