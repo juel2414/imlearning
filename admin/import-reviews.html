@@ -95,11 +95,11 @@ input[type="checkbox"] { width:16px; height:16px; cursor:pointer; accent-color:#
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">WP 사이트 URL</label>
-          <input class="form-input" id="wp-url" value="https://imlearning.co.kr">
+          <input class="form-input" id="wp-url" value="https://imlearning.co.kr" autocomplete="url">
         </div>
         <div class="form-group">
           <label class="form-label">사용자명</label>
-          <input class="form-input" id="wp-user" placeholder="WordPress 관리자 ID">
+          <input class="form-input" id="wp-user" placeholder="WordPress 관리자 ID" autocomplete="username">
         </div>
       </div>
       <div class="form-group">
@@ -189,6 +189,10 @@ const MAPPING_KEY = 'wp_review_course_mapping';
 let courseMapping = {};
 try { courseMapping = JSON.parse(localStorage.getItem(MAPPING_KEY) || '{}'); } catch(e) {}
 
+// 사용자명 기억
+const savedUser = localStorage.getItem('wp_import_username');
+if (savedUser) document.getElementById('wp-user').value = savedUser;
+
 function saveMappingToStorage() {
   localStorage.setItem(MAPPING_KEY, JSON.stringify(courseMapping));
 }
@@ -209,6 +213,7 @@ async function fetchWpComments() {
   clearStatus();
 
   try {
+    localStorage.setItem('wp_import_username', username);
     const auth = btoa(`${username}:${password}`);
     const headers = { 'Authorization': `Basic ${auth}` };
 
