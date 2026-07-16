@@ -60,6 +60,9 @@ tr:hover td { background:#f8fdf9; }
 
 .empty { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
 .loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
+.badge-homepage { background:#2D9B6F;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block; }
+.btn-home-on  { padding:4px 10px;font-size:11px;border-radius:6px;border:none;cursor:pointer;background:#2D9B6F;color:#fff;font-weight:700; }
+.btn-home-off { padding:4px 10px;font-size:11px;border-radius:6px;border:1.5px solid #ccc;cursor:pointer;background:#fff;color:#888;font-weight:600; }
 
 @media(max-width:1023px) { .admin-main { padding:1rem; } .kpi-row { grid-template-columns:1fr 1fr; } }
 </style>
@@ -132,11 +135,12 @@ tr:hover td { background:#f8fdf9; }
               <th>내용</th>
               <th>작성일</th>
               <th>상태</th>
+              <th>홈 노출</th>
               <th>관리</th>
             </tr>
           </thead>
           <tbody id="reviews-tbody">
-            <tr><td colspan="7" class="loading">불러오는 중...</td></tr>
+            <tr><td colspan="8" class="loading">불러오는 중...</td></tr>
           </tbody>
         </table>
       </div>
@@ -200,7 +204,7 @@ async function loadReviews() {
 
   if (error) {
     document.getElementById('reviews-tbody').innerHTML =
-      '<tr><td colspan="7" class="empty">후기를 불러오지 못했습니다: ' + esc(error.message) + '</td></tr>';
+      '<tr><td colspan="8" class="empty">후기를 불러오지 못했습니다: ' + esc(error.message) + '</td></tr>';
     return;
   }
 
@@ -237,7 +241,7 @@ function renderTable() {
 
   const tbody = document.getElementById('reviews-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">조건에 맞는 후기가 없어요.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">조건에 맞는 후기가 없어요.</td></tr>';
     return;
   }
 
@@ -251,6 +255,11 @@ function renderTable() {
       <td><div class="review-content-cell truncate">${esc(r.content)}</div></td>
       <td style="white-space:nowrap;color:#888;">${fmtDate(r.created_at)}</td>
       <td><span class="badge ${isVisible ? 'badge-visible' : 'badge-hidden'}">${isVisible ? '공개' : '숨김'}</span></td>
+      <td style="text-align:center;">
+        ${r.is_homepage
+          ? `<button class="btn-home-on" onclick="toggleHomepage(${r.id},false)">홈 노출 중</button>`
+          : `<button class="btn-home-off" onclick="toggleHomepage(${r.id},true)">노출 안함</button>`}
+      </td>
       <td>
         <div class="action-btns">
           ${isVisible
@@ -269,6 +278,14 @@ async function toggleStatus(id, newStatus) {
   const r = allReviews.find(x => x.id === id);
   if (r) r.status = newStatus;
   updateKpi();
+  renderTable();
+}
+
+async function toggleHomepage(id, val) {
+  const { error } = await sb.from('reviews').update({ is_homepage: val }).eq('id', id);
+  if (error) { alert('변경 실패: ' + error.message); return; }
+  const r = allReviews.find(x => x.id === id);
+  if (r) r.is_homepage = val;
   renderTable();
 }
 

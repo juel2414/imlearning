@@ -1054,7 +1054,11 @@ async function loadRealReviews() {
   const g = document.getElementById('js-reviews');
   if (!g || !section) return;
   try {
-    const { data } = await supabaseClient.rpc('get_top_reviews', { p_limit: 6 });
+    let { data } = await supabaseClient.rpc('get_homepage_reviews', { p_limit: 6 });
+    if (!data || data.length === 0) {
+      const res = await supabaseClient.rpc('get_top_reviews', { p_limit: 6 });
+      data = res.data;
+    }
     if (!data || data.length === 0) { section.style.display = 'none'; return; }
     const dl = ['','reveal-delay-1','reveal-delay-2','','reveal-delay-1','reveal-delay-2'];
     g.innerHTML = data.map((r, i) => {
