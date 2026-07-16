@@ -900,6 +900,12 @@ function esc(str) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+function maskName(name) {
+  if (!name || name.length <= 1) return name;
+  if (name.length === 2) return name[0] + '*';
+  return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1];
+}
+
 // 기본값 (Supabase 데이터 없을 때 fallback)
 // ────────────────────────────────────────────
 const LP = {
@@ -1059,7 +1065,7 @@ async function loadRealReviews() {
         <p class="lp-rtext">"${esc(r.content)}"</p>
         <div class="lp-rauthor">
           <div class="lp-ravatar">${esc(first)}</div>
-          <div><div class="lp-rname">${esc(r.reviewer_display_name || '익명')}</div><div class="lp-rcourse">${esc(r.course_title)}</div></div>
+          <div><div class="lp-rname">${esc(maskName(r.reviewer_display_name || '익명'))}</div><div class="lp-rcourse">${esc(r.course_title)}</div></div>
         </div>
       </div>`;
     }).join('');

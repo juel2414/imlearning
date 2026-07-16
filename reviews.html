@@ -162,6 +162,12 @@
     return iso.slice(0, 10).replace(/-/g, '.');
   }
 
+  function maskName(name) {
+    if (!name || name.length <= 1) return name;
+    if (name.length === 2) return name[0] + '*';
+    return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1];
+  }
+
   function renderCards(list, append) {
     var grid = document.getElementById('reviews-grid');
     if (!append) {
@@ -189,7 +195,7 @@
           '<div class="review-course-title">' + esc(r.course_title) + '</div>' +
         '</a>' +
         '<div class="review-meta">' +
-          '<span class="review-author">' + esc(r.reviewer_display_name || '수강생') + '</span>' +
+          '<span class="review-author">' + esc(maskName(r.reviewer_display_name || '수강생')) + '</span>' +
           '<span class="review-date">' + formatDate(r.created_at) + '</span>' +
         '</div>';
       grid.appendChild(card);
