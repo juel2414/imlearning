@@ -271,7 +271,7 @@ async function fetchWpComments() {
 
     wpComments = allComments.map(c => ({
       wpId: c.id,
-      authorName: c.author_name || '익명',
+      authorName: (c.author_name || '익명').slice(0, 50),
       content: stripHtml(c.content?.rendered || ''),
       date: fmtDate(c.date),
       postId: c.post,
