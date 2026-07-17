@@ -105,6 +105,20 @@
     .form-grid, .price-grid { grid-template-columns: 1fr; }
     .search-input { width: 100%; }
   }
+  /* 섹션 체크박스 UI */
+  .section-check-box { border: 1.5px solid rgba(0,0,0,.1); border-radius: 8px; padding: 14px 16px; max-height: 230px; overflow-y: auto; background: #fafafa; }
+  .sec-group { margin-bottom: 10px; }
+  .sec-group:last-child { margin-bottom: 0; }
+  .sec-group-label { font-size: 10px; font-weight: 800; color: #2D9B6F; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .sec-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .sec-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px; background: #fff; border: 1.5px solid rgba(0,0,0,.1); border-radius: 20px; cursor: pointer; font-size: 12px; user-select: none; transition: all .15s; }
+  .sec-chip input[type=checkbox] { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+  .sec-chip.checked { background: #E8F5EE; border-color: #2D9B6F; color: #1A7A4A; font-weight: 600; }
+  /* 섹션 관리 카드 */
+  .sec-def-row { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid rgba(0,0,0,.04); font-size:13px; }
+  .sec-def-row:last-child { border-bottom:none; }
+  .sec-mgmt-group { background:#F8F9FA; border:1px solid rgba(0,0,0,.06); border-radius:10px; padding:14px; }
+  .sec-mgmt-group-label { font-size:10px; font-weight:800; color:#2D9B6F; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
 </style>
 </head>
 <body>
@@ -181,37 +195,10 @@
             </select>
             <div class="hint">상단 메가메뉴 각 열에 강좌가 노출됩니다</div>
           </div>
-          <div class="form-group">
-            <label>노출 섹션</label>
-            <select id="course-section">
-              <option value="">섹션 선택 안 함</option>
-              <optgroup label="홈 노출 섹션">
-                <option value="신입생 추천">🌱 신입생 추천</option>
-                <option value="이번달 인기">🔥 이번달 인기</option>
-                <option value="심화 과정">🎯 심화 과정</option>
-                <option value="신규 오픈">✨ 신규 오픈</option>
-                <option value="마감 임박">⏰ 마감 임박</option>
-              </optgroup>
-              <optgroup label="리뉴젠아카데미">
-                <option value="리뉴젠아카데미 고등과정">리뉴젠아카데미 고등과정</option>
-                <option value="리뉴젠아카데미 고졸검정고시">리뉴젠아카데미 고졸검정고시</option>
-                <option value="리뉴젠아카데미 중등과정">리뉴젠아카데미 중등과정</option>
-                <option value="리뉴젠아카데미 1분기">리뉴젠아카데미 1분기</option>
-              </optgroup>
-              <optgroup label="온택 검고">
-                <option value="온택 검고 고졸">온택 검고 고졸</option>
-                <option value="온택 검고 중졸">온택 검고 중졸</option>
-              </optgroup>
-              <optgroup label="콘텐츠 분류">
-                <option value="트리플스쿨">트리플스쿨</option>
-                <option value="부모학교">부모학교</option>
-                <option value="CBUP">CBUP</option>
-                <option value="영어·토익">영어·토익</option>
-                <option value="신앙·사역">신앙·사역</option>
-                <option value="교과목">교과목</option>
-              </optgroup>
-            </select>
-            <div class="hint">강좌 목록에서 그룹으로 묶어서 보여줄 섹션이에요</div>
+          <div class="form-group full">
+            <label>섹션 <span style="font-weight:400;color:#999;font-size:11px;">(복수 선택 가능)</span></label>
+            <div class="section-check-box" id="course-section-box"><div style="color:#aaa;font-size:13px;">불러오는 중...</div></div>
+            <div class="hint">체크한 모든 섹션에 강좌가 노출됩니다 · 하단 섹션 관리에서 섹션을 추가·수정할 수 있어요</div>
           </div>
           <div class="form-group"><label>담당 강사</label><select id="course-instructor"><option value="">강사 선택</option></select></div>
           <div class="form-group">
@@ -371,6 +358,34 @@
     </div>
 </div>
 
+    <!-- 섹션 관리 -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-header">
+        <span class="card-title">🗂️ 섹션 그룹 관리</span>
+        <button class="btn-save" onclick="openAddSectionForm()" style="font-size:12px;padding:8px 18px;">+ 섹션 추가</button>
+      </div>
+      <div class="card-body">
+        <div id="section-mgmt-area"><div class="empty">불러오는 중...</div></div>
+        <div id="section-form-wrap" style="display:none;margin-top:20px;background:#f8faf9;border:1.5px solid #d4ede2;border-radius:12px;padding:20px 24px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:16px;" id="section-form-title">섹션 추가</div>
+          <input type="hidden" id="sf-id">
+          <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group"><label>섹션 이름 *</label><input type="text" id="sf-name" placeholder="예: 신입생 추천"></div>
+            <div class="form-group"><label>이모지 <span style="font-weight:400;color:#999;">(선택)</span></label><input type="text" id="sf-emoji" placeholder="예: 🌱"></div>
+            <div class="form-group"><label>그룹 이름 *</label><input type="text" id="sf-group" placeholder="예: 홈 노출 섹션" list="group-datalist">
+              <datalist id="group-datalist"></datalist>
+            </div>
+            <div class="form-group"><label>표시 순서</label><input type="number" id="sf-order" placeholder="0" min="0" value="99"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="btn-save" onclick="saveSectionDef()">저장</button>
+            <button class="btn-cancel" onclick="closeSectionForm()">취소</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -416,7 +431,8 @@ function resetForm() {
   thumbData = null;
   thumbFile = null;
   document.getElementById('form-title').textContent = '새 강좌 추가';
-  ['course-title','course-desc','course-cat','course-subcategory','course-section','course-instructor','course-level',
+  renderSectionCheckboxes([]);
+  ['course-title','course-desc','course-cat','course-subcategory','course-instructor','course-level',
    'course-lessons','course-students-count','course-price','course-discount-price',
    'course-discount-start','course-discount-end','course-vimeo'].forEach(function(id){
     var el = document.getElementById(id);
@@ -539,7 +555,8 @@ async function saveCourse() {
     description: val('course-desc'),
     category: val('course-cat'),
     subcategory: val('course-subcategory') || null,
-    section: val('course-section') || null,
+    sections: getSelectedSections(),
+    section: getSelectedSections()[0] || null,
     instructor: val('course-instructor'),
     level: val('course-level') || null,
     price: numOrNull(val('course-price')),
@@ -604,7 +621,7 @@ function editCourse(id) {
   document.getElementById('course-desc').value = c.description || '';
   document.getElementById('course-cat').value = c.category || '';
   document.getElementById('course-subcategory').value = c.subcategory || '';
-  document.getElementById('course-section').value = c.section || '';
+  renderSectionCheckboxes(c.sections && c.sections.length ? c.sections : (c.section ? [c.section] : []));
   document.getElementById('course-instructor').value = c.instructor || '';
   document.getElementById('course-level').value = c.level || '';
   document.getElementById('course-lessons').value = c.lessons || '';
@@ -763,15 +780,26 @@ function render() {
 
 function renderBySections(list) {
   var groups = {};
+  var groupOrder = [];
   var noSection = [];
   list.forEach(function(c) {
-    if (c.section) {
-      if (!groups[c.section]) groups[c.section] = [];
-      groups[c.section].push(c);
-    } else { noSection.push(c); }
+    var secs = (c.sections && c.sections.length) ? c.sections : (c.section ? [c.section] : []);
+    if (!secs.length) { noSection.push(c); return; }
+    secs.forEach(function(sec) {
+      if (!groups[sec]) { groups[sec] = []; groupOrder.push(sec); }
+      groups[sec].push(c);
+    });
+  });
+  // 중복 제거 후 섹션 정의 순서대로 정렬
+  groupOrder = groupOrder.filter(function(v, i, a) { return a.indexOf(v) === i; });
+  groupOrder.sort(function(a, b) {
+    var ai = allSectionDefs.findIndex(function(s) { return s.name === a; });
+    var bi = allSectionDefs.findIndex(function(s) { return s.name === b; });
+    if (ai < 0) ai = 9999; if (bi < 0) bi = 9999;
+    return ai - bi;
   });
   var html = '';
-  Object.keys(groups).forEach(function(name) {
+  groupOrder.forEach(function(name) {
     html += '<div class="section-group"><div class="section-group-header"><span class="dot"></span><span class="section-group-title">' + escHtml(name) + '</span><span class="section-group-count">' + groups[name].length + '개</span></div>' + renderTable(groups[name]) + '</div>';
   });
   if (noSection.length > 0) {
@@ -1044,8 +1072,144 @@ async function deleteLesson(lessonId) {
   await loadLessons();
 }
 
+/* ──────────────────── 섹션 정의 관리 ──────────────────── */
+var allSectionDefs = [];
+
+async function loadSections() {
+  var { data } = await sb.from('course_section_defs').select('*').order('display_order');
+  allSectionDefs = data || [];
+  renderSectionCheckboxes([]);
+  renderSectionMgmt();
+}
+
+function renderSectionCheckboxes(selected) {
+  selected = selected || [];
+  var box = document.getElementById('course-section-box');
+  if (!box) return;
+  if (!allSectionDefs.length) {
+    box.innerHTML = '<div style="color:#aaa;font-size:13px;">등록된 섹션이 없어요. 하단 섹션 관리에서 추가하세요.</div>';
+    return;
+  }
+  var groups = {}, groupOrder = [];
+  allSectionDefs.forEach(function(s) {
+    if (!groups[s.group_name]) { groups[s.group_name] = []; groupOrder.push(s.group_name); }
+    groups[s.group_name].push(s);
+  });
+  groupOrder = groupOrder.filter(function(v, i, a) { return a.indexOf(v) === i; });
+  box.innerHTML = groupOrder.map(function(gname) {
+    return '<div class="sec-group"><div class="sec-group-label">' + escHtml(gname) + '</div><div class="sec-chips">' +
+      groups[gname].map(function(s) {
+        var isChecked = selected.indexOf(s.name) !== -1;
+        return '<label class="sec-chip' + (isChecked ? ' checked' : '') + '">' +
+          '<input type="checkbox" value="' + escHtml(s.name) + '"' + (isChecked ? ' checked' : '') +
+          ' onchange="this.closest(\'.sec-chip\').classList.toggle(\'checked\',this.checked)">' +
+          (s.emoji ? s.emoji + ' ' : '') + escHtml(s.name) + '</label>';
+      }).join('') + '</div></div>';
+  }).join('');
+}
+
+function getSelectedSections() {
+  return Array.from(document.querySelectorAll('#course-section-box input[type=checkbox]:checked'))
+    .map(function(cb) { return cb.value; });
+}
+
+function renderSectionMgmt() {
+  var area = document.getElementById('section-mgmt-area');
+  if (!area) return;
+  if (!allSectionDefs.length) {
+    area.innerHTML = '<div class="empty">등록된 섹션이 없어요. [+ 섹션 추가]를 눌러 시작하세요.</div>';
+    return;
+  }
+  var groups = {}, groupOrder = [];
+  allSectionDefs.forEach(function(s) {
+    if (!groups[s.group_name]) { groups[s.group_name] = []; groupOrder.push(s.group_name); }
+    groups[s.group_name].push(s);
+  });
+  groupOrder = groupOrder.filter(function(v, i, a) { return a.indexOf(v) === i; });
+  var dl = document.getElementById('group-datalist');
+  if (dl) dl.innerHTML = groupOrder.map(function(g) { return '<option value="' + escHtml(g) + '">'; }).join('');
+  area.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">' +
+    groupOrder.map(function(gname) {
+      return '<div class="sec-mgmt-group"><div class="sec-mgmt-group-label">' + escHtml(gname) + '</div>' +
+        groups[gname].map(function(s) {
+          return '<div class="sec-def-row">' +
+            '<span style="flex:1;">' + (s.emoji ? s.emoji + ' ' : '') + escHtml(s.name) + '</span>' +
+            '<button onclick="openEditSectionForm(' + s.id + ')" style="padding:2px 8px;border:1.5px solid rgba(0,0,0,.1);background:#fff;border-radius:5px;font-size:11px;cursor:pointer;">수정</button>' +
+            '<button onclick="deleteSectionDef(' + s.id + ')" style="padding:2px 8px;border:1.5px solid #FCA5A5;background:#fff;color:#EF4444;border-radius:5px;font-size:11px;cursor:pointer;margin-left:4px;">삭제</button>' +
+            '</div>';
+        }).join('') + '</div>';
+    }).join('') + '</div>';
+}
+
+var editingSectionDefId = null;
+
+function openAddSectionForm() {
+  editingSectionDefId = null;
+  document.getElementById('sf-id').value = '';
+  document.getElementById('sf-name').value = '';
+  document.getElementById('sf-emoji').value = '';
+  document.getElementById('sf-group').value = '';
+  document.getElementById('sf-order').value = '99';
+  document.getElementById('section-form-title').textContent = '섹션 추가';
+  document.getElementById('section-form-wrap').style.display = '';
+  document.getElementById('section-form-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function openEditSectionForm(id) {
+  var s = allSectionDefs.find(function(x) { return x.id === id; });
+  if (!s) return;
+  editingSectionDefId = id;
+  document.getElementById('sf-id').value = id;
+  document.getElementById('sf-name').value = s.name || '';
+  document.getElementById('sf-emoji').value = s.emoji || '';
+  document.getElementById('sf-group').value = s.group_name || '';
+  document.getElementById('sf-order').value = s.display_order || 0;
+  document.getElementById('section-form-title').textContent = '섹션 수정';
+  document.getElementById('section-form-wrap').style.display = '';
+  document.getElementById('section-form-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeSectionForm() {
+  editingSectionDefId = null;
+  document.getElementById('section-form-wrap').style.display = 'none';
+}
+
+async function saveSectionDef() {
+  var name  = document.getElementById('sf-name').value.trim();
+  var emoji = document.getElementById('sf-emoji').value.trim();
+  var group = document.getElementById('sf-group').value.trim();
+  var order = parseInt(document.getElementById('sf-order').value) || 0;
+  if (!name || !group) { showToast('섹션 이름과 그룹 이름은 필수입니다.', true); return; }
+  try {
+    if (editingSectionDefId) {
+      var { error } = await sb.from('course_section_defs').update({ name, emoji, group_name: group, display_order: order }).eq('id', editingSectionDefId);
+      if (error) throw error;
+    } else {
+      var { error } = await sb.from('course_section_defs').insert({ name, emoji, group_name: group, display_order: order });
+      if (error) throw error;
+    }
+    await loadSections();
+    closeSectionForm();
+    showToast(editingSectionDefId ? '섹션을 수정했어요 ✓' : '섹션을 추가했어요 ✓');
+  } catch(e) {
+    showToast('저장 실패: ' + e.message, true);
+  }
+}
+
+async function deleteSectionDef(id) {
+  if (!confirm('이 섹션을 삭제할까요?\n강좌에 적용된 섹션값은 유지됩니다.')) return;
+  try {
+    var { error } = await sb.from('course_section_defs').delete().eq('id', id);
+    if (error) throw error;
+    await loadSections();
+    showToast('섹션을 삭제했어요.');
+  } catch(e) {
+    showToast('삭제 실패: ' + e.message, true);
+  }
+}
+
 loadInstructors();
-loadCourses();
+loadSections().then(function() { loadCourses(); });
 
 /* ──────────────────── 프리패스 관리 ──────────────────── */
 var passAdminData = null; // { pass_id, name, price, duration_days }
