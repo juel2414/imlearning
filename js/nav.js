@@ -275,11 +275,11 @@
   // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
   var MEGA_CATS = [
     { key: 'faith',          label: '신앙',          catParam: 'faith' },
-    { key: 'teacher_parent', label: '교사·부모교육', catParam: 'edu',     badge: '추천', badgeColor: '#2D9B6F' },
-    { key: 'school_subject', label: '중고등교과',    catParam: 'edu',     badge: '인기', badgeColor: '#C6860B' },
-    { key: 'ged',            label: '검정고시',      catParam: 'edu',     badge: 'NEW',  badgeColor: '#2D9B6F' },
-    { key: 'english_test',   label: '영어·시험',     catParam: 'english' },
-    { key: 'camp_mission',   label: '캠프·사역',     catParam: 'mission' },
+    { key: 'school_subject', label: '학교교과',      catParam: 'school',  badge: '인기', badgeColor: '#C6860B' },
+    { key: 'ged',            label: '검정고시',      catParam: 'ged',     badge: 'NEW',  badgeColor: '#2D9B6F' },
+    { key: 'teacher_parent', label: '부모·교사',     catParam: 'edu',     badge: '추천', badgeColor: '#2D9B6F' },
+    { key: 'english_test',   label: '영어',          catParam: 'english' },
+    { key: 'freepass',       label: '전강좌 무제한', catParam: 'freepass' },
   ];
 
   function loadMegaCourses() {

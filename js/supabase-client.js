@@ -95,9 +95,10 @@ function getCurrentPrice(course) {
 // ───── 카테고리 한글 라벨 ─────
 const CATEGORY_LABELS = {
   faith: '신앙',
-  edu: '교사·부모',
-  mission: '캠프·사역',
-  english: '영어·시험',
+  school: '학교교과',
+  ged: '검정고시',
+  edu: '부모·교사',
+  english: '영어',
   freepass: '전강좌 무제한',
 };
 

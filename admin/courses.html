@@ -176,9 +176,10 @@
             <select id="course-cat">
               <option value="">카테고리 선택</option>
               <option value="faith">신앙</option>
-              <option value="edu">교사·부모</option>
-              <option value="mission">캠프·사역</option>
-              <option value="english">영어·시험</option>
+              <option value="school">학교교과</option>
+              <option value="ged">검정고시</option>
+              <option value="edu">부모·교사</option>
+              <option value="english">영어</option>
               <option value="freepass">전강좌 무제한</option>
             </select>
           </div>
@@ -406,7 +407,7 @@ var sb = window.supabaseClient;
   }
 })();
 
-var CAT_LABELS = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+var CAT_LABELS = { faith:'신앙', school:'학교교과', ged:'검정고시', edu:'부모·교사', english:'영어', freepass:'전강좌 무제한' };
 var courses = [];
 var editingId = null;
 var thumbData = null;
@@ -1239,7 +1240,7 @@ async function loadPassAdmin() {
 }
 
 function renderPassAdmin(allCourses) {
-  var catLabels = { faith:'신앙', edu:'교사·부모', mission:'캠프·사역', english:'영어·시험', freepass:'전강좌 무제한' };
+  var catLabels = { faith:'신앙', school:'학교교과', ged:'검정고시', edu:'부모·교사', english:'영어', freepass:'전강좌 무제한' };
 
   // 카테고리별 그룹핑
   var bycat = {};
