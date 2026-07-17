@@ -593,9 +593,9 @@
     '.bnr-dismiss{background:none;border:none;color:rgba(255,255,255,.7);',
     'cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;border-radius:4px;}',
     '.bnr-dismiss:hover{color:#fff;background:rgba(255,255,255,.15);}',
-    'body.has-notice-banner #site-navbar{top:0!important;}',
+    'body.has-notice-banner #site-navbar{top:40px!important;}',
     'body.has-admin-bar #im-notice-banner{top:36px!important;}',
-    'body.has-admin-bar.has-notice-banner #site-navbar{top:36px!important;}',
+    'body.has-admin-bar.has-notice-banner #site-navbar{top:76px!important;}',
   ].join('');
   document.head.appendChild(bannerStyle);
 
