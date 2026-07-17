@@ -578,7 +578,8 @@
   bannerStyle.textContent = [
     '#im-notice-banner{',
     'display:none;width:100%;background:#2D9B6F;color:#fff;',
-    'font-size:13px;z-index:88;',
+    'font-size:13px;z-index:101;',
+    'position:sticky;top:0;',
     'animation:bnrSlide .3s ease;}',
     '@keyframes bnrSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}',
     '#im-notice-banner.open{display:flex;align-items:center;gap:10px;',
@@ -592,7 +593,9 @@
     '.bnr-dismiss{background:none;border:none;color:rgba(255,255,255,.7);',
     'cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;border-radius:4px;}',
     '.bnr-dismiss:hover{color:#fff;background:rgba(255,255,255,.15);}',
-    'body.has-notice-banner #site-navbar{top:calc(var(--ab-h,0px) + 40px)!important;}',
+    'body.has-notice-banner #site-navbar{top:0!important;}',
+    'body.has-admin-bar #im-notice-banner{top:36px!important;}',
+    'body.has-admin-bar.has-notice-banner #site-navbar{top:36px!important;}',
   ].join('');
   document.head.appendChild(bannerStyle);
 
@@ -616,7 +619,7 @@
 
     var nb = document.getElementById('site-navbar');
     if (nb && nb.parentNode) {
-      nb.parentNode.insertBefore(banner, nb.nextSibling);
+      nb.parentNode.insertBefore(banner, nb);
     } else {
       document.body.insertBefore(banner, document.body.firstChild);
     }
