@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>썸네일 일괄 업로드 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="admin-nav.js" defer></script>
+<link rel="stylesheet" href="admin-common.css">
+<style>
+* { box-sizing: border-box; word-break: keep-all; }
+body { margin: 0; font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F8F9FA; color:#111; }
+
+.admin-main { padding: 32px; max-width: 1200px; }
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+.page-title { font-size:24px; font-weight:800; margin:0; }
+.page-desc { font-size:13px; color:#6B6B6B; margin-top:4px; }
+
+.controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.btn-primary { padding:10px 22px; background:#2D9B6F; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-primary:disabled { background:#9CA3AF; cursor:not-allowed; }
+.btn-secondary { padding:10px 18px; background:#fff; color:#374151; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; }
+
+.filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; align-items:center; }
+.filter-chip { padding:5px 14px; border-radius:20px; font-size:12px; font-weight:600; border:1.5px solid rgba(0,0,0,.1); background:#fff; cursor:pointer; }
+.filter-chip.active { background:#2D9B6F; color:#fff; border-color:#2D9B6F; }
+.search-input { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; width:220px; }
+
+.progress-bar { background:#E5F4EC; border:1px solid #B4DFC7; border-radius:10px; padding:12px 20px; margin-bottom:20px; display:none; }
+.progress-text { font-size:13px; font-weight:700; color:#1A7A4A; margin-bottom:6px; }
+.progress-track { height:6px; background:#C8E6D6; border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background:#2D9B6F; border-radius:3px; transition:width .3s; width:0%; }
+
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+
+.course-card {
+  background:#fff; border:2px solid rgba(0,0,0,.06); border-radius:12px;
+  overflow:hidden; transition:border-color .15s;
+}
+.course-card.has-file { border-color:#2D9B6F; }
+.course-card.uploading { border-color:#7C3AED; }
+.course-card.done { border-color:#2D9B6F; background:#F0FDF4; }
+.course-card.error { border-color:#EF4444; }
+
+.thumb-zone {
+  width:100%; aspect-ratio:16/9; background:#F5F5F5;
+  border-bottom:2px dashed rgba(0,0,0,.08);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; position:relative; overflow:hidden; transition:background .15s;
+}
+.thumb-zone:hover { background:#EBF5F0; }
+.thumb-zone img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.thumb-zone .overlay {
+  position:absolute; inset:0; background:rgba(0,0,0,.5); display:flex;
+  flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .15s; color:#fff;
+}
+.thumb-zone:hover .overlay { opacity:1; }
+.thumb-zone .placeholder { display:flex; flex-direction:column; align-items:center; gap:6px; color:#9CA3AF; font-size:12px; }
+.thumb-zone .placeholder-icon { font-size:28px; }
+.thumb-zone .new-badge {
+  position:absolute; top:8px; right:8px;
+  background:#2D9B6F; color:#fff; font-size:10px; font-weight:700;
+  padding:2px 8px; border-radius:10px; z-index:2;
+}
+.thumb-zone .status-badge {
+  position:absolute; top:8px; left:8px;
+  font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; z-index:2;
+}
+.thumb-zone .status-badge.uploading { background:#7C3AED; color:#fff; }
+.thumb-zone .status-badge.done { background:#2D9B6F; color:#fff; }
+.thumb-zone .status-badge.error { background:#EF4444; color:#fff; }
+
+.course-info { padding:12px 14px; }
+.course-id { font-size:10px; color:#9CA3AF; font-weight:700; margin-bottom:2px; }
+.course-title-text { font-size:13px; font-weight:700; line-height:1.4; }
+.course-status { display:inline-block; font-size:10px; padding:2px 8px; border-radius:10px; margin-top:4px; font-weight:600; }
+.status-active { background:#DCFCE7; color:#16A34A; }
+.status-hidden { background:#F0F0F0; color:#6B6B6B; }
+.card-actions { padding:10px 14px; border-top:1px solid rgba(0,0,0,.05); display:flex; gap:8px; }
+.btn-remove { padding:5px 12px; font-size:11px; border:1px solid #FCA5A5; color:#EF4444; background:#fff; border-radius:6px; cursor:pointer; }
+
+input[type=file].hidden-input { display:none; }
+
+.toast { display:none; position:fixed; top:20px; right:20px; background:#2D9B6F; color:#fff; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:600; z-index:999; box-shadow:0 4px 12px rgba(0,0,0,.2); }
+.toast.show { display:block; }
+.toast.error { background:#EF4444; }
+
+.empty { text-align:center; padding:60px 20px; color:#6B6B6B; font-size:14px; }
+.count-badge { background:#F0F0F0; color:#374151; font-size:11px; font-weight:700; padding:3px 10px; border-radius:10px; margin-left:8px; }
+</style>
+</head>
+<body>
+
+<div class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">🖼️ 썸네일 일괄 업로드</h1>
+      <p class="page-desc">강좌 카드를 클릭해서 이미지를 선택하세요. 여러 강좌를 선택한 후 한 번에 업로드할 수 있어요.</p>
+    </div>
+    <div class="controls">
+      <button class="btn-secondary" onclick="loadCourses()">↺ 새로고침</button>
+      <button class="btn-primary" id="upload-all-btn" onclick="uploadAll()" disabled>
+        ⬆ 선택된 파일 모두 업로드 <span id="upload-count" class="count-badge">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <input type="text" class="search-input" id="search-input" placeholder="강좌명 검색..." oninput="renderGrid()">
+    <button class="filter-chip active" data-filter="all" onclick="setFilter('all', this)">전체</button>
+    <button class="filter-chip" data-filter="no-thumb" onclick="setFilter('no-thumb', this)">썸네일 없음</button>
+    <button class="filter-chip" data-filter="vimeo" onclick="setFilter('vimeo', this)">Vimeo 썸네일</button>
+    <button class="filter-chip" data-filter="has-thumb" onclick="setFilter('has-thumb', this)">업로드된 썸네일</button>
+    <button class="filter-chip" data-filter="pending" onclick="setFilter('pending', this)">교체 대기중</button>
+  </div>
+
+  <div class="progress-bar" id="progress-bar">
+    <div class="progress-text" id="progress-text">업로드 중...</div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <div class="grid" id="grid">
+    <div class="empty">불러오는 중...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<input type="file" class="hidden-input" id="global-file-input" accept="image/*">
+
+<script>
+var sb = window.supabaseClient;
+var courses = [];
+var pendingFiles = {}; // courseId → File
+var uploadResults = {}; // courseId → 'done'|'error'
+var currentFilter = 'all';
+
+(async function checkAdminAccess() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=admin/thumbnail-upload.html';
+    return;
+  }
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+  loadCourses();
+})();
+
+async function loadCourses() {
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '<div class="empty">불러오는 중...</div>';
+  var { data, error } = await sb.from('courses')
+    .select('id,title,thumbnail_url,status')
+    .order('title', { ascending: true });
+  if (error) { showToast('불러오기 실패: ' + error.message, true); return; }
+  courses = data || [];
+  renderGrid();
+}
+
+function thumbType(url) {
+  if (!url) return 'none';
+  if (url.includes('vimeocdn') || url.includes('vimeo')) return 'vimeo';
+  return 'storage';
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+  el.classList.add('active');
+  renderGrid();
+}
+
+function renderGrid() {
+  var q = document.getElementById('search-input').value.trim().toLowerCase();
+  var filtered = courses.filter(function(c) {
+    if (q && c.title.toLowerCase().indexOf(q) < 0) return false;
+    var type = thumbType(c.thumbnail_url);
+    var hasPending = !!pendingFiles[c.id];
+    if (currentFilter === 'no-thumb') return type === 'none';
+    if (currentFilter === 'vimeo') return type === 'vimeo';
+    if (currentFilter === 'has-thumb') return type === 'storage';
+    if (currentFilter === 'pending') return hasPending;
+    return true;
+  });
+
+  var grid = document.getElementById('grid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">해당하는 강좌가 없어요</div>';
+    updateUploadBtn();
+    return;
+  }
+
+  grid.innerHTML = filtered.map(function(c) {
+    var type = thumbType(c.thumbnail_url);
+    var pf = pendingFiles[c.id];
+    var res = uploadResults[c.id];
+    var cardClass = 'course-card' + (pf ? ' has-file' : '') + (res === 'done' ? ' done' : '') + (res === 'error' ? ' error' : '');
+    var thumbSrc = pf ? URL.createObjectURL(pf) : (c.thumbnail_url || '');
+    var hasImg = !!(pf || c.thumbnail_url);
+
+    var statusBadge = '';
+    if (res === 'done') statusBadge = '<span class="status-badge done">✓ 완료</span>';
+    else if (res === 'error') statusBadge = '<span class="status-badge error">✕ 실패</span>';
+
+    return '<div class="' + cardClass + '" data-id="' + c.id + '">' +
+      '<div class="thumb-zone" onclick="pickFile(' + c.id + ')">' +
+        (hasImg ? '<img src="' + escHtml(thumbSrc) + '" loading="lazy">' : '') +
+        '<div class="placeholder"' + (hasImg ? ' style="display:none;"' : '') + '>' +
+          '<span class="placeholder-icon">🖼️</span>' +
+          '<span>클릭해서 이미지 선택</span>' +
+        '</div>' +
+        '<div class="overlay"><span style="font-size:22px;">🔄</span><span style="font-size:12px;margin-top:4px;">이미지 변경</span></div>' +
+        (pf ? '<span class="new-badge">새 파일</span>' : '') +
+        statusBadge +
+        (type === 'vimeo' && !pf && !res ? '<span style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;">Vimeo 썸네일</span>' : '') +
+      '</div>' +
+      '<div class="course-info">' +
+        '<div class="course-id">ID ' + c.id + '</div>' +
+        '<div class="course-title-text">' + escHtml(c.title) + '</div>' +
+        '<span class="course-status ' + (c.status === 'active' ? 'status-active' : 'status-hidden') + '">' +
+          (c.status === 'active' ? '판매중' : '비공개') +
+        '</span>' +
+      '</div>' +
+      (pf ? '<div class="card-actions"><button class="btn-remove" onclick="removeFile(' + c.id + ')">✕ 취소</button></div>' : '') +
+    '</div>';
+  }).join('');
+
+  updateUploadBtn();
+}
+
+function pickFile(courseId) {
+  var input = document.getElementById('global-file-input');
+  input.onchange = function() {
+    var file = input.files[0];
+    if (!file) return;
+    pendingFiles[courseId] = file;
+    delete uploadResults[courseId];
+    input.value = '';
+    renderGrid();
+  };
+  input.click();
+}
+
+function removeFile(courseId) {
+  delete pendingFiles[courseId];
+  delete uploadResults[courseId];
+  renderGrid();
+}
+
+function updateUploadBtn() {
+  var count = Object.keys(pendingFiles).length;
+  document.getElementById('upload-count').textContent = count;
+  document.getElementById('upload-all-btn').disabled = count === 0;
+}
+
+async function uploadAll() {
+  var ids = Object.keys(pendingFiles).map(Number);
+  if (!ids.length) return;
+
+  var total = ids.length;
+  var done = 0;
+  var errors = [];
+
+  document.getElementById('progress-bar').style.display = 'block';
+  document.getElementById('upload-all-btn').disabled = true;
+
+  for (var i = 0; i < ids.length; i++) {
+    var cId = ids[i];
+    var file = pendingFiles[cId];
+    var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    var fileName = 'course-' + cId + '.' + ext;
+
+    setCardStatus(cId, 'uploading');
+    setProgress((i / total) * 100, (i + 1) + '/' + total + ' 업로드 중...');
+
+    var uploadRes = await sb.storage
+      .from('course-thumbnails')
+      .upload(fileName, file, { upsert: true, contentType: file.type });
+
+    if (uploadRes.error) {
+      errors.push(cId);
+      uploadResults[cId] = 'error';
+      setCardStatus(cId, 'error');
+      continue;
+    }
+
+    var publicUrl = sb.storage.from('course-thumbnails').getPublicUrl(fileName).data.publicUrl;
+
+    var updateRes = await sb.from('courses')
+      .update({ thumbnail_url: publicUrl })
+      .eq('id', cId);
+
+    if (updateRes.error) {
+      errors.push(cId);
+      uploadResults[cId] = 'error';
+      setCardStatus(cId, 'error');
+      continue;
+    }
+
+    // Update local data
+    var course = courses.find(function(c) { return c.id === cId; });
+    if (course) course.thumbnail_url = publicUrl;
+
+    delete pendingFiles[cId];
+    uploadResults[cId] = 'done';
+    done++;
+    setCardStatus(cId, 'done');
+  }
+
+  setProgress(100, '완료!');
+  setTimeout(function() {
+    document.getElementById('progress-bar').style.display = 'none';
+  }, 2000);
+
+  if (errors.length) {
+    showToast(done + '개 성공, ' + errors.length + '개 실패 (ID: ' + errors.join(', ') + ')', true);
+  } else {
+    showToast(done + '개 썸네일을 모두 업로드했어요!');
+  }
+
+  document.getElementById('upload-all-btn').disabled = Object.keys(pendingFiles).length === 0;
+  renderGrid();
+}
+
+function setCardStatus(cId, status) {
+  var card = document.querySelector('.course-card[data-id="' + cId + '"]');
+  if (!card) return;
+  card.classList.remove('has-file', 'uploading', 'done', 'error');
+  card.classList.add(status === 'uploading' ? 'uploading' : (status === 'done' ? 'done' : (status === 'error' ? 'error' : '')));
+  var badge = card.querySelector('.status-badge');
+  if (badge) badge.remove();
+  var zone = card.querySelector('.thumb-zone');
+  if (zone) {
+    if (status === 'uploading') {
+      var b = document.createElement('span');
+      b.className = 'status-badge uploading';
+      b.textContent = '⬆ 업로드 중';
+      zone.appendChild(b);
+    } else if (status === 'done') {
+      var b = document.createElement('span');
+      b.className = 'status-badge done';
+      b.textContent = '✓ 완료';
+      zone.appendChild(b);
+    } else if (status === 'error') {
+      var b = document.createElement('span');
+      b.className = 'status-badge error';
+      b.textContent = '✕ 실패';
+      zone.appendChild(b);
+    }
+  }
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = text;
+}
+
+function showToast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(function() { t.className = 'toast'; }, 3500);
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
