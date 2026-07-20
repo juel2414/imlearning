@@ -117,6 +117,11 @@
     'font-size:9px;margin-right:6px;vertical-align:1px;}',
     '.mega-col-title:hover{color:#2D9B6F!important;}',
 
+    /* 배지 (인기/NEW/추천) — 연한 필 스타일 */
+    '.mega-cat-badge{display:inline-flex;align-items:center;',
+    'font-size:9px!important;font-weight:800!important;letter-spacing:.04em;',
+    'padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:2px;}',
+
     /* 서브 라벨 */
     '.mega-col-sublabel{font-size:10px!important;font-weight:700!important;',
     'color:#ddd!important;text-transform:uppercase!important;',
@@ -274,9 +279,9 @@
   // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
   var MEGA_CATS = [
     { key: 'faith',          label: '신앙',          catParam: 'faith' },
-    { key: 'school_subject', label: '학교교과',      catParam: 'school',  badge: '인기', badgeColor: '#C6860B' },
-    { key: 'ged',            label: '검정고시',      catParam: 'ged',     badge: 'NEW',  badgeColor: '#2D9B6F' },
-    { key: 'teacher_parent', label: '부모·교사',     catParam: 'edu',     badge: '추천', badgeColor: '#2D9B6F' },
+    { key: 'school_subject', label: '학교교과',      catParam: 'school',  badge: '인기', badgeBg: 'rgba(198,134,11,.13)', badgeText: '#9A6A06' },
+    { key: 'ged',            label: '검정고시',      catParam: 'ged',     badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
+    { key: 'teacher_parent', label: '부모·교사',     catParam: 'edu',     badge: '추천', badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
     { key: 'english_test',   label: '영어',          catParam: 'english' },
     { key: 'freepass',       label: '전강좌 무제한', catParam: 'freepass' },
   ];
@@ -303,16 +308,16 @@
         var html = '';
         MEGA_CATS.forEach(function (cat) {
           var badgeHtml = cat.badge
-            ? '<span class="mega-cat-badge" style="background:' + cat.badgeColor + '">' + cat.badge + '</span>'
+            ? '<span class="mega-cat-badge" style="background:' + cat.badgeBg + ';color:' + cat.badgeText + '">' + cat.badge + '</span>'
             : '';
 
           if (cat.key === 'freepass') {
             html += '<div class="mega-col">' +
               '<a href="pass.html" class="mega-col-thumb" style="background:linear-gradient(135deg,#1A7A4A,#2D9B6F);display:flex;align-items:center;justify-content:center;">' +
               '<span style="color:#fff;font-size:28px;">♾️</span></a>' +
-              '<a href="pass.html" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
+              '<a href="pass.html" class="mega-col-title">' + cat.label + '</a>' +
               '<div class="mega-col-items">' +
-              '<a href="pass.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:9px 16px;background:#2D9B6F;color:#fff!important;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">아이엠러닝 프리패스 →</a>' +
+              '<a href="pass.html">아이엠러닝 프리패스</a>' +
               '</div></div>';
             return;
           }
