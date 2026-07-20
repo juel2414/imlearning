@@ -303,20 +303,31 @@
 
         var html = '';
         MEGA_CATS.forEach(function (cat) {
+          var badgeHtml = cat.badge
+            ? '<span class="mega-cat-badge" style="background:' + cat.badgeColor + '">' + cat.badge + '</span>'
+            : '';
+
+          if (cat.key === 'freepass') {
+            html += '<div class="mega-col">' +
+              '<a href="pass.html" class="mega-col-thumb" style="background:linear-gradient(135deg,#1A7A4A,#2D9B6F);display:flex;align-items:center;justify-content:center;">' +
+              '<span style="color:#fff;font-size:28px;">♾️</span></a>' +
+              '<a href="pass.html" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
+              '<div class="mega-col-items">' +
+              '<a href="pass.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:9px 16px;background:#2D9B6F;color:#fff!important;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">전강좌 무제한 안내 →</a>' +
+              '</div></div>';
+            return;
+          }
+
           var courses = groups[cat.key] || [];
           var items = courses.map(function (c) {
             return '<a href="course-detail.html?id=' + c.id + '">' + esc(c.title) + '</a>';
           }).join('');
-          // thumbnail: first course image
           var thumbUrl = courses.length && courses[0].thumbnail_url ? courses[0].thumbnail_url : '';
           var catHref = 'courses.html?cat=' + (cat.catParam || 'all');
           var thumbHtml = thumbUrl
             ? '<a href="' + catHref + '" class="mega-col-thumb">' +
               '<img src="' + esc(thumbUrl) + '" alt=""></a>'
             : '<a href="' + catHref + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
-          var badgeHtml = cat.badge
-            ? '<span class="mega-cat-badge" style="background:' + cat.badgeColor + '">' + cat.badge + '</span>'
-            : '';
           html += '<div class="mega-col">' +
             thumbHtml +
             '<a href="' + catHref + '" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
