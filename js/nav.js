@@ -106,17 +106,16 @@
     '.mega-col:last-child{padding-right:0;}',
     '.mega-col:not(:first-child){border-left:1px solid rgba(0,0,0,.06);}',
 
-    /* 카테고리 라벨 (절제된, 회색) */
-    '.mega-col-title{font-size:11px!important;font-weight:600!important;',
-    'color:#aaa!important;letter-spacing:0.5px!important;',
+    /* 카테고리 라벨 */
+    '.mega-col-title{font-size:13px!important;font-weight:700!important;',
+    'color:#333!important;letter-spacing:0!important;',
     'display:block!important;padding:0 0 10px!important;',
-    'border-bottom:1px solid rgba(0,0,0,.06)!important;',
-    'margin-bottom:2px!important;text-decoration:none!important;',
-    'border-radius:0!important;transition:color .12s!important;',
-    'text-transform:uppercase!important;}',
+    'border-bottom:1.5px solid rgba(0,0,0,.08)!important;',
+    'margin-bottom:4px!important;text-decoration:none!important;',
+    'border-radius:0!important;transition:color .12s!important;}',
     '.mega-col-title::before{content:"●";color:#2D9B6F;',
-    'font-size:8px;margin-right:5px;vertical-align:1px;}',
-    '.mega-col-title:hover{color:#777!important;}',
+    'font-size:9px;margin-right:6px;vertical-align:1px;}',
+    '.mega-col-title:hover{color:#2D9B6F!important;}',
 
     /* 서브 라벨 */
     '.mega-col-sublabel{font-size:10px!important;font-weight:700!important;',
@@ -313,7 +312,7 @@
               '<span style="color:#fff;font-size:28px;">♾️</span></a>' +
               '<a href="pass.html" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
               '<div class="mega-col-items">' +
-              '<a href="pass.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:9px 16px;background:#2D9B6F;color:#fff!important;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">전강좌 무제한 안내 →</a>' +
+              '<a href="pass.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:9px 16px;background:#2D9B6F;color:#fff!important;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">아이엠러닝 프리패스 →</a>' +
               '</div></div>';
             return;
           }
