@@ -10,168 +10,332 @@
 <style>
   * { box-sizing: border-box; }
 
-  /* ── LUXURY HERO ── */
+  /* ══════════════════════════════════════
+     LUXURY HERO — 완전 리디자인
+  ══════════════════════════════════════ */
+
   .pass-hero {
     position: relative;
-    background: #071510;
+    min-height: 100svh;
+    background: #04100A;
     color: #fff;
-    padding: 88px 2rem 72px;
-    text-align: center;
+    display: flex;
+    align-items: center;
     overflow: hidden;
   }
-  /* 배경 글로우 */
-  .pass-hero::before {
-    content: '';
+
+  /* 오로라 배경 애니메이션 */
+  .pass-aurora {
     position: absolute;
     inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .pass-aurora::before {
+    content: '';
+    position: absolute;
+    width: 140%; height: 140%;
+    top: -20%; left: -20%;
     background:
-      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(45,155,111,.45) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(26,122,74,.25) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 30% at 80% 90%, rgba(201,168,76,.08) 0%, transparent 60%);
-    pointer-events: none;
+      radial-gradient(ellipse 55% 45% at 30% 40%, rgba(45,155,111,.28) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 75% 65%, rgba(26,90,55,.22) 0%, transparent 55%),
+      radial-gradient(ellipse 30% 35% at 55% 15%, rgba(201,168,76,.06) 0%, transparent 50%);
+    animation: aurora-shift 12s ease-in-out infinite alternate;
   }
-  /* 미세 노이즈 패턴 */
-  .pass-hero::after {
+  .pass-aurora::after {
     content: '';
     position: absolute;
+    width: 120%; height: 120%;
+    top: -10%; left: -10%;
+    background:
+      radial-gradient(ellipse 45% 40% at 70% 30%, rgba(45,155,111,.15) 0%, transparent 55%),
+      radial-gradient(ellipse 35% 45% at 20% 70%, rgba(26,122,74,.12) 0%, transparent 50%);
+    animation: aurora-shift 18s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes aurora-shift {
+    0%   { transform: translate(0,0) scale(1); }
+    50%  { transform: translate(3%,2%) scale(1.04); }
+    100% { transform: translate(-2%,4%) scale(.97); }
+  }
+
+  /* 격자 패턴 */
+  .pass-grid-bg {
+    position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: .4;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
     pointer-events: none;
   }
 
-  .pass-hero-inner { position: relative; z-index: 1; }
+  /* 메인 콘텐츠 래퍼 — 좌우 분할 */
+  .pass-hero-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 100px 48px 80px;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 80px;
+    align-items: center;
+  }
 
-  .pass-badge {
+  /* ── 왼쪽: 카피 ── */
+  .pass-copy { }
+
+  .pass-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(201,168,76,.12);
-    border: 1px solid rgba(201,168,76,.45);
-    border-radius: 20px;
-    padding: 6px 18px;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .pass-eyebrow-line {
+    width: 32px; height: 1px;
+    background: linear-gradient(90deg, transparent, #C9A84C);
+  }
+  .pass-eyebrow-text {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: .12em;
+    letter-spacing: .25em;
     text-transform: uppercase;
     color: #C9A84C;
-    margin-bottom: 28px;
-  }
-  .pass-badge::before {
-    content: '';
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: #C9A84C;
-    box-shadow: 0 0 6px #C9A84C;
-    animation: glow-dot 2s ease-in-out infinite;
-  }
-  @keyframes glow-dot {
-    0%,100% { opacity: 1; box-shadow: 0 0 6px #C9A84C; }
-    50% { opacity: .5; box-shadow: 0 0 2px #C9A84C; }
   }
 
   .pass-hero-title {
-    font-size: clamp(32px, 6vw, 60px);
+    font-size: clamp(42px, 5.5vw, 72px);
     font-weight: 900;
-    margin: 0 0 6px;
-    letter-spacing: -1.5px;
-    line-height: 1.15;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin: 0 0 24px;
   }
-  .pass-hero-title .gold { color: #C9A84C; }
-
-  .pass-hero-divider {
-    width: 40px; height: 2px;
-    background: linear-gradient(90deg, transparent, #C9A84C, transparent);
-    margin: 18px auto 18px;
-    border-radius: 1px;
+  /* 골드 메탈릭 텍스트 */
+  .pass-hero-title .gold-text {
+    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 35%, #B38728 65%, #FBF5B7 80%, #AA771C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
   }
 
   .pass-hero-sub {
-    font-size: 15px;
-    color: rgba(255,255,255,.6);
-    margin-bottom: 44px;
+    font-size: 16px;
+    color: rgba(255,255,255,.5);
+    line-height: 1.7;
+    margin-bottom: 48px;
+    max-width: 460px;
     letter-spacing: .01em;
   }
 
-  /* 가격 박스 — 럭셔리 글래스 */
-  .pass-price-box {
-    display: inline-flex;
+  /* 피처 리스트 */
+  .pass-feature-list {
+    display: flex;
     flex-direction: column;
+    gap: 14px;
+  }
+  .pass-feature-row {
+    display: flex;
     align-items: center;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(201,168,76,.3);
+    gap: 14px;
+    font-size: 14px;
+    color: rgba(255,255,255,.7);
+    font-weight: 500;
+  }
+  .pass-feature-icon-wrap {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(201,168,76,.25);
+    background: rgba(201,168,76,.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .pass-feature-row-label { color: rgba(255,255,255,.9); font-weight: 600; }
+  .pass-feature-row-desc { color: rgba(255,255,255,.45); font-size: 13px; }
+
+  /* ── 오른쪽: 멤버십 카드 ── */
+  .pass-card-wrap {
+    position: relative;
+  }
+  /* 카드 뒤 글로우 */
+  .pass-card-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -30px;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .pass-membership-card {
+    position: relative;
+    background: linear-gradient(145deg, #0D1F16 0%, #071510 60%, #0A1A0F 100%);
+    border: 1px solid rgba(201,168,76,.25);
     border-radius: 24px;
-    padding: 32px 56px;
-    backdrop-filter: blur(20px);
-    gap: 8px;
+    padding: 40px 36px 36px;
+    overflow: hidden;
     box-shadow:
       0 0 0 1px rgba(255,255,255,.04) inset,
-      0 32px 64px rgba(0,0,0,.4),
-      0 0 80px rgba(45,155,111,.15);
+      0 40px 80px rgba(0,0,0,.7),
+      0 0 60px rgba(201,168,76,.06);
+  }
+  /* 카드 상단 하이라이트 */
+  .pass-membership-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,.7), transparent);
+  }
+  /* 카드 배경 장식 원 */
+  .pass-membership-card::after {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,.05);
+    bottom: -80px; right: -80px;
+    pointer-events: none;
+  }
+
+  .card-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .card-brand-name {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+  }
+  .card-chip {
+    width: 36px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(201,168,76,.3);
+    background: linear-gradient(135deg, rgba(201,168,76,.15), rgba(201,168,76,.05));
     position: relative;
     overflow: hidden;
   }
-  /* 상단 하이라이트 */
-  .pass-price-box::before {
+  .card-chip::after {
     content: '';
     position: absolute;
-    top: 0; left: 10%; right: 10%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(201,168,76,.6), transparent);
-  }
-  .pass-price-label {
-    font-size: 11px;
-    color: #C9A84C;
-    font-weight: 700;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-  }
-  .pass-price-amount {
-    font-size: clamp(40px, 6vw, 58px);
-    font-weight: 900;
-    letter-spacing: -2px;
-    color: #fff;
-    line-height: 1;
-  }
-  .pass-price-period {
-    font-size: 12px;
-    color: rgba(255,255,255,.5);
-    letter-spacing: .05em;
+    inset: 4px;
+    border: 1px solid rgba(201,168,76,.2);
+    border-radius: 3px;
   }
 
-  /* 피처 그리드 */
-  .pass-features {
-    display: flex;
-    justify-content: center;
-    gap: 0;
-    margin-top: 44px;
-    flex-wrap: wrap;
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 16px;
-    overflow: hidden;
-    max-width: 680px;
-    margin-left: auto;
-    margin-right: auto;
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin-bottom: 10px;
+    opacity: .8;
   }
-  .pass-feature-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: rgba(255,255,255,.75);
-    padding: 18px 24px;
-    flex: 1;
-    min-width: 120px;
-    border-right: 1px solid rgba(255,255,255,.07);
-    background: rgba(255,255,255,.03);
-    font-weight: 500;
-  }
-  .pass-feature-item:last-child { border-right: none; }
-  .pass-feature-icon {
-    font-size: 20px;
+  .card-price {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -2px;
     line-height: 1;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 40%, #C9A84C 70%, #FBF5B7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
+  .card-period {
+    font-size: 13px;
+    color: rgba(255,255,255,.4);
+    margin-bottom: 32px;
+    letter-spacing: .04em;
+  }
+
+  /* 카드 구분선 */
+  .card-divider {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(201,168,76,.3), rgba(255,255,255,.05), transparent);
+    margin: 0 0 24px;
+  }
+
+  /* 카드 내 피처 */
+  .card-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .card-feature {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+  }
+  .card-feature-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: #C9A84C;
+    flex-shrink: 0;
+  }
+
+  /* 카드 내 CTA */
+  .card-cta-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: -.2px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .15s, box-shadow .15s;
+    background: linear-gradient(135deg, #BF953F, #C9A84C 40%, #AA771C);
+    color: #07150D;
+    box-shadow: 0 8px 24px rgba(201,168,76,.3), 0 0 0 1px rgba(201,168,76,.4) inset;
+  }
+  .card-cta-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%   { left: -100%; }
+    50%  { left: 150%; }
+    100% { left: 150%; }
+  }
+  .card-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(201,168,76,.4), 0 0 0 1px rgba(201,168,76,.5) inset; }
+  .card-cta-btn:disabled { background: #2a3a30; color: rgba(255,255,255,.4); cursor: not-allowed; box-shadow: none; transform: none; }
+  .card-cta-btn.already {
+    background: transparent;
+    color: #C9A84C;
+    border: 1px solid rgba(201,168,76,.5);
+    box-shadow: none;
+  }
+  .card-cta-btn.already::before { display: none; }
+
+  /* 로그인 안내 */
+  .card-login-notice {
+    font-size: 12px;
+    color: rgba(255,255,255,.35);
+    text-align: center;
+    margin-top: 12px;
+  }
+  .card-login-notice a { color: #C9A84C; text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ── 아래 강좌 섹션 ── */
 
   .pass-main {
     max-width: 1100px;
@@ -228,13 +392,14 @@
   .course-card-body { padding: 12px; }
   .course-card-title { font-size: 13px; font-weight: 600; color: var(--black); line-height: 1.4; }
 
+  /* 스크롤 시 하단 구매 바 */
   .buy-section {
     position: sticky;
     bottom: 0;
-    background: rgba(255,255,255,.95);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(0,0,0,.08);
-    padding: 16px 2rem;
+    background: rgba(4,16,10,.92);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(201,168,76,.2);
+    padding: 14px 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -242,38 +407,30 @@
     z-index: 50;
   }
   .buy-section-price {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 900;
-    color: var(--black);
+    color: #fff;
     letter-spacing: -1px;
   }
-  .buy-section-sub { font-size: 12px; color: var(--gray-500); }
+  .buy-section-sub { font-size: 11px; color: rgba(255,255,255,.4); }
   .buy-btn {
-    padding: 14px 40px;
-    background: var(--green);
-    color: #fff;
+    padding: 12px 36px;
+    background: linear-gradient(135deg, #BF953F, #C9A84C 40%, #AA771C);
+    color: #07150D;
     border: none;
-    border-radius: 12px;
-    font-size: 16px;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 800;
     cursor: pointer;
-    letter-spacing: -.3px;
-    transition: background .15s, transform .1s;
+    letter-spacing: -.2px;
+    transition: transform .12s, box-shadow .12s;
     white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(201,168,76,.35);
   }
-  .buy-btn:hover { background: #23845d; transform: translateY(-1px); }
-  .buy-btn:disabled { background: #9CA3AF; cursor: not-allowed; transform: none; }
-  .buy-btn.already {
-    background: #fff;
-    color: var(--green);
-    border: 2px solid var(--green);
-  }
+  .buy-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,168,76,.4); }
+  .buy-btn:disabled { background: #1a2a1f; color: rgba(255,255,255,.3); cursor: not-allowed; box-shadow: none; transform: none; }
+  .buy-btn.already { background: transparent; color: #C9A84C; border: 1px solid rgba(201,168,76,.5); box-shadow: none; }
 
-  .loading-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-  }
   .skeleton {
     border-radius: 12px;
     overflow: hidden;
@@ -298,10 +455,22 @@
   }
   .login-notice a { color: var(--green); font-weight: 700; }
 
+  /* 반응형 */
+  @media (max-width: 900px) {
+    .pass-hero-inner {
+      grid-template-columns: 1fr;
+      padding: 80px 24px 60px;
+      gap: 48px;
+      text-align: center;
+    }
+    .pass-eyebrow, .pass-feature-list { justify-content: center; }
+    .pass-hero-sub { margin-left: auto; margin-right: auto; }
+    .pass-membership-card { max-width: 380px; margin: 0 auto; }
+  }
   @media (max-width: 600px) {
-    .pass-price-box { padding: 20px 28px; }
-    .pass-price-amount { font-size: 36px; }
-    .buy-section { flex-direction: column; gap: 12px; }
+    .pass-hero-title { font-size: 38px; letter-spacing: -1.5px; }
+    .card-price { font-size: 38px; }
+    .buy-section { flex-direction: column; gap: 10px; }
     .buy-btn { width: 100%; text-align: center; }
   }
 </style>
@@ -328,22 +497,80 @@
 
 <!-- 히어로 -->
 <section class="pass-hero">
+  <div class="pass-aurora"></div>
+  <div class="pass-grid-bg"></div>
   <div class="pass-hero-inner">
-    <div class="pass-badge">LIMITED — 아이엠러닝 프리패스</div>
-    <h1 class="pass-hero-title">전강좌 <span class="gold">365일</span><br>무제한 수강</h1>
-    <div class="pass-hero-divider"></div>
-    <p class="pass-hero-sub">신앙 · 학교교과 · 검정고시 · 부모·교사 · 영어 — 모든 강좌를 하나의 이용권으로</p>
-    <div class="pass-price-box">
-      <span class="pass-price-label">FREEPASS 이용권</span>
-      <span class="pass-price-amount" id="hero-price">₩450,000</span>
-      <span class="pass-price-period" id="hero-period">365일 무제한 수강</span>
+
+    <!-- 왼쪽: 카피 -->
+    <div class="pass-copy">
+      <div class="pass-eyebrow">
+        <div class="pass-eyebrow-line"></div>
+        <span class="pass-eyebrow-text">아이엠러닝 프리패스</span>
+      </div>
+      <h1 class="pass-hero-title">
+        모든 강좌를<br>
+        <span class="gold-text">무제한으로.</span>
+      </h1>
+      <p class="pass-hero-sub">
+        신앙 · 학교교과 · 검정고시 · 부모·교사 · 영어<br>
+        하나의 이용권으로 전 강좌를 365일 자유롭게 수강하세요.
+      </p>
+      <div class="pass-feature-list">
+        <div class="pass-feature-row">
+          <div class="pass-feature-icon-wrap">📚</div>
+          <div>
+            <div class="pass-feature-row-label">전 강좌 무제한 수강</div>
+            <div class="pass-feature-row-desc">현재 운영 중인 모든 강좌 포함</div>
+          </div>
+        </div>
+        <div class="pass-feature-row">
+          <div class="pass-feature-icon-wrap">📅</div>
+          <div>
+            <div class="pass-feature-row-label">365일 이용</div>
+            <div class="pass-feature-row-desc">구매일로부터 1년간 유효</div>
+          </div>
+        </div>
+        <div class="pass-feature-row">
+          <div class="pass-feature-icon-wrap">📱</div>
+          <div>
+            <div class="pass-feature-row-label">모바일 · PC 모두 지원</div>
+            <div class="pass-feature-row-desc">언제 어디서나 수강 가능</div>
+          </div>
+        </div>
+        <div class="pass-feature-row">
+          <div class="pass-feature-icon-wrap">🎓</div>
+          <div>
+            <div class="pass-feature-row-label">수료증 발급</div>
+            <div class="pass-feature-row-desc">각 강좌 완강 시 수료증 제공</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="pass-features">
-      <span class="pass-feature-item"><span class="pass-feature-icon">📚</span>전 강좌 수강</span>
-      <span class="pass-feature-item"><span class="pass-feature-icon">♾️</span>365일 무제한</span>
-      <span class="pass-feature-item"><span class="pass-feature-icon">📱</span>모바일 · PC</span>
-      <span class="pass-feature-item"><span class="pass-feature-icon">🎓</span>수료증 발급</span>
+
+    <!-- 오른쪽: 멤버십 카드 -->
+    <div class="pass-card-wrap">
+      <div class="pass-membership-card">
+        <div class="card-brand">
+          <span class="card-brand-name">IMLEARNING</span>
+          <div class="card-chip"></div>
+        </div>
+        <div class="card-label">FREEPASS 이용권</div>
+        <div class="card-price" id="hero-price">₩450,000</div>
+        <div class="card-period" id="hero-period">365일 무제한 수강</div>
+        <div class="card-divider"></div>
+        <div class="card-features">
+          <div class="card-feature"><div class="card-feature-dot"></div>전 강좌 포함</div>
+          <div class="card-feature"><div class="card-feature-dot"></div>365일 유효</div>
+          <div class="card-feature"><div class="card-feature-dot"></div>모바일·PC</div>
+          <div class="card-feature"><div class="card-feature-dot"></div>수료증 발급</div>
+        </div>
+        <button class="card-cta-btn" id="buy-btn" onclick="requestPassPayment()">프리패스 구매하기</button>
+        <div class="card-login-notice" id="card-login-notice" style="display:none;">
+          <a href="login.html">로그인</a> 또는 <a href="signup.html">30초 가입</a> 후 구매 가능해요
+        </div>
+      </div>
     </div>
+
   </div>
 </section>
 
@@ -368,13 +595,13 @@
   </div>
 </section>
 
-<!-- 하단 고정 구매 버튼 -->
+<!-- 하단 고정 구매 버튼 (스크롤 시 노출) -->
 <div class="buy-section" id="buy-section" style="display:none;">
   <div>
     <div class="buy-section-price" id="footer-price">₩450,000</div>
     <div class="buy-section-sub">365일 전강좌 무제한</div>
   </div>
-  <button class="buy-btn" id="buy-btn" onclick="requestPassPayment()">프리패스 구매하기</button>
+  <button class="buy-btn" id="buy-btn-footer" onclick="requestPassPayment()">프리패스 구매하기</button>
 </div>
 
 <footer class="footer">
@@ -446,11 +673,8 @@ async function loadPass() {
     passUser = user;
 
     if (!user) {
-      document.getElementById('login-notice').style.display = 'block';
+      document.getElementById('card-login-notice').style.display = 'block';
     } else {
-      // 이미 유효한 프리패스 보유 여부 확인
-      // .is('course_id', null): 프리패스는 course_id가 null
-      // refund_status 필터: NULL NOT IN (...) = NULL(false)이므로 JS에서 처리
       const now = new Date().toISOString();
       const { data: existing } = await supabaseClient
         .from('orders')
@@ -465,8 +689,10 @@ async function loadPass() {
       if (validPass) {
         alreadyOwns = true;
         const btn = document.getElementById('buy-btn');
+        const btnFooter = document.getElementById('buy-btn-footer');
         btn.textContent = '이미 이용 중 → 강의실 가기';
         btn.classList.add('already');
+        if (btnFooter) { btnFooter.textContent = '강의실 가기'; btnFooter.classList.add('already'); }
       }
     }
 
