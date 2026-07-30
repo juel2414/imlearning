@@ -146,13 +146,16 @@
 .player-lesson-panel { width:260px; flex-shrink:0; background:#fff; border-left:1px solid rgba(0,0,0,.08); display:flex; flex-direction:column; }
 .panel-hdr { padding:12px 16px 11px; font-size:13px; font-weight:800; color:var(--black); border-bottom:1px solid rgba(0,0,0,.08); flex-shrink:0; display:flex; align-items:center; }
 .sidebar-count { font-size:11px; font-weight:400; color:#aaa; margin-left:4px; }
-/* 날개 접기 버튼 */
-.wing-toggle-btn { background:rgba(255,255,255,.1); border:none; color:rgba(255,255,255,.7); border-radius:6px; font-size:11px; padding:4px 8px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background .12s; line-height:1; }
-.wing-toggle-btn:hover { background:rgba(255,255,255,.22); }
+/* 날개 접기 버튼 (패널 헤더 안) */
+.wing-toggle-btn { background:none; border:none; color:#aaa; font-size:14px; font-weight:400; padding:2px 4px; cursor:pointer; flex-shrink:0; transition:color .12s; line-height:1; }
+.wing-toggle-btn:hover { color:#333; }
 /* 날개 접힌 상태 */
 .player-sidebar-row.wing-collapsed .player-lesson-panel { display:none; }
-.wing-icon { transition:transform .2s; display:inline-block; }
-.player-sidebar-row.wing-collapsed .wing-icon { transform:rotate(180deg); }
+/* 패널 숨겨졌을 때 보이는 열기 탭 */
+.wing-show-tab { display:none; position:absolute; right:0; top:50%; transform:translateY(-50%); background:#fff; border:1px solid rgba(0,0,0,.1); border-right:none; border-radius:6px 0 0 6px; padding:10px 6px; font-size:10px; font-weight:700; color:#555; cursor:pointer; line-height:1.4; box-shadow:-2px 0 8px rgba(0,0,0,.06); writing-mode:horizontal-tb; z-index:10; }
+.wing-show-tab:hover { background:#f5faf7; color:var(--green,#2D9B6F); }
+.player-sidebar-row.wing-collapsed .wing-show-tab { display:block; }
+.player-main-col { position:relative; }
 .sidebar-list { overflow-y:auto; flex:1; }
 /* 강의 목록 아이템 */
 .sidebar-lesson-item { display:flex; flex-direction:column; border-bottom:1px solid rgba(0,0,0,.05); font-size:12px; color:var(--gray-700); transition:background .1s; line-height:1.4; }
@@ -417,7 +420,6 @@
             <div class="player-main-col" id="lesson-player-wrap">
               <div class="lesson-player-header">
                 <span id="lesson-player-title" class="lesson-player-title">강의 선택</span>
-                <button class="wing-toggle-btn" onclick="document.getElementById('playerSidebarRow').classList.toggle('wing-collapsed')" title="강의목록 숨기기/보이기"><span class="wing-icon">◀</span></button>
                 <button class="lesson-player-close" onclick="closeLessonPlayer()">✕</button>
               </div>
               <div class="resume-banner" id="resume-banner">
@@ -437,9 +439,11 @@
                 <span id="watch-done-badge" style="display:none;color:rgba(255,255,255,.9);font-weight:700;font-size:12px;">✅ 완료</span>
               </div>
             </div>
+            <!-- 패널 접혔을 때 열기 탭 -->
+            <button class="wing-show-tab" onclick="toggleWing()" title="강의 목록 보기">목록<br>▶</button>
             <!-- 오른쪽: 강의 목록 패널 -->
             <div class="player-lesson-panel">
-              <div class="panel-hdr">강의 목록 <span class="sidebar-count" id="sidebarCount"></span></div>
+              <div class="panel-hdr">강의 목록 <span class="sidebar-count" id="sidebarCount"></span><button class="wing-toggle-btn" onclick="toggleWing()" title="목록 숨기기" style="margin-left:auto;"><span class="wing-icon">✕</span></button></div>
               <div class="sidebar-list" id="sidebarList"></div>
             </div>
           </div>
@@ -1891,6 +1895,22 @@ function syncPlayerPanelHeight() {
   });
 }
 window.addEventListener('resize', syncPlayerPanelHeight);
+
+function toggleWing() {
+  const row = document.getElementById('playerSidebarRow');
+  if (!row) return;
+  const collapsed = row.classList.toggle('wing-collapsed');
+  localStorage.setItem('iml_wing_collapsed', collapsed ? '1' : '0');
+  syncPlayerPanelHeight();
+}
+
+// 페이지 로드 시 저장된 상태 복원
+(function() {
+  if (localStorage.getItem('iml_wing_collapsed') === '1') {
+    const row = document.getElementById('playerSidebarRow');
+    if (row) row.classList.add('wing-collapsed');
+  }
+})();
 
 function closeLessonPlayer() {
   if (activeTracker) { activeTracker.stop(); activeTracker = null; }
