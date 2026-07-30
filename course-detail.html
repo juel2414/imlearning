@@ -1671,7 +1671,7 @@ async function loadCurriculum(courseId) {
   // 무료 미리보기 강의 수 안내
   const freeCount = lessons.filter(l => l.is_free_preview).length;
   if (freeCount > 0) {
-    notice.innerHTML = `<img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> ${freeCount}강은 무료로 미리 볼 수 있어요`;
+    notice.innerHTML = `<img src="icons/lock-open.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> ${freeCount}강은 일부를 무료로 미리 볼 수 있어요`;
     notice.style.display = '';
   }
 
