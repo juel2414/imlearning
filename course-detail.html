@@ -738,44 +738,55 @@ async function toggleWish() {
 }
 
 // ───── 미리보기 ─────
-let _previewPlayer = null;
+(function() {
+  let player = null;
+  let enforceTimer = null;
 
-function openPreview(url) {
-  const vimeoMatch = url.match(/(?:\/video\/|vimeo\.com\/)(\d+)/);
-  if (!vimeoMatch) return;
-  const container = document.getElementById('preview-vimeo-container');
-  const overlay   = document.getElementById('preview-ended-overlay');
-  overlay.classList.remove('show');
-  container.innerHTML = '';
-  document.getElementById('preview-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  function stopEnforce() {
+    if (enforceTimer) { clearInterval(enforceTimer); enforceTimer = null; }
+  }
 
-  _previewPlayer = new Vimeo.Player(container, {
-    id: parseInt(vimeoMatch[1], 10),
-    autoplay: true,
-    title: false,
-    byline: false,
-    portrait: false,
-    responsive: true,
-  });
+  window.openPreview = function(url) {
+    const vimeoMatch = url.match(/(?:\/video\/|vimeo\.com\/)(\d+)/);
+    if (!vimeoMatch) return;
+    const container = document.getElementById('preview-vimeo-container');
+    const overlay   = document.getElementById('preview-ended-overlay');
+    overlay.classList.remove('show');
+    container.innerHTML = '';
+    stopEnforce();
+    document.getElementById('preview-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 
-  let limitSec = null;
-  _previewPlayer.getDuration().then(dur => { limitSec = dur / 10; });
-  _previewPlayer.on('timeupdate', ({ seconds }) => {
-    if (limitSec !== null && seconds >= limitSec) {
-      _previewPlayer.pause();
-      overlay.classList.add('show');
-    }
-  });
-}
+    player = new Vimeo.Player(container, {
+      id: parseInt(vimeoMatch[1], 10),
+      autoplay: true,
+      title: false,
+      byline: false,
+      portrait: false,
+      responsive: true,
+    });
 
-function closePreview(e) {
-  if (e && e.target !== document.getElementById('preview-modal') && e.target.id !== 'preview-modal-close') return;
-  document.getElementById('preview-modal').classList.remove('open');
-  document.getElementById('preview-ended-overlay').classList.remove('show');
-  if (_previewPlayer) { _previewPlayer.destroy(); _previewPlayer = null; }
-  document.body.style.overflow = '';
-}
+    let limitSec = null;
+    player.getDuration().then(dur => { limitSec = dur / 10; });
+    player.on('timeupdate', ({ seconds }) => {
+      if (limitSec !== null && seconds >= limitSec) {
+        player.pause();
+        overlay.classList.add('show');
+        stopEnforce();
+        enforceTimer = setInterval(() => { player && player.pause(); }, 500);
+      }
+    });
+  };
+
+  window.closePreview = function(e) {
+    if (e && e.target !== document.getElementById('preview-modal') && e.target.id !== 'preview-modal-close') return;
+    document.getElementById('preview-modal').classList.remove('open');
+    document.getElementById('preview-ended-overlay').classList.remove('show');
+    stopEnforce();
+    if (player) { player.destroy(); player = null; }
+    document.body.style.overflow = '';
+  };
+})();
 
 // ───── 수강 진도 ─────
 let progressMap = {};    // lessonId → true/false
