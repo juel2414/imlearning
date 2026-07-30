@@ -132,7 +132,13 @@ body {
 #preview-modal.open { display:flex; }
 #preview-modal-inner { background:#111; border-radius:16px; overflow:hidden; width:min(760px,95vw); aspect-ratio:16/9; position:relative; }
 #preview-modal-close { position:absolute; top:10px; right:10px; z-index:10; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.18); border:none; color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
-#preview-iframe { width:100%; height:100%; border:none; display:block; }
+#preview-vimeo-container { position:absolute; inset:0; width:100%; height:100%; }
+#preview-vimeo-container iframe { width:100%; height:100%; border:none; display:block; }
+#preview-ended-overlay { display:none; position:absolute; inset:0; background:rgba(0,0,0,.88); z-index:5; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:28px; text-align:center; }
+#preview-ended-overlay.show { display:flex; }
+.preview-ended-title { color:#fff; font-size:18px; font-weight:700; font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif; }
+.preview-ended-sub { color:rgba(255,255,255,.65); font-size:14px; font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif; }
+.preview-ended-btn { padding:12px 32px; background:#2D9B6F; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif; margin-top:4px; }
 @media (max-width: 768px) {
   .detail-inner { grid-template-columns: 1fr; }
   .purchase-card { position: static; }
@@ -627,7 +633,13 @@ body {
 <div id="preview-modal" onclick="closePreview(event)">
   <div id="preview-modal-inner">
     <button id="preview-modal-close" onclick="closePreview()">✕</button>
-    <iframe id="preview-iframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    <div id="preview-vimeo-container"></div>
+    <div id="preview-ended-overlay">
+      <div style="font-size:40px;">🔒</div>
+      <div class="preview-ended-title">미리보기가 끝났어요</div>
+      <div class="preview-ended-sub">나머지 강의는 수강 신청 후 볼 수 있어요</div>
+      <button class="preview-ended-btn" onclick="closePreview(); document.querySelector('.btn-enroll,#enroll-btn,.purchase-btns .btn')?.scrollIntoView({behavior:'smooth'});">수강 신청하기</button>
+    </div>
   </div>
 </div>
 
@@ -726,19 +738,42 @@ async function toggleWish() {
 }
 
 // ───── 미리보기 ─────
+let _previewPlayer = null;
+
 function openPreview(url) {
-  let embedUrl = url;
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) embedUrl = 'https://player.vimeo.com/video/' + vimeoMatch[1] + '?autoplay=1&title=0&byline=0&portrait=0';
-  document.getElementById('preview-iframe').src = embedUrl;
+  if (!vimeoMatch) return;
+  const container = document.getElementById('preview-vimeo-container');
+  const overlay   = document.getElementById('preview-ended-overlay');
+  overlay.classList.remove('show');
+  container.innerHTML = '';
   document.getElementById('preview-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  _previewPlayer = new Vimeo.Player(container, {
+    id: parseInt(vimeoMatch[1], 10),
+    autoplay: true,
+    title: false,
+    byline: false,
+    portrait: false,
+    responsive: true,
+  });
+
+  let limitSec = null;
+  _previewPlayer.getDuration().then(dur => { limitSec = dur / 10; });
+  _previewPlayer.on('timeupdate', ({ seconds }) => {
+    if (limitSec !== null && seconds >= limitSec) {
+      _previewPlayer.pause();
+      overlay.classList.add('show');
+    }
+  });
 }
 
 function closePreview(e) {
   if (e && e.target !== document.getElementById('preview-modal') && e.target.id !== 'preview-modal-close') return;
   document.getElementById('preview-modal').classList.remove('open');
-  document.getElementById('preview-iframe').src = '';
+  document.getElementById('preview-ended-overlay').classList.remove('show');
+  if (_previewPlayer) { _previewPlayer.destroy(); _previewPlayer = null; }
   document.body.style.overflow = '';
 }
 
