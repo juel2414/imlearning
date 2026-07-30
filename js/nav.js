@@ -131,10 +131,11 @@
     /* 하위 항목 — 여백과 절제 */
     '.mega-col-items{display:flex;flex-direction:column;gap:0;}',
     '.mega-col a:not(.mega-col-title):not(.mega-col-thumb){',
-    'font-size:13px!important;color:#444!important;font-weight:300!important;',
+    'font-size:13px!important;color:#333!important;font-weight:400!important;',
     'font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif!important;',
+    'letter-spacing:-0.02em!important;',
     'text-decoration:none!important;padding:0!important;border-radius:0!important;',
-    'display:block!important;line-height:1.9!important;',
+    'display:block!important;line-height:2!important;',
     'transition:color .12s!important;white-space:nowrap!important;',
     'overflow:hidden!important;text-overflow:ellipsis!important;',
     'background:transparent!important;}',
