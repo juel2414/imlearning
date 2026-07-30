@@ -63,7 +63,6 @@
       <li><a href="courses.html?cat=exam">수능/검정고시</a></li>
       <li><a href="courses.html?cat=edu">부모·교사</a></li>
       <li><a href="courses.html?cat=english">영어</a></li>
-      <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
     </ul>
     <div class="navbar-right">
       <a href="login.html" class="btn btn-outline btn-sm">로그인</a>
@@ -79,7 +78,6 @@
     <button class="top-cat-btn" onclick="switchCat('exam', this)">수능/검정고시</button>
     <button class="top-cat-btn" onclick="switchCat('edu', this)">부모·교사</button>
     <button class="top-cat-btn" onclick="switchCat('english', this)">영어</button>
-    <button class="top-cat-btn" onclick="switchCat('freepass', this)">전강좌 무제한</button>
   </div>
 </div>
 
@@ -144,7 +142,7 @@
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 // ───── 카테고리 사이드바 데이터 ─────
 const catData = {
-  all:      { title: '전체 강좌',     subs: ['전체', '신앙', '수능/검정고시', '부모·교사', '영어', '전강좌 무제한'] },
+  all:      { title: '전체 강좌',     subs: ['전체', '신앙', '수능/검정고시', '부모·교사', '영어'] },
   faith:    { title: '신앙',          subs: ['전체', '트리플스쿨 - 복음', '트리플스쿨 - 제자', '트리플스쿨 - 소명', 'CBUP', '기타 신앙'] },
   exam:     { title: '수능/검정고시', subs: ['전체', '고졸 검정고시', '중졸 검정고시', '온택 검정고시', '고등과정'] },
   edu:      { title: '부모·교사',     subs: ['전체', '부모학교', '부모학교 강사과정', '부모대안학교', '교사양성', '성교육'] },
