@@ -741,7 +741,7 @@ async function toggleWish() {
 let _previewPlayer = null;
 
 function openPreview(url) {
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  const vimeoMatch = url.match(/(?:\/video\/|vimeo\.com\/)(\d+)/);
   if (!vimeoMatch) return;
   const container = document.getElementById('preview-vimeo-container');
   const overlay   = document.getElementById('preview-ended-overlay');
