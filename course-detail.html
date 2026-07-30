@@ -5,7 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>강좌 상세 — 아이엠러닝</title>
 <link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://player.vimeo.com/api/player.js"></script>
+<style>
+/* 강의 상세 페이지 — 고딕 폰트 기본값 */
+body {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+  word-break: keep-all;
+  letter-spacing: -0.01em;
+}
+/* 가격 숫자는 Jua 유지 */
+.purchase-price,
+.price-breakdown-final .pb-val,
+.rating-big {
+  font-family: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+}
+</style>
 <style>
 .detail-hero { background: #fff; padding: 2rem 0 3rem; }
 .detail-inner { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
@@ -1559,10 +1574,7 @@ function fmtDuration(secs) {
 
 async function loadCurriculum(courseId) {
   const { data: lessons } = await supabaseClient
-    .from('lessons_curriculum')
-    .select('id, title, section_title, sort_order, is_free_preview, duration_seconds')
-    .eq('course_id', courseId)
-    .order('sort_order');
+    .rpc('get_course_curriculum', { p_course_id: courseId });
 
   const content = document.getElementById('curriculum-content');
   const notice  = document.getElementById('free-preview-notice');
