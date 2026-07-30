@@ -60,8 +60,7 @@
       <li><a href="courses.html" class="active">강좌</a></li>
       <li><a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a></li>
       <li><a href="courses.html?cat=faith">신앙</a></li>
-      <li><a href="courses.html?cat=school">학교교과</a></li>
-      <li><a href="courses.html?cat=ged">검정고시</a></li>
+      <li><a href="courses.html?cat=exam">수능/검정고시</a></li>
       <li><a href="courses.html?cat=edu">부모·교사</a></li>
       <li><a href="courses.html?cat=english">영어</a></li>
       <li><a href="courses.html?cat=freepass">전강좌 무제한</a></li>
@@ -77,8 +76,7 @@
   <div class="top-cat-inner">
     <button class="top-cat-btn active" onclick="switchCat('all', this)">전체</button>
     <button class="top-cat-btn" onclick="switchCat('faith', this)">신앙</button>
-    <button class="top-cat-btn" onclick="switchCat('school', this)">학교교과</button>
-    <button class="top-cat-btn" onclick="switchCat('ged', this)">검정고시</button>
+    <button class="top-cat-btn" onclick="switchCat('exam', this)">수능/검정고시</button>
     <button class="top-cat-btn" onclick="switchCat('edu', this)">부모·교사</button>
     <button class="top-cat-btn" onclick="switchCat('english', this)">영어</button>
     <button class="top-cat-btn" onclick="switchCat('freepass', this)">전강좌 무제한</button>
@@ -130,7 +128,7 @@
         <div class="footer-slogan">I'M Learning, I'M Running!</div>
         <div class="footer-info">상호: IMlearning 아이엠러닝 · 대표자: 이수열<br>사업자등록번호: 664-17-01515<br>전화: 010-5307-6139</div>
       </div>
-      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=school">학교교과</a><a href="courses.html?cat=ged">검정고시</a><a href="courses.html?cat=edu">부모·교사</a><a href="courses.html?cat=english">영어</a><a href="pass.html">프리패스 (전강좌 무제한)</a></div>
+      <div class="footer-col"><div class="footer-col-title">강좌</div><a href="courses.html?cat=faith">신앙</a><a href="courses.html?cat=exam">수능/검정고시</a><a href="courses.html?cat=edu">부모·교사</a><a href="courses.html?cat=english">영어</a><a href="pass.html">프리패스 (전강좌 무제한)</a></div>
       <div class="footer-col"><div class="footer-col-title">서비스</div><a href="contact.html">문의하기</a><a href="reviews.html">수강생 후기</a><a href="https://imbooks.kr" target="_blank" rel="noopener">교재 (아이엠북스)</a></div>
       <div class="footer-col"><div class="footer-col-title">About</div><a href="about.html">소개</a><a href="terms.html">이용약관</a></div>
     </div>
@@ -146,10 +144,9 @@
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 // ───── 카테고리 사이드바 데이터 ─────
 const catData = {
-  all:      { title: '전체 강좌',     subs: ['전체', '신앙', '학교교과', '검정고시', '부모·교사', '영어', '전강좌 무제한'] },
+  all:      { title: '전체 강좌',     subs: ['전체', '신앙', '수능/검정고시', '부모·교사', '영어', '전강좌 무제한'] },
   faith:    { title: '신앙',          subs: ['전체', '트리플스쿨 - 복음', '트리플스쿨 - 제자', '트리플스쿨 - 소명', 'CBUP', '기타 신앙'] },
-  school:   { title: '학교교과',      subs: ['전체', '고등과정', '중등과정'] },
-  ged:      { title: '검정고시',      subs: ['전체', '고졸 검정고시', '중졸 검정고시', '온택 검정고시'] },
+  exam:     { title: '수능/검정고시', subs: ['전체', '고졸 검정고시', '중졸 검정고시', '온택 검정고시', '고등과정'] },
   edu:      { title: '부모·교사',     subs: ['전체', '부모학교', '부모학교 강사과정', '부모대안학교', '교사양성', '성교육'] },
   english:  { title: '영어',          subs: ['전체', '영단속 영어성경', '67영문법', '토익'] },
   freepass: { title: '전강좌 무제한', subs: ['프리패스 안내', '포함 강좌 목록', '신청하기'] }

@@ -86,7 +86,7 @@
     'border:1px solid rgba(0,0,0,.05);z-index:200;',
     'padding:28px 36px;width:min(96vw,1300px);}',
     '.nb-dropdown.mega-open .nb-mega-menu{',
-    'display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:0;',
+    'display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:0;',
     'animation:megaFadeIn .18s ease-out both;}',
     '@keyframes megaFadeIn{',
     'from{opacity:0;transform:translateX(-50%) translateY(-4px)}',
@@ -278,12 +278,11 @@
 
   // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
   var MEGA_CATS = [
-    { key: 'faith',          label: '신앙',          catParam: 'faith' },
-    { key: 'school_subject', label: '학교교과',      catParam: 'school',  badge: '인기', badgeBg: 'rgba(198,134,11,.13)', badgeText: '#9A6A06' },
-    { key: 'ged',            label: '검정고시',      catParam: 'ged',     badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
-    { key: 'teacher_parent', label: '부모·교사',     catParam: 'edu',     badge: '추천', badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
-    { key: 'english_test',   label: '영어',          catParam: 'english' },
-    { key: 'freepass',       label: '전강좌 무제한', catParam: 'freepass' },
+    { key: 'faith',          label: '신앙',            catParam: 'faith' },
+    { key: 'exam',           label: '수능/검정고시',  catParam: 'exam',    badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
+    { key: 'teacher_parent', label: '부모·교사',      catParam: 'edu',     badge: '추천', badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
+    { key: 'english_test',   label: '영어',            catParam: 'english' },
+    { key: 'freepass',       label: '전강좌 무제한',  catParam: 'freepass' },
   ];
 
   function loadMegaCourses() {
