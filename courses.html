@@ -5,7 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>강좌 목록 — 아이엠러닝</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
+  body {
+    font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+    word-break: keep-all;
+    letter-spacing: -0.01em;
+  }
     .courses-page { padding: 2rem 0 5rem; }
     .courses-page-inner { display: grid; grid-template-columns: 220px 1fr; gap: 2.5rem; align-items: start; }
     .top-cat-bar { background: var(--white); border-bottom: 1px solid rgba(0,0,0,0.07); position: sticky; top: 64px; z-index: 50; }
@@ -32,12 +40,12 @@
     .top10-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .top10-num { position: absolute; top: 10px; left: 10px; font-size: 28px; font-weight: 900; color: rgba(255,255,255,0.9); text-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 1; }
     .top10-body { padding: 12px 14px; }
-    .top10-cat { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
-    .top10-title-text { font-size: 14px; font-weight: 700; color: var(--black); line-height: 1.4; margin-bottom: 8px; }
-    .top10-instructor { font-size: 11px; color: var(--gray-500); margin-bottom: 6px; }
+    .top10-cat { font-size: 12px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
+    .top10-title-text { font-size: 15px; font-weight: 700; color: var(--black); line-height: 1.5; margin-bottom: 8px; }
+    .top10-instructor { font-size: 12px; color: var(--gray-500); margin-bottom: 6px; }
     .top10-footer { display: flex; justify-content: space-between; align-items: center; }
     .top10-price { font-size: 15px; font-weight: 800; color: var(--black); }
-    .top10-price-original { font-size: 11px; color: var(--gray-300); text-decoration: line-through; margin-right: 4px; }
+    .top10-price-original { font-size: 12px; color: var(--gray-300); text-decoration: line-through; margin-right: 4px; }
     .loading-placeholder { text-align: center; padding: 3rem; color: var(--gray-500); font-size: 14px; }
     .wish-btn { position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.9); border:none; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.12); transition:transform .15s; z-index:2; }
     .wish-btn:hover { transform:scale(1.15); }
