@@ -435,7 +435,7 @@ body * { font-family: inherit; }
     <!-- CTA 버튼 -->
     <div class="success-btns">
       <a href="#" class="btn-gold" id="btn-start">나의 강의실로 이동</a>
-      <a href="my-courses.html" class="btn-ghost-gold">나의 강의실 보기</a>
+      <a href="my-courses.html" class="btn-ghost-gold" id="btn-secondary">나의 강의실 보기</a>
     </div>
 
     <div class="success-footer-note">아이엠러닝 · I'M Learning, I'M Running!</div>
@@ -469,14 +469,21 @@ body * { font-family: inherit; }
   // 금액
   document.getElementById('receipt-amount').textContent = '₩' + amount.toLocaleString();
 
-  // 강의 시작 버튼
+  // 버튼 설정
   const btnStart = document.getElementById('btn-start');
+  const btnSecondary = document.getElementById('btn-secondary');
   if (courseId) {
+    // 일반 강좌: 강의 바로 시작 + 나의 강의실
     btnStart.href = 'course-detail.html?id=' + courseId;
     btnStart.textContent = '▶ 강의 시작하기';
+    btnSecondary.href = 'my-courses.html';
+    btnSecondary.textContent = '나의 강의실 보기';
   } else {
+    // 프리패스: 강의실 이동 + 강좌 더 둘러보기
     btnStart.href = 'my-courses.html';
     btnStart.textContent = '나의 강의실로 이동';
+    btnSecondary.href = 'courses.html';
+    btnSecondary.textContent = '강좌 더 둘러보기';
   }
 
   // 강좌명 + 썸네일 로드
