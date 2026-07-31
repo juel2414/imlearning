@@ -5,19 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>나의 강의실 — 아이엠러닝</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <style>
+/* ── 폰트 기반 ── */
+body {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+  word-break: keep-all;
+  letter-spacing: -0.01em;
+}
+
 /* ── 기존 레이아웃 ── */
 .my-page { padding: 2.5rem 0 5rem; }
 .my-header { background: linear-gradient(135deg, #1a5c3a 0%, #2D9B6F 100%); color: #fff; padding: 3rem 0 2rem; margin-bottom: 0; }
 .my-header-inner { display: flex; align-items: center; gap: 1.5rem; }
 .my-avatar { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; border: 3px solid rgba(255,255,255,0.4); }
-.my-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.my-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; }
 .my-email { font-size: 14px; opacity: 0.8; margin-bottom: 12px; }
 .my-stats { display: flex; gap: 1.5rem; }
 .my-stat { text-align: center; }
 .my-stat-value { font-size: 22px; font-weight: 900; }
-.my-stat-label { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.my-stat-label { font-size: 12px; opacity: 0.75; margin-top: 2px; }
 
 /* ── 탭 ── */
 .my-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(0,0,0,0.07); background: #fff; overflow-x: auto; }
@@ -35,12 +45,12 @@
 .my-course-thumb { width: 120px; height: 72px; border-radius: 10px; background: linear-gradient(135deg,#e8f5ee,#c8eada); display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; flex-shrink: 0; position: relative; }
 .my-course-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .my-course-info { min-width: 0; }
-.my-course-cat { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.my-course-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.my-course-cat { font-size: 12px; font-weight: 600; color: var(--green); margin-bottom: 4px; letter-spacing: 0; }
+.my-course-title { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
 .my-course-instructor { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; }
 .progress-bar-wrap { background: #f0f0f0; border-radius: 20px; height: 6px; margin-bottom: 4px; }
 .progress-bar { background: linear-gradient(90deg, var(--green), #5cbf8a); border-radius: 20px; height: 6px; transition: width 0.5s ease; }
-.progress-text { font-size: 11px; color: var(--gray-500); }
+.progress-text { font-size: 12px; color: var(--gray-500); }
 .my-course-action { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .btn-continue { padding: 10px 20px; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block; text-align: center; }
 .btn-continue:hover { background: var(--green-dark); }
@@ -51,9 +61,9 @@
 .order-list { display: flex; flex-direction: column; gap: 12px; }
 .order-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 18px 20px; }
 .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.order-date { font-size: 12px; color: var(--gray-500); }
-.order-id { font-size: 11px; color: var(--gray-400); font-family: monospace; }
-.order-status { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.order-date { font-size: 13px; color: var(--gray-500); }
+.order-id { font-size: 12px; color: var(--gray-400); font-family: monospace; }
+.order-status { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .order-status.paid { background: #DCFCE7; color: #16A34A; }
 .order-status.cancelled { background: #FEE2E2; color: #EF4444; }
 .order-body { display: flex; justify-content: space-between; align-items: center; }
@@ -84,9 +94,9 @@
 .wish-thumb { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg,#e8f5ee,#c8eada); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 28px; }
 .wish-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .wish-body { padding: 12px 14px; }
-.wish-cat { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
-.wish-title { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 4px; line-height: 1.4; }
-.wish-instructor { font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+.wish-cat { font-size: 12px; font-weight: 600; color: var(--green); margin-bottom: 4px; }
+.wish-title { font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 4px; line-height: 1.5; }
+.wish-instructor { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
 .wish-footer { display: flex; gap: 8px; }
 .btn-wish-go { flex: 1; padding: 9px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .btn-wish-remove { padding: 9px 12px; border: 1.5px solid rgba(0,0,0,.1); border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: var(--gray-500); }
@@ -119,27 +129,27 @@
    ═══════════════════════════════════════════════════ */
 .stats-full { display: flex; flex-direction: column; gap: 20px; }
 .stats-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 16px; padding: 20px; }
-.stats-card-title { font-size: 12px; font-weight: 700; color: var(--gray-500); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stats-card-title { font-size: 13px; font-weight: 700; color: var(--gray-500); margin-bottom: 16px; letter-spacing: 0; }
 
 /* 총 통계 숫자 */
 .stats-total-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
 .stat-total-item { text-align: center; background: #f8fffe; border-radius: 12px; padding: 14px 8px; border: 1px solid #e8f5ee; }
 .stat-total-value { font-size: 22px; font-weight: 900; color: var(--green); margin-bottom: 4px; }
-.stat-total-label { font-size: 11px; color: var(--gray-500); }
+.stat-total-label { font-size: 12px; color: var(--gray-500); }
 
 /* 주간 바 차트 */
 .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 0 4px; }
 .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; }
-.bar-count { font-size: 10px; color: var(--green); font-weight: 700; min-height: 14px; }
+.bar-count { font-size: 11px; color: var(--green); font-weight: 700; min-height: 14px; }
 .bar-block-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
 .bar-block { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; background: #e8f5ee; transition: height 0.4s ease; }
 .bar-block.has-data { background: linear-gradient(180deg,#2D9B6F,#5cbf8a); }
-.bar-label { font-size: 10px; color: var(--gray-500); }
+.bar-label { font-size: 11px; color: var(--gray-500); }
 .bar-today-label { color: var(--green) !important; font-weight: 700 !important; }
 
 /* 월간 캘린더 (GitHub grass style) */
 .month-cal-labels { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 4px; }
-.month-cal-label { font-size: 9px; text-align: center; color: var(--gray-500); }
+.month-cal-label { font-size: 11px; text-align: center; color: var(--gray-500); }
 .month-calendar { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
 .cal-day { width: 100%; aspect-ratio: 1; border-radius: 3px; background: #f0f0f0; }
 .cal-day.studied { background: var(--green); }
@@ -148,13 +158,13 @@
 
 /* 강좌별 진행률 */
 .course-progress-list { display: flex; flex-direction: column; gap: 12px; }
-.cp-item-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.cp-item-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
 .cp-item-title { font-weight: 600; color: var(--black); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
 .cp-item-pct { color: var(--green); font-weight: 700; flex-shrink: 0; }
 
 /* 전체 평균 비교 */
 .avg-compare { display: flex; flex-direction: column; gap: 14px; }
-.avg-item-label { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+.avg-item-label { font-size: 13px; color: var(--gray-500); margin-bottom: 4px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
 .avg-bar-wrap { background: #f0f0f0; border-radius: 20px; height: 8px; overflow: hidden; }
 .avg-bar-user { height: 8px; border-radius: 20px; transition: width 0.6s ease; }
 .avg-bar-user.above { background: linear-gradient(90deg,#16A34A,#2D9B6F); }
@@ -171,18 +181,18 @@
 .badge-item.earned { border-color: #c8eada; box-shadow: 0 2px 12px rgba(45,155,111,0.1); }
 .badge-item.locked { filter: grayscale(1) opacity(0.45); }
 .badge-item-icon { font-size: 34px; margin-bottom: 8px; }
-.badge-item-name { font-size: 12px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
-.badge-item-desc { font-size: 10px; color: var(--gray-500); line-height: 1.4; margin-bottom: 5px; }
-.badge-item-date { font-size: 10px; color: var(--green); font-weight: 600; }
-.badge-item-lock { font-size: 10px; color: var(--gray-400); }
+.badge-item-name { font-size: 13px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
+.badge-item-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; margin-bottom: 5px; }
+.badge-item-date { font-size: 11px; color: var(--green); font-weight: 600; }
+.badge-item-lock { font-size: 11px; color: var(--gray-400); }
 
 /* 뱃지 획득 토스트 팝업 */
 .badge-toast { position: fixed; bottom: 24px; right: 24px; background: #fff; border: 1px solid #c8eada; border-radius: 16px; padding: 14px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; z-index: 9999; transform: translateY(110px); opacity: 0; transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease; max-width: 300px; pointer-events: none; }
 .badge-toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
 .badge-toast-icon { font-size: 30px; animation: sparkleIn 0.6s ease-in-out; flex-shrink: 0; }
 @keyframes sparkleIn { 0%{ transform:scale(0) rotate(-30deg); } 60%{ transform:scale(1.3) rotate(10deg); } 100%{ transform:scale(1) rotate(0deg); } }
-.badge-toast-title { font-size: 13px; font-weight: 800; color: var(--black); margin-bottom: 2px; }
-.badge-toast-desc { font-size: 11px; color: var(--gray-500); }
+.badge-toast-title { font-size: 14px; font-weight: 800; color: var(--black); margin-bottom: 2px; }
+.badge-toast-desc { font-size: 12px; color: var(--gray-500); }
 
 /* ── 반응형 ── */
 @media (max-width: 768px) {
@@ -200,8 +210,8 @@
 .gift-card { background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: 14px; padding: 16px 18px; }
 .gift-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-bottom: 10px; }
 .gift-card-title { font-size: 15px; font-weight: 700; color: #111; }
-.gift-card-sub { font-size: 12px; color: #888; margin-top: 2px; }
-.gift-status-badge { flex-shrink: 0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.gift-card-sub { font-size: 13px; color: #888; margin-top: 2px; }
+.gift-status-badge { flex-shrink: 0; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .gift-status-badge.pending  { background: #FEF3C7; color: #D97706; }
 .gift-status-badge.accepted { background: #DCFCE7; color: #16A34A; }
 .gift-status-badge.cancelled,.gift-status-badge.expired { background: #f4f5f6; color: #888; }
@@ -230,9 +240,9 @@
 .gm-chip:hover { border-color:#2D9B6F; background:#f0fdf8; }
 .gm-chip.active { border-color:#2D9B6F; background:#f0fdf8; }
 .gm-chip-icon { font-size:22px; line-height:1; }
-.gm-chip-label { font-size:11px; font-weight:700; color:#555; white-space:nowrap; text-align:center; }
+.gm-chip-label { font-size:12px; font-weight:700; color:#555; white-space:nowrap; text-align:center; }
 .gm-chip.active .gm-chip-label { color:#2D9B6F; }
-.gm-group-title { font-size:13px; font-weight:800; color:#111; margin-bottom:10px; }
+.gm-group-title { font-size:14px; font-weight:800; color:#111; margin-bottom:10px; }
 .gm-search { width:100%; padding:10px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; font-size:14px; box-sizing:border-box; margin-bottom:12px; font-family:inherit; }
 .gm-search:focus { outline:none; border-color:#2D9B6F; }
 .gm-course-list { display:flex; flex-direction:column; gap:8px; }
