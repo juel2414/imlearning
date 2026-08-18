@@ -372,6 +372,41 @@ body {
 .curriculum-chevron { font-size:11px; color:#bbb; flex-shrink:0; display:inline-block; transition:transform .18s; }
 .curriculum-section.collapsed .curriculum-chevron { transform:rotate(-90deg); }
 .curriculum-section.collapsed .curriculum-items { display:none; }
+
+/* ── 노트 제출 시스템 ── */
+.note-submit-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer; border:1.5px solid var(--green); background:#fff; color:var(--green); transition:all .15s; margin-top:6px; font-family:inherit; }
+.note-submit-btn:hover { background:var(--green); color:#fff; }
+.note-submit-btn.submitted { background:#f0faf5; border-color:transparent; color:#1e7a54; }
+.note-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; margin-left:4px; }
+.note-badge.pending  { background:#FFF9E6; color:#B45309; }
+.note-badge.approved { background:#ECFDF5; color:#059669; }
+.note-badge.rejected { background:#FEF2F2; color:#DC2626; }
+/* 모달 */
+#note-modal { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
+#note-modal.open { display:flex; }
+.note-modal-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.note-modal-title { font-size:16px; font-weight:800; margin-bottom:4px; }
+.note-modal-sub { font-size:12px; color:var(--gray-500); margin-bottom:16px; }
+.note-modal-close { float:right; background:none; border:none; font-size:20px; color:#aaa; cursor:pointer; margin-top:-4px; }
+.note-field label { display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--gray-700); }
+.note-field textarea { width:100%; box-sizing:border-box; padding:10px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; font-family:inherit; resize:vertical; min-height:120px; }
+.note-field textarea:focus { outline:none; border-color:var(--green); }
+.note-file-zone { border:2px dashed rgba(0,0,0,.15); border-radius:10px; padding:20px; text-align:center; font-size:13px; color:#aaa; cursor:pointer; margin-top:4px; transition:border-color .15s; }
+.note-file-zone:hover { border-color:var(--green); color:var(--green); }
+.note-file-zone.has-file { border-color:var(--green); background:#f0faf5; color:#1e7a54; }
+.note-modal-footer { margin-top:16px; display:flex; gap:8px; justify-content:flex-end; }
+.note-cancel-btn { padding:9px 20px; background:none; border:1px solid rgba(0,0,0,.12); border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit; }
+.note-ok-btn { padding:9px 24px; background:var(--green); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+.note-ok-btn:disabled { opacity:.5; cursor:not-allowed; }
+/* 노트 제출 탭 */
+.note-section-title { font-size:15px; font-weight:800; margin:0 0 14px; color:var(--black); }
+.note-list-item { display:flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid rgba(0,0,0,.07); border-radius:10px; margin-bottom:8px; }
+.note-list-item-info { flex:1; min-width:0; }
+.note-list-item-title { font-size:13px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.note-list-item-meta { font-size:11px; color:var(--gray-500); margin-top:2px; }
+.note-week-block { margin-bottom:24px; }
+.note-week-hdr { font-size:13px; font-weight:800; color:var(--green-dark); padding:6px 12px; background:#f0faf5; border-radius:8px; margin-bottom:10px; }
+.note-empty { padding:2rem; text-align:center; color:var(--gray-400); font-size:13px; }
 </style>
 </head>
 <body>
@@ -433,6 +468,7 @@ body {
           <div class="detail-tab" onclick="switchTab('review', this)">수강 후기</div>
           <div class="detail-tab" id="tab-files-btn" style="display:none;" onclick="switchTab('files', this)">📁 자료실</div>
           <div class="detail-tab" id="tab-textbooks-btn" style="display:none;" onclick="switchTab('textbooks', this)">📚 관련 교재</div>
+          <div class="detail-tab" id="tab-notes-btn" style="display:none;" onclick="switchTab('notes', this)">📝 노트 제출</div>
         </div>
         <div class="tab-content active" id="tab-curriculum">
           <!-- 강의 영상 플레이어 (한양사이버대 스타일 2열) -->
@@ -506,6 +542,11 @@ body {
         </div>
         <div class="tab-content" id="tab-textbooks">
           <div id="textbook-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
+        </div>
+        <div class="tab-content" id="tab-notes">
+          <div id="notes-tab-content">
+            <div class="note-empty">노트를 불러오는 중...</div>
+          </div>
         </div>
       </div>
 
@@ -628,6 +669,31 @@ body {
     <div class="footer-bottom"><span>© 2026 아이엠러닝(IMlearning) All Rights Reserved.</span></div>
   </div>
 </footer>
+
+<!-- 노트 제출 모달 -->
+<div id="note-modal" onclick="noteModalBgClick(event)">
+  <div class="note-modal-box" id="note-modal-box">
+    <button class="note-modal-close" onclick="closeNoteModal()">✕</button>
+    <div class="note-modal-title" id="note-modal-title">강의 노트 제출</div>
+    <div class="note-modal-sub" id="note-modal-sub"></div>
+    <div class="note-field" style="margin-bottom:12px;">
+      <label>노트 내용 <span style="color:#aaa;font-weight:400;">(선택)</span></label>
+      <textarea id="note-text-input" placeholder="이 강의에서 배운 핵심 내용, 묵상, 적용점을 작성해주세요..."></textarea>
+    </div>
+    <div class="note-field">
+      <label>파일 첨부 <span style="color:#aaa;font-weight:400;">(선택 · 최대 20MB · PDF, Word, 이미지)</span></label>
+      <div class="note-file-zone" id="note-file-zone" onclick="document.getElementById('note-file-input').click()">
+        <input type="file" id="note-file-input" style="display:none;" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.webp" onchange="onNoteFileChange(this)">
+        <div id="note-file-label">클릭하여 파일 선택</div>
+      </div>
+    </div>
+    <div id="note-modal-status" style="margin-top:12px;font-size:13px;display:none;"></div>
+    <div class="note-modal-footer">
+      <button class="note-cancel-btn" onclick="closeNoteModal()">취소</button>
+      <button class="note-ok-btn" id="note-ok-btn" onclick="submitNote()">제출하기</button>
+    </div>
+  </div>
+</div>
 
 <!-- 미리보기 모달 -->
 <div id="preview-modal" onclick="closePreview(event)">
@@ -1251,6 +1317,10 @@ async function loadCourse() {
       supabaseClient.from('course_files').select('id', { count: 'exact', head: true }).eq('course_id', course.id).then(({ count }) => {
         if (count > 0) { const btn = document.getElementById('tab-files-btn'); if (btn) btn.style.display = ''; }
       });
+      // 노트 탭 표시 및 제출물 로드
+      const notesTabBtn = document.getElementById('tab-notes-btn');
+      if (notesTabBtn) notesTabBtn.style.display = '';
+      await loadSubmissions(user.id, course.id);
     }
   } else {
     // 비로그인: 쿠폰 창만 표시
@@ -2007,6 +2077,7 @@ function switchTab(id, el) {
   document.getElementById('tab-' + id).classList.add('active');
   if (id === 'review' && !reviewLoaded) loadReviews();
   if (id === 'files') loadCourseFiles();
+  if (id === 'notes') renderNotesTab();
 }
 
 // ───── 후기 시스템 ─────
@@ -2184,7 +2255,13 @@ function renderSidebar() {
         <span class="sidebar-item-title">${esc(l.title)}</span>
         <span class="sli-chevron">▾</span>
       </div>
-      ${dur ? `<div class="sli-body"><span class="sli-duration">${dur}</span></div>` : ''}
+      <div class="sli-body">
+        ${dur ? `<span class="sli-duration">${dur}</span>` : ''}
+        ${isEnrolled ? `<div style="margin-top:4px;">
+          <button class="note-submit-btn${completed ? ' submitted' : ''}" onclick="event.stopPropagation();openLectureNoteModal(${l.num},'lesson-${l.num}','${esc(l.title)}')" data-sli-note-btn="${l.num}">📝 강의노트 제출</button>
+          <span class="note-badge" data-sli-note-badge="${l.num}" style="display:none;"></span>
+        </div>` : ''}
+      </div>
     </div>`;
   }).join('');
 
@@ -2233,6 +2310,258 @@ function sidebarOpenLesson(num, title, videoUrl) {
 window.addEventListener('beforeunload', () => {
   if (activeTracker) activeTracker._persist();
 });
+
+// ───── 노트 제출 시스템 ─────
+let submissionsMap = {};   // key: 'lecture-lessonId' or 'reading-textbookId-weekNum' → submission row
+let noteModalCtx  = null;  // 현재 열린 모달 context
+
+async function loadSubmissions(userId, courseId) {
+  const { data } = await supabaseClient
+    .from('submissions')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('course_id', courseId);
+  if (!data) return;
+  submissionsMap = {};
+  data.forEach(s => {
+    if (s.type === 'lecture') submissionsMap['lecture-' + s.lesson_id] = s;
+    else if (s.type === 'reading') submissionsMap['reading-' + (s.textbook_id || '') + '-' + (s.week_number || '')] = s;
+  });
+  updateNoteButtons();
+}
+
+function updateNoteButtons() {
+  document.querySelectorAll('[data-sli-note-btn]').forEach(btn => {
+    const num = btn.dataset.sliNoteBtn;
+    const lid = 'lesson-' + num;
+    const sub = submissionsMap['lecture-' + lid];
+    const badge = document.querySelector('[data-sli-note-badge="' + num + '"]');
+    if (sub) {
+      btn.textContent = '✏️ 노트 수정';
+      btn.classList.add('submitted');
+      if (badge) {
+        badge.className = 'note-badge ' + sub.status;
+        badge.textContent = sub.status === 'pending' ? '검토 중' : sub.status === 'approved' ? '승인됨' : '반려됨';
+        badge.style.display = 'inline-flex';
+      }
+    } else {
+      btn.textContent = '📝 강의노트 제출';
+      btn.classList.remove('submitted');
+      if (badge) badge.style.display = 'none';
+    }
+  });
+}
+
+function openLectureNoteModal(lessonNum, lessonId, lessonTitle) {
+  const existing = submissionsMap['lecture-' + lessonId];
+  noteModalCtx = { type: 'lecture', lessonNum, lessonId, lessonTitle, existing };
+  document.getElementById('note-modal-title').textContent = '강의 노트 제출';
+  document.getElementById('note-modal-sub').textContent = lessonNum + '강. ' + lessonTitle;
+  document.getElementById('note-text-input').value = existing?.note_text || '';
+  resetNoteFile();
+  document.getElementById('note-modal-status').style.display = 'none';
+  document.getElementById('note-ok-btn').disabled = false;
+  document.getElementById('note-ok-btn').textContent = existing ? '수정 제출' : '제출하기';
+  document.getElementById('note-modal').classList.add('open');
+}
+
+function openReadingNoteModal(weekNum, textbookId, textbookTitle) {
+  const key = 'reading-' + textbookId + '-' + weekNum;
+  const existing = submissionsMap[key];
+  noteModalCtx = { type: 'reading', weekNum, textbookId, textbookTitle, existing };
+  document.getElementById('note-modal-title').textContent = '독서 노트 제출';
+  document.getElementById('note-modal-sub').textContent = (weekNum ? weekNum + '주차 · ' : '') + textbookTitle;
+  document.getElementById('note-text-input').value = existing?.note_text || '';
+  resetNoteFile();
+  document.getElementById('note-modal-status').style.display = 'none';
+  document.getElementById('note-ok-btn').disabled = false;
+  document.getElementById('note-ok-btn').textContent = existing ? '수정 제출' : '제출하기';
+  document.getElementById('note-modal').classList.add('open');
+}
+
+function resetNoteFile() {
+  const zone = document.getElementById('note-file-zone');
+  const inp  = document.getElementById('note-file-input');
+  if (inp) inp.value = '';
+  zone.classList.remove('has-file');
+  document.getElementById('note-file-label').textContent = '클릭하여 파일 선택';
+}
+
+function onNoteFileChange(input) {
+  const file = input.files[0];
+  if (!file) { resetNoteFile(); return; }
+  document.getElementById('note-file-zone').classList.add('has-file');
+  document.getElementById('note-file-label').textContent = '📎 ' + file.name + ' (' + (file.size > 1048576 ? (file.size/1048576).toFixed(1)+'MB' : Math.round(file.size/1024)+'KB') + ')';
+}
+
+function closeNoteModal() {
+  document.getElementById('note-modal').classList.remove('open');
+  noteModalCtx = null;
+}
+
+function noteModalBgClick(e) {
+  if (e.target === document.getElementById('note-modal')) closeNoteModal();
+}
+
+async function submitNote() {
+  const ctx = noteModalCtx;
+  if (!ctx) return;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user || !currentCourse) return;
+
+  const noteText = document.getElementById('note-text-input').value.trim();
+  const fileInput = document.getElementById('note-file-input');
+  const file = fileInput?.files?.[0];
+
+  if (!noteText && !file) {
+    alert('노트 내용이나 파일 중 하나는 입력해주세요.');
+    return;
+  }
+
+  const btn = document.getElementById('note-ok-btn');
+  const statusEl = document.getElementById('note-modal-status');
+  btn.disabled = true;
+  btn.textContent = '제출 중...';
+  statusEl.style.display = 'none';
+
+  try {
+    let filePath = ctx.existing?.file_path || null;
+    let fileName = ctx.existing?.file_name || null;
+    let fileSize = ctx.existing?.file_size || null;
+
+    if (file) {
+      statusEl.style.cssText = 'display:block;color:#888;';
+      statusEl.textContent = '파일 업로드 중...';
+      const ext = file.name.split('.').pop();
+      const uniqueName = user.id + '/' + Date.now() + '.' + ext;
+      const { error: upErr } = await supabaseClient.storage
+        .from('submission-files')
+        .upload(uniqueName, file, { upsert: true });
+      if (upErr) throw upErr;
+      filePath = uniqueName;
+      fileName = file.name;
+      fileSize = file.size;
+    }
+
+    const payload = {
+      user_id:     user.id,
+      course_id:   currentCourse.id,
+      type:        ctx.type,
+      note_text:   noteText || null,
+      file_path:   filePath,
+      file_name:   fileName,
+      file_size:   fileSize,
+      status:      'pending',
+      updated_at:  new Date().toISOString(),
+    };
+    if (ctx.type === 'lecture') {
+      payload.lesson_id    = ctx.lessonId;
+      payload.lesson_num   = ctx.lessonNum;
+      payload.lesson_title = ctx.lessonTitle;
+    } else {
+      payload.week_number    = ctx.weekNum;
+      payload.textbook_id    = ctx.textbookId;
+      payload.textbook_title = ctx.textbookTitle;
+    }
+
+    if (ctx.existing) {
+      await supabaseClient.from('submissions')
+        .update(payload)
+        .eq('id', ctx.existing.id);
+    } else {
+      payload.created_at = new Date().toISOString();
+      await supabaseClient.from('submissions').insert(payload);
+    }
+
+    // 로컬 캐시 갱신
+    await loadSubmissions(user.id, currentCourse.id);
+    renderNotesTab();
+    closeNoteModal();
+    alert('제출이 완료되었습니다. 관리자 승인 후 수강 완료로 처리됩니다.');
+  } catch(e) {
+    statusEl.style.cssText = 'display:block;color:#e53e3e;';
+    statusEl.textContent = '오류: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = '다시 시도';
+  }
+}
+
+// 노트 탭 렌더링
+async function renderNotesTab() {
+  const container = document.getElementById('notes-tab-content');
+  if (!container || !currentCourse) return;
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) { container.innerHTML = '<div class="note-empty">로그인이 필요합니다.</div>'; return; }
+
+  // 1. 강의 노트 목록
+  const lectureSubmissions = Object.values(submissionsMap).filter(s => s.type === 'lecture')
+    .sort((a,b) => (a.lesson_num||0) - (b.lesson_num||0));
+
+  let html = '<div style="margin-bottom:28px;">';
+  html += '<div class="note-section-title">📋 강의 노트</div>';
+  if (lectureSubmissions.length === 0) {
+    html += '<div class="note-empty" style="background:#f8f9fa;border-radius:10px;">아직 제출한 강의 노트가 없어요.<br>커리큘럼 탭에서 각 강의의 📝 버튼을 눌러 제출하세요.</div>';
+  } else {
+    lectureSubmissions.forEach(s => {
+      const badgeCls = s.status === 'approved' ? 'approved' : s.status === 'rejected' ? 'rejected' : 'pending';
+      const badgeTxt = s.status === 'approved' ? '✅ 승인' : s.status === 'rejected' ? '❌ 반려' : '⏳ 검토 중';
+      const date = new Date(s.created_at).toLocaleDateString('ko-KR');
+      html += `<div class="note-list-item">
+        <div class="note-list-item-info">
+          <div class="note-list-item-title">${esc(s.lesson_num + '강. ' + (s.lesson_title||''))}</div>
+          <div class="note-list-item-meta">${date}${s.note_text ? ' · 텍스트' : ''}${s.file_name ? ' · ' + esc(s.file_name) : ''}${s.admin_note ? ' · 관리자 메모: ' + esc(s.admin_note) : ''}</div>
+        </div>
+        <span class="note-badge ${badgeCls}">${badgeTxt}</span>
+        ${s.status === 'pending' ? `<button class="note-submit-btn" onclick="openLectureNoteModal(${s.lesson_num}, '${esc(s.lesson_id)}', '${esc(s.lesson_title||'')}')">수정</button>` : ''}
+      </div>`;
+    });
+  }
+  html += '</div>';
+
+  // 2. 독서 노트 (교재별)
+  html += '<div class="note-section-title">📚 독서 노트</div>';
+  const { data: ctData } = await supabaseClient
+    .from('course_textbooks')
+    .select('week_number, sort_order, textbooks(id, title, cover_url)')
+    .eq('course_id', currentCourse.id)
+    .order('week_number', { ascending: true, nullsFirst: false })
+    .order('sort_order', { ascending: true });
+
+  if (!ctData || ctData.length === 0) {
+    html += '<div class="note-empty" style="background:#f8f9fa;border-radius:10px;">이 강좌에는 배정된 교재가 없습니다.</div>';
+  } else {
+    // week 단위로 묶기
+    const weeks = {};
+    ctData.forEach(ct => {
+      const wk = ct.week_number || 0;
+      if (!weeks[wk]) weeks[wk] = [];
+      if (ct.textbooks) weeks[wk].push({ ...ct.textbooks, week_number: wk });
+    });
+    Object.keys(weeks).sort((a,b) => Number(a)-Number(b)).forEach(wk => {
+      const label = Number(wk) > 0 ? wk + '주차' : '주차 미지정';
+      html += `<div class="note-week-block"><div class="note-week-hdr">${label}</div>`;
+      weeks[wk].forEach(tb => {
+        const key = 'reading-' + tb.id + '-' + wk;
+        const sub = submissionsMap[key];
+        const badgeCls = sub ? (sub.status === 'approved' ? 'approved' : sub.status === 'rejected' ? 'rejected' : 'pending') : '';
+        const badgeTxt = sub ? (sub.status === 'approved' ? '✅ 승인' : sub.status === 'rejected' ? '❌ 반려' : '⏳ 검토 중') : '';
+        const date = sub ? new Date(sub.created_at).toLocaleDateString('ko-KR') : '';
+        html += `<div class="note-list-item">
+          <div class="note-list-item-info">
+            <div class="note-list-item-title">${esc(tb.title)}</div>
+            ${sub ? `<div class="note-list-item-meta">${date}${sub.note_text?' · 텍스트':''}${sub.file_name?' · '+esc(sub.file_name):''}${sub.admin_note?' · 관리자 메모: '+esc(sub.admin_note):''}</div>` : ''}
+          </div>
+          ${sub ? `<span class="note-badge ${badgeCls}">${badgeTxt}</span>` : ''}
+          ${!sub || sub.status === 'pending' ? `<button class="note-submit-btn${sub?' submitted':''}" onclick="openReadingNoteModal(${Number(wk)}, ${tb.id}, '${esc(tb.title)}')">${sub?'수정':'📝 독서노트 제출'}</button>` : ''}
+        </div>`;
+      });
+      html += '</div>';
+    });
+  }
+
+  container.innerHTML = html;
+}
 
 // ───── 자료실 ─────
 let filesLoaded = false;

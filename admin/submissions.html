@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>노트 제출 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<link rel="stylesheet" href="admin-common.css">
+<style>
+* { box-sizing:border-box; word-break:keep-all; }
+body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
+a { text-decoration:none; color:inherit; }
+.admin-main { padding:2rem; }
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:1.5rem; flex-wrap:wrap; }
+.page-title  { font-size:24px; font-weight:800; margin:0; }
+.page-desc   { font-size:13px; color:#888; margin-top:4px; }
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:1.25rem; }
+.kpi-card { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.06); position:relative; overflow:hidden; }
+.kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent,#2D9B6F); }
+.kpi-card.orange::before { background:#F59E0B; }
+.kpi-card.red::before    { background:#EF4444; }
+.kpi-card.blue::before   { background:#3B82F6; }
+.kpi-label { font-size:12px; color:#888; margin-bottom:8px; font-weight:600; }
+.kpi-value { font-size:28px; font-weight:900; line-height:1; }
+.card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.06); overflow:hidden; margin-bottom:1.25rem; }
+.card-header { padding:16px 22px; border-bottom:1px solid rgba(0,0,0,.05); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.card-title  { font-size:14px; font-weight:700; }
+.filter-row  { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.filter-row select, .filter-row input { padding:7px 10px; border:1px solid rgba(0,0,0,.12); border-radius:8px; font-size:13px; font-family:inherit; }
+.filter-row select:focus, .filter-row input:focus { outline:none; border-color:#2D9B6F; }
+.filter-btn { padding:7px 14px; background:#2D9B6F; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+.filter-btn:hover { background:#1e7a54; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:#F8F9FA; padding:10px 14px; text-align:left; font-weight:700; color:#555; font-size:11px; text-transform:uppercase; letter-spacing:.5px; border-bottom:2px solid rgba(0,0,0,.06); white-space:nowrap; }
+td { padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#fafafa; }
+.badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; }
+.badge.pending  { background:#FFF9E6; color:#B45309; }
+.badge.approved { background:#ECFDF5; color:#059669; }
+.badge.rejected { background:#FEF2F2; color:#DC2626; }
+.badge.lecture  { background:#EEF2FF; color:#4338CA; }
+.badge.reading  { background:#FDF4FF; color:#9333EA; }
+.action-btn { padding:5px 12px; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+.action-btn.approve { background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; }
+.action-btn.approve:hover { background:#D1FAE5; }
+.action-btn.reject  { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; }
+.action-btn.reject:hover  { background:#FEE2E2; }
+.action-btn.view    { background:#EEF2FF; color:#4338CA; border:1px solid #C7D2FE; }
+.action-btn.view:hover    { background:#E0E7FF; }
+.action-btns { display:flex; gap:5px; flex-wrap:wrap; }
+.note-preview { max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#555; font-size:12px; }
+.empty-row td { text-align:center; color:#aaa; padding:2rem; }
+.pagination { display:flex; align-items:center; justify-content:center; gap:8px; padding:16px; }
+.page-btn { padding:6px 12px; border:1px solid rgba(0,0,0,.12); border-radius:7px; background:#fff; cursor:pointer; font-size:13px; }
+.page-btn:hover { background:#f0faf5; }
+.page-btn.active { background:#2D9B6F; color:#fff; border-color:#2D9B6F; }
+.page-info { font-size:13px; color:#888; }
+/* 상세 모달 */
+#detail-modal { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
+#detail-modal.open { display:flex; }
+.detail-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.detail-box h3 { margin:0 0 4px; font-size:16px; }
+.detail-sub { font-size:12px; color:#888; margin-bottom:16px; }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.detail-field label { display:block; font-size:11px; font-weight:700; color:#999; text-transform:uppercase; margin-bottom:4px; }
+.detail-field .val { font-size:13px; color:#111; }
+.detail-note-text { background:#f8f9fa; border-radius:8px; padding:12px; font-size:13px; color:#333; white-space:pre-wrap; word-break:break-all; max-height:160px; overflow-y:auto; margin-bottom:12px; }
+.detail-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+.modal-input { width:100%; padding:9px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; font-family:inherit; box-sizing:border-box; }
+.modal-input:focus { outline:none; border-color:#2D9B6F; }
+.close-btn { float:right; background:none; border:none; font-size:20px; color:#aaa; cursor:pointer; }
+.approve-btn { padding:9px 20px; background:#2D9B6F; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+.approve-btn:hover { background:#1e7a54; }
+.reject-btn  { padding:9px 20px; background:#EF4444; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+.reject-btn:hover  { background:#DC2626; }
+.cancel-btn  { padding:9px 18px; background:none; border:1px solid rgba(0,0,0,.12); border-radius:8px; font-size:13px; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body>
+<div class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">📝 노트 제출 관리</h1>
+      <div class="page-desc">수강생이 제출한 강의 노트·독서 노트를 검토하고 승인/반려합니다.</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card orange">
+      <div class="kpi-label">검토 대기</div>
+      <div class="kpi-value" id="kpi-pending">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">승인됨</div>
+      <div class="kpi-value" id="kpi-approved">—</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">반려됨</div>
+      <div class="kpi-value" id="kpi-rejected">—</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">전체</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">제출 목록</div>
+      <div class="filter-row">
+        <select id="filter-status" onchange="applyFilter()">
+          <option value="">전체 상태</option>
+          <option value="pending" selected>검토 대기</option>
+          <option value="approved">승인됨</option>
+          <option value="rejected">반려됨</option>
+        </select>
+        <select id="filter-type" onchange="applyFilter()">
+          <option value="">전체 유형</option>
+          <option value="lecture">강의 노트</option>
+          <option value="reading">독서 노트</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="이름·강좌·레슨 검색" oninput="applyFilter()" style="width:180px;">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="sub-table">
+        <thead>
+          <tr>
+            <th>제출일</th>
+            <th>유형</th>
+            <th>수강생</th>
+            <th>강좌</th>
+            <th>레슨/교재</th>
+            <th>내용 미리보기</th>
+            <th>상태</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="sub-tbody">
+          <tr class="empty-row"><td colspan="8">불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- 상세/승인 모달 -->
+<div id="detail-modal" onclick="modalBgClick(event)">
+  <div class="detail-box">
+    <button class="close-btn" onclick="closeDetailModal()">✕</button>
+    <h3 id="dm-title"></h3>
+    <div class="detail-sub" id="dm-sub"></div>
+    <div class="detail-grid">
+      <div class="detail-field"><label>수강생</label><div class="val" id="dm-user"></div></div>
+      <div class="detail-field"><label>강좌</label><div class="val" id="dm-course"></div></div>
+      <div class="detail-field"><label>제출일</label><div class="val" id="dm-date"></div></div>
+      <div class="detail-field"><label>상태</label><div class="val" id="dm-status"></div></div>
+    </div>
+    <div id="dm-note-wrap" style="display:none;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:6px;">노트 내용</div>
+      <div class="detail-note-text" id="dm-note-text"></div>
+    </div>
+    <div id="dm-file-wrap" style="display:none;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:6px;">첨부 파일</div>
+      <a id="dm-file-link" href="#" target="_blank" style="font-size:13px;color:#4338CA;text-decoration:underline;"></a>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:6px;">관리자 메모 (수강생에게 표시)</div>
+      <input type="text" class="modal-input" id="dm-admin-note" placeholder="반려 사유 또는 피드백 (선택)">
+    </div>
+    <div class="detail-actions">
+      <button class="approve-btn" onclick="approveSubmission()">✅ 승인</button>
+      <button class="reject-btn"  onclick="rejectSubmission()">❌ 반려</button>
+      <button class="cancel-btn"  onclick="closeDetailModal()">닫기</button>
+    </div>
+    <div id="dm-action-msg" style="margin-top:10px;font-size:13px;display:none;"></div>
+  </div>
+</div>
+
+<script>
+const PAGE_SIZE = 25;
+let allRows = [];
+let filtered = [];
+let currentPage = 1;
+let currentSub = null;
+
+async function init() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) { window.location.href = '../login.html'; return; }
+  const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') { alert('관리자만 접근할 수 있습니다.'); window.location.href = '../index.html'; return; }
+
+  await loadAll();
+}
+
+async function loadAll() {
+  const { data, error } = await supabaseClient
+    .from('submissions')
+    .select(`
+      *,
+      courses(title),
+      profiles(name, email:id)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+
+  // profiles join이 안 될 수 있으므로 user_id 기반으로 직접 처리
+  // (profiles 테이블 email 컬럼 없을 수 있음 → 별도 로드)
+  allRows = data || [];
+
+  // user_id 기준으로 profiles 이름 보완
+  const userIds = [...new Set(allRows.map(r => r.user_id))];
+  if (userIds.length) {
+    const { data: profiles } = await supabaseClient
+      .from('profiles')
+      .select('id, name')
+      .in('id', userIds);
+    const profileMap = {};
+    (profiles||[]).forEach(p => { profileMap[p.id] = p.name || '(이름 없음)'; });
+    allRows = allRows.map(r => ({ ...r, _userName: profileMap[r.user_id] || r.user_id.slice(0,8) }));
+  }
+
+  updateKpi();
+  applyFilter();
+}
+
+function updateKpi() {
+  const total    = allRows.length;
+  const pending  = allRows.filter(r => r.status === 'pending').length;
+  const approved = allRows.filter(r => r.status === 'approved').length;
+  const rejected = allRows.filter(r => r.status === 'rejected').length;
+  document.getElementById('kpi-total').textContent    = total;
+  document.getElementById('kpi-pending').textContent  = pending;
+  document.getElementById('kpi-approved').textContent = approved;
+  document.getElementById('kpi-rejected').textContent = rejected;
+}
+
+function applyFilter() {
+  const status = document.getElementById('filter-status').value;
+  const type   = document.getElementById('filter-type').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+
+  filtered = allRows.filter(r => {
+    if (status && r.status !== status) return false;
+    if (type   && r.type   !== type)   return false;
+    if (search) {
+      const hay = [r._userName, r.courses?.title, r.lesson_title, r.textbook_title].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  currentPage = 1;
+  renderTable();
+  renderPagination();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('sub-tbody');
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const rows  = filtered.slice(start, start + PAGE_SIZE);
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">검색 결과가 없습니다.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const date      = new Date(r.created_at).toLocaleDateString('ko-KR');
+    const typeBadge = r.type === 'lecture' ? '<span class="badge lecture">강의</span>' : '<span class="badge reading">독서</span>';
+    const stBadge   = r.status === 'pending' ? '<span class="badge pending">검토 중</span>'
+                    : r.status === 'approved' ? '<span class="badge approved">승인됨</span>'
+                    : '<span class="badge rejected">반려됨</span>';
+    const lessonInfo = r.type === 'lecture'
+      ? (r.lesson_num ? r.lesson_num + '강. ' : '') + (r.lesson_title || '')
+      : (r.week_number ? r.week_number + '주차 · ' : '') + (r.textbook_title || '');
+    const preview = r.note_text ? r.note_text.slice(0, 50) + (r.note_text.length > 50 ? '…' : '') : (r.file_name || '');
+    return `<tr>
+      <td style="white-space:nowrap;">${date}</td>
+      <td>${typeBadge}</td>
+      <td>${esc(r._userName || '')}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.courses?.title || '')}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(lessonInfo)}</td>
+      <td><div class="note-preview">${esc(preview)}</div></td>
+      <td>${stBadge}</td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn view" onclick='openDetail(${JSON.stringify(r)})'>상세</button>
+          ${r.status === 'pending' ? `<button class="action-btn approve" onclick='quickApprove(${JSON.stringify(r)})'>승인</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPagination() {
+  const total = filtered.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const el    = document.getElementById('pagination');
+  if (pages <= 1) { el.innerHTML = ''; return; }
+
+  let html = '';
+  if (currentPage > 1) html += `<button class="page-btn" onclick="gotoPage(${currentPage-1})">◀</button>`;
+  for (let p = Math.max(1, currentPage-2); p <= Math.min(pages, currentPage+2); p++) {
+    html += `<button class="page-btn${p===currentPage?' active':''}" onclick="gotoPage(${p})">${p}</button>`;
+  }
+  if (currentPage < pages) html += `<button class="page-btn" onclick="gotoPage(${currentPage+1})">▶</button>`;
+  html += `<span class="page-info">${total}건 중 ${Math.min((currentPage-1)*PAGE_SIZE+1,total)}–${Math.min(currentPage*PAGE_SIZE,total)}</span>`;
+  el.innerHTML = html;
+}
+
+function gotoPage(p) { currentPage = p; renderTable(); renderPagination(); }
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function openDetail(row) {
+  currentSub = row;
+  document.getElementById('dm-title').textContent = row.type === 'lecture' ? '강의 노트 상세' : '독서 노트 상세';
+  const lessonInfo = row.type === 'lecture'
+    ? (row.lesson_num ? row.lesson_num + '강. ' : '') + (row.lesson_title || '')
+    : (row.week_number ? row.week_number + '주차 · ' : '') + (row.textbook_title || '');
+  document.getElementById('dm-sub').textContent = lessonInfo;
+  document.getElementById('dm-user').textContent   = row._userName || row.user_id.slice(0,8);
+  document.getElementById('dm-course').textContent = row.courses?.title || '—';
+  document.getElementById('dm-date').textContent   = new Date(row.created_at).toLocaleString('ko-KR');
+  const stMap = { pending: '⏳ 검토 중', approved: '✅ 승인됨', rejected: '❌ 반려됨' };
+  document.getElementById('dm-status').textContent = stMap[row.status] || row.status;
+  document.getElementById('dm-admin-note').value   = row.admin_note || '';
+  document.getElementById('dm-action-msg').style.display = 'none';
+
+  const noteWrap = document.getElementById('dm-note-wrap');
+  const noteText = document.getElementById('dm-note-text');
+  if (row.note_text) {
+    noteWrap.style.display = '';
+    noteText.textContent = row.note_text;
+  } else {
+    noteWrap.style.display = 'none';
+  }
+
+  const fileWrap = document.getElementById('dm-file-wrap');
+  if (row.file_path) {
+    fileWrap.style.display = '';
+    const { data: sd } = await supabaseClient.storage.from('submission-files').createSignedUrl(row.file_path, 3600);
+    const link = document.getElementById('dm-file-link');
+    link.href = sd?.signedUrl || '#';
+    link.textContent = row.file_name || row.file_path;
+  } else {
+    fileWrap.style.display = 'none';
+  }
+
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+  currentSub = null;
+}
+
+function modalBgClick(e) {
+  if (e.target === document.getElementById('detail-modal')) closeDetailModal();
+}
+
+async function approveSubmission() {
+  if (!currentSub) return;
+  await processSubmission(currentSub, 'approved');
+}
+async function rejectSubmission() {
+  if (!currentSub) return;
+  await processSubmission(currentSub, 'rejected');
+}
+
+async function quickApprove(row) {
+  await processSubmission(row, 'approved', true);
+}
+
+async function processSubmission(row, newStatus, quick = false) {
+  const adminNote = quick ? null : document.getElementById('dm-admin-note').value.trim() || null;
+  const msgEl = document.getElementById('dm-action-msg');
+
+  const { error } = await supabaseClient
+    .from('submissions')
+    .update({
+      status:      newStatus,
+      admin_note:  adminNote,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq('id', row.id);
+
+  if (error) {
+    if (!quick) { msgEl.style.cssText='display:block;color:#e53e3e;'; msgEl.textContent='오류: '+error.message; }
+    return;
+  }
+
+  // 강의 노트 승인 시 → progress.completed = true
+  if (newStatus === 'approved' && row.type === 'lecture' && row.lesson_id) {
+    await supabaseClient.from('progress').upsert({
+      user_id:     row.user_id,
+      course_id:   row.course_id,
+      lesson_id:   row.lesson_id,
+      lesson_title: row.lesson_title,
+      completed:   true,
+      watched_at:  new Date().toISOString(),
+    }, { onConflict: 'user_id,course_id,lesson_id' });
+
+    // orders 진도율 동기화
+    try {
+      await supabaseClient.rpc('update_order_progress', { p_course_id: row.course_id });
+    } catch(e) {}
+  }
+
+  if (!quick) {
+    msgEl.style.cssText='display:block;color:#059669;';
+    msgEl.textContent = newStatus === 'approved' ? '✅ 승인 완료! 강의 수강표에 자동 체크됩니다.' : '❌ 반려 처리되었습니다.';
+  }
+
+  // 로컬 목록 갱신
+  const idx = allRows.findIndex(r => r.id === row.id);
+  if (idx !== -1) {
+    allRows[idx].status     = newStatus;
+    allRows[idx].admin_note = adminNote;
+  }
+  if (currentSub && currentSub.id === row.id) {
+    currentSub.status = newStatus;
+    document.getElementById('dm-status').textContent = newStatus === 'approved' ? '✅ 승인됨' : '❌ 반려됨';
+  }
+  updateKpi();
+  applyFilter();
+}
+
+init();
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>
