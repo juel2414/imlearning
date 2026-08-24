@@ -11,6 +11,7 @@
     { href: 'index.html',       icon: '📊', label: '대시보드' },
     { type: 'section', label: '강좌 관리' },
     { href: 'courses.html',     icon: '📚', label: '강좌 관리' },
+    { href: 'lessons-audit.html', icon: '🔍', label: '강의 점검' },
     { href: 'instructors.html', icon: '👨‍🏫', label: '강사 관리' },
     { type: 'section', label: '수강생' },
     { href: 'students.html',    icon: '👥', label: '수강생 관리' },

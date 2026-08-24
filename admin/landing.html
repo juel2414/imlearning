@@ -33,6 +33,9 @@
     .btn-save:hover { background: #2d3340; }
     .btn-pub  { background: var(--g); color: #fff; }
     .btn-pub:hover { background: var(--gd); }
+    .btn-revert { background: transparent; color: var(--muted); border: 1px solid var(--border); font-size: 12px; padding: 6px 14px; }
+    .btn-revert:hover { color: var(--text); border-color: var(--text); }
+    .btn-revert:disabled { opacity: 0.3; cursor: not-allowed; }
     .status-msg { font-size: 12px; color: var(--muted); min-width: 120px; text-align: right; }
 
     /* ── 레이아웃 ── */
@@ -199,6 +202,7 @@
 <div class="top-bar">
   <div class="top-bar-logo">랜딩 빌더 <a href="../index.html" target="_blank">↗ 미리보기</a></div>
   <span class="status-msg" id="js-status"></span>
+  <button class="btn-revert" id="btn-revert" onclick="revert()" disabled>되돌리기</button>
   <button class="btn-save" onclick="saveDraft()">임시저장</button>
   <button class="btn-pub"  onclick="publish()">발행하기</button>
 </div>
@@ -797,8 +801,37 @@ async function saveDraft() {
 
 async function publish() {
   setStatus('발행 중...');
+  // 발행 전 현재 DB 상태를 스냅샷으로 백업
+  try {
+    const { data: snap } = await supabaseClient.from('landing_config').select('key,value');
+    if (snap) {
+      localStorage.setItem('landing_snapshot', JSON.stringify(snap));
+      localStorage.setItem('landing_snapshot_time', new Date().toLocaleString('ko-KR'));
+      document.getElementById('btn-revert').disabled = false;
+      document.getElementById('btn-revert').title = '발행 전 상태로 되돌리기';
+    }
+  } catch(e) {}
   const ok = await saveToSupabase(true);
   if (ok) { setStatus('발행 완료! ✓'); refreshPreview(); }
+}
+
+async function revert() {
+  const snap = localStorage.getItem('landing_snapshot');
+  const snapTime = localStorage.getItem('landing_snapshot_time');
+  if (!snap) { alert('되돌릴 스냅샷이 없습니다.'); return; }
+  if (!confirm(`${snapTime || '이전'} 상태로 되돌리겠습니까?\n현재 편집 중인 내용은 사라집니다.`)) return;
+  setStatus('되돌리는 중...');
+  try {
+    const rows = JSON.parse(snap).map(r => ({ ...r, updated_at: new Date().toISOString() }));
+    const { error } = await supabaseClient.from('landing_config').upsert(rows, { onConflict: 'key' });
+    if (error) { setStatus('되돌리기 실패: ' + error.message, false); return; }
+    setStatus('되돌리기 완료 ✓');
+    localStorage.removeItem('landing_snapshot');
+    localStorage.removeItem('landing_snapshot_time');
+    document.getElementById('btn-revert').disabled = true;
+    await init();
+    refreshPreview();
+  } catch(e) { setStatus('되돌리기 실패', false); }
 }
 
 // ─────────────────────────────────────────
@@ -827,7 +860,7 @@ async function init() {
   renderReviewCards();
 
   // FAQ 로드
-  await loadFaqEditor();
+  try { await loadFaqEditor(); } catch(e) { console.warn('FAQ 로드 실패:', e); }
 
   // 기존 저장 데이터 불러오기
   try {
@@ -847,8 +880,20 @@ async function init() {
       document.getElementById('h-cta1-url').value = h.cta1_url||'';
       document.getElementById('h-cta2-txt').value = h.cta2_text||'';
       document.getElementById('h-cta2-url').value = h.cta2_url||'';
-      if (h.bg_from) { document.getElementById('h-bg-from').value=h.bg_from; document.querySelector('#h-bg-from').parentElement.style.background=h.bg_from; document.getElementById('h-bg-from-hex').value=h.bg_from; }
-      if (h.bg_to)   { document.getElementById('h-bg-to').value=h.bg_to;     document.querySelector('#h-bg-to').parentElement.style.background=h.bg_to; document.getElementById('h-bg-to-hex').value=h.bg_to; }
+      if (h.bg_from) {
+        const elF = document.getElementById('h-bg-from');
+        elF.value = h.bg_from;
+        elF.parentElement.style.background = h.bg_from;
+        document.getElementById('h-bg-from-hex').value = h.bg_from;
+        elF.dispatchEvent(new Event('input'));
+      }
+      if (h.bg_to) {
+        const elT = document.getElementById('h-bg-to');
+        elT.value = h.bg_to;
+        elT.parentElement.style.background = h.bg_to;
+        document.getElementById('h-bg-to-hex').value = h.bg_to;
+        elT.dispatchEvent(new Event('input'));
+      }
       if (h.image_url) { document.getElementById('h-img-url').value=h.image_url; const p=document.getElementById('h-img-preview'); p.src=h.image_url; p.classList.add('show'); }
     }
     if (cfg.trust && cfg.trust.items) { trustItems = cfg.trust.items; renderTrustCards(); }

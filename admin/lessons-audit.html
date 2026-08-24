@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강의 점검 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <link rel="stylesheet" href="admin-common.css">
+  <style>
+    body { background: #F8F9FA; }
+
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+    .stat-card { background: #fff; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; padding: 1rem 1.25rem; }
+    .stat-num { font-size: 26px; font-weight: 800; color: #1A1A1A; line-height: 1.1; }
+    .stat-num.warn { color: #D97706; }
+    .stat-num.bad  { color: #DC2626; }
+    .stat-num.good { color: #16A34A; }
+    .stat-lbl { font-size: 12px; color: #6B6B6B; margin-top: 4px; }
+
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+    .toolbar input[type=text], .toolbar select {
+      padding: 9px 12px; border: 1px solid rgba(0,0,0,0.12); border-radius: 8px;
+      font-size: 13px; font-family: inherit; background: #fff;
+    }
+    .toolbar input[type=text] { min-width: 220px; }
+    .chk { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #444; cursor: pointer; }
+    .btn-reload { padding: 9px 18px; background: #2D9B6F; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-reload:hover { background: #1A7A4A; }
+    .btn-reload:disabled { opacity: .5; cursor: default; }
+
+    .tbl { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.07); }
+    .tbl th { text-align: left; font-size: 12px; color: #6B6B6B; font-weight: 700; padding: 12px 14px; background: #FAFAFA; border-bottom: 1px solid rgba(0,0,0,0.07); white-space: nowrap; }
+    .tbl td { padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; vertical-align: middle; }
+    .tbl tr.crow { cursor: pointer; }
+    .tbl tr.crow:hover td { background: #F8F9FA; }
+    .tbl tr.open td { background: #F0FDF4; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .cid { color: #9CA3AF; font-variant-numeric: tabular-nums; }
+
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .b-active { background: #E8F5EE; color: #1A7A4A; }
+    .b-hidden { background: #F3F4F6; color: #9CA3AF; }
+    .b-ok     { background: #F0FDF4; color: #16A34A; }
+    .b-warn   { background: #FEF3C7; color: #B45309; }
+    .b-bad    { background: #FEE2E2; color: #DC2626; }
+    .badges { display: flex; gap: 4px; flex-wrap: wrap; }
+
+    .detail-cell { background: #FCFCFD !important; padding: 0 !important; }
+    .detail-wrap { padding: 1rem 1.25rem 1.5rem; }
+    .lesson-tbl { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .lesson-tbl th { font-size: 11px; color: #9CA3AF; text-align: left; padding: 6px 8px; font-weight: 700; }
+    .lesson-tbl td { padding: 6px 8px; font-size: 12.5px; border-top: 1px solid rgba(0,0,0,0.04); }
+    .lesson-tbl tr.dup td { background: #FEF2F2; }
+    .lesson-tbl tr.novid td { background: #FFFBEB; }
+    .vlink { color: #2D9B6F; text-decoration: none; font-variant-numeric: tabular-nums; }
+    .vlink:hover { text-decoration: underline; }
+    .sec-tag { display: inline-block; padding: 2px 7px; border-radius: 5px; background: #EEF2FF; color: #4B6FD4; font-size: 11px; }
+
+    .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .thumb { border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: #fff; display: block; }
+    .thumb iframe { width: 100%; aspect-ratio: 16/9; display: block; border: 0; background: #111; }
+    .thumb .cap { padding: 6px 8px; font-size: 11px; color: #444; line-height: 1.35; display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+    .thumb .cap b { color: #9CA3AF; font-weight: 700; }
+    .thumb .cap a { color: #2D9B6F; text-decoration: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .toggle-thumbs { padding: 6px 14px; background: #fff; border: 1px solid rgba(0,0,0,0.12); border-radius: 7px; font-size: 12px; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+    .hint { font-size: 11.5px; color: #9CA3AF; margin: 0 0 10px; line-height: 1.5; }
+    .muted { color: #9CA3AF; font-size: 12px; }
+    .loading { padding: 3rem; text-align: center; color: #9CA3AF; }
+  </style>
+</head>
+<body>
+
+<div class="admin-wrap">
+  <div class="admin-header">
+    <h1 class="admin-title">강의 점검</h1>
+    <p class="admin-desc">강좌별 강의 등록 상태를 한눈에 확인합니다. 행을 클릭하면 강의 목록과 영상 썸네일이 열립니다.</p>
+  </div>
+
+  <div id="js-stats" class="stat-row"></div>
+
+  <div class="toolbar">
+    <input type="text" id="q" placeholder="강좌명 또는 ID 검색">
+    <select id="fstatus">
+      <option value="">상태 전체</option>
+      <option value="active">노출중(active)</option>
+      <option value="hidden">숨김(hidden)</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="fissue"> 문제 있는 강좌만</label>
+    <button class="btn-reload" id="btn-reload" onclick="loadAll()">새로고침</button>
+    <span class="muted" id="js-count"></span>
+  </div>
+
+  <div id="js-body"><div class="loading">불러오는 중…</div></div>
+</div>
+
+<script>
+(async function checkAdminAccess() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=' + encodeURIComponent('admin/lessons-audit.html');
+    return;
+  }
+  const { data: profile } = await supabaseClient
+    .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+  loadAll();
+})();
+
+let COURSES = [];
+const openSet = new Set();
+
+function vid(url) {
+  if (!url) return '';
+  const m = String(url).match(/(\d{6,})/);
+  return m ? m[1] : '';
+}
+
+// 강좌 하나를 검사해 이슈 목록을 만든다
+function audit(c) {
+  const ls = c._lessons;
+  const issues = [];
+  if (ls.length === 0) {
+    issues.push({ t: 'bad', label: '강의 0개' });
+    return issues;
+  }
+  const noVid = ls.filter(l => !vid(l.video_url));
+  if (noVid.length) issues.push({ t: 'bad', label: `영상없음 ${noVid.length}` });
+
+  const seen = {};
+  ls.forEach(l => { const v = vid(l.video_url); if (v) seen[v] = (seen[v] || 0) + 1; });
+  const dup = Object.values(seen).filter(n => n > 1).length;
+  if (dup) issues.push({ t: 'bad', label: `영상중복 ${dup}` });
+
+  const orders = ls.map(l => l.sort_order);
+  const uniqOrders = new Set(orders);
+  if (uniqOrders.size !== orders.length) issues.push({ t: 'warn', label: '순서중복' });
+  const mx = Math.max(...orders), mn = Math.min(...orders);
+  if (mn !== 1 || mx !== ls.length) issues.push({ t: 'warn', label: `순서 ${mn}~${mx}` });
+
+  if (typeof c.lessons === 'number' && c.lessons !== ls.length) {
+    issues.push({ t: 'warn', label: `표기 ${c.lessons}≠${ls.length}` });
+  }
+  return issues;
+}
+
+async function loadAll() {
+  const btn = document.getElementById('btn-reload');
+  btn.disabled = true;
+  document.getElementById('js-body').innerHTML = '<div class="loading">불러오는 중…</div>';
+
+  const { data: courses, error: e1 } = await supabaseClient
+    .from('courses').select('id,title,status,lessons').order('id');
+  if (e1) { document.getElementById('js-body').innerHTML = '<div class="loading">강좌 로드 실패: ' + e1.message + '</div>'; btn.disabled = false; return; }
+
+  // lessons 는 행이 많으므로 페이지 단위로 전부 가져온다
+  let all = [], from = 0, size = 1000;
+  while (true) {
+    const { data, error } = await supabaseClient
+      .from('lessons').select('id,course_id,title,video_url,sort_order,section_title')
+      .order('course_id').order('sort_order').range(from, from + size - 1);
+    if (error) { document.getElementById('js-body').innerHTML = '<div class="loading">강의 로드 실패: ' + error.message + '</div>'; btn.disabled = false; return; }
+    all = all.concat(data);
+    if (data.length < size) break;
+    from += size;
+  }
+
+  const byCourse = {};
+  all.forEach(l => { (byCourse[l.course_id] = byCourse[l.course_id] || []).push(l); });
+
+  COURSES = courses.map(c => {
+    c._lessons = (byCourse[c.id] || []).sort((a, b) => a.sort_order - b.sort_order);
+    c._issues = audit(c);
+    return c;
+  });
+
+  renderStats();
+  render();
+  btn.disabled = false;
+}
+
+function renderStats() {
+  const total = COURSES.length;
+  const withL = COURSES.filter(c => c._lessons.length > 0).length;
+  const lessons = COURSES.reduce((s, c) => s + c._lessons.length, 0);
+  const bad = COURSES.filter(c => c._issues.some(i => i.t === 'bad')).length;
+  const warn = COURSES.filter(c => c._issues.length && !c._issues.some(i => i.t === 'bad')).length;
+  document.getElementById('js-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">전체 강좌</div></div>
+    <div class="stat-card"><div class="stat-num good">${withL}</div><div class="stat-lbl">강의 있는 강좌</div></div>
+    <div class="stat-card"><div class="stat-num">${lessons.toLocaleString()}</div><div class="stat-lbl">전체 강의 수</div></div>
+    <div class="stat-card"><div class="stat-num bad">${bad}</div><div class="stat-lbl">심각 (영상없음·중복·0개)</div></div>
+    <div class="stat-card"><div class="stat-num warn">${warn}</div><div class="stat-lbl">확인 필요 (순서·표기)</div></div>`;
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
+
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const fs = document.getElementById('fstatus').value;
+  const fi = document.getElementById('fissue').checked;
+
+  const rows = COURSES.filter(c => {
+    if (fs && c.status !== fs) return false;
+    if (fi && c._issues.length === 0) return false;
+    if (q && !(String(c.id) === q || (c.title || '').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  document.getElementById('js-count').textContent = `${rows.length}개 표시`;
+
+  if (!rows.length) { document.getElementById('js-body').innerHTML = '<div class="loading">조건에 맞는 강좌가 없습니다.</div>'; return; }
+
+  let html = `<table class="tbl"><thead><tr>
+    <th style="width:52px">ID</th><th>강좌</th><th style="width:90px">상태</th>
+    <th style="width:70px" class="num">강의</th><th style="width:260px">점검</th></tr></thead><tbody>`;
+
+  rows.forEach(c => {
+    const isOpen = openSet.has(c.id);
+    const badges = c._issues.length
+      ? c._issues.map(i => `<span class="badge b-${i.t === 'bad' ? 'bad' : 'warn'}">${esc(i.label)}</span>`).join('')
+      : '<span class="badge b-ok">정상</span>';
+    html += `<tr class="crow ${isOpen ? 'open' : ''}" onclick="toggle(${c.id})">
+      <td class="cid">${c.id}</td>
+      <td>${esc(c.title)}</td>
+      <td><span class="badge b-${c.status === 'active' ? 'active' : 'hidden'}">${esc(c.status || '-')}</span></td>
+      <td class="num">${c._lessons.length}</td>
+      <td><div class="badges">${badges}</div></td></tr>`;
+    if (isOpen) html += `<tr><td class="detail-cell" colspan="5">${detailHtml(c)}</td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('js-body').innerHTML = html;
+}
+
+function detailHtml(c) {
+  const ls = c._lessons;
+  if (!ls.length) return '<div class="detail-wrap muted">등록된 강의가 없습니다.</div>';
+
+  const seen = {};
+  ls.forEach(l => { const v = vid(l.video_url); if (v) seen[v] = (seen[v] || 0) + 1; });
+
+  let rows = ls.map(l => {
+    const v = vid(l.video_url);
+    const cls = !v ? 'novid' : (seen[v] > 1 ? 'dup' : '');
+    return `<tr class="${cls}">
+      <td style="width:44px" class="num muted">${l.sort_order}</td>
+      <td style="width:110px">${l.section_title ? `<span class="sec-tag">${esc(l.section_title)}</span>` : ''}</td>
+      <td>${esc(l.title)}</td>
+      <td style="width:130px">${v
+        ? `<a class="vlink" href="https://vimeo.com/${v}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${v}</a>${seen[v] > 1 ? ' <span class="badge b-bad">중복</span>' : ''}`
+        : '<span class="badge b-bad">영상없음</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="detail-wrap">
+    <button class="toggle-thumbs" onclick="event.stopPropagation(); loadThumbs(${c.id}, this)">▶ 영상 미리보기 열기</button>
+    <div id="thumbs-${c.id}" class="thumbs" style="display:none"></div>
+    <table class="lesson-tbl"><thead><tr><th>#</th><th>섹션</th><th>제목</th><th>Vimeo</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`;
+}
+
+function toggle(id) {
+  if (openSet.has(id)) openSet.delete(id); else openSet.add(id);
+  render();
+}
+
+// Vimeo 플레이어를 그대로 임베드해 실제 영상을 확인한다.
+// (영상들이 도메인 제한 비공개 설정이라 oEmbed 썸네일은 제공되지 않는다)
+function loadThumbs(cid, btn) {
+  const box = document.getElementById('thumbs-' + cid);
+  if (box.style.display === 'grid') { box.style.display = 'none'; btn.textContent = '▶ 영상 미리보기 열기'; return; }
+  box.style.display = 'grid';
+  btn.textContent = '▶ 미리보기 닫기';
+  if (box.dataset.loaded) return;
+
+  const c = COURSES.find(x => x.id === cid);
+  const items = c._lessons.map(l => ({ v: vid(l.video_url), n: l.sort_order, t: l.title })).filter(x => x.v);
+
+  box.innerHTML = items.map(i => `<div class="thumb">
+    <iframe src="https://player.vimeo.com/video/${i.v}" loading="lazy"
+            allow="fullscreen; picture-in-picture" title="${esc(i.t)}"></iframe>
+    <div class="cap"><span><b>${i.n}.</b> ${esc(i.t).slice(0, 34)}</span>
+      <a href="https://vimeo.com/${i.v}" target="_blank" rel="noopener">${i.v}↗</a></div>
+  </div>`).join('');
+
+  box.insertAdjacentHTML('beforebegin',
+    '<p class="hint" data-hint="' + cid + '">영상이 검게 나오면 Vimeo 도메인 제한 때문일 수 있습니다 — 배포된 도메인에서 열면 정상 재생됩니다. 번호를 눌러 Vimeo에서 직접 확인할 수도 있습니다.</p>');
+  box.dataset.loaded = '1';
+}
+
+document.getElementById('q').addEventListener('input', render);
+document.getElementById('fstatus').addEventListener('change', render);
+document.getElementById('fissue').addEventListener('change', render);
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>
