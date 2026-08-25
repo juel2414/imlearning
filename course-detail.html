@@ -357,21 +357,23 @@ body {
   -webkit-mask-image:radial-gradient(ellipse at 78% 22%, #000 8%, transparent 74%);
           mask-image:radial-gradient(ellipse at 78% 22%, #000 8%, transparent 74%);
 }
-/* ② 좌하단 모눈 — 왼쪽 아래 구석에만 */
-.hero-deco.dc-grid {
-  left:0; bottom:0; width:30%; height:56%;
+/* ② 좌하단 지그재그 메시 — 대각선 방향으로 페이드 */
+.hero-deco.dc-zig {
+  left:0; bottom:0; width:34%; height:60%;
   background-image:
-    repeating-linear-gradient(to right,  rgba(0,0,0,.035) 0 1px, transparent 1px 34px),
-    repeating-linear-gradient(to bottom, rgba(0,0,0,.035) 0 1px, transparent 1px 34px);
-  -webkit-mask-image:linear-gradient(28deg, #000 12%, transparent 68%);
-          mask-image:linear-gradient(28deg, #000 12%, transparent 68%);
+    repeating-linear-gradient(56deg,  rgba(0,0,0,.07) 0 1.5px, transparent 1.5px 13px),
+    repeating-linear-gradient(-56deg, rgba(0,0,0,.07) 0 1.5px, transparent 1.5px 13px);
+  background-size:13px 13px;
+  -webkit-mask-image:linear-gradient(34deg, #000 10%, transparent 72%);
+          mask-image:linear-gradient(34deg, #000 10%, transparent 72%);
 }
-/* ③ 좌상단 원형 아웃라인 두 겹 */
-.hero-deco.dc-ring {
-  left:5%; top:12%; width:120px; height:120px; border-radius:50%;
-  border:1px solid rgba(0,0,0,.055);
-  box-shadow:inset 0 0 0 14px transparent, 0 0 0 13px rgba(0,0,0,.028);
-  opacity:.9;
+/* ③ 좌상단 모서리 브래킷 — ㄱ자 겹선으로 프레임을 암시 */
+.hero-deco.dc-bracket {
+  left:6%; top:13%; width:132px; height:104px;
+  border-left:2px solid rgba(0,0,0,.08);
+  border-top:2px solid rgba(0,0,0,.08);
+  border-top-left-radius:6px;
+  box-shadow:-12px -12px 0 -11px rgba(0,0,0,.05);
 }
 /* ④ 우하단 사선 바 — 짧게 몇 줄만 */
 .hero-deco.dc-bars {
@@ -485,8 +487,8 @@ body {
   <div class="hero-banner-inner">
     <div class="hero-thumb-box" id="hero-thumb-box">
       <span class="hero-deco dc-dots"></span>
-      <span class="hero-deco dc-grid"></span>
-      <span class="hero-deco dc-ring"></span>
+      <span class="hero-deco dc-zig"></span>
+      <span class="hero-deco dc-bracket"></span>
       <span class="hero-deco dc-bars"></span>
       <span class="hero-thumb-emoji" id="hero-thumb-emoji">✝</span>
       <img id="hero-thumb-img" alt="" style="display:none;">
