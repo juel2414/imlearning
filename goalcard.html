@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBUP 골카드 — 아이엠러닝</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+  word-break: keep-all;
+  letter-spacing: -0.01em;
+  background: #f7f8fa;
+}
+.gc-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+.gc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.gc-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #111;
+  letter-spacing: -0.5px;
+}
+.gc-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+}
+.gc-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.gc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.18s;
+  text-decoration: none;
+}
+.gc-btn-back {
+  background: #f0f0f0;
+  color: #555;
+}
+.gc-btn-back:hover { background: #e0e0e0; }
+.gc-btn-print {
+  background: #2D9B6F;
+  color: #fff;
+}
+.gc-btn-print:hover { background: #248a5f; }
+
+/* 통계 바 */
+.gc-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.gc-stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(0,0,0,0.07);
+  flex: 1;
+  min-width: 140px;
+}
+.gc-stat-icon { font-size: 20px; }
+.gc-stat-val { font-size: 22px; font-weight: 900; color: #111; }
+.gc-stat-lbl { font-size: 11px; color: #888; margin-top: 2px; }
+
+/* 주차 섹션 */
+.gc-section {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.07);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.gc-section-head {
+  background: linear-gradient(90deg, #1a5c3a 0%, #2D9B6F 100%);
+  color: #fff;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gc-section-week {
+  background: rgba(255,255,255,0.2);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.gc-lesson-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0;
+}
+.gc-lessons-col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 14px;
+  border-right: 1px solid rgba(0,0,0,0.06);
+}
+.gc-lesson-cell {
+  display: flex;
+  flex-direction: column;
+  background: #f8faf9;
+  border-radius: 8px;
+  padding: 7px 10px;
+  min-width: 130px;
+  max-width: 200px;
+  flex: 1;
+  gap: 4px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.gc-lesson-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.35;
+}
+.gc-lesson-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  width: fit-content;
+}
+.badge-approved  { background: #d1fae5; color: #065f46; }
+.badge-pending   { background: #fef9c3; color: #854d0e; }
+.badge-rejected  { background: #fee2e2; color: #991b1b; }
+.badge-none      { background: #f0f0f0; color: #999; }
+
+/* 필독서 컬럼 */
+.gc-book-col {
+  padding: 12px 14px;
+  min-width: 160px;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.gc-book-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.gc-book-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.4;
+}
+.gc-book-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  width: fit-content;
+}
+.gc-book-none {
+  font-size: 12px;
+  color: #bbb;
+}
+
+/* 로딩 / 에러 */
+.gc-loading {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #aaa;
+  font-size: 15px;
+}
+.gc-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #e53e3e;
+  font-size: 14px;
+}
+
+/* 인쇄 스타일 */
+@media print {
+  .gc-actions, nav, header, footer, .navbar, .site-footer { display: none !important; }
+  body { background: #fff !important; font-size: 10pt; }
+  .gc-wrap { max-width: 100%; padding: 0; }
+  .gc-section { break-inside: avoid; margin-bottom: 8px; }
+  .gc-stat-card { padding: 8px 12px; }
+  .gc-lesson-cell { min-width: 100px; padding: 5px 8px; }
+  .gc-title { font-size: 16pt; }
+}
+
+@media (max-width: 640px) {
+  .gc-lesson-grid { grid-template-columns: 1fr; }
+  .gc-book-col { border-top: 1px solid rgba(0,0,0,0.06); min-width: unset; }
+  .gc-stat-card { min-width: 120px; }
+}
+</style>
+</head>
+<body>
+<!-- 공통 네비게이션 -->
+<script src="js/nav.js"></script>
+
+<div class="gc-wrap">
+  <div class="gc-header">
+    <div>
+      <div class="gc-title">📋 CBUP 골카드</div>
+      <div class="gc-subtitle" id="gc-course-name">CBUP 4세대 수료과정 진도 현황</div>
+    </div>
+    <div class="gc-actions">
+      <a href="my-courses.html" class="gc-btn gc-btn-back">← 나의 강의실</a>
+      <button class="gc-btn gc-btn-print" onclick="window.print()">⬇ PDF 저장</button>
+    </div>
+  </div>
+
+  <!-- 통계 -->
+  <div class="gc-stats" id="gc-stats">
+    <div class="gc-stat-card"><span class="gc-stat-icon">✅</span><div><div class="gc-stat-val" id="stat-approved">-</div><div class="gc-stat-lbl">승인된 강의노트</div></div></div>
+    <div class="gc-stat-card"><span class="gc-stat-icon">⏳</span><div><div class="gc-stat-val" id="stat-pending">-</div><div class="gc-stat-lbl">검토 중</div></div></div>
+    <div class="gc-stat-card"><span class="gc-stat-icon">✏️</span><div><div class="gc-stat-val" id="stat-none">-</div><div class="gc-stat-lbl">미제출</div></div></div>
+    <div class="gc-stat-card"><span class="gc-stat-icon">📖</span><div><div class="gc-stat-val" id="stat-reading">-</div><div class="gc-stat-lbl">독서노트</div></div></div>
+  </div>
+
+  <div id="gc-body"><div class="gc-loading">불러오는 중...</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  // ── 대상 강좌 결정 (?course=ID, 없으면 CBUP 4세대) ──
+  const DEFAULT_COURSE_ID = 1;
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('course') || params.get('course_id');
+  const COURSE_ID = parseInt(raw, 10) > 0 ? parseInt(raw, 10) : DEFAULT_COURSE_ID;
+
+  function showError(msg) {
+    document.getElementById('gc-body').innerHTML =
+      `<div class="gc-error">${msg}<br><a href="courses.html" style="color:#2D9B6F;font-weight:700;">강좌 보러 가기 →</a></div>`;
+    document.getElementById('gc-stats').style.display = 'none';
+  }
+
+  // ── 인증 확인 ──
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    return;
+  }
+
+  // ── 강좌 정보 ──
+  const { data: course } = await supabaseClient
+    .from('courses').select('id, title').eq('id', COURSE_ID).maybeSingle();
+  if (!course) { showError('⚠️ 강좌를 찾을 수 없습니다.'); return; }
+
+  document.getElementById('gc-course-name').textContent = course.title + ' 진도 현황';
+  document.title = course.title + ' 골카드 — 아이엠러닝';
+
+  // ── 수강 여부 확인 (해당 강좌 결제자 또는 관리자) ──
+  const { data: myOrder } = await supabaseClient
+    .from('orders').select('id')
+    .eq('user_id', user.id).eq('course_id', COURSE_ID).eq('status', 'completed')
+    .limit(1).maybeSingle();
+
+  let allowed = !!myOrder;
+  if (!allowed) {
+    const { data: myRole } = await supabaseClient.rpc('get_my_role');
+    allowed = (myRole === 'admin');
+  }
+
+  if (!allowed) {
+    showError(`⚠️ &lsquo;${escHtml(course.title)}&rsquo; 수강생만 골카드를 열람할 수 있습니다.`);
+    return;
+  }
+
+  // ── 데이터 병렬 로드 ──
+  const [lessonsRes, textbooksRes, submissionsRes] = await Promise.all([
+    supabaseClient
+      .from('lessons')
+      .select('id, title, section_title, sort_order')
+      .eq('course_id', COURSE_ID)
+      .order('sort_order'),
+    supabaseClient
+      .from('course_textbooks')
+      .select('week_number, textbooks(id, title)')
+      .eq('course_id', COURSE_ID)
+      .order('week_number'),
+    supabaseClient
+      .from('submissions')
+      .select('lesson_id, textbook_id, type, status')
+      .eq('user_id', user.id)
+      .eq('course_id', COURSE_ID)
+  ]);
+
+  const lessons = lessonsRes.data || [];
+  const textbooks = textbooksRes.data || [];
+  const submissions = submissionsRes.data || [];
+
+  // ── 제출 현황 맵 ──
+  // lecture: lesson_id → status
+  const lectureMap = {};
+  submissions.filter(s => s.type === 'lecture').forEach(s => {
+    if (s.lesson_id) lectureMap[s.lesson_id] = s.status;
+  });
+  // reading: textbook_id → status
+  const readingMap = {};
+  submissions.filter(s => s.type === 'reading').forEach(s => {
+    if (s.textbook_id) readingMap[s.textbook_id] = s.status;
+  });
+
+  // ── 교재 맵: week_number → {id, title} ──
+  const bookMap = {};
+  textbooks.forEach(t => {
+    if (t.textbooks) bookMap[t.week_number] = t.textbooks;
+  });
+
+  // ── 섹션 그룹화 ──
+  const sections = [];
+  const sectionMap = {};
+  lessons.forEach(l => {
+    const key = l.section_title || '기타';
+    if (!sectionMap[key]) {
+      sectionMap[key] = { title: key, lessons: [] };
+      sections.push(sectionMap[key]);
+    }
+    sectionMap[key].lessons.push(l);
+  });
+
+  // ── 통계 계산 ──
+  let approved = 0, pending = 0, rejected = 0, noneCount = 0;
+  lessons.forEach(l => {
+    const s = lectureMap[l.id];
+    if (s === 'approved') approved++;
+    else if (s === 'pending') pending++;
+    else if (s === 'rejected') rejected++;
+    else noneCount++;
+  });
+  let readingApproved = 0;
+  Object.values(readingMap).forEach(s => { if (s === 'approved') readingApproved++; });
+
+  document.getElementById('stat-approved').textContent = approved;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-none').textContent = noneCount;
+  document.getElementById('stat-reading').textContent = readingApproved;
+
+  // ── 주차 번호 추출 (섹션 제목 앞의 숫자) ──
+  function weekNum(sectionTitle) {
+    const m = sectionTitle.match(/^(\d+)주차/);
+    return m ? parseInt(m[1]) : null;
+  }
+
+  // ── HTML 빌드 ──
+  function badgeHtml(status) {
+    if (status === 'approved')  return '<span class="gc-lesson-badge badge-approved">✓ 승인</span>';
+    if (status === 'pending')   return '<span class="gc-lesson-badge badge-pending">⏳ 검토중</span>';
+    if (status === 'rejected')  return '<span class="gc-lesson-badge badge-rejected">✗ 반려</span>';
+    return '<span class="gc-lesson-badge badge-none">— 미제출</span>';
+  }
+
+  function bookBadgeHtml(status) {
+    if (status === 'approved')  return '<span class="gc-book-badge badge-approved">✓ 승인</span>';
+    if (status === 'pending')   return '<span class="gc-book-badge badge-pending">⏳ 검토중</span>';
+    if (status === 'rejected')  return '<span class="gc-book-badge badge-rejected">✗ 반려</span>';
+    return '<span class="gc-book-badge badge-none">— 미제출</span>';
+  }
+
+  let html = '';
+  sections.forEach(sec => {
+    const wn = weekNum(sec.title);
+    const book = wn ? bookMap[wn] : null;
+    const bookStatus = book ? readingMap[book.id] : undefined;
+
+    const lessonCells = sec.lessons.map(l =>
+      `<div class="gc-lesson-cell">
+        <div class="gc-lesson-title">${escHtml(l.title)}</div>
+        ${badgeHtml(lectureMap[l.id])}
+      </div>`
+    ).join('');
+
+    const bookHtml = book
+      ? `<div class="gc-book-label">필독서</div>
+         <div class="gc-book-title">${escHtml(book.title)}</div>
+         ${bookBadgeHtml(bookStatus)}`
+      : `<div class="gc-book-label">필독서</div><div class="gc-book-none">미지정</div>`;
+
+    html += `
+      <div class="gc-section">
+        <div class="gc-section-head">
+          ${wn ? `<span class="gc-section-week">${wn}주차</span>` : ''}
+          ${escHtml(sec.title.replace(/^\d+주차\s*[—–-]\s*/, ''))}
+        </div>
+        <div class="gc-lesson-grid">
+          <div class="gc-lessons-col">${lessonCells}</div>
+          <div class="gc-book-col">${bookHtml}</div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('gc-body').innerHTML = html || '<div class="gc-error">강의 정보를 찾을 수 없습니다.</div>';
+
+  function escHtml(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+</script>
+</body>
+</html>

@@ -469,6 +469,7 @@ body {
           <div class="detail-tab" id="tab-files-btn" style="display:none;" onclick="switchTab('files', this)">📁 자료실</div>
           <div class="detail-tab" id="tab-textbooks-btn" style="display:none;" onclick="switchTab('textbooks', this)">📚 관련 교재</div>
           <div class="detail-tab" id="tab-notes-btn" style="display:none;" onclick="switchTab('notes', this)">📝 노트 제출</div>
+          <div class="detail-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
         </div>
         <div class="tab-content active" id="tab-curriculum">
           <!-- 강의 영상 플레이어 (한양사이버대 스타일 2열) -->
@@ -547,6 +548,13 @@ body {
           <div id="notes-tab-content">
             <div class="note-empty">노트를 불러오는 중...</div>
           </div>
+        </div>
+        <div class="tab-content" id="tab-goalcard">
+          <div style="padding:1rem 0 0.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:15px;font-weight:700;color:#111;">📋 CBUP 골카드</div>
+            <a href="goalcard.html" target="_blank" id="goalcard-newtab" style="display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:#2D9B6F;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">새 탭으로 열기 →</a>
+          </div>
+          <iframe id="goalcard-frame" src="about:blank" style="width:100%;height:75vh;border:none;border-radius:12px;background:#f7f8fa;" loading="lazy"></iframe>
         </div>
       </div>
 
@@ -932,7 +940,9 @@ function applyProgressUI() {
         item.style.cursor = 'pointer';
         item.addEventListener('click', function() {
           const n = parseInt(lid.replace(/[^0-9]/g, '')) || 1;
-          const videoUrl = item.dataset.videoUrl || (currentCourse ? currentCourse.vimeo_url : null);
+          // 강좌 대표 영상으로 대체하지 않는다 — 엉뚱한 영상이 재생되고
+          // 그 길이가 이 강의의 duration_seconds 로 저장되어 데이터가 오염된다.
+          const videoUrl = item.dataset.videoUrl;
           if (!videoUrl) { alert('이 강의의 영상 링크가 없어요.'); return; }
           const ct = document.querySelector('.detail-tab[onclick*="curriculum"]');
           if (ct && !ct.classList.contains('active')) ct.click();
@@ -1040,7 +1050,7 @@ function resumeCourse() {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       const n = parseInt(lastWatchedLesson.lesson_id.replace(/[^0-9]/g, '')) || 1;
-      const videoUrl = el.dataset.videoUrl || (currentCourse ? currentCourse.vimeo_url : null);
+      const videoUrl = el.dataset.videoUrl; // 대표 영상 폴백 금지 (위 주석 참고)
       if (videoUrl) openLesson(n, lastWatchedLesson.lesson_title || '', videoUrl);
     }
   }
@@ -1310,17 +1320,28 @@ async function loadCourse() {
       }
     }
     if (!isEnrolled) checkUserCoupons(user.id);
-    if (isEnrolled) fillLessonVideoUrls(course.id);
+    if (isEnrolled) await fillLessonVideoUrls(course.id);
     await loadProgress(user.id, course.id);
     await loadWishState(user.id, course.id);
     if (isEnrolled) {
       supabaseClient.from('course_files').select('id', { count: 'exact', head: true }).eq('course_id', course.id).then(({ count }) => {
         if (count > 0) { const btn = document.getElementById('tab-files-btn'); if (btn) btn.style.display = ''; }
       });
-      // 노트 탭 표시 및 제출물 로드
+      // 노트 탭 표시 및 제출물 로드 (CBUP 과정에만 적용)
+      const isCbupCourse = course.title && course.title.toUpperCase().includes('CBUP');
       const notesTabBtn = document.getElementById('tab-notes-btn');
-      if (notesTabBtn) notesTabBtn.style.display = '';
-      await loadSubmissions(user.id, course.id);
+      if (notesTabBtn && isCbupCourse) notesTabBtn.style.display = '';
+      const goalcardBtn = document.getElementById('tab-goalcard-btn');
+      if (goalcardBtn && isCbupCourse) {
+        goalcardBtn.style.display = '';
+        // 골카드는 강좌별로 동작한다 — 현재 강좌 ID 를 넘긴다.
+        const gcUrl = 'goalcard.html?course=' + course.id;
+        const gcFrame = document.getElementById('goalcard-frame');
+        if (gcFrame) gcFrame.src = gcUrl;
+        const gcLink = document.getElementById('goalcard-newtab');
+        if (gcLink) gcLink.href = gcUrl;
+      }
+      if (isCbupCourse) await loadSubmissions(user.id, course.id);
     }
   } else {
     // 비로그인: 쿠폰 창만 표시
@@ -1677,7 +1698,13 @@ async function fillLessonVideoUrls(courseId) {
   if (!data) return;
   data.forEach(l => {
     const item = curriculumLessons.find(c => c.id === l.id);
-    if (item) item.videoUrl = l.video_url || '';
+    if (!item) return;
+    item.videoUrl = l.video_url || '';
+    // 커리큘럼 목록 DOM 에도 반영한다.
+    // get_course_curriculum RPC 는 미리보기 강의에만 video_url 을 주므로
+    // 여기서 채워주지 않으면 data-video-url 이 비어 대표 영상으로 잘못 재생된다.
+    const el = document.querySelector(`.curriculum-item[data-lesson="lesson-${item.num}"]`);
+    if (el) el.dataset.videoUrl = item.videoUrl;
   });
 }
 
