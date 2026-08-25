@@ -199,6 +199,52 @@ body {
   color: #bbb;
 }
 
+/* ── 표 ── */
+.gc-table-wrap {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.gc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.gc-table th {
+  background: #f4f6f8;
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 800;
+  color: #6b7280;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  white-space: nowrap;
+}
+.gc-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.045);
+  vertical-align: middle;
+}
+.gc-table tr:last-child td { border-bottom: none; }
+.gc-table tbody tr:hover td { background: #fafbfc; }
+.gc-week-start td { border-top: 2px solid rgba(45,155,111,0.18); }
+.gc-table tbody tr:first-child td { border-top: none; }
+
+.gc-td-week {
+  background: #f7fbf9;
+  vertical-align: top !important;
+  border-right: 1px solid rgba(0,0,0,0.05);
+}
+.gc-week-num  { font-size: 13px; font-weight: 900; color: #1a5c3a; }
+.gc-week-name { font-size: 11px; color: #8a9a92; margin-top: 3px; line-height: 1.4; }
+.gc-td-no     { color: #b9bfc6; font-variant-numeric: tabular-nums; font-size: 12px; }
+.gc-td-title  { color: #222; line-height: 1.45; }
+.gc-td-status { white-space: nowrap; }
+.gc-td-book {
+  background: #fcfcfd;
+  border-left: 1px solid rgba(0,0,0,0.05);
+  vertical-align: top !important;
+}
+.gc-td-book-title { font-size: 12px; font-weight: 700; color: #333; line-height: 1.4; margin-bottom: 5px; }
+
 /* 로딩 / 에러 */
 .gc-loading {
   text-align: center;
@@ -218,16 +264,23 @@ body {
   .gc-actions, nav, header, footer, .navbar, .site-footer { display: none !important; }
   body { background: #fff !important; font-size: 10pt; }
   .gc-wrap { max-width: 100%; padding: 0; }
-  .gc-section { break-inside: avoid; margin-bottom: 8px; }
   .gc-stat-card { padding: 8px 12px; }
-  .gc-lesson-cell { min-width: 100px; padding: 5px 8px; }
   .gc-title { font-size: 16pt; }
+  .gc-table-wrap { border: none; border-radius: 0; overflow: visible; }
+  .gc-table { font-size: 9pt; }
+  .gc-table th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .gc-table td, .gc-table th { padding: 5px 8px; }
+  .gc-table tr { break-inside: avoid; }
+  .gc-table thead { display: table-header-group; } /* 페이지마다 머리글 반복 */
+  .gc-lesson-badge, .gc-book-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 @media (max-width: 640px) {
-  .gc-lesson-grid { grid-template-columns: 1fr; }
-  .gc-book-col { border-top: 1px solid rgba(0,0,0,0.06); min-width: unset; }
   .gc-stat-card { min-width: 120px; }
+  /* 좁은 화면에서는 표를 가로 스크롤한다 (행 구조를 깨지 않는 편이 읽기 쉽다) */
+  .gc-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .gc-table { min-width: 620px; }
+  .gc-table th, .gc-table td { padding: 8px 10px; }
 }
 </style>
 </head>
@@ -405,39 +458,51 @@ body {
     return `<span class="gc-book-badge ${s.cls}">${s.text}</span>`;
   }
 
-  let html = '';
+  // ── 표 그리기 ──
+  // 한 행 = 한 강의. 주차는 첫 행에만 rowspan 으로 묶고, 필독서도 주차당 한 칸.
+  let rows = '';
   sections.forEach(sec => {
     const wn = weekNum(sec.title);
     const book = wn ? bookMap[wn] : null;
     const bookStatus = book ? readingMap[book.id] : undefined;
+    const span = sec.lessons.length || 1;
+    const secName = escHtml(sec.title.replace(/^\d+주차\s*[—–-]\s*/, ''));
 
-    const lessonCells = sec.lessons.map(l =>
-      `<div class="gc-lesson-cell">
-        <div class="gc-lesson-title">${escHtml(l.title)}</div>
-        ${badgeHtml(lectureMap[l.id])}
-      </div>`
-    ).join('');
+    const bookCell = book
+      ? `<div class="gc-td-book-title">${escHtml(book.title)}</div>${bookBadgeHtml(bookStatus)}`
+      : `<span class="gc-book-none">미지정</span>`;
 
-    const bookHtml = book
-      ? `<div class="gc-book-label">필독서</div>
-         <div class="gc-book-title">${escHtml(book.title)}</div>
-         ${bookBadgeHtml(bookStatus)}`
-      : `<div class="gc-book-label">필독서</div><div class="gc-book-none">미지정</div>`;
-
-    html += `
-      <div class="gc-section">
-        <div class="gc-section-head">
-          ${wn ? `<span class="gc-section-week">${wn}주차</span>` : ''}
-          ${escHtml(sec.title.replace(/^\d+주차\s*[—–-]\s*/, ''))}
-        </div>
-        <div class="gc-lesson-grid">
-          <div class="gc-lessons-col">${lessonCells}</div>
-          <div class="gc-book-col">${bookHtml}</div>
-        </div>
-      </div>`;
+    sec.lessons.forEach((l, i) => {
+      const st = statusLabel(lectureMap[l.id]);
+      rows += `<tr class="${i === 0 ? 'gc-week-start' : ''}">`;
+      if (i === 0) {
+        rows += `<td class="gc-td-week" rowspan="${span}">
+                   <div class="gc-week-num">${wn ? wn + '주차' : '—'}</div>
+                   <div class="gc-week-name">${secName}</div>
+                 </td>`;
+      }
+      rows += `<td class="gc-td-no">${l.sort_order ?? ''}</td>
+               <td class="gc-td-title">${escHtml(l.title)}</td>
+               <td class="gc-td-status">${badgeHtml(lectureMap[l.id])}</td>`;
+      if (i === 0) rows += `<td class="gc-td-book" rowspan="${span}">${bookCell}</td>`;
+      rows += `</tr>`;
+    });
   });
 
-  document.getElementById('gc-body').innerHTML = html || '<div class="gc-error">강의 정보를 찾을 수 없습니다.</div>';
+  document.getElementById('gc-body').innerHTML = rows
+    ? `<div class="gc-table-wrap">
+         <table class="gc-table">
+           <thead><tr>
+             <th style="width:150px;">주차</th>
+             <th style="width:44px;">#</th>
+             <th>강의</th>
+             <th style="width:150px;">강의노트</th>
+             <th style="width:190px;">필독서 · 독서노트</th>
+           </tr></thead>
+           <tbody>${rows}</tbody>
+         </table>
+       </div>`
+    : '<div class="gc-error">강의 정보를 찾을 수 없습니다.</div>';
 
   function escHtml(s) {
     return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
