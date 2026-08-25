@@ -326,22 +326,44 @@ body {
   background:linear-gradient(168deg, #f3fbf7 0%, #e5f6ee 45%, #caeedd 100%);
   overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative;
 }
-/* 대각 삼각형 + 바닥 그림자 — 강좌별 배경색(hero_color)을 물들이지 않도록
-   민트 대신 무채색 음영을 쓴다. 어떤 색 위에서도 톤이 유지된다. */
+/* 배경 텍스처 — 강좌별 배경색(hero_color)을 물들이지 않도록 전부 무채색으로 쌓는다.
+   ::before = 면 단위 레이어 (대각 쐐기 · 그리드 · 사선결 · 비네팅)
+   ::after  = 점 단위 레이어 (좌우 도트 클러스터 · 중앙 후광) */
 .hero-thumb-box::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background:
+    /* 대각 쐐기 */
     linear-gradient(158deg, transparent 54%, rgba(0,0,0,.055) 54%),
-    linear-gradient(to top, rgba(0,0,0,.05) 0%, transparent 42%);
+    /* 반대편 얇은 쐐기 — 좌하단에 결을 하나 더 */
+    linear-gradient(22deg, transparent 76%, rgba(255,255,255,.30) 76%),
+    /* 바닥 그림자 */
+    linear-gradient(to top, rgba(0,0,0,.05) 0%, transparent 42%),
+    /* 미세 사선결 */
+    repeating-linear-gradient(135deg,
+      rgba(0,0,0,.016) 0 2px, transparent 2px 7px),
+    /* 모눈 격자 */
+    repeating-linear-gradient(to right, rgba(0,0,0,.022) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(to bottom, rgba(0,0,0,.022) 0 1px, transparent 1px 46px);
 }
-/* 우측 도트 패턴 */
 .hero-thumb-box::after {
-  content:''; position:absolute; right:4%; top:10%;
-  width:100px; height:140px; pointer-events:none;
-  background-image:radial-gradient(circle, rgba(0,0,0,.09) 1.5px, transparent 1.5px);
-  background-size:13px 13px;
-  border-radius:50%;
-  opacity:.8;
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    /* 중앙 후광 — 썸네일이 배경에서 살짝 떠 보이게 */
+    radial-gradient(ellipse 46% 62% at 50% 46%,
+      rgba(255,255,255,.42) 0%, rgba(255,255,255,.16) 45%, transparent 72%),
+    /* 네 귀퉁이 비네팅 */
+    radial-gradient(ellipse 78% 88% at 50% 50%, transparent 62%, rgba(0,0,0,.05) 100%),
+    /* 도트 — 전면에 은은하게 깔되 가장자리로 갈수록 진해지도록 위 후광이 중앙을 덮는다 */
+    radial-gradient(circle, rgba(0,0,0,.075) 1.5px, transparent 1.6px);
+  background-size: auto, auto, 14px 14px;
+  background-position: center, center, left 6px top 6px;
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+@media (max-width:768px) {
+  /* 좁은 화면에서는 격자·사선결을 빼 답답해 보이지 않게 */
+  .hero-thumb-box::before { background:
+    linear-gradient(158deg, transparent 54%, rgba(0,0,0,.055) 54%),
+    linear-gradient(to top, rgba(0,0,0,.05) 0%, transparent 42%); }
 }
 /* 썸네일 이미지 — 여유있게 띄움, 비율 유지 */
 .hero-thumb-box img {
