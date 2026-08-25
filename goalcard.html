@@ -249,8 +249,9 @@ body {
 
   <!-- 통계 -->
   <div class="gc-stats" id="gc-stats">
-    <div class="gc-stat-card"><span class="gc-stat-icon">✅</span><div><div class="gc-stat-val" id="stat-approved">-</div><div class="gc-stat-lbl">승인된 강의노트</div></div></div>
-    <div class="gc-stat-card"><span class="gc-stat-icon">⏳</span><div><div class="gc-stat-val" id="stat-pending">-</div><div class="gc-stat-lbl">검토 중</div></div></div>
+    <div class="gc-stat-card"><span class="gc-stat-icon">✅</span><div><div class="gc-stat-val" id="stat-approved">-</div><div class="gc-stat-lbl">완료 (승인됨)</div></div></div>
+    <div class="gc-stat-card"><span class="gc-stat-icon">⏳</span><div><div class="gc-stat-val" id="stat-pending">-</div><div class="gc-stat-lbl">승인 대기중</div></div></div>
+    <div class="gc-stat-card"><span class="gc-stat-icon">↩️</span><div><div class="gc-stat-val" id="stat-rejected">-</div><div class="gc-stat-lbl">반려 (재제출 필요)</div></div></div>
     <div class="gc-stat-card"><span class="gc-stat-icon">✏️</span><div><div class="gc-stat-val" id="stat-none">-</div><div class="gc-stat-lbl">미제출</div></div></div>
     <div class="gc-stat-card"><span class="gc-stat-icon">📖</span><div><div class="gc-stat-val" id="stat-reading">-</div><div class="gc-stat-lbl">독서노트</div></div></div>
   </div>
@@ -375,6 +376,7 @@ body {
 
   document.getElementById('stat-approved').textContent = approved;
   document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-rejected').textContent = rejected;
   document.getElementById('stat-none').textContent = noneCount;
   document.getElementById('stat-reading').textContent = readingApproved;
 
@@ -385,18 +387,22 @@ body {
   }
 
   // ── HTML 빌드 ──
+  // 승인되어야 비로소 '완료'다. 제출만 한 상태는 '승인 대기중'.
+  function statusLabel(status) {
+    if (status === 'approved') return { cls: 'badge-approved', text: '✓ 완료' };
+    if (status === 'pending')  return { cls: 'badge-pending',  text: '⏳ 승인 대기중' };
+    if (status === 'rejected') return { cls: 'badge-rejected', text: '✗ 반려 — 재제출 필요' };
+    return { cls: 'badge-none', text: '— 미제출' };
+  }
+
   function badgeHtml(status) {
-    if (status === 'approved')  return '<span class="gc-lesson-badge badge-approved">✓ 승인</span>';
-    if (status === 'pending')   return '<span class="gc-lesson-badge badge-pending">⏳ 검토중</span>';
-    if (status === 'rejected')  return '<span class="gc-lesson-badge badge-rejected">✗ 반려</span>';
-    return '<span class="gc-lesson-badge badge-none">— 미제출</span>';
+    const s = statusLabel(status);
+    return `<span class="gc-lesson-badge ${s.cls}">${s.text}</span>`;
   }
 
   function bookBadgeHtml(status) {
-    if (status === 'approved')  return '<span class="gc-book-badge badge-approved">✓ 승인</span>';
-    if (status === 'pending')   return '<span class="gc-book-badge badge-pending">⏳ 검토중</span>';
-    if (status === 'rejected')  return '<span class="gc-book-badge badge-rejected">✗ 반려</span>';
-    return '<span class="gc-book-badge badge-none">— 미제출</span>';
+    const s = statusLabel(status);
+    return `<span class="gc-book-badge ${s.cls}">${s.text}</span>`;
   }
 
   let html = '';
