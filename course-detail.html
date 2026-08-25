@@ -326,18 +326,19 @@ body {
   background:linear-gradient(168deg, #f3fbf7 0%, #e5f6ee 45%, #caeedd 100%);
   overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative;
 }
-/* 썸네일 민트 바닥면 + 대각 삼각형 — 이미지 내부 요소와 자연스럽게 연결 */
+/* 대각 삼각형 + 바닥 그림자 — 강좌별 배경색(hero_color)을 물들이지 않도록
+   민트 대신 무채색 음영을 쓴다. 어떤 색 위에서도 톤이 유지된다. */
 .hero-thumb-box::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background:
-    linear-gradient(158deg, transparent 54%, rgba(92,196,180,.22) 54%),
-    linear-gradient(to top, rgba(70,188,168,.18) 0%, transparent 42%);
+    linear-gradient(158deg, transparent 54%, rgba(0,0,0,.055) 54%),
+    linear-gradient(to top, rgba(0,0,0,.05) 0%, transparent 42%);
 }
-/* 우측 도트 패턴 — 썸네일 물음표/인물 모티프 */
+/* 우측 도트 패턴 */
 .hero-thumb-box::after {
   content:''; position:absolute; right:4%; top:10%;
   width:100px; height:140px; pointer-events:none;
-  background-image:radial-gradient(circle, rgba(60,180,160,.28) 1.5px, transparent 1.5px);
+  background-image:radial-gradient(circle, rgba(0,0,0,.09) 1.5px, transparent 1.5px);
   background-size:13px 13px;
   border-radius:50%;
   opacity:.8;
