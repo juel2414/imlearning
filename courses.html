@@ -151,15 +151,33 @@ function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/<
 // ───── 카테고리 사이드바 데이터 ─────
 const catData = {
   all:      { title: '전체 강좌',     subs: ['전체', '신앙', '수능/검정고시', '부모·교사', '영어'] },
-  faith:    { title: '신앙',          subs: ['전체', '트리플스쿨 - 복음', '트리플스쿨 - 제자', '트리플스쿨 - 소명', 'CBUP', '기타 신앙'] },
-  exam:     { title: '수능/검정고시', subs: ['전체', '고졸 검정고시', '중졸 검정고시', '온택 검정고시', '고등과정'] },
-  edu:      { title: '부모·교사',     subs: ['전체', '부모학교', '부모학교 강사과정', '부모대안학교', '교사양성', '성교육'] },
-  english:  { title: '영어',          subs: ['전체', '영단속 영어성경', '67영문법', '토익'] },
+  faith:    { title: '신앙' },
+  exam:     { title: '수능/검정고시' },
+  edu:      { title: '부모·교사' },
+  english:  { title: '영어' },
   freepass: { title: '전강좌 무제한', subs: ['프리패스 안내', '포함 강좌 목록', '신청하기'] }
 };
 
+// ───── 소분류 라벨 · 표시 순서 ─────
+// 사이드바는 이 순서를 따르되, 강좌가 실제로 있는 소분류만 보여준다.
+const SUBCAT_LABELS = {
+  gospel: '트리플스쿨 - 복음', disciple: '트리플스쿨 - 제자', calling: '트리플스쿨 - 소명',
+  cbup: 'CBUP', support_center: '지원센터', im_teacher: 'IM선교회 교사교육', faith_etc: '기타 신앙',
+  parent_school: '부모학교', parent_trainer: '부모학교 강사과정', parent_alt: '부모대안학교',
+  cas: 'CAS 방과후학교', teacher_train: '교사양성', sex_ed: '성교육',
+  ydsok: '영단속 영어성경', grammar67: '67영문법', toeic: '토익',
+  ontact_ged: '온택 검정고시'
+};
+const SUBCAT_ORDER = Object.keys(SUBCAT_LABELS);
+
+function subsFor(cat) {
+  const present = new Set(allCourses.filter(c => c.status === 'active' && c.category === cat).map(c => c.subcategory));
+  return SUBCAT_ORDER.filter(k => present.has(k));
+}
+
 let allCourses = [];
 let currentCat = 'all';
+let currentSub = null;
 let currentSort = 'default';
 let wishSet = new Set();
 let purchasedSet = new Set();
@@ -191,9 +209,16 @@ function renderSidebar(cat) {
   const data = catData[cat];
   document.getElementById('sidebar-title').textContent = data.title;
   const menu = document.getElementById('sidebar-menu');
-  menu.innerHTML = data.subs.map((sub, i) =>
-    `<div class="sidebar-item ${i === 0 ? 'active' : ''}" onclick="switchSub('${sub}', this)">${sub}</div>`
-  ).join('');
+
+  // 고정 목록이 있으면(전체·프리패스) 그대로, 없으면 실제 강좌에서 소분류를 뽑는다
+  const items = data.subs
+    ? data.subs.map(s => ({ key: null, label: s }))
+    : [{ key: null, label: '전체' }].concat(subsFor(cat).map(k => ({ key: k, label: SUBCAT_LABELS[k] })));
+
+  menu.innerHTML = items.map(({ key, label }) => {
+    const active = data.subs ? label === '전체' || label === data.subs[0] : currentSub === key;
+    return `<div class="sidebar-item ${active ? 'active' : ''}" data-sub="${key || ''}" onclick="switchSub('${key || ''}', this)">${esc(label)}</div>`;
+  }).join('');
 }
 
 function switchSub(sub, el) {
@@ -202,13 +227,18 @@ function switchSub(sub, el) {
 
   // '전체' 뷰의 사이드바는 카테고리 이름 → 실제 카테고리 전환
   if (currentCat === 'all') {
+    const label = el.textContent.trim();
     const labelToKey = Object.fromEntries(Object.entries(CATEGORY_LABELS).map(([k, v]) => [v, k]));
-    const catKey = sub === '전체' ? 'all' : labelToKey[sub];
+    const catKey = label === '전체' ? 'all' : labelToKey[label];
     if (catKey) {
       const btn = document.querySelector(`.top-cat-btn[onclick*="'${catKey}'"]`);
       if (btn) switchCat(catKey, btn);
     }
+    return;
   }
+
+  currentSub = sub || null;
+  renderCourseGrid();
 }
 
 // ───── 카테고리 전환 ─────
@@ -216,6 +246,7 @@ function switchCat(cat, btn) {
   document.querySelectorAll('.top-cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentCat = cat;
+  currentSub = null;
   renderSidebar(cat);
   renderCourseGrid();
 
@@ -249,6 +280,7 @@ function renderCourseGrid() {
   let filtered = allCourses.filter(c => c.status === 'active');
   if (currentCat !== 'all') {
     filtered = filtered.filter(c => c.category === currentCat);
+    if (currentSub) filtered = filtered.filter(c => c.subcategory === currentSub);
   }
   const sorted = getSorted(filtered);
   document.getElementById('course-count').textContent = sorted.length + '개';
@@ -372,6 +404,7 @@ async function loadAll() {
     }
 
     renderTop3();
+    renderSidebar(currentCat);   // 소분류는 강좌 데이터에서 뽑으므로 로드 후 다시 그린다
     renderCourseGrid();
   } catch (err) {
     document.getElementById('courses-grid').innerHTML = '<div class="loading-placeholder">강좌를 불러오지 못했어요. 새로고침 해주세요.</div>';
@@ -388,16 +421,12 @@ const subParam = urlParams.get('sub');
 if (catParam && catData[catParam]) {
   const btn = document.querySelector(`.top-cat-btn[onclick*="'${catParam}'"]`);
   if (btn) switchCat(catParam, btn);
+  // sub 은 키(gospel)와 라벨('트리플스쿨 - 복음') 둘 다 받는다.
+  // 사이드바는 강좌 로드 후에야 그려지므로 여기서는 값만 잡아둔다.
   if (subParam) {
-    // switchCat renders the sidebar, then activate the matching sub-item
-    const sidebarItems = document.querySelectorAll('.sidebar-item');
-    sidebarItems.forEach(function(el) {
-      if (el.textContent.trim() === subParam) {
-        sidebarItems.forEach(function(s) { s.classList.remove('active'); });
-        el.classList.add('active');
-        switchSub(subParam, el);
-      }
-    });
+    currentSub = SUBCAT_LABELS[subParam]
+      ? subParam
+      : (Object.keys(SUBCAT_LABELS).find(k => SUBCAT_LABELS[k] === subParam) || null);
   }
 }
 

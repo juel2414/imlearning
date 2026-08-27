@@ -278,13 +278,13 @@
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // ── 메가메뉴 동적 로드 (subcategory 기준 6열) ────────────────────
+  // ── 메가메뉴 동적 로드 (category 기준) ────────────────────
   var MEGA_CATS = [
-    { key: 'faith',          label: '신앙',            catParam: 'faith' },
-    { key: 'exam',           label: '수능/검정고시',  catParam: 'exam',    badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
-    { key: 'teacher_parent', label: '부모·교사',      catParam: 'edu',     badge: '추천', badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
-    { key: 'english_test',   label: '영어',            catParam: 'english' },
-    { key: 'freepass',       label: '전강좌 무제한',  catParam: 'freepass' },
+    { key: 'faith',   label: '신앙',            catParam: 'faith' },
+    { key: 'exam',    label: '수능/검정고시',  catParam: 'exam',    badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
+    { key: 'edu',     label: '부모·교사',      catParam: 'edu',     badge: '추천', badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
+    { key: 'english', label: '영어',            catParam: 'english' },
+    { key: 'freepass', label: '전강좌 무제한',  catParam: 'freepass' },
   ];
 
   function loadMegaCourses() {
@@ -293,8 +293,8 @@
     var body = document.getElementById('nb-mega-body');
     if (!body) return;
     sb.from('courses')
-      .select('id,title,subcategory,thumbnail_url')
-      .not('subcategory', 'is', null)
+      .select('id,title,category,thumbnail_url')
+      .not('category', 'is', null)
       .eq('status', 'active')
       .order('students', { ascending: false })
       .then(function (res) {
@@ -303,7 +303,7 @@
         var groups = {};
         MEGA_CATS.forEach(function (c) { groups[c.key] = []; });
         res.data.forEach(function (course) {
-          if (groups[course.subcategory]) groups[course.subcategory].push(course);
+          if (groups[course.category]) groups[course.category].push(course);
         });
 
         var html = '';

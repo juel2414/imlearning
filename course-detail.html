@@ -1291,10 +1291,20 @@ async function loadCourse() {
   const LEVEL_MAP = { beginner:'입문', intermediate:'중급', advanced:'고급', all:'입문·중급' };
   document.getElementById('meta-level').textContent = LEVEL_MAP[course.level] || '입문·중급';
 
+  // 소분류 라벨 (courses.html 사이드바와 동일한 표기)
+  const SUBCAT_LABELS = {
+    gospel: '트리플스쿨 - 복음', disciple: '트리플스쿨 - 제자', calling: '트리플스쿨 - 소명',
+    cbup: 'CBUP', support_center: '지원센터', im_teacher: 'IM선교회 교사교육', faith_etc: '기타 신앙',
+    parent_school: '부모학교', parent_trainer: '부모학교 강사과정', parent_alt: '부모대안학교',
+    cas: 'CAS 방과후학교', teacher_train: '교사양성', sex_ed: '성교육',
+    ydsok: '영단속 영어성경', grammar67: '67영문법', toeic: '토익',
+    ontact_ged: '온택 검정고시'
+  };
+
   // 태그 칩
   const tagSRC = [
     CATEGORY_LABELS[course.category],
-    { faith:'신앙', teacher_parent:'교사·부모', school_subject:'중고등', ged:'검정고시', english_test:'영어·시험', camp_mission:'캠프·사역' }[course.subcategory],
+    SUBCAT_LABELS[course.subcategory],
     course.level ? (LEVEL_MAP[course.level] || course.level) : null,
     '온라인',
     course.students >= 100 ? '수강생 ' + Number(course.students).toLocaleString() + '명+' : null,
