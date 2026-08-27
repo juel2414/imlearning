@@ -66,7 +66,7 @@ body {
 .instructor-detail-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
 .instructor-detail-name { font-size: 16px; font-weight: 700; color: var(--black); margin-bottom: 4px; }
 .instructor-detail-role { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: 8px; }
-.instructor-detail-bio { font-size: 13px; color: var(--gray-500); line-height: 1.7; }
+.instructor-detail-bio { font-size: 13px; color: var(--gray-500); line-height: 1.7; white-space: pre-wrap; }
 /* 로딩 상태 */
 .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -577,8 +577,8 @@ body {
             <div class="instructor-detail-avatar">👨‍🏫</div>
             <div>
               <div class="instructor-detail-name" id="instructor-name">-</div>
-              <div class="instructor-detail-role">신앙·사역 강사</div>
-              <div class="instructor-detail-bio">아이엠러닝 대표 강사. 20년 이상의 교회학교 사역 경험을 바탕으로 CBUP 및 트리플 스쿨 커리큘럼을 설계했습니다.</div>
+              <div class="instructor-detail-role" id="instructor-role"></div>
+              <div class="instructor-detail-bio" id="instructor-bio"></div>
             </div>
           </div>
         </div>
@@ -1265,6 +1265,7 @@ async function loadCourse() {
   document.getElementById('course-desc').textContent = course.description || '';
   // course-students 요소는 meta strip 교체로 제거됨 (students는 태그칩에서 표시)
   document.getElementById('instructor-name').textContent = course.instructor || '미정';
+  fillInstructorProfile(course);
   document.title = course.title + ' — 아이엠러닝';
 
   // 히어로 배너 썸네일
@@ -2709,6 +2710,38 @@ loadCourse();
     });
   }
 })();
+
+// ───── 강사 소개: instructors 테이블에서 실제 정보를 읽어 채운다 ─────
+// 이름이 "제시카 · 그레이스 선교사"처럼 여러 명일 수 있어 구분자로 나눠 각각 조회한다.
+async function fillInstructorProfile(course) {
+  const roleEl = document.getElementById('instructor-role');
+  const bioEl  = document.getElementById('instructor-bio');
+  if (!roleEl || !bioEl) return;
+
+  const raw = (course.instructor || '').trim();
+  if (!raw) { roleEl.textContent = ''; bioEl.textContent = ''; return; }
+
+  const names = raw.split(/\s*[·,/&]\s*|\s+및\s+/).map(n => n.trim()).filter(Boolean);
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from('instructors').select('name, role, bio');
+    rows = data || [];
+  } catch (e) { /* 조회 실패 시 아래 폴백 */ }
+
+  // "제시카" 와 "제시카 선교사" 가 서로 매칭되도록 호칭을 떼고 비교
+  const strip = s => s.replace(/\s*(선교사|강사|목사|전도사|쌤)\s*$/, '').trim();
+  const matched = names
+    .map(n => rows.find(r => strip(r.name) === strip(n)))
+    .filter(Boolean);
+
+  if (!matched.length) { roleEl.textContent = ''; bioEl.textContent = ''; return; }
+
+  roleEl.textContent = [...new Set(matched.map(m => m.role).filter(Boolean))].join(' · ');
+  bioEl.textContent  = matched
+    .map(m => matched.length > 1 ? `${m.name} — ${m.bio || ''}`.trim() : (m.bio || ''))
+    .filter(Boolean)
+    .join('\n');
+}
 </script>
 </body>
 </html>
