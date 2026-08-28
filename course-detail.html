@@ -24,6 +24,9 @@ body {
 <style>
 .detail-hero { background: #fff; padding: 2rem 0 3rem; }
 .detail-inner { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
+/* 강의 재생 중에는 오른쪽 결제/진도 카드를 접고 영상이 화면 폭을 다 쓴다 */
+.detail-inner.playing { grid-template-columns: 1fr; }
+.detail-inner.playing > aside { display: none; }
 .detail-breadcrumb { font-size: 12px; color: var(--gray-500); margin-bottom: 1rem; }
 .detail-breadcrumb a { color: var(--green); }
 .detail-cat { font-size: 12px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
@@ -2003,6 +2006,7 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
 
   const row = document.getElementById('playerSidebarRow');
   row.classList.add('show');
+  document.querySelector('.detail-inner')?.classList.add('playing');
   row.scrollIntoView({ behavior: 'smooth', block: 'start' });
   updateSidebarActive(lessonNum);
   document.getElementById('lesson-player-title').textContent = lessonNum + '강 — ' + lessonTitle;
@@ -2098,6 +2102,7 @@ function closeLessonPlayer() {
   if (ytIframe) ytIframe.src = ytIframe.src;
   const row = document.getElementById('playerSidebarRow');
   row.classList.remove('show');
+  document.querySelector('.detail-inner')?.classList.remove('playing');
   updateSidebarActive(0);
 }
 
