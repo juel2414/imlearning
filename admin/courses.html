@@ -296,7 +296,7 @@
           <div class="form-group"><label>공개 설정</label>
             <select id="lf-free">
               <option value="false">🔒 수강생만 (잠금)</option>
-              <option value="true">🔓 무료 미리보기</option>
+              <option value="true">🔓 미리보기</option>
             </select>
           </div>
         </div>
@@ -1010,7 +1010,7 @@ async function loadLessons() {
       '<td style="font-weight:600;">' + escHtml(l.title) + '</td>' +
       '<td style="color:#6B6B6B;font-size:12px;">' + escHtml(l.section_title || '-') + '</td>' +
       '<td><span style="font-size:11px;color:#2D9B6F;">' + platform + '</span></td>' +
-      '<td>' + (l.is_free_preview ? '<span class="badge active">무료</span>' : '<span class="badge hidden">잠금</span>') + '</td>' +
+      '<td>' + (l.is_free_preview ? '<span class="badge active">미리보기</span>' : '<span class="badge hidden">잠금</span>') + '</td>' +
       '<td><div class="action-btns">' +
         '<button class="btn-sm edit" onclick="openLessonForm(' + l.id + ')">수정</button>' +
         '<button class="btn-sm del" onclick="deleteLesson(' + l.id + ')">삭제</button>' +
