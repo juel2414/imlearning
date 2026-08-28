@@ -36,6 +36,13 @@ body {
 .my-tab:hover { color: var(--green); }
 
 .tab-panel { display: none; }
+  /* 한 탭 안에서 구역을 나눌 때 */
+  .mc-subsec { margin-bottom:2.5rem; }
+  .mc-subsec:last-child { margin-bottom:0; }
+  .mc-subsec-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px;
+    flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:14px; }
+  .mc-subsec-hdr h3 { margin:0; font-size:16px; font-weight:800; color:#111; }
+  .mc-subsec-desc { font-size:13px; color:#888; margin-bottom:14px; }
 .tab-panel.active { display: block; }
 
 /* ── 강좌 카드 ── */
@@ -348,8 +355,7 @@ body {
     <div class="my-tab" onclick="switchTab('certs', this)"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 수료증</div>
     <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
-    <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물함</div>
-    <div class="my-tab" onclick="switchTab('coupons', this)">🎟 내 쿠폰함</div>
+    <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물·쿠폰함</div>
     <div class="my-tab" onclick="switchTab('account', this)">⚙ 계정 설정</div>
   </div>
 </div>
@@ -401,17 +407,21 @@ body {
     </div>
 
     <!-- 선물함 탭 -->
+    <!-- 선물함 + 쿠폰함 (한 탭에 두 구역) -->
     <div class="tab-panel" id="panel-gifts">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:13px;color:#888;">강좌를 선택해 소중한 분께 강의를 선물해보세요.</div>
-        <button onclick="openGiftSelectModal()" class="btn btn-primary btn-sm" style="gap:6px;display:inline-flex;align-items:center;cursor:pointer;">🎁 선물하기</button>
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr">
+          <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 선물함</h3>
+          <button onclick="openGiftSelectModal()" class="btn btn-primary btn-sm" style="gap:6px;display:inline-flex;align-items:center;cursor:pointer;">🎁 선물하기</button>
+        </div>
+        <div class="mc-subsec-desc">강좌를 선택해 소중한 분께 강의를 선물해보세요.</div>
+        <div id="gifts-content" class="loading-msg">불러오는 중...</div>
       </div>
-      <div id="gifts-content" class="loading-msg">불러오는 중...</div>
-    </div>
 
-    <!-- 내 쿠폰함 탭 -->
-    <div class="tab-panel" id="panel-coupons">
-      <div id="coupons-content" class="loading-msg">불러오는 중...</div>
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr"><h3>🎟 내 쿠폰함</h3></div>
+        <div id="coupons-content" class="loading-msg">불러오는 중...</div>
+      </div>
     </div>
 
     <!-- 계정 설정 탭 -->
@@ -486,12 +496,9 @@ function switchTab(id, el) {
     gStatsLoaded = true;
     loadAndRenderStats(gUserId);
   }
-  // 선물함 탭: 열 때마다 새로고침
+  // 선물·쿠폰함 탭: 열 때마다 둘 다 새로고침
   if (id === 'gifts' && gUserId) {
     loadGifts(gUserId);
-  }
-  // 쿠폰함 탭
-  if (id === 'coupons' && gUserId) {
     loadCoupons();
   }
   // 계정 설정 탭
