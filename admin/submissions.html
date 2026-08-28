@@ -80,14 +80,24 @@ tr:hover td { background:#fafafa; }
 /* 상세 모달 */
 #detail-modal { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
 #detail-modal.open { display:flex; }
-.detail-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.detail-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:860px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
 .detail-box h3 { margin:0 0 4px; font-size:16px; }
 .detail-sub { font-size:12px; color:#888; margin-bottom:16px; }
 .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
 .detail-field label { display:block; font-size:11px; font-weight:700; color:#999; text-transform:uppercase; margin-bottom:4px; }
 .detail-field .val { font-size:13px; color:#111; }
-.detail-note-text { background:#f8f9fa; border-radius:8px; padding:12px; font-size:13px; color:#333; white-space:pre-wrap; word-break:break-all; max-height:160px; overflow-y:auto; margin-bottom:12px; }
-.detail-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+/* 노트는 검토의 본체다 — 스크롤 없이 최대한 펼쳐 보여준다 */
+.detail-note-text { background:#f8f9fa; border-radius:10px; padding:18px 20px; font-size:15px; line-height:1.85;
+  color:#222; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere;
+  max-height:none; margin-bottom:12px; border:1px solid rgba(0,0,0,.06); }
+/* 아주 긴 노트만 접어두고 '더 보기'로 펼친다 */
+.detail-note-text.clamped { max-height:46vh; overflow:hidden; position:relative; }
+.detail-note-text.clamped::after { content:''; position:absolute; left:0; right:0; bottom:0; height:64px;
+  background:linear-gradient(rgba(248,249,250,0), #f8f9fa); }
+#dm-note-more { display:none; background:none; border:none; color:#4338CA; font-weight:700; font-size:13px;
+  cursor:pointer; padding:4px 0 10px; font-family:inherit; }
+.detail-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;
+  position:sticky; bottom:-28px; background:#fff; padding:14px 0 4px; border-top:1px solid rgba(0,0,0,.07); }
 .modal-input { width:100%; padding:9px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; font-family:inherit; box-sizing:border-box; }
 .modal-input:focus { outline:none; border-color:#2D9B6F; }
 .close-btn { float:right; background:none; border:none; font-size:20px; color:#aaa; cursor:pointer; }
@@ -188,6 +198,7 @@ tr:hover td { background:#fafafa; }
         노트 내용 <span id="dm-note-len" style="color:#666;font-weight:600;text-transform:none;"></span>
       </div>
       <div class="detail-note-text" id="dm-note-text"></div>
+      <button type="button" id="dm-note-more" onclick="toggleNoteClamp(this)">▾ 전체 보기</button>
     </div>
     <div id="dm-file-wrap" style="display:none;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:6px;">첨부 파일</div>
@@ -458,12 +469,24 @@ async function openDetail(row) {
 
   const noteWrap = document.getElementById('dm-note-wrap');
   const noteText = document.getElementById('dm-note-text');
+  const moreBtn = document.getElementById('dm-note-more');
   if (row.note_text) {
     noteWrap.style.display = '';
     noteText.textContent = row.note_text;
     document.getElementById('dm-note-len').textContent = '· ' + row.note_text.length.toLocaleString() + '자';
+    // 화면을 넘길 만큼 길 때만 접는다
+    noteText.classList.remove('clamped');
+    moreBtn.style.display = 'none';
+    requestAnimationFrame(() => {
+      if (noteText.scrollHeight > window.innerHeight * 0.46) {
+        noteText.classList.add('clamped');
+        moreBtn.style.display = '';
+        moreBtn.textContent = '▾ 전체 보기';
+      }
+    });
   } else {
     noteWrap.style.display = 'none';
+    moreBtn.style.display = 'none';
   }
 
   const fileWrap    = document.getElementById('dm-file-wrap');
@@ -485,10 +508,10 @@ async function openDetail(row) {
     } else if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
       // 클릭하면 새 탭에서 원본 크기로
       filePreview.innerHTML = '<a href="' + url + '" target="_blank">'
-        + '<img src="' + url + '" alt="제출 이미지" style="max-width:100%;max-height:60vh;border-radius:8px;'
+        + '<img src="' + url + '" alt="제출 이미지" style="max-width:100%;max-height:70vh;border-radius:8px;'
         + 'border:1px solid rgba(0,0,0,.1);display:block;"></a>';
     } else if (ext === 'pdf') {
-      filePreview.innerHTML = '<iframe src="' + url + '" style="width:100%;height:60vh;border:1px solid '
+      filePreview.innerHTML = '<iframe src="' + url + '" style="width:100%;height:70vh;border:1px solid '
         + 'rgba(0,0,0,.1);border-radius:8px;"></iframe>';
     }
   } else {
@@ -500,6 +523,12 @@ async function openDetail(row) {
     (!row.note_text && !row.file_path) ? '' : 'none';
 
   document.getElementById('detail-modal').classList.add('open');
+}
+
+function toggleNoteClamp(btn) {
+  const el = document.getElementById('dm-note-text');
+  const clamped = el.classList.toggle('clamped');
+  btn.textContent = clamped ? '▾ 전체 보기' : '▴ 접기';
 }
 
 function closeDetailModal() {
@@ -573,6 +602,9 @@ async function processSubmission(row, newStatus, quick = false) {
     msgEl.textContent = (newStatus === 'approved'
       ? '✅ 승인 완료! 강의 수강표에 자동 체크됩니다.'
       : '❌ 반려 처리되었습니다.') + progressWarn;
+    // 문제가 없으면 곧바로 닫아 다음 건으로 넘어간다.
+    // 경고가 있을 때는 읽어야 하므로 열어둔다.
+    if (ok) setTimeout(closeDetailModal, 550);
   }
 
   // 로컬 목록 갱신
