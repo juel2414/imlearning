@@ -1422,6 +1422,12 @@ async function loadCourse() {
         if (gcLink) gcLink.href = gcUrl;
       }
       if (isCbupCourse) await loadSubmissions(user.id, course.id);
+
+      // 알림에서 넘어온 경우 노트 탭을 바로 연다 (?tab=notes)
+      if (urlParams.get('tab') === 'notes' && isCbupCourse) {
+        const nb = document.getElementById('tab-notes-btn');
+        if (nb) { switchTab('notes', nb); nb.scrollIntoView({ behavior:'smooth', block:'center' }); }
+      }
     }
   } else {
     // 비로그인: 쿠폰 창만 표시

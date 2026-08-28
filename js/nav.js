@@ -10,6 +10,36 @@
     '#site-navbar.scrolled{box-shadow:0 1px 8px rgba(0,0,0,.04)!important;}',
 
     /* 메뉴 간격·글꼴 — 절제된 톤 */
+    /* ── 알림 종 ── */
+    '.nb-bell-wrap{position:relative;display:inline-flex;align-items:center;margin-right:4px;}',
+    '.nb-bell{background:none;border:none;cursor:pointer;color:#555;padding:7px;border-radius:9px;',
+      'display:inline-flex;align-items:center;justify-content:center;position:relative;transition:background .15s;}',
+    '.nb-bell:hover{background:rgba(0,0,0,.05);color:var(--green,#2D9B6F);}',
+    '.nb-bell-dot{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;',
+      'background:#e5484d;color:#fff;border-radius:9px;font-size:10px;font-weight:800;line-height:16px;',
+      'text-align:center;box-shadow:0 0 0 2px #fff;}',
+    '.nb-bell-panel{display:none;position:absolute;top:calc(100% + 10px);right:0;width:340px;max-width:88vw;',
+      'background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.16);',
+      'z-index:200;overflow:hidden;}',
+    '.nb-bell-panel.open{display:block;}',
+    '.nb-bell-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;',
+      'font-size:13px;font-weight:800;color:#111;border-bottom:1px solid rgba(0,0,0,.07);}',
+    '.nb-bell-hdr button{background:none;border:none;color:#888;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;}',
+    '.nb-bell-hdr button:hover{color:var(--green,#2D9B6F);}',
+    '.nb-bell-list{max-height:60vh;overflow-y:auto;}',
+    '.nb-bell-empty{padding:28px 16px;text-align:center;color:#aaa;font-size:12.5px;}',
+    '.nb-bell-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(0,0,0,.05);',
+      'text-decoration:none;transition:background .12s;}',
+    '.nb-bell-item:last-child{border-bottom:none;}',
+    '.nb-bell-item:hover{background:#f7f9f8;}',
+    '.nb-bell-item.unread{background:#f2faf6;}',
+    '.nb-bell-item.unread:hover{background:#eaf6f0;}',
+    '.nb-bell-icon{flex-shrink:0;font-size:15px;line-height:1.5;}',
+    '.nb-bell-body{display:flex;flex-direction:column;gap:2px;min-width:0;}',
+    '.nb-bell-body b{font-size:13px;color:#111;font-weight:700;}',
+    '.nb-bell-desc{font-size:12px;color:#666;line-height:1.5;white-space:pre-line;',
+      'display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}',
+    '.nb-bell-time{font-size:11px;color:#aaa;margin-top:2px;}',
     '.navbar-menu{gap:2.5rem!important;}',
     '.navbar-menu>li>a{font-size:14px!important;font-weight:400!important;',
     'color:#333!important;transition:color .12s,font-weight .12s!important;',
@@ -551,8 +581,10 @@
 
     if (user) {
       if (right) right.innerHTML =
+        bellHtml() +
         '<a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>' +
         '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
+      loadNotifications();
       if (mobAuth) mobAuth.innerHTML =
         '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>' +
         (isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '') +
@@ -565,6 +597,90 @@
       if (mobAuth) mobAuth.innerHTML = out;
     }
   }
+
+  // ── 알림 ─────────────────────────────────────────────────────
+  // 탭을 늘리지 않기 위해 상단 종 아이콘 + 드롭다운 하나로 처리한다.
+  var _notifLoaded = false;
+
+  function bellHtml() {
+    return '<div class="nb-bell-wrap">' +
+      '<button class="nb-bell" onclick="navToggleBell(event)" aria-label="알림">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>' +
+        '<path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>' +
+        '<span class="nb-bell-dot" id="nb-bell-dot" style="display:none;"></span>' +
+      '</button>' +
+      '<div class="nb-bell-panel" id="nb-bell-panel">' +
+        '<div class="nb-bell-hdr">알림<button onclick="navReadAllNotifications()">모두 읽음</button></div>' +
+        '<div class="nb-bell-list" id="nb-bell-list"><div class="nb-bell-empty">불러오는 중…</div></div>' +
+      '</div></div>';
+  }
+
+  window.navToggleBell = function (e) {
+    e.stopPropagation();
+    var panel = document.getElementById('nb-bell-panel');
+    if (!panel) return;
+    var open = panel.classList.toggle('open');
+    if (open) loadNotifications(true);
+  };
+  document.addEventListener('click', function () {
+    var p = document.getElementById('nb-bell-panel');
+    if (p) p.classList.remove('open');
+  });
+
+  function timeAgo(iso) {
+    var d = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (d < 60) return '방금';
+    if (d < 3600) return Math.floor(d / 60) + '분 전';
+    if (d < 86400) return Math.floor(d / 3600) + '시간 전';
+    if (d < 604800) return Math.floor(d / 86400) + '일 전';
+    return new Date(iso).toLocaleDateString('ko-KR');
+  }
+
+  async function loadNotifications(force) {
+    var sb = window.supabaseClient;
+    if (!sb) return;
+    if (_notifLoaded && !force) return;
+    _notifLoaded = true;
+    var res = await sb.from('notifications')
+      .select('id, type, title, body, link, read_at, created_at')
+      .order('created_at', { ascending: false }).limit(20);
+    var rows = res.data || [];
+
+    var unread = rows.filter(function (r) { return !r.read_at; }).length;
+    var dot = document.getElementById('nb-bell-dot');
+    if (dot) {
+      dot.style.display = unread ? '' : 'none';
+      dot.textContent = unread > 9 ? '9+' : String(unread);
+    }
+
+    var list = document.getElementById('nb-bell-list');
+    if (!list) return;
+    if (!rows.length) { list.innerHTML = '<div class="nb-bell-empty">받은 알림이 없습니다</div>'; return; }
+    list.innerHTML = rows.map(function (r) {
+      var icon = r.type === 'note_rejected' ? '↩' : r.type === 'note_resubmitted' ? '📝' : '🔔';
+      return '<a class="nb-bell-item' + (r.read_at ? '' : ' unread') + '" ' +
+        'href="' + esc(r.link || '#') + '" onclick="navReadNotification(' + r.id + ')">' +
+        '<span class="nb-bell-icon">' + icon + '</span>' +
+        '<span class="nb-bell-body">' +
+          '<b>' + esc(r.title) + '</b>' +
+          (r.body ? '<span class="nb-bell-desc">' + esc(r.body) + '</span>' : '') +
+          '<span class="nb-bell-time">' + timeAgo(r.created_at) + '</span>' +
+        '</span></a>';
+    }).join('');
+  }
+
+  window.navReadNotification = function (id) {
+    var sb = window.supabaseClient;
+    if (sb) sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id).then(function () {});
+  };
+
+  window.navReadAllNotifications = async function () {
+    var sb = window.supabaseClient;
+    if (!sb) return;
+    await sb.from('notifications').update({ read_at: new Date().toISOString() }).is('read_at', null);
+    loadNotifications(true);
+  };
 
   function initAuth() {
     var sb = window.supabaseClient;
