@@ -449,12 +449,12 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
       .order('sort_order'),
     supabaseClient
       .from('course_textbooks')
-      .select('week_number, textbooks(id, title)')
+      .select('week_number, textbooks(id, title, textbook_chapters(id))')
       .eq('course_id', COURSE_ID)
       .order('week_number'),
     supabaseClient
       .from('submissions')
-      .select('lesson_id, textbook_id, type, status')
+      .select('lesson_id, textbook_id, chapter_id, type, status')
       .eq('user_id', user.id)
       .eq('course_id', COURSE_ID)
   ]);
@@ -472,9 +472,20 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
     if (s.lesson_id) lectureMap[s.lesson_id] = s.status;
   });
   // reading: textbook_id → status
+  // 교재별 { 승인 챕터 수, 제출 챕터 수, 대표 상태 } 를 만든다.
+  // 챕터가 없는 교재는 종전처럼 책 한 권이 곧 한 건이다.
   const readingMap = {};
+  const readingCount = {};
   submissions.filter(s => s.type === 'reading').forEach(s => {
-    if (s.textbook_id) readingMap[s.textbook_id] = s.status;
+    if (!s.textbook_id) return;
+    const c = readingCount[s.textbook_id] || (readingCount[s.textbook_id] = { approved: 0, pending: 0, rejected: 0 });
+    if (s.status === 'approved') c.approved++;
+    else if (s.status === 'rejected') c.rejected++;
+    else c.pending++;
+  });
+  Object.keys(readingCount).forEach(id => {
+    const c = readingCount[id];
+    readingMap[id] = c.approved ? 'approved' : c.rejected ? 'rejected' : 'pending';
   });
 
   // ── 교재 맵: week_number → {id, title} ──
@@ -505,7 +516,7 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
     else noneCount++;
   });
   let readingApproved = 0;
-  Object.values(readingMap).forEach(s => { if (s === 'approved') readingApproved++; });
+  Object.values(readingCount).forEach(c => { readingApproved += c.approved; });
 
   document.getElementById('stat-approved').textContent = approved;
   document.getElementById('stat-pending').textContent = pending;
@@ -582,9 +593,12 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
       return `<td><div class="gc-day">${inner}</div></td>`;
     }).join('');
 
+    const chTotal = book ? (book.textbook_chapters || []).length : 0;
+    const chDone  = book ? (readingCount[book.id]?.approved || 0) : 0;
     const bookMark = bookStatus === 'approved' ? '✓ ' : bookStatus === 'pending' ? '⏳ ' : bookStatus === 'rejected' ? '✕ ' : '';
     const bookCell = book
-      ? `<span style="color:${bookStatus === 'approved' ? '#2D9B6F' : '#888'};font-weight:700;">${bookMark}</span>${escHtml(book.title)}`
+      ? `<span style="color:${chTotal && chDone === chTotal ? '#2D9B6F' : '#888'};font-weight:700;">${bookMark}</span>${escHtml(book.title)}`
+        + (chTotal ? `<div style="color:#98a0a6;font-size:10px;margin-top:2px;font-variant-numeric:tabular-nums;">${chDone}/${chTotal}장</div>` : '')
       : '<span style="color:#c8ccd0;">미지정</span>';
 
     return `<tr>
@@ -629,8 +643,12 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
     const span = sec.lessons.length || 1;
     const secName = escHtml(sec.title.replace(/^\d+주차\s*[—–-]\s*/, ''));
 
+    const chTot = book ? (book.textbook_chapters || []).length : 0;
+    const chOk  = book ? (readingCount[book.id]?.approved || 0) : 0;
     const bookCell = book
-      ? `<div class="gc-td-book-title">${escHtml(book.title)}</div>${bookBadgeHtml(bookStatus)}`
+      ? `<div class="gc-td-book-title">${escHtml(book.title)}</div>`
+        + (chTot ? `<div style="font-size:11px;color:#888;margin:2px 0 4px;">${chOk}/${chTot}장 완료</div>` : '')
+        + bookBadgeHtml(bookStatus)
       : `<span class="gc-book-none">미지정</span>`;
 
     sec.lessons.forEach((l, i) => {

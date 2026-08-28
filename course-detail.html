@@ -457,6 +457,7 @@ body {
 .note-list-item-meta { font-size:11px; color:var(--gray-500); margin-top:2px; }
 .note-week-block { margin-bottom:24px; }
 .note-week-hdr { font-size:13px; font-weight:800; color:var(--green-dark); padding:6px 12px; background:#f0faf5; border-radius:8px; margin-bottom:10px; }
+.note-book-title { font-size:13px; font-weight:700; color:#333; padding:10px 2px 6px; display:flex; align-items:baseline; gap:8px; }
 .note-empty { padding:2rem; text-align:center; color:var(--gray-400); font-size:13px; }
 </style>
 </head>
@@ -2418,7 +2419,10 @@ async function loadSubmissions(userId, courseId) {
   submissionsMap = {};
   data.forEach(s => {
     if (s.type === 'lecture') submissionsMap['lecture-' + s.lesson_id] = s;
-    else if (s.type === 'reading') submissionsMap['reading-' + (s.textbook_id || '') + '-' + (s.week_number || '')] = s;
+    else if (s.type === 'reading') {
+      const base = 'reading-' + (s.textbook_id || '') + '-' + (s.week_number || '');
+      submissionsMap[s.chapter_id ? base + '-' + s.chapter_id : base] = s;
+    }
   });
   updateNoteButtons();
 }
@@ -2458,12 +2462,14 @@ function openLectureNoteModal(lessonNum, lessonId, lessonTitle) {
   document.getElementById('note-modal').classList.add('open');
 }
 
-function openReadingNoteModal(weekNum, textbookId, textbookTitle) {
-  const key = 'reading-' + textbookId + '-' + weekNum;
+function openReadingNoteModal(weekNum, textbookId, textbookTitle, chapterId, chapterNo, chapterLabel) {
+  const base = 'reading-' + textbookId + '-' + weekNum;
+  const key = chapterId ? base + '-' + chapterId : base;
   const existing = submissionsMap[key];
-  noteModalCtx = { type: 'reading', weekNum, textbookId, textbookTitle, existing };
+  noteModalCtx = { type: 'reading', weekNum, textbookId, textbookTitle, chapterId: chapterId || null, chapterNo: chapterNo || null, existing };
   document.getElementById('note-modal-title').textContent = '독서 노트 제출';
-  document.getElementById('note-modal-sub').textContent = (weekNum ? weekNum + '주차 · ' : '') + textbookTitle;
+  document.getElementById('note-modal-sub').textContent =
+    (weekNum ? weekNum + '주차 · ' : '') + textbookTitle + (chapterLabel ? ' — ' + chapterLabel : '');
   document.getElementById('note-text-input').value = existing?.note_text || '';
   resetNoteFile();
   document.getElementById('note-modal-status').style.display = 'none';
@@ -2555,6 +2561,8 @@ async function submitNote() {
       payload.week_number    = ctx.weekNum;
       payload.textbook_id    = ctx.textbookId;
       payload.textbook_title = ctx.textbookTitle;
+      payload.chapter_id     = ctx.chapterId;
+      payload.chapter_no     = ctx.chapterNo;
     }
 
     if (ctx.existing) {
@@ -2616,7 +2624,7 @@ async function renderNotesTab() {
   html += '<div class="note-section-title">📚 독서 노트</div>';
   const { data: ctData } = await supabaseClient
     .from('course_textbooks')
-    .select('week_number, sort_order, textbooks(id, title, cover_url)')
+    .select('week_number, sort_order, textbooks(id, title, cover_url, textbook_chapters(id, chapter_no, title))')
     .eq('course_id', currentCourse.id)
     .order('week_number', { ascending: true, nullsFirst: false })
     .order('sort_order', { ascending: true });
@@ -2637,17 +2645,36 @@ async function renderNotesTab() {
       weeks[wk].forEach(tb => {
         const key = 'reading-' + tb.id + '-' + wk;
         const sub = submissionsMap[key];
-        const badgeCls = sub ? (sub.status === 'approved' ? 'approved' : sub.status === 'rejected' ? 'rejected' : 'pending') : '';
-        const badgeTxt = sub ? (sub.status === 'approved' ? '✅ 승인' : sub.status === 'rejected' ? '❌ 반려' : '⏳ 검토 중') : '';
-        const date = sub ? new Date(sub.created_at).toLocaleDateString('ko-KR') : '';
-        html += `<div class="note-list-item">
-          <div class="note-list-item-info">
-            <div class="note-list-item-title">${esc(tb.title)}</div>
-            ${sub ? `<div class="note-list-item-meta">${date}${sub.note_text?' · 텍스트':''}${sub.file_name?' · '+esc(sub.file_name):''}${sub.admin_note?' · 관리자 메모: '+esc(sub.admin_note):''}</div>` : ''}
-          </div>
-          ${sub ? `<span class="note-badge ${badgeCls}">${badgeTxt}</span>` : ''}
-          ${!sub || sub.status === 'pending' ? `<button class="note-submit-btn${sub?' submitted':''}" onclick="openReadingNoteModal(${Number(wk)}, ${tb.id}, '${esc(tb.title)}')">${sub?'수정':'📝 독서노트 제출'}</button>` : ''}
-        </div>`;
+        // 챕터가 등록된 교재는 챕터별로, 없으면 종전처럼 책 한 권 단위로 제출한다.
+        const chapters = (tb.textbook_chapters || []).slice().sort((a,b) => a.chapter_no - b.chapter_no);
+
+        const rowHtml = (label, key2, chId, chNo) => {
+          const s2  = submissionsMap[key2];
+          const bc  = s2 ? (s2.status === 'approved' ? 'approved' : s2.status === 'rejected' ? 'rejected' : 'pending') : '';
+          const bt  = s2 ? (s2.status === 'approved' ? '✅ 승인' : s2.status === 'rejected' ? '❌ 반려' : '⏳ 검토 중') : '';
+          const dt  = s2 ? new Date(s2.created_at).toLocaleDateString('ko-KR') : '';
+          return `<div class="note-list-item">
+            <div class="note-list-item-info">
+              <div class="note-list-item-title">${esc(label)}</div>
+              ${s2 ? `<div class="note-list-item-meta">${dt}${s2.note_text?' · 텍스트':''}${s2.file_name?' · '+esc(s2.file_name):''}${s2.admin_note?' · 관리자 메모: '+esc(s2.admin_note):''}</div>` : ''}
+            </div>
+            ${s2 ? `<span class="note-badge ${bc}">${bt}</span>` : ''}
+            ${!s2 || s2.status === 'pending'
+              ? `<button class="note-submit-btn${s2?' submitted':''}" onclick="openReadingNoteModal(${Number(wk)}, ${tb.id}, '${esc(tb.title)}', ${chId === null ? 'null' : chId}, ${chNo === null ? 'null' : chNo}, '${esc(label)}')">${s2?'수정':'📝 제출'}</button>`
+              : ''}
+          </div>`;
+        };
+
+        if (chapters.length) {
+          const done = chapters.filter(c => submissionsMap['reading-' + tb.id + '-' + wk + '-' + c.id]?.status === 'approved').length;
+          html += `<div class="note-book-title">${esc(tb.title)} <span style="font-weight:500;color:#888;font-size:12px;">${done}/${chapters.length}장 완료</span></div>`;
+          chapters.forEach(c => {
+            const key2 = 'reading-' + tb.id + '-' + wk + '-' + c.id;
+            html += rowHtml(c.chapter_no + '장. ' + c.title, key2, c.id, c.chapter_no);
+          });
+        } else {
+          html += rowHtml(tb.title, 'reading-' + tb.id + '-' + wk, null, null);
+        }
       });
       html += '</div>';
     });

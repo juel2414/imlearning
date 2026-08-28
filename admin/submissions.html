@@ -338,7 +338,8 @@ function renderTable() {
                     : '<span class="badge rejected">반려됨</span>';
     const lessonInfo = r.type === 'lecture'
       ? (r.lesson_num ? r.lesson_num + '강. ' : '') + (r.lesson_title || '')
-      : (r.week_number ? r.week_number + '주차 · ' : '') + (r.textbook_title || '');
+      : (r.week_number ? r.week_number + '주차 · ' : '') + (r.textbook_title || '')
+        + (r.chapter_no ? ' — ' + r.chapter_no + '장' : '');
     const preview = r.note_text ? r.note_text.slice(0, 50) + (r.note_text.length > 50 ? '…' : '') : (r.file_name || '');
     return `<tr>
       <td style="white-space:nowrap;">${date}</td>
