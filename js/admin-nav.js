@@ -14,21 +14,21 @@
     { href: 'lessons-audit.html', icon: '🔍', label: '강의 점검' },
     { href: 'instructors.html', icon: '👨‍🏫', label: '강사 관리' },
     { type: 'section', label: '수강생' },
-    { href: 'students.html',    icon: '👥', label: '수강생 관리' },
-    { href: 'refunds.html',     icon: '💰', label: '환불 관리' },
+    { super: true, href: 'students.html',    icon: '👥', label: '수강생 관리' },
+    { super: true, href: 'refunds.html',     icon: '💰', label: '환불 관리' },
     { href: 'reviews.html',     icon: '⭐', label: '후기 관리' },
     { href: 'submissions.html', icon: '📝', label: '노트 제출 관리' },
     { type: 'section', label: '프로모션' },
-    { href: 'promotions.html',  icon: '🎯', label: '프로모션 관리' },
+    { super: true, href: 'promotions.html',  icon: '🎯', label: '프로모션 관리' },
     { href: 'gift-groups.html', icon: '🎁', label: '선물 그룹 관리' },
     { type: 'section', label: '콘텐츠' },
     { href: 'notices.html',     icon: '📢', label: '공지사항' },
     { href: 'banners.html',     icon: '🖼️', label: '배너 관리' },
     { href: 'featured.html',    icon: '🎠', label: '히어로 슬라이더' },
-    { href: 'landing.html',     icon: '🏠', label: '랜딩 빌더' },
-    { href: 'theme.html',       icon: '🎨', label: '테마 관리' },
+    { super: true, href: 'landing.html',     icon: '🏠', label: '랜딩 빌더' },
+    { super: true, href: 'theme.html',       icon: '🎨', label: '테마 관리' },
     { type: 'section', label: '설정' },
-    { href: 'settings.html',    icon: '⚙️', label: '사이트 설정' },
+    { super: true, href: 'settings.html',    icon: '⚙️', label: '사이트 설정' },
     { href: '../index.html',    icon: '🌐', label: '사이트 보기', blank: true },
     { type: 'logout',           icon: '🚪', label: '로그아웃' },
   ];
@@ -103,7 +103,8 @@
     } else {
       var active = (m.href === cur) ? ' active' : '';
       var target = m.blank ? ' target="_blank"' : '';
-      html += '<a href="' + m.href + '" class="an-item' + active + '"' + target + '>' + m.icon + ' ' + m.label + '</a>';
+      var sup = m.super ? ' data-super="1"' : '';
+      html += '<a href="' + m.href + '" class="an-item' + active + '"' + target + sup + '>' + m.icon + ' ' + m.label + '</a>';
     }
   });
 
@@ -181,9 +182,22 @@
 
       var profileRes = await _sb.from('profiles').select('role').eq('id', session.user.id).single();
       var role = profileRes.data && profileRes.data.role;
-      if (role !== 'admin') {
+      if (role !== 'admin' && role !== 'super_admin') {
         document.body.style.visibility = 'hidden';
         window.location.replace('../index.html');
+        return;
+      }
+      // 슈퍼관리자 전용 메뉴는 일반 관리자에게 감춘다 (실제 차단은 각 페이지와 RLS가 담당)
+      if (role !== 'super_admin') {
+        var box = document.getElementById('an-sb');
+        if (box) {
+          box.querySelectorAll('a.an-item[data-super="1"]').forEach(function (el) { el.remove(); });
+          // 항목이 모두 사라진 섹션 머리글도 정리
+          box.querySelectorAll('.an-sec').forEach(function (sec) {
+            var n = sec.nextElementSibling;
+            if (!n || n.classList.contains('an-sec')) sec.remove();
+          });
+        }
       }
     } catch (e) {
       // 네트워크 오류 등 예외는 RLS에 위임
