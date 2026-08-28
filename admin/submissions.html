@@ -467,26 +467,31 @@ async function quickApprove(row) {
 }
 
 async function processSubmission(row, newStatus, quick = false) {
-  const adminNote = quick ? null : document.getElementById('dm-admin-note').value.trim() || null;
+  // 빠른 승인에서는 관리자 메모를 건드리지 않는다 (기존 메모 보존)
+  const adminNote = quick ? undefined : (document.getElementById('dm-admin-note').value.trim() || null);
   const msgEl = document.getElementById('dm-action-msg');
 
-  const { error } = await supabaseClient
-    .from('submissions')
-    .update({
-      status:      newStatus,
-      admin_note:  adminNote,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq('id', row.id);
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const patch = {
+    status:      newStatus,
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: user ? user.id : null,
+  };
+  if (adminNote !== undefined) patch.admin_note = adminNote;
+
+  const { error } = await supabaseClient.from('submissions').update(patch).eq('id', row.id);
 
   if (error) {
-    if (!quick) { msgEl.style.cssText='display:block;color:#e53e3e;'; msgEl.textContent='오류: '+error.message; }
+    const m = '오류: ' + error.message;
+    if (quick) alert(m);
+    else { msgEl.style.cssText='display:block;color:#e53e3e;'; msgEl.textContent=m; }
     return;
   }
 
-  // 강의 노트 승인 시 → progress.completed = true
+  // 강의 노트 승인 시 → 해당 강의를 수강 완료로 체크
+  let progressWarn = '';
   if (newStatus === 'approved' && row.type === 'lecture' && row.lesson_id) {
-    await supabaseClient.from('progress').upsert({
+    const { error: pErr } = await supabaseClient.from('progress').upsert({
       user_id:     row.user_id,
       course_id:   row.course_id,
       lesson_id:   row.lesson_id,
@@ -495,22 +500,28 @@ async function processSubmission(row, newStatus, quick = false) {
       watched_at:  new Date().toISOString(),
     }, { onConflict: 'user_id,course_id,lesson_id' });
 
-    // orders 진도율 동기화
-    try {
-      await supabaseClient.rpc('update_order_progress', { p_course_id: row.course_id });
-    } catch(e) {}
+    // 진도 기록에 실패하면 승인은 되었지만 수강표에는 반영되지 않는다 — 반드시 알린다.
+    if (pErr) progressWarn = ' (단, 수강표 체크는 실패했습니다: ' + pErr.message + ')';
+
+    const { error: rErr } = await supabaseClient.rpc('update_order_progress', { p_course_id: row.course_id });
+    if (rErr) progressWarn += ' (진도율 동기화 실패: ' + rErr.message + ')';
   }
 
-  if (!quick) {
-    msgEl.style.cssText='display:block;color:#059669;';
-    msgEl.textContent = newStatus === 'approved' ? '✅ 승인 완료! 강의 수강표에 자동 체크됩니다.' : '❌ 반려 처리되었습니다.';
+  if (quick) {
+    if (progressWarn) alert('승인은 되었으나 문제가 있습니다.' + progressWarn);
+  } else {
+    const ok = !progressWarn;
+    msgEl.style.cssText = 'display:block;color:' + (ok ? '#059669' : '#b45309') + ';';
+    msgEl.textContent = (newStatus === 'approved'
+      ? '✅ 승인 완료! 강의 수강표에 자동 체크됩니다.'
+      : '❌ 반려 처리되었습니다.') + progressWarn;
   }
 
   // 로컬 목록 갱신
   const idx = allRows.findIndex(r => r.id === row.id);
   if (idx !== -1) {
     allRows[idx].status     = newStatus;
-    allRows[idx].admin_note = adminNote;
+    if (adminNote !== undefined) allRows[idx].admin_note = adminNote;
   }
   if (currentSub && currentSub.id === row.id) {
     currentSub.status = newStatus;

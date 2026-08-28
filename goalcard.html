@@ -405,7 +405,9 @@ body {
   const submissions = submissionsRes.data || [];
 
   // ── 제출 현황 맵 ──
-  // lecture: lesson_id → status
+  // 강의 노트의 lesson_id 는 'lesson-<강의번호>' 형식으로 저장된다 (강좌 상세 제출 화면 기준).
+  // lessons.id(내부 PK)와는 다른 값이므로 sort_order 로 맞춰서 찾는다.
+  const lectureKey = l => 'lesson-' + l.sort_order;
   const lectureMap = {};
   submissions.filter(s => s.type === 'lecture').forEach(s => {
     if (s.lesson_id) lectureMap[s.lesson_id] = s.status;
@@ -437,7 +439,7 @@ body {
   // ── 통계 계산 ──
   let approved = 0, pending = 0, rejected = 0, noneCount = 0;
   lessons.forEach(l => {
-    const s = lectureMap[l.id];
+    const s = lectureMap[lectureKey(l)];
     if (s === 'approved') approved++;
     else if (s === 'pending') pending++;
     else if (s === 'rejected') rejected++;
@@ -492,7 +494,7 @@ body {
       : `<span class="gc-book-none">미지정</span>`;
 
     sec.lessons.forEach((l, i) => {
-      const st = statusLabel(lectureMap[l.id]);
+      const st = statusLabel(lectureMap[lectureKey(l)]);
       rows += `<tr class="${i === 0 ? 'gc-week-start' : ''}">`;
       if (i === 0) {
         rows += `<td class="gc-td-week" rowspan="${span}">
@@ -502,7 +504,7 @@ body {
       }
       rows += `<td class="gc-td-no">${l.sort_order ?? ''}</td>
                <td class="gc-td-title">${escHtml(l.title)}</td>
-               <td class="gc-td-status">${badgeHtml(lectureMap[l.id])}</td>`;
+               <td class="gc-td-status">${badgeHtml(lectureMap[lectureKey(l)])}</td>`;
       if (i === 0) rows += `<td class="gc-td-book" rowspan="${span}">${bookCell}</td>`;
       rows += `</tr>`;
     });
