@@ -426,6 +426,15 @@ function renderTable() {
       ? '<button class="refund-btn" onclick="event.stopPropagation();showRefundModal(\'' + r.uid + '\',' + refundableOrder.course_id + ',' + refundableOrder.id + ',' + refundableOrder.amount + ')">환불처리</button>'
       : '';
 
+    // CBUP 수강생이면 골카드 바로가기
+    var cbupId = r.courseIds.find(function(cid) {
+      var c = allCourses.find(function(x){ return String(x.id) === String(cid); });
+      return c && c.title && c.title.toUpperCase().indexOf('CBUP') !== -1;
+    });
+    var gcBtn = cbupId
+      ? '<a class="refund-btn" style="background:#ede9fe;color:#5b21b6;border-color:#ddd6fe;text-decoration:none;" href="../goalcard.html?course=' + cbupId + '&user=' + r.uid + '" target="_blank" onclick="event.stopPropagation()">골카드</a>'
+      : '';
+
     var profile = allProfiles.find(function(p){ return p.id === r.uid; }) || {};
     var role    = profile.role || 'user';
     var isSelf  = r.uid === currentUserId;
@@ -477,7 +486,7 @@ function renderTable() {
       '<td style="font-size:12px;">' + fmtSecs(r.totalWatch) + '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
       '<td style="white-space:nowrap;">' + roleBadge + '<br>' + roleBtn + '</td>' +
-      '<td style="white-space:nowrap;">' + encBtn + (encBtn && refundBtn ? '<br>' : '') + refundBtn + '</td>' +
+      '<td style="white-space:nowrap;">' + gcBtn + (gcBtn && (encBtn || refundBtn) ? '<br>' : '') + encBtn + (encBtn && refundBtn ? '<br>' : '') + refundBtn + '</td>' +
       '</tr>';
   });
 

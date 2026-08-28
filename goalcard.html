@@ -380,6 +380,9 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
   const params = new URLSearchParams(window.location.search);
   const raw = params.get('course') || params.get('course_id');
   const COURSE_ID = parseInt(raw, 10) > 0 ? parseInt(raw, 10) : DEFAULT_COURSE_ID;
+  // 관리자가 특정 수강생의 골카드를 열어볼 때 쓴다 (?user=<uuid>).
+  // 일반 회원이 넣어도 RLS 가 남의 제출을 막으므로 빈 화면이 될 뿐이다.
+  const VIEW_USER = params.get('user');
 
   function showError(msg) {
     // 상세 표는 기본으로 접혀 있으므로 오류는 요약 영역에 띄운다
@@ -396,6 +399,11 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
     return;
   }
 
+  const { data: myRole } = await supabaseClient.rpc('get_my_role');
+  const isAdmin = (myRole === 'admin' || myRole === 'super_admin');
+  if (VIEW_USER && !isAdmin) { showError('⚠️ 다른 회원의 골카드는 관리자만 열람할 수 있습니다.'); return; }
+  const TARGET_ID = (VIEW_USER && isAdmin) ? VIEW_USER : user.id;
+
   // ── 강좌 정보 ──
   const { data: course } = await supabaseClient
     .from('courses').select('id, title').eq('id', COURSE_ID).maybeSingle();
@@ -403,6 +411,18 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
 
   document.getElementById('gc-course-name').textContent = course.title + ' 진도 현황';
   document.title = course.title + ' 골카드 — 아이엠러닝';
+
+  // 남의 골카드를 보고 있다면 누구 것인지 분명히 알린다
+  if (TARGET_ID !== user.id) {
+    const { data: who } = await supabaseClient
+      .from('profiles').select('name, email').eq('id', TARGET_ID).maybeSingle();
+    const label = who ? (who.name || who.email || TARGET_ID.slice(0, 8)) : TARGET_ID.slice(0, 8);
+    const bar = document.createElement('div');
+    bar.style.cssText = 'background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;border-radius:10px;'
+      + 'padding:10px 14px;font-size:13px;font-weight:700;margin-bottom:14px;';
+    bar.textContent = '🔑 관리자 열람 — ' + label + ' 님의 골카드';
+    document.getElementById('gc-overview').before(bar);
+  }
 
   // ── 수강 여부 확인 ──
   // 사이트의 다른 수강 판정과 같은 기준을 쓴다:
@@ -430,10 +450,7 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
     allowed = !!myGift;
   }
 
-  if (!allowed) {
-    const { data: myRole } = await supabaseClient.rpc('get_my_role');
-    allowed = (myRole === 'admin' || myRole === 'super_admin');
-  }
+  if (!allowed) allowed = isAdmin;
 
   if (!allowed) {
     showError(`⚠️ &lsquo;${escHtml(course.title)}&rsquo; 수강생만 골카드를 열람할 수 있습니다.`);
@@ -455,7 +472,7 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
     supabaseClient
       .from('submissions')
       .select('lesson_id, textbook_id, chapter_id, type, status')
-      .eq('user_id', user.id)
+      .eq('user_id', TARGET_ID)
       .eq('course_id', COURSE_ID)
   ]);
 

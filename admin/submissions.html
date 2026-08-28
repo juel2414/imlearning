@@ -213,16 +213,19 @@ async function init() {
 }
 
 async function loadAll() {
+  // submissions.user_id 는 auth.users 를 가리키므로 profiles 를 조인할 수 없다.
+  // 이름은 아래에서 user_id 로 따로 조회해 붙인다.
   const { data, error } = await supabaseClient
     .from('submissions')
-    .select(`
-      *,
-      courses(title),
-      profiles(name, email:id)
-    `)
+    .select('*, courses(title)')
     .order('created_at', { ascending: false });
 
-  if (error) { console.error(error); return; }
+  if (error) {
+    console.error(error);
+    document.getElementById('sub-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="9" style="color:#dc2626;">불러오지 못했습니다: ' + esc(error.message || '') + '</td></tr>';
+    return;
+  }
 
   // profiles join이 안 될 수 있으므로 user_id 기반으로 직접 처리
   // (profiles 테이블 email 컬럼 없을 수 있음 → 별도 로드)
@@ -353,6 +356,7 @@ function renderTable() {
       <td>
         <div class="action-btns">
           <button class="action-btn view" onclick='openDetail(${JSON.stringify(r)})'>상세</button>
+          <a class="action-btn view" href="../goalcard.html?course=${r.course_id}&user=${r.user_id}" target="_blank" title="이 수강생의 골카드">골카드</a>
           ${r.status === 'pending' ? `<button class="action-btn approve" onclick='quickApprove(${JSON.stringify(r)})'>승인</button>` : ''}
         </div>
       </td>
