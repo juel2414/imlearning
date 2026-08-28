@@ -1847,7 +1847,7 @@ async function loadCurriculum(courseId) {
           </div>
           <span class="curriculum-item-meta">
             ${isEnrolled && needsNote
-              ? `<button class="curr-note-btn" data-note-btn="${l.num}" onclick="event.stopPropagation();openLectureNoteModal(${l.num},'lesson-${l.num}','${safe}')">📝 노트</button>`
+              ? `<button class="curr-note-btn" data-note-btn="${l.num}" onclick="event.stopPropagation();onCurrNoteClick(${l.num},'${safe}')">📝 노트</button>`
               : ''}
             ${l.is_free_preview ? '<span class="curriculum-lock preview-slot" style="font-size:11px;color:var(--green-dark);font-weight:600;">미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:0.9em;height:0.9em;vertical-align:-0.1em;display:inline-block;opacity:.4;"></span>'}
           </span>
@@ -2446,7 +2446,7 @@ let currentPlayingLesson = null;
 function noteStateOf(lessonNum) {
   const s = submissionsMap['lecture-lesson-' + lessonNum];
   if (!s) return { key: 'none', label: '📝 노트', bar: '이 강의의 노트를 제출해 주세요', btn: '📝 강의노트 제출' };
-  if (s.status === 'approved') return { key: 'done',    label: '✅ 승인', bar: '노트가 승인되었습니다', btn: '노트 보기' };
+  if (s.status === 'approved') return { key: 'done',    label: '✅ 승인', bar: '노트가 승인되었습니다', btn: null };
   if (s.status === 'rejected') return { key: 'reject',  label: '↩ 반려',  bar: '노트가 반려되었습니다 — 다시 제출해 주세요', btn: '다시 제출' };
   return { key: 'pending', label: '⏳ 검토중', bar: '제출 완료 — 관리자 검토를 기다리는 중입니다', btn: '노트 수정' };
 }
@@ -2472,8 +2472,15 @@ function updatePlayerNoteBar() {
   statusEl.textContent = st.bar;
   statusEl.className = 'pnb-status' + (st.key !== 'none' ? ' ' + st.key : '');
   const btn = document.getElementById('pnb-btn');
-  btn.textContent = st.btn;
-  btn.classList.toggle('ghost', st.key === 'done');
+  // 승인된 노트는 더 손댈 수 없으므로 버튼을 감춘다
+  btn.style.display = st.btn ? '' : 'none';
+  if (st.btn) btn.textContent = st.btn;
+}
+
+function onCurrNoteClick(lessonNum, lessonTitle) {
+  const st = noteStateOf(lessonNum);
+  if (st.key === 'done') { alert('이미 승인된 노트입니다. 수정할 수 없어요.'); return; }
+  openLectureNoteModal(lessonNum, 'lesson-' + lessonNum, lessonTitle);
 }
 
 function submitNoteForCurrentLesson() {
@@ -2488,10 +2495,32 @@ function openLectureNoteModal(lessonNum, lessonId, lessonTitle) {
   document.getElementById('note-modal-sub').textContent = lessonNum + '강. ' + lessonTitle;
   document.getElementById('note-text-input').value = existing?.note_text || '';
   resetNoteFile();
+  showRejectReason(existing);
   document.getElementById('note-modal-status').style.display = 'none';
   document.getElementById('note-ok-btn').disabled = false;
-  document.getElementById('note-ok-btn').textContent = existing ? '수정 제출' : '제출하기';
+  document.getElementById('note-ok-btn').textContent =
+    existing ? (existing.status === 'rejected' ? '다시 제출' : '수정 제출') : '제출하기';
   document.getElementById('note-modal').classList.add('open');
+}
+
+// 반려된 노트를 다시 낼 때, 무엇 때문에 반려됐는지 위에 띄운다
+function showRejectReason(existing) {
+  let box = document.getElementById('note-reject-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'note-reject-box';
+    box.style.cssText = 'background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;'
+      + 'font-size:13px;color:#991b1b;line-height:1.6;margin-bottom:10px;';
+    const sub = document.getElementById('note-modal-sub');
+    sub.parentNode.insertBefore(box, sub.nextSibling);
+  }
+  if (existing && existing.status === 'rejected') {
+    box.style.display = '';
+    box.innerHTML = '<b>↩ 반려된 노트입니다.</b> 내용을 보완해 다시 제출해 주세요.'
+      + (existing.admin_note ? '<br><span style="color:#7f1d1d;">관리자 메모: ' + esc(existing.admin_note) + '</span>' : '');
+  } else {
+    box.style.display = 'none';
+  }
 }
 
 function openReadingNoteModal(weekNum, textbookId, textbookTitle, chapterId, chapterNo, chapterLabel) {
@@ -2504,9 +2533,11 @@ function openReadingNoteModal(weekNum, textbookId, textbookTitle, chapterId, cha
     (weekNum ? weekNum + '주차 · ' : '') + textbookTitle + (chapterLabel ? ' — ' + chapterLabel : '');
   document.getElementById('note-text-input').value = existing?.note_text || '';
   resetNoteFile();
+  showRejectReason(existing);
   document.getElementById('note-modal-status').style.display = 'none';
   document.getElementById('note-ok-btn').disabled = false;
-  document.getElementById('note-ok-btn').textContent = existing ? '수정 제출' : '제출하기';
+  document.getElementById('note-ok-btn').textContent =
+    existing ? (existing.status === 'rejected' ? '다시 제출' : '수정 제출') : '제출하기';
   document.getElementById('note-modal').classList.add('open');
 }
 
@@ -2598,9 +2629,16 @@ async function submitNote() {
     }
 
     if (ctx.existing) {
-      await supabaseClient.from('submissions')
+      // 반려된 노트를 다시 내면 검토 대기로 되돌리고 이전 검토 이력을 지운다.
+      // (관리자 메모는 남겨 두어 무엇을 고쳐야 했는지 검토자가 함께 본다)
+      if (ctx.existing.status === 'rejected') {
+        payload.reviewed_at = null;
+        payload.reviewed_by = null;
+      }
+      const { error: upErr } = await supabaseClient.from('submissions')
         .update(payload)
         .eq('id', ctx.existing.id);
+      if (upErr) throw upErr;
     } else {
       payload.created_at = new Date().toISOString();
       await supabaseClient.from('submissions').insert(payload);
@@ -2646,7 +2684,9 @@ async function renderNotesTab() {
           <div class="note-list-item-meta">${date}${s.note_text ? ' · 텍스트' : ''}${s.file_name ? ' · ' + esc(s.file_name) : ''}${s.admin_note ? ' · 관리자 메모: ' + esc(s.admin_note) : ''}</div>
         </div>
         <span class="note-badge ${badgeCls}">${badgeTxt}</span>
-        ${s.status === 'pending' ? `<button class="note-submit-btn" onclick="openLectureNoteModal(${s.lesson_num}, '${esc(s.lesson_id)}', '${esc(s.lesson_title||'')}')">수정</button>` : ''}
+        ${s.status === 'pending' || s.status === 'rejected'
+          ? `<button class="note-submit-btn" onclick="openLectureNoteModal(${s.lesson_num}, '${esc(s.lesson_id)}', '${esc(s.lesson_title||'')}')">${s.status === 'rejected' ? '다시 제출' : '수정'}</button>`
+          : ''}
       </div>`;
     });
   }
@@ -2691,8 +2731,8 @@ async function renderNotesTab() {
               ${s2 ? `<div class="note-list-item-meta">${dt}${s2.note_text?' · 텍스트':''}${s2.file_name?' · '+esc(s2.file_name):''}${s2.admin_note?' · 관리자 메모: '+esc(s2.admin_note):''}</div>` : ''}
             </div>
             ${s2 ? `<span class="note-badge ${bc}">${bt}</span>` : ''}
-            ${!s2 || s2.status === 'pending'
-              ? `<button class="note-submit-btn${s2?' submitted':''}" onclick="openReadingNoteModal(${Number(wk)}, ${tb.id}, '${esc(tb.title)}', ${chId === null ? 'null' : chId}, ${chNo === null ? 'null' : chNo}, '${esc(label)}')">${s2?'수정':'📝 제출'}</button>`
+            ${!s2 || s2.status === 'pending' || s2.status === 'rejected'
+              ? `<button class="note-submit-btn${s2 && s2.status === 'pending' ? ' submitted' : ''}" onclick="openReadingNoteModal(${Number(wk)}, ${tb.id}, '${esc(tb.title)}', ${chId === null ? 'null' : chId}, ${chNo === null ? 'null' : chNo}, '${esc(label)}')">${!s2 ? '📝 제출' : s2.status === 'rejected' ? '다시 제출' : '수정'}</button>`
               : ''}
           </div>`;
         };
