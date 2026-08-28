@@ -511,7 +511,7 @@ async function setRole(uid, newRole) {
     var p = allProfiles.find(function(p){ return p.id === uid; });
     if (p) p.role = newRole;
     renderTable();
-    alert((newRole === 'admin' ? '관리자로 지정' : '관리자 해제') + '되었습니다.');
+    alert(LABEL[newRole] + '(으)로 변경되었습니다.');
   } catch(e) {
     alert('오류가 발생했습니다: ' + e.message);
   }

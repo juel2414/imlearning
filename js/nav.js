@@ -576,7 +576,7 @@
       if (user) {
         sb.from('profiles').select('role').eq('id', user.id).maybeSingle()
           .then(function (res) {
-            var isAdmin = !!(res.data && res.data.role === 'admin');
+            var isAdmin = !!(res.data && ['admin','super_admin'].indexOf(res.data.role) !== -1);
             updateAuth(user, isAdmin);
           })
           .catch(function () {});

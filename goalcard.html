@@ -354,7 +354,7 @@ body {
   let allowed = !!myOrder;
   if (!allowed) {
     const { data: myRole } = await supabaseClient.rpc('get_my_role');
-    allowed = (myRole === 'admin');
+    allowed = (myRole === 'admin' || myRole === 'super_admin');
   }
 
   if (!allowed) {
