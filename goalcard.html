@@ -160,6 +160,49 @@ body {
 .badge-rejected  { background: #fee2e2; color: #991b1b; }
 .badge-none      { background: #f0f0f0; color: #999; }
 
+/* ── 한눈에 보기: 주차 그리드 ───────────────────────────── */
+.gc-overview { margin-bottom: 1.5rem; }
+.gc-ov-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.gc-ov-title { font-size:15px; font-weight:800; color:#111; }
+.gc-ov-pct { font-size:13px; color:#555; font-variant-numeric:tabular-nums; }
+.gc-ov-pct b { font-size:20px; color:#1a5c3a; }
+
+.gc-bar { height:10px; border-radius:999px; background:#eef0f2; overflow:hidden; display:flex; margin-bottom:16px; }
+.gc-bar i { display:block; height:100%; }
+.gc-bar .b-approved { background:#2D9B6F; }
+.gc-bar .b-pending  { background:#eab308; }
+.gc-bar .b-rejected { background:#ef4444; }
+
+.gc-weeks { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
+.gc-week-card { border:1px solid rgba(0,0,0,.09); border-radius:12px; padding:12px 13px; background:#fff; }
+.gc-wc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
+.gc-wc-num { font-size:13px; font-weight:800; color:#111; }
+.gc-wc-cnt { font-size:11px; color:#888; font-variant-numeric:tabular-nums; }
+.gc-wc-book { font-size:11px; color:#666; line-height:1.4; margin-bottom:8px;
+              display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+.gc-wc-book .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:4px; vertical-align:0; }
+.gc-cells { display:flex; flex-wrap:wrap; gap:3px; }
+.gc-cell { width:15px; height:15px; border-radius:3px; background:#e9ecef; cursor:default; }
+.gc-cell.s-approved { background:#2D9B6F; }
+.gc-cell.s-pending  { background:#eab308; }
+.gc-cell.s-rejected { background:#ef4444; }
+.gc-cell:hover { outline:2px solid rgba(0,0,0,.25); outline-offset:1px; }
+
+.gc-legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; font-size:12px; color:#666; }
+.gc-legend span { display:inline-flex; align-items:center; gap:5px; }
+.gc-legend i { width:11px; height:11px; border-radius:3px; display:inline-block; }
+
+.gc-detail-toggle { margin:20px 0 12px; }
+.gc-detail-toggle button { background:#f4f6f7; border:1px solid rgba(0,0,0,.09); border-radius:8px;
+  padding:9px 16px; font-size:13px; font-weight:700; color:#333; cursor:pointer; font-family:inherit; }
+.gc-detail-toggle button:hover { background:#eceff1; }
+#gc-body[hidden] { display:none; }
+
+@media print {
+  .gc-detail-toggle { display:none; }
+  #gc-body { display:block !important; }
+}
+
 /* 필독서 컬럼 */
 .gc-book-col {
   padding: 12px 14px;
@@ -309,7 +352,13 @@ body {
     <div class="gc-stat-card"><span class="gc-stat-icon">📖</span><div><div class="gc-stat-val" id="stat-reading">-</div><div class="gc-stat-lbl">독서노트</div></div></div>
   </div>
 
-  <div id="gc-body"><div class="gc-loading">불러오는 중...</div></div>
+  <div class="gc-overview" id="gc-overview"></div>
+
+  <div class="gc-detail-toggle" id="gc-detail-toggle" hidden>
+    <button type="button" onclick="var d=document.getElementById('gc-body');d.hidden=!d.hidden;this.textContent=d.hidden?'▾ 강의별 상세 보기':'▴ 상세 접기';">▾ 강의별 상세 보기</button>
+  </div>
+
+  <div id="gc-body" hidden><div class="gc-loading">불러오는 중...</div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -325,9 +374,11 @@ body {
   const COURSE_ID = parseInt(raw, 10) > 0 ? parseInt(raw, 10) : DEFAULT_COURSE_ID;
 
   function showError(msg) {
-    document.getElementById('gc-body').innerHTML =
+    // 상세 표는 기본으로 접혀 있으므로 오류는 요약 영역에 띄운다
+    document.getElementById('gc-overview').innerHTML =
       `<div class="gc-error">${msg}<br><a href="courses.html" style="color:#2D9B6F;font-weight:700;">강좌 보러 가기 →</a></div>`;
     document.getElementById('gc-stats').style.display = 'none';
+    document.getElementById('gc-detail-toggle').hidden = true;
   }
 
   // ── 인증 확인 ──
@@ -478,6 +529,62 @@ body {
     const s = statusLabel(status);
     return `<span class="gc-book-badge ${s.cls}">${s.text}</span>`;
   }
+
+  // ── 한눈에 보기 ──────────────────────────────────────────
+  // 주차 카드 하나에 그 주 강의를 작은 칸으로 늘어놓는다.
+  // 칸 색 = 제출 상태. 155강을 스크롤 없이 훑을 수 있게 하는 게 목적.
+  const totalLessons = lessons.length;
+  const pct = n => totalLessons ? (n / totalLessons * 100) : 0;
+  const donePct = Math.round(pct(approved));
+
+  const ovWeeks = sections.map(sec => {
+    const wn   = weekNum(sec.title);
+    const book = wn ? bookMap[wn] : null;
+    const bookStatus = book ? readingMap[book.id] : undefined;
+    const bookCls = bookStatus === 'approved' ? 's-approved'
+                  : bookStatus === 'pending'  ? 's-pending'
+                  : bookStatus === 'rejected' ? 's-rejected' : '';
+    const okCount = sec.lessons.filter(l => lectureMap[lectureKey(l)] === 'approved').length;
+
+    const cells = sec.lessons.map(l => {
+      const st  = lectureMap[lectureKey(l)];
+      const cls = st === 'approved' ? ' s-approved' : st === 'pending' ? ' s-pending'
+                : st === 'rejected' ? ' s-rejected' : '';
+      const lbl = statusLabel(st).text.replace(/^[^ ]+ /, '');
+      return `<div class="gc-cell${cls}" title="${escHtml(l.sort_order + '강 · ' + l.title)} — ${escHtml(lbl)}"></div>`;
+    }).join('');
+
+    return `<div class="gc-week-card">
+      <div class="gc-wc-top">
+        <span class="gc-wc-num">${wn ? wn + '주차' : '기타'}</span>
+        <span class="gc-wc-cnt">${okCount}/${sec.lessons.length}</span>
+      </div>
+      <div class="gc-wc-book">${book
+        ? `<span class="gc-cell ${bookCls} dot"></span>${escHtml(book.title)}`
+        : '<span style="color:#bbb;">필독서 미지정</span>'}</div>
+      <div class="gc-cells">${cells}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('gc-overview').innerHTML = `
+    <div class="gc-ov-head">
+      <div class="gc-ov-title">주차별 진행 현황</div>
+      <div class="gc-ov-pct"><b>${donePct}%</b> · ${approved}/${totalLessons}강 완료</div>
+    </div>
+    <div class="gc-bar">
+      <i class="b-approved" style="width:${pct(approved)}%"></i>
+      <i class="b-pending"  style="width:${pct(pending)}%"></i>
+      <i class="b-rejected" style="width:${pct(rejected)}%"></i>
+    </div>
+    <div class="gc-weeks">${ovWeeks}</div>
+    <div class="gc-legend">
+      <span><i style="background:#2D9B6F"></i>완료</span>
+      <span><i style="background:#eab308"></i>승인 대기</span>
+      <span><i style="background:#ef4444"></i>반려</span>
+      <span><i style="background:#e9ecef"></i>미제출</span>
+      <span style="color:#aaa;">칸에 마우스를 올리면 강의명이 보입니다</span>
+    </div>`;
+  document.getElementById('gc-detail-toggle').hidden = false;
 
   // ── 표 그리기 ──
   // 한 행 = 한 강의. 주차는 첫 행에만 rowspan 으로 묶고, 필독서도 주차당 한 칸.
