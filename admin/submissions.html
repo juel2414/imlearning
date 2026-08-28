@@ -43,13 +43,21 @@ tr:hover td { background:#fafafa; }
 .badge.rejected { background:#FEF2F2; color:#DC2626; }
 
 /* 실제 시청 시간 */
-.watch-box  { line-height:1.3; white-space:nowrap; }
-.watch-main { font-size:12.5px; font-weight:700; }
-.watch-main b { font-weight:800; }
-.watch-sub  { font-size:10.5px; color:#9CA3AF; margin-top:1px; }
-.watch-high .watch-main { color:#059669; }
-.watch-mid  .watch-main { color:#B45309; }
-.watch-low  .watch-main { color:#DC2626; }
+/* 실제 시청 vs 영상 길이 — 한눈에 대비되도록 막대로 보여준다 */
+.watch-box  { line-height:1.35; white-space:nowrap; min-width:132px; }
+.watch-main { font-size:12px; font-weight:700; font-variant-numeric:tabular-nums;
+              display:flex; align-items:baseline; gap:5px; }
+.watch-main .pct { font-size:13px; font-weight:800; }
+.watch-main .of  { color:#9CA3AF; font-weight:600; }
+.watch-bar  { height:5px; border-radius:999px; background:#E9ECEF; overflow:hidden; margin:3px 0 2px; }
+.watch-bar i { display:block; height:100%; border-radius:999px; }
+.watch-sub  { font-size:10.5px; color:#9CA3AF; }
+.watch-high .pct, .watch-high .watch-main strong { color:#059669; }
+.watch-mid  .pct, .watch-mid  .watch-main strong { color:#B45309; }
+.watch-low  .pct, .watch-low  .watch-main strong { color:#DC2626; }
+.watch-high .watch-bar i { background:#059669; }
+.watch-mid  .watch-bar i { background:#B45309; }
+.watch-low  .watch-bar i { background:#DC2626; }
 .watch-none { font-size:11.5px; color:#DC2626; font-weight:700; }
 .watch-na   { color:#D1D5DB; }
 .badge.lecture  { background:#EEF2FF; color:#4338CA; }
@@ -146,7 +154,7 @@ tr:hover td { background:#fafafa; }
             <th>강좌</th>
             <th>레슨/교재</th>
             <th>내용 미리보기</th>
-            <th>실제 시청</th>
+            <th>실제 시청 / 영상 길이</th>
             <th>상태</th>
             <th>관리</th>
           </tr>
@@ -288,14 +296,16 @@ function fmtSecs(s) {
 function watchCell(r) {
   if (r.type !== 'lecture') return '<span class="watch-na">—</span>';
   const v = r._watch;
-  if (!v) return '<span class="watch-none">기록 없음</span>';
+  if (!v) return '<span class="watch-none">▁ 재생 안 함</span>';
   const actual = v.actual_watched_seconds || 0;
   const total  = v.total_seconds || 0;
   const pct    = total ? Math.min(100, Math.round(actual / total * 100)) : null;
   const cls    = pct === null ? 'watch-mid' : pct >= 80 ? 'watch-high' : pct >= 40 ? 'watch-mid' : 'watch-low';
+  const label  = pct === null ? '길이 미상' : pct >= 80 ? '충분히 시청' : pct >= 40 ? '부분 시청' : pct > 0 ? '거의 안 봄' : '재생 안 함';
   return `<div class="watch-box ${cls}">
-    <div class="watch-main">${fmtSecs(actual)}${pct !== null ? ` <b>${pct}%</b>` : ''}</div>
-    <div class="watch-sub">영상 ${total ? fmtSecs(total) : '길이 미상'}</div>
+    <div class="watch-main"><strong>${fmtSecs(actual)}</strong><span class="of">/ ${total ? fmtSecs(total) : '?'}</span>${pct !== null ? `<span class="pct">${pct}%</span>` : ''}</div>
+    <div class="watch-bar"><i style="width:${pct || 0}%"></i></div>
+    <div class="watch-sub">${label}</div>
   </div>`;
 }
 
@@ -423,17 +433,23 @@ async function openDetail(row) {
     const v = row._watch;
     if (!v) {
       document.getElementById('dm-watch').innerHTML =
-        '<span style="color:#DC2626;font-weight:700;">시청 기록 없음</span> <span style="color:#9CA3AF;font-size:12px;">— 영상을 재생한 적이 없습니다</span>';
+        '<div style="font-size:15px;font-weight:800;color:#DC2626;">0초 <span style="color:#9CA3AF;font-weight:600;font-size:13px;">/ 영상 길이 미상</span></div>'
+        + '<div style="height:7px;border-radius:999px;background:#E9ECEF;margin:6px 0 4px;max-width:320px;"></div>'
+        + '<div style="font-size:12px;color:#DC2626;font-weight:600;">이 사이트에서 영상을 재생한 기록이 없습니다</div>';
     } else {
       const actual = v.actual_watched_seconds || 0;
       const total  = v.total_seconds || 0;
       const pct    = total ? Math.min(100, Math.round(actual / total * 100)) : null;
       const color  = pct === null ? '#B45309' : pct >= 80 ? '#059669' : pct >= 40 ? '#B45309' : '#DC2626';
+      const label  = pct === null ? '길이 미상' : pct >= 80 ? '충분히 시청했습니다' : pct >= 40 ? '일부만 시청했습니다' : pct > 0 ? '거의 보지 않았습니다' : '재생하지 않았습니다';
       document.getElementById('dm-watch').innerHTML =
-        `<span style="color:${color};font-weight:800;">${fmtSecs(actual)}</span>` +
-        (pct !== null ? ` <span style="color:${color};font-weight:700;">(${pct}%)</span>` : '') +
-        ` <span style="color:#9CA3AF;font-size:12px;">/ 영상 길이 ${total ? fmtSecs(total) : '미상'}</span>` +
-        (v.completed ? ' <span class="badge approved">완료</span>' : '');
+        `<div style="font-size:15px;font-weight:800;color:${color};">${fmtSecs(actual)}` +
+        `<span style="color:#9CA3AF;font-weight:600;font-size:13px;"> / 영상 길이 ${total ? fmtSecs(total) : '미상'}</span>` +
+        (pct !== null ? ` <span style="color:${color};">${pct}%</span>` : '') +
+        (v.completed ? ' <span class="badge approved">완료</span>' : '') + `</div>` +
+        `<div style="height:7px;border-radius:999px;background:#E9ECEF;overflow:hidden;margin:6px 0 4px;max-width:320px;">` +
+        `<div style="height:100%;width:${pct || 0}%;background:${color};border-radius:999px;"></div></div>` +
+        `<div style="font-size:12px;color:${color};font-weight:600;">${label}</div>`;
     }
   }
 
