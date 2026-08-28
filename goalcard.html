@@ -345,13 +345,32 @@ body {
   document.getElementById('gc-course-name').textContent = course.title + ' 진도 현황';
   document.title = course.title + ' 골카드 — 아이엠러닝';
 
-  // ── 수강 여부 확인 (해당 강좌 결제자 또는 관리자) ──
-  const { data: myOrder } = await supabaseClient
-    .from('orders').select('id')
-    .eq('user_id', user.id).eq('course_id', COURSE_ID).eq('status', 'completed')
-    .limit(1).maybeSingle();
+  // ── 수강 여부 확인 ──
+  // 사이트의 다른 수강 판정과 같은 기준을 쓴다:
+  //   결제완료(paid) + 환불 아님 + 기간 안 지남
+  //   · 해당 강좌 주문        (관리자 부여분 포함 — 부여도 paid 로 기록된다)
+  //   · 전강좌 프리패스        (course_id 가 비어 있는 주문)
+  //   · 선물받아 수락한 강좌
+  const { data: myOrders } = await supabaseClient
+    .from('orders').select('course_id, status, refund_status, expires_at')
+    .eq('user_id', user.id).eq('status', 'paid');
 
-  let allowed = !!myOrder;
+  const notRefunded = o => !o.refund_status || o.refund_status === 'none';
+  const notExpired  = o => !o.expires_at || new Date(o.expires_at) > new Date();
+
+  let allowed = (myOrders || []).some(o =>
+    notRefunded(o) && notExpired(o) &&
+    (String(o.course_id) === String(COURSE_ID) || o.course_id === null)
+  );
+
+  if (!allowed) {
+    const { data: myGift } = await supabaseClient
+      .from('gifts').select('id')
+      .eq('recipient_id', user.id).eq('course_id', COURSE_ID).eq('status', 'accepted')
+      .limit(1).maybeSingle();
+    allowed = !!myGift;
+  }
+
   if (!allowed) {
     const { data: myRole } = await supabaseClient.rpc('get_my_role');
     allowed = (myRole === 'admin' || myRole === 'super_admin');
