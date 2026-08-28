@@ -160,7 +160,7 @@ body {
 .badge-rejected  { background: #fee2e2; color: #991b1b; }
 .badge-none      { background: #f0f0f0; color: #999; }
 
-/* ── 한눈에 보기: 주차 그리드 ───────────────────────────── */
+/* ── 한눈에 보기: 주차 × 요일 표 (실물 골카드와 같은 배치) ── */
 .gc-overview { margin-bottom: 1.5rem; }
 .gc-ov-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
 .gc-ov-title { font-size:15px; font-weight:800; color:#111; }
@@ -173,22 +173,30 @@ body {
 .gc-bar .b-pending  { background:#eab308; }
 .gc-bar .b-rejected { background:#ef4444; }
 
-.gc-weeks { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
-.gc-week-card { border:1px solid rgba(0,0,0,.09); border-radius:12px; padding:12px 13px; background:#fff; }
-.gc-wc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
-.gc-wc-num { font-size:13px; font-weight:800; color:#111; }
-.gc-wc-cnt { font-size:11px; color:#888; font-variant-numeric:tabular-nums; }
-.gc-wc-book { font-size:11px; color:#666; line-height:1.4; margin-bottom:8px;
-              display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
-.gc-wc-book .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:4px; vertical-align:0; }
-.gc-cells { display:flex; flex-wrap:wrap; gap:3px; }
-.gc-cell { width:15px; height:15px; border-radius:3px; background:#e9ecef; cursor:default; }
-.gc-cell.s-approved { background:#2D9B6F; }
-.gc-cell.s-pending  { background:#eab308; }
-.gc-cell.s-rejected { background:#ef4444; }
-.gc-cell:hover { outline:2px solid rgba(0,0,0,.25); outline-offset:1px; }
+.gc-grid-wrap { overflow-x:auto; border:1px solid rgba(0,0,0,.12); border-radius:10px; }
+table.gc-grid { border-collapse:collapse; width:100%; min-width:1000px; font-size:11px; background:#fff; }
+table.gc-grid th, table.gc-grid td { border:1px solid rgba(0,0,0,.10); padding:0; vertical-align:top; }
+table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; color:#333; padding:7px 4px; text-align:center; position:sticky; top:0; z-index:1; }
+.gc-g-week { width:52px; background:#fafbfb; text-align:center; font-weight:800; font-size:12px; color:#111; padding:6px 2px; }
+.gc-g-week small { display:block; font-weight:600; color:#888; font-size:10px; margin-top:2px; font-variant-numeric:tabular-nums; }
+.gc-g-book { width:130px; padding:6px 8px; font-size:10.5px; line-height:1.45; color:#555; background:#fcfcfd; }
 
-.gc-legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; font-size:12px; color:#666; }
+/* 한 칸 안에 그날 강의들을 세로로 쌓는다 */
+.gc-day { display:flex; flex-direction:column; }
+.gc-item { display:flex; align-items:flex-start; gap:5px; padding:5px 7px; border-bottom:1px solid rgba(0,0,0,.06); line-height:1.4; }
+.gc-item:last-child { border-bottom:none; }
+.gc-item .mk { flex-shrink:0; width:13px; height:13px; border-radius:3px; margin-top:1px;
+  display:inline-flex; align-items:center; justify-content:center; font-size:9px; color:#fff; font-weight:800; background:#e3e6e8; }
+.gc-item.s-approved .mk { background:#2D9B6F; }
+.gc-item.s-pending  .mk { background:#eab308; }
+.gc-item.s-rejected .mk { background:#ef4444; }
+.gc-item.s-approved { background:#f2fbf7; }
+.gc-item.s-rejected { background:#fef4f4; }
+.gc-item .nm { color:#222; word-break:keep-all; }
+.gc-item.s-none .nm { color:#98a0a6; }
+.gc-day-empty { padding:8px; color:#d5d9dc; text-align:center; }
+
+.gc-legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:#666; }
 .gc-legend span { display:inline-flex; align-items:center; gap:5px; }
 .gc-legend i { width:11px; height:11px; border-radius:3px; display:inline-block; }
 
@@ -531,39 +539,59 @@ body {
   }
 
   // ── 한눈에 보기 ──────────────────────────────────────────
-  // 주차 카드 하나에 그 주 강의를 작은 칸으로 늘어놓는다.
-  // 칸 색 = 제출 상태. 155강을 스크롤 없이 훑을 수 있게 하는 게 목적.
+  // 실물 골카드와 같은 배치: 세로 = 주차, 가로 = 요일.
+  // 강의 제목이 "월1강 · 시간관리 (1) - 클라라선교사" 형태라 요일을 앞에서 뽑아낸다.
+  const DAYS = ['월','화','수','목','금','토'];
+  function parseTitle(t) {
+    const m = String(t || '').match(/^([월화수목금토일])\s*(\d+)강\s*[·.]?\s*(.*)$/);
+    if (!m) return { day: null, no: null, name: t || '' };
+    // 뒤쪽 " - 강사명" 은 표에서 생략한다 (칸이 좁다)
+    const name = m[3].replace(/\s*[-–—]\s*[^-–—]*선교사\s*$/, '').trim();
+    return { day: m[1], no: parseInt(m[2], 10), name: name || m[3] };
+  }
+
   const totalLessons = lessons.length;
   const pct = n => totalLessons ? (n / totalLessons * 100) : 0;
   const donePct = Math.round(pct(approved));
+  const MARK = { approved: '✓', pending: '⏳', rejected: '✕', none: '' };
 
-  const ovWeeks = sections.map(sec => {
+  const gridRows = sections.map(sec => {
     const wn   = weekNum(sec.title);
     const book = wn ? bookMap[wn] : null;
     const bookStatus = book ? readingMap[book.id] : undefined;
-    const bookCls = bookStatus === 'approved' ? 's-approved'
-                  : bookStatus === 'pending'  ? 's-pending'
-                  : bookStatus === 'rejected' ? 's-rejected' : '';
     const okCount = sec.lessons.filter(l => lectureMap[lectureKey(l)] === 'approved').length;
 
-    const cells = sec.lessons.map(l => {
-      const st  = lectureMap[lectureKey(l)];
-      const cls = st === 'approved' ? ' s-approved' : st === 'pending' ? ' s-pending'
-                : st === 'rejected' ? ' s-rejected' : '';
-      const lbl = statusLabel(st).text.replace(/^[^ ]+ /, '');
-      return `<div class="gc-cell${cls}" title="${escHtml(l.sort_order + '강 · ' + l.title)} — ${escHtml(lbl)}"></div>`;
+    // 요일별로 나눈다. 요일을 못 읽은 강의는 '월' 칸으로 몰지 않고 별도 처리.
+    const byDay = {}; DAYS.forEach(d => byDay[d] = []);
+    const noDay = [];
+    sec.lessons.forEach(l => {
+      const p = parseTitle(l.title);
+      const st = lectureMap[lectureKey(l)] || 'none';
+      const cell = { ...p, st, full: l.title, order: l.sort_order };
+      if (p.day && byDay[p.day]) byDay[p.day].push(cell); else noDay.push(cell);
+    });
+    if (noDay.length) byDay['월'] = noDay.concat(byDay['월']);
+
+    const dayCells = DAYS.map(d => {
+      const items = byDay[d];
+      if (!items.length) return '<td><div class="gc-day-empty">·</div></td>';
+      const inner = items.map(it =>
+        `<div class="gc-item s-${it.st}" title="${escHtml(it.order + '강 · ' + it.full)}">
+           <span class="mk">${MARK[it.st] || ''}</span><span class="nm">${escHtml(it.name)}</span>
+         </div>`).join('');
+      return `<td><div class="gc-day">${inner}</div></td>`;
     }).join('');
 
-    return `<div class="gc-week-card">
-      <div class="gc-wc-top">
-        <span class="gc-wc-num">${wn ? wn + '주차' : '기타'}</span>
-        <span class="gc-wc-cnt">${okCount}/${sec.lessons.length}</span>
-      </div>
-      <div class="gc-wc-book">${book
-        ? `<span class="gc-cell ${bookCls} dot"></span>${escHtml(book.title)}`
-        : '<span style="color:#bbb;">필독서 미지정</span>'}</div>
-      <div class="gc-cells">${cells}</div>
-    </div>`;
+    const bookMark = bookStatus === 'approved' ? '✓ ' : bookStatus === 'pending' ? '⏳ ' : bookStatus === 'rejected' ? '✕ ' : '';
+    const bookCell = book
+      ? `<span style="color:${bookStatus === 'approved' ? '#2D9B6F' : '#888'};font-weight:700;">${bookMark}</span>${escHtml(book.title)}`
+      : '<span style="color:#c8ccd0;">미지정</span>';
+
+    return `<tr>
+      <td class="gc-g-week">${wn ? wn + '주차' : '기타'}<small>${okCount}/${sec.lessons.length}</small></td>
+      ${dayCells}
+      <td class="gc-g-book">${bookCell}</td>
+    </tr>`;
   }).join('');
 
   document.getElementById('gc-overview').innerHTML = `
@@ -576,13 +604,18 @@ body {
       <i class="b-pending"  style="width:${pct(pending)}%"></i>
       <i class="b-rejected" style="width:${pct(rejected)}%"></i>
     </div>
-    <div class="gc-weeks">${ovWeeks}</div>
+    <div class="gc-grid-wrap">
+      <table class="gc-grid">
+        <thead><tr><th>주차</th>${DAYS.map(d => `<th>${d}</th>`).join('')}<th>필독서</th></tr></thead>
+        <tbody>${gridRows}</tbody>
+      </table>
+    </div>
     <div class="gc-legend">
       <span><i style="background:#2D9B6F"></i>완료</span>
       <span><i style="background:#eab308"></i>승인 대기</span>
       <span><i style="background:#ef4444"></i>반려</span>
-      <span><i style="background:#e9ecef"></i>미제출</span>
-      <span style="color:#aaa;">칸에 마우스를 올리면 강의명이 보입니다</span>
+      <span><i style="background:#e3e6e8"></i>미제출</span>
+      <span style="color:#aaa;">칸에 마우스를 올리면 전체 강의명이 보입니다</span>
     </div>`;
   document.getElementById('gc-detail-toggle').hidden = false;
 
