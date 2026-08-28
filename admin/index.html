@@ -183,10 +183,10 @@ tr:last-child td { border-bottom:none; }
   <div class="quick-row">
     <a href="courses.html" class="quick-card"><div class="quick-icon">📚</div><div class="quick-label">강좌 관리</div></a>
     <a href="instructors.html" class="quick-card"><div class="quick-icon">👨‍🏫</div><div class="quick-label">강사 관리</div></a>
-    <a href="promotions.html" class="quick-card"><div class="quick-icon">🎟️</div><div class="quick-label">쿠폰 관리</div></a>
+    <a href="promotions.html" class="quick-card super-only"><div class="quick-icon">🎟️</div><div class="quick-label">쿠폰 관리</div></a>
     <a href="notices.html" class="quick-card"><div class="quick-icon">📢</div><div class="quick-label">공지 작성</div></a>
     <a href="reviews.html" class="quick-card"><div class="quick-icon">⭐</div><div class="quick-label">후기 관리</div></a>
-    <a href="landing.html" class="quick-card"><div class="quick-icon">🏠</div><div class="quick-label">랜딩 빌더</div></a>
+    <a href="landing.html" class="quick-card super-only"><div class="quick-icon">🏠</div><div class="quick-label">랜딩 빌더</div></a>
   </div>
 
   <!-- 매출 목표 달성률 -->
@@ -280,7 +280,7 @@ const sb = window.supabaseClient;
   }
   const { data: profile } = await sb
     .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
-  if (!profile || profile.role !== 'admin') {
+  if (!profile || !['admin','super_admin'].includes(profile.role)) {
     alert('관리자 권한이 없는 계정입니다.');
     window.location.href = '../index.html';
     return;
@@ -713,5 +713,20 @@ async function loadAll() {
 loadAll();
 </script>
 <script src="../js/admin-nav.js"></script>
+<script>
+// ── 슈퍼관리자 전용 메뉴 숨김 ─────────────────────────────
+// .super-only 가 붙은 요소는 슈퍼관리자에게만 보인다.
+(async function hideSuperOnly() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const { data: me } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+    if (me?.role === 'super_admin') return;
+    document.querySelectorAll('.super-only').forEach(el => el.remove());
+  } catch (e) { /* 실패 시 숨긴 채로 둔다 */
+    document.querySelectorAll('.super-only').forEach(el => el.remove());
+  }
+})();
+</script>
 </body>
 </html>

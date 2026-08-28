@@ -128,7 +128,7 @@ var curGiftCode = null;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = '../login.html'; return; }
   const { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
-  if (!p || p.role !== 'admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; }
+  if (!p || p.role !== 'super_admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; }
 })();
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

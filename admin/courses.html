@@ -418,7 +418,7 @@ var sb = window.supabaseClient;
   }
   const { data: profile } = await sb
     .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
-  if (!profile || profile.role !== 'admin') {
+  if (!profile || !['admin','super_admin'].includes(profile.role)) {
     alert('관리자 권한이 없는 계정입니다.');
     window.location.href = '../index.html';
     return;
