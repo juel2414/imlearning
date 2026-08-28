@@ -46,6 +46,13 @@ body {
 .curriculum-item:last-child { border-bottom: none; }
 .curriculum-item:hover { background: #f5faf7; }
 .curriculum-item-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.curr-note-btn { padding:3px 9px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer;
+  border:1.5px solid var(--green,#2D9B6F); background:#fff; color:var(--green,#2D9B6F); font-family:inherit;
+  white-space:nowrap; margin-right:6px; }
+.curr-note-btn:hover { background:var(--green,#2D9B6F); color:#fff; }
+.curr-note-btn.done    { border-color:transparent; background:#eaf7f1; color:#1e7a54; }
+.curr-note-btn.pending { border-color:transparent; background:#fef6db; color:#8a6100; }
+.curr-note-btn.reject  { border-color:transparent; background:#fdeaea; color:#a12a2a; }
 .curriculum-lesson-chevron { flex-shrink:0; font-size:10px; color:#ccc; transition:transform .2s; cursor:pointer; padding:4px; margin:-4px; }
 .curriculum-item.lesson-collapsed .curriculum-lesson-chevron { transform:rotate(-90deg); }
 .curriculum-item.lesson-collapsed .curriculum-duration { display:none; }
@@ -423,6 +430,17 @@ body {
 .curriculum-section.collapsed .curriculum-items { display:none; }
 
 /* ── 노트 제출 시스템 ── */
+/* 영상 바로 아래 — 다 보고 그 자리에서 노트를 낸다 */
+.player-note-bar { display:flex; align-items:center; gap:12px; padding:11px 14px; background:#12261e;
+  border-top:1px solid rgba(255,255,255,.08); flex-wrap:wrap; }
+.pnb-status { font-size:12.5px; color:rgba(255,255,255,.72); font-weight:600; flex:1; min-width:140px; }
+.pnb-status.done    { color:#6ee7b7; }
+.pnb-status.pending { color:#fcd34d; }
+.pnb-status.reject  { color:#fca5a5; }
+.pnb-btn { padding:8px 16px; font-size:13px; font-weight:800; border-radius:8px; border:none; cursor:pointer;
+  background:var(--green,#2D9B6F); color:#fff; font-family:inherit; white-space:nowrap; }
+.pnb-btn:hover { filter:brightness(1.08); }
+.pnb-btn.ghost { background:rgba(255,255,255,.14); }
 .note-submit-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer; border:1.5px solid var(--green); background:#fff; color:var(--green); transition:all .15s; margin-top:6px; font-family:inherit; }
 .note-submit-btn:hover { background:var(--green); color:#fff; }
 .note-submit-btn.submitted { background:#f0faf5; border-color:transparent; color:#1e7a54; }
@@ -543,6 +561,10 @@ body {
               </div>
               <div class="lesson-iframe-wrap">
                 <div id="vimeo-player-container"></div>
+              </div>
+              <div class="player-note-bar" id="player-note-bar" style="display:none;">
+                <span class="pnb-status" id="pnb-status">이 강의의 노트를 제출해 주세요</span>
+                <button class="pnb-btn" id="pnb-btn" onclick="submitNoteForCurrentLesson()">📝 강의노트 제출</button>
               </div>
               <div class="watch-info">
                 <span>실제 시청: <strong id="watch-display">0초</strong></span>
@@ -1785,6 +1807,9 @@ async function loadCurriculum(courseId) {
     return;
   }
 
+  // 노트 제출은 CBUP 과정에서만 쓴다
+  const needsNote = !!(currentCourse && currentCourse.title && currentCourse.title.toUpperCase().includes('CBUP'));
+
   // 섹션별 그룹핑
   const sections = {};
   const sectionOrder = [];
@@ -1821,6 +1846,9 @@ async function loadCurriculum(courseId) {
             ${l.duration_seconds ? `<span class="curriculum-duration">${fmtDuration(l.duration_seconds)}</span>` : ''}
           </div>
           <span class="curriculum-item-meta">
+            ${isEnrolled && needsNote
+              ? `<button class="curr-note-btn" data-note-btn="${l.num}" onclick="event.stopPropagation();openLectureNoteModal(${l.num},'lesson-${l.num}','${safe}')">📝 노트</button>`
+              : ''}
             ${l.is_free_preview ? '<span class="curriculum-lock preview-slot" style="font-size:11px;color:var(--green-dark);font-weight:600;">미리보기</span>' : '<span class="curriculum-lock"><img src="icons/lock-closed.svg" alt="" style="width:0.9em;height:0.9em;vertical-align:-0.1em;display:inline-block;opacity:.4;"></span>'}
           </span>
           <span class="curriculum-lesson-chevron" onclick="event.stopPropagation();this.closest('.curriculum-item').classList.toggle('lesson-collapsed')">▾</span>
@@ -2010,6 +2038,8 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
   row.scrollIntoView({ behavior: 'smooth', block: 'start' });
   updateSidebarActive(lessonNum);
   document.getElementById('lesson-player-title').textContent = lessonNum + '강 — ' + lessonTitle;
+  currentPlayingLesson = { num: lessonNum, title: lessonTitle };
+  updatePlayerNoteBar();
   document.getElementById('resume-banner').classList.remove('show');
   document.getElementById('watch-display').textContent = '0초';
   document.getElementById('watch-pct-text').textContent = '';
@@ -2103,6 +2133,8 @@ function closeLessonPlayer() {
   const row = document.getElementById('playerSidebarRow');
   row.classList.remove('show');
   document.querySelector('.detail-inner')?.classList.remove('playing');
+  currentPlayingLesson = null;
+  updatePlayerNoteBar();
   updateSidebarActive(0);
 }
 
@@ -2382,6 +2414,7 @@ async function loadSubmissions(userId, courseId) {
     }
   });
   updateNoteButtons();
+  refreshNoteButtons();
 }
 
 function updateNoteButtons() {
@@ -2404,6 +2437,48 @@ function updateNoteButtons() {
       if (badge) badge.style.display = 'none';
     }
   });
+}
+
+// ── 노트 버튼 상태 반영 ────────────────────────────────────────
+// 커리큘럼 목록의 각 버튼과 플레이어 하단 바를 제출 상태에 맞춰 갱신한다.
+let currentPlayingLesson = null;
+
+function noteStateOf(lessonNum) {
+  const s = submissionsMap['lecture-lesson-' + lessonNum];
+  if (!s) return { key: 'none', label: '📝 노트', bar: '이 강의의 노트를 제출해 주세요', btn: '📝 강의노트 제출' };
+  if (s.status === 'approved') return { key: 'done',    label: '✅ 승인', bar: '노트가 승인되었습니다', btn: '노트 보기' };
+  if (s.status === 'rejected') return { key: 'reject',  label: '↩ 반려',  bar: '노트가 반려되었습니다 — 다시 제출해 주세요', btn: '다시 제출' };
+  return { key: 'pending', label: '⏳ 검토중', bar: '제출 완료 — 관리자 검토를 기다리는 중입니다', btn: '노트 수정' };
+}
+
+function refreshNoteButtons() {
+  document.querySelectorAll('[data-note-btn]').forEach(btn => {
+    const st = noteStateOf(parseInt(btn.dataset.noteBtn, 10));
+    btn.textContent = st.label;
+    btn.classList.remove('done', 'pending', 'reject');
+    if (st.key !== 'none') btn.classList.add(st.key);
+  });
+  updatePlayerNoteBar();
+}
+
+function updatePlayerNoteBar() {
+  const bar = document.getElementById('player-note-bar');
+  if (!bar) return;
+  const needsNote = !!(currentCourse && currentCourse.title && currentCourse.title.toUpperCase().includes('CBUP'));
+  if (!needsNote || !isEnrolled || !currentPlayingLesson) { bar.style.display = 'none'; return; }
+  const st = noteStateOf(currentPlayingLesson.num);
+  bar.style.display = '';
+  const statusEl = document.getElementById('pnb-status');
+  statusEl.textContent = st.bar;
+  statusEl.className = 'pnb-status' + (st.key !== 'none' ? ' ' + st.key : '');
+  const btn = document.getElementById('pnb-btn');
+  btn.textContent = st.btn;
+  btn.classList.toggle('ghost', st.key === 'done');
+}
+
+function submitNoteForCurrentLesson() {
+  if (!currentPlayingLesson) return;
+  openLectureNoteModal(currentPlayingLesson.num, 'lesson-' + currentPlayingLesson.num, currentPlayingLesson.title);
 }
 
 function openLectureNoteModal(lessonNum, lessonId, lessonTitle) {
