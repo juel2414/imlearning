@@ -132,9 +132,6 @@
       답변 <span id="m-answer-hint" style="text-transform:none;font-weight:600;color:#666;"></span>
     </div>
     <textarea class="c-answer" id="m-answer" rows="6" placeholder="답변을 입력하세요. 등록하면 문의한 회원에게 알림이 갑니다."></textarea>
-    <div class="c-note" id="m-guest-note" style="display:none;">
-      ⚠️ 비회원 문의라 사이트 알림을 보낼 수 없습니다. 남기신 연락처로 직접 회신해 주세요.
-    </div>
 
     <div class="c-actions">
       <button class="btn-send" onclick="saveAnswer()">답변 등록</button>
@@ -235,7 +232,6 @@ function render() {
         <div class="c-top">
           <span class="c-name">${esc(who)}</span>
           ${r.type ? `<span class="badge b-type">${esc(r.type)}</span>` : ''}
-          ${r.user_id ? '' : '<span class="badge b-guest">비회원</span>'}
         </div>
         <div class="c-msg">${esc(r.message || '')}</div>
         <div class="c-meta">${fmtDate(r.created_at)}${(r.email || (r._p && r._p.email)) ? ' · ' + esc(r.email || r._p.email) : ''}${r.phone ? ' · ' + esc(r.phone) : ''}</div>
@@ -252,7 +248,7 @@ function openDetail(i) {
   current = r;
   const who = r._p ? (r._p.name || r._p.email) : (r.name || '익명');
   document.getElementById('m-sub').textContent  = fmtDate(r.created_at) + ' 접수';
-  document.getElementById('m-name').textContent = who + (r.user_id ? '' : ' (비회원)');
+  document.getElementById('m-name').textContent = who;
   document.getElementById('m-email').textContent = r.email || (r._p && r._p.email) || '—';
   document.getElementById('m-phone').textContent = r.phone || '—';
   document.getElementById('m-type').textContent  = r.type || '기타';
@@ -269,7 +265,6 @@ function openDetail(i) {
     document.getElementById('m-answer-hint').textContent = '';
   }
   document.getElementById('m-answer').value = r.answer || '';
-  document.getElementById('m-guest-note').style.display = r.user_id ? 'none' : '';
   document.getElementById('m-msg-result').style.display = 'none';
   document.getElementById('c-modal').classList.add('open');
   document.getElementById('m-answer').focus();
@@ -305,9 +300,7 @@ async function saveAnswer() {
   }
 
   msgEl.style.cssText = 'display:block;color:#059669;font-size:13px;';
-  msgEl.textContent = current.user_id
-    ? '✅ 답변을 등록했습니다. 회원에게 알림이 갔습니다.'
-    : '✅ 답변을 저장했습니다. 비회원이라 알림은 가지 않습니다.';
+  msgEl.textContent = '✅ 답변을 등록했습니다. 회원에게 알림이 갔습니다.';
 
   const idx = allRows.findIndex(x => x.id === current.id);
   if (idx !== -1) { allRows[idx].answer = text; allRows[idx].status = 'answered'; }
