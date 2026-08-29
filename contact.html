@@ -228,8 +228,11 @@ async // 로그인한 회원이면 이름·연락처를 채워두고, 답변을 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
       if (note) {
-        note.style.cssText = note.style.cssText.replace('display:none','display:block')
-          .replace('#f0faf5','#fffbeb').replace('#bfe6d2','#fde68a').replace('#155e40','#92400e');
+        // cssText 치환은 브라우저가 값을 정규화해 실패하므로 속성을 직접 지정한다
+        note.style.display    = 'block';
+        note.style.background = '#fffbeb';
+        note.style.borderColor = '#fde68a';
+        note.style.color      = '#92400e';
         note.innerHTML = '로그인 후 문의하시면 <b>답변을 사이트에서 바로 확인</b>하실 수 있어요. '
           + '<a href="login.html?redirect=' + encodeURIComponent(location.href) + '" style="color:#b45309;font-weight:700;">로그인하기 →</a>';
       }
