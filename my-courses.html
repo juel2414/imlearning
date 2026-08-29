@@ -349,8 +349,7 @@ body {
 <div class="container">
   <div class="my-tabs">
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
-    <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 통계</div>
-    <div class="my-tab" onclick="switchTab('badges', this)"><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 나의 뱃지</div>
+    <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 기록</div>
     <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
     <div class="my-tab" onclick="switchTab('certs', this)"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 수료증</div>
     <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
@@ -369,14 +368,19 @@ body {
       <div id="courses-content" class="loading-msg">불러오는 중...</div>
     </div>
 
-    <!-- 학습 통계 탭 -->
+    <!-- 학습 통계 + 나의 뱃지 (한 탭에 두 구역) -->
     <div class="tab-panel" id="panel-stats">
-      <div id="stats-content" class="loading-msg">탭을 열면 통계를 불러옵니다...</div>
-    </div>
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr"><h3>📊 학습 통계</h3></div>
+        <div id="stats-content" class="loading-msg">탭을 열면 통계를 불러옵니다...</div>
+      </div>
 
-    <!-- 나의 뱃지 탭 -->
-    <div class="tab-panel" id="panel-badges">
-      <div id="badges-content" class="loading-msg">불러오는 중...</div>
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr">
+          <h3><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 나의 뱃지</h3>
+        </div>
+        <div id="badges-content" class="loading-msg">불러오는 중...</div>
+      </div>
     </div>
 
     <!-- 결제 내역 탭 -->
