@@ -351,7 +351,6 @@ body {
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
     <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 기록</div>
     <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
-    <div class="my-tab" onclick="switchTab('certs', this)"><img src="icons/completion.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 수료증</div>
     <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
     <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물·쿠폰함</div>
@@ -378,6 +377,13 @@ body {
       </div>
 
       <div class="mc-subsec">
+        <div class="mc-subsec-hdr">
+          <h3><img src="icons/completion.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 수료증</h3>
+        </div>
+        <div id="certs-content" class="loading-msg">불러오는 중...</div>
+      </div>
+
+      <div class="mc-subsec">
         <div class="mc-subsec-hdr"><h3>📊 학습 통계</h3></div>
         <div id="stats-content" class="loading-msg">탭을 열면 통계를 불러옵니다...</div>
       </div>
@@ -401,9 +407,6 @@ body {
     </div>
 
     <!-- 수료증 탭 -->
-    <div class="tab-panel" id="panel-certs">
-      <div id="certs-content" class="loading-msg">불러오는 중...</div>
-    </div>
 
     <!-- 찜한 강좌 탭 -->
     <div class="tab-panel" id="panel-wishlist">
