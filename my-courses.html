@@ -432,6 +432,15 @@ body {
 
     <!-- 계정 설정 탭 -->
     <div class="tab-panel" id="panel-account">
+      <!-- 내 문의: 보낸 문의와 받은 답변을 여기서 확인한다 -->
+      <div class="mc-subsec" style="max-width:720px;margin:0 auto;padding-top:2rem;">
+        <div class="mc-subsec-hdr">
+          <h3>💬 내 문의</h3>
+          <a href="contact.html" class="btn btn-outline btn-sm" style="text-decoration:none;">문의하기</a>
+        </div>
+        <div id="my-contacts" class="loading-msg">불러오는 중...</div>
+      </div>
+
       <div style="max-width:480px; margin:0 auto; padding:2rem 0;">
         <h3 style="font-size:18px; font-weight:800; margin-bottom:1.5rem;">연결된 소셜 계정</h3>
         <p style="font-size:14px; color:var(--gray-500); margin-bottom:1.5rem; line-height:1.6;">
@@ -510,6 +519,7 @@ function switchTab(id, el) {
   // 계정 설정 탭
   if (id === 'account') {
     loadAccountSettings();
+    loadMyContacts();
   }
 }
 
@@ -1022,6 +1032,14 @@ async function checkAndAwardBadgesOnLoad(userId, recentLogs, totalCompleted, str
   if (newBadges.length > 0) {
     gBadges = [...gBadges, ...newBadges];
     renderBadgesTab(gBadges);
+
+  // 알림에서 넘어온 경우 해당 탭을 연다 (?tab=account 등)
+  const _tab = new URLSearchParams(location.search).get('tab');
+  if (_tab) {
+    const btn = [...document.querySelectorAll('.my-tab')]
+      .find(t => (t.getAttribute('onclick') || '').includes("'" + _tab + "'"));
+    if (btn) switchTab(_tab, btn);
+  }
     newBadges.forEach((b, i) => setTimeout(() => showBadgeToast(b), i * 3200));
   }
 }
@@ -1684,7 +1702,42 @@ async function submitRefund() {
 }
 
 // ───── 계정 설정 (소셜 계정 연결) ─────
-async function loadAccountSettings() {
+async // ── 내 문의 (계정 설정 탭 안) ──────────────────────────────
+async function loadMyContacts() {
+  const el = document.getElementById('my-contacts');
+  if (!el) return;
+  const { data, error } = await supabaseClient
+    .from('contacts')
+    .select('id, type, message, answer, answered_at, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) { el.innerHTML = '<div class="loading-msg">문의를 불러오지 못했습니다.</div>'; return; }
+  if (!data || !data.length) {
+    el.innerHTML = '<div style="padding:1.5rem;background:#f8f9fa;border-radius:10px;color:#888;font-size:13.5px;text-align:center;">'
+      + '보낸 문의가 없습니다.</div>';
+    return;
+  }
+
+  const fmt = iso => new Date(iso).toLocaleDateString('ko-KR', { year:'2-digit', month:'2-digit', day:'2-digit' });
+  el.innerHTML = data.map(c => {
+    const answered = !!(c.answer && c.answer.trim());
+    return `<div style="border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;background:#EEF2FF;color:#4B6FD4;">${esc(c.type || '문의')}</span>
+        <span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;${answered
+          ? 'background:#E8F5EE;color:#1A7A4A;">답변 완료' : 'background:#FEF3C7;color:#B45309;">답변 대기'}</span>
+        <span style="font-size:11.5px;color:#aaa;margin-left:auto;">${fmt(c.created_at)}</span>
+      </div>
+      <div style="font-size:14px;color:#333;line-height:1.75;white-space:pre-wrap;word-break:keep-all;">${esc(c.message || '')}</div>
+      ${answered ? `<div style="margin-top:12px;padding:14px 16px;background:#f0faf5;border:1px solid #bfe6d2;border-radius:10px;">
+        <div style="font-size:11px;font-weight:800;color:#1A7A4A;margin-bottom:6px;">답변${c.answered_at ? ' · ' + fmt(c.answered_at) : ''}</div>
+        <div style="font-size:14px;color:#155e40;line-height:1.8;white-space:pre-wrap;word-break:keep-all;">${esc(c.answer)}</div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function loadAccountSettings() {
   const el = document.getElementById('identity-list');
   if (!el) return;
   el.innerHTML = '<div class="loading-msg">불러오는 중...</div>';

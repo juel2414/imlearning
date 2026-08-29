@@ -16,6 +16,7 @@
     { type: 'section', label: '수강생' },
     { super: true, href: 'students.html',    icon: '👥', label: '수강생 관리' },
     { super: true, href: 'refunds.html',     icon: '💰', label: '환불 관리' },
+    { href: 'contacts.html',    icon: '💬', label: '문의 관리' },
     { href: 'reviews.html',     icon: '⭐', label: '후기 관리' },
     { href: 'submissions.html', icon: '📝', label: '노트 제출 관리' },
     { type: 'section', label: '프로모션' },

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>문의 관리 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <link rel="stylesheet" href="admin-common.css">
+  <style>
+    body { background:#F8F9FA; }
+    .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:1.5rem; }
+    .kpi { background:#fff; border-radius:12px; padding:16px 18px; border-left:4px solid #ddd; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+    .kpi .lbl { font-size:12px; color:#888; font-weight:700; margin-bottom:6px; }
+    .kpi .val { font-size:26px; font-weight:900; color:#111; }
+    .kpi.open  { border-left-color:#EAB308; }
+    .kpi.done  { border-left-color:#2D9B6F; }
+    .kpi.total { border-left-color:#4B6FD4; }
+
+    .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .filters select, .filters input {
+      padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px;
+      font-size:13px; font-family:inherit; background:#fff; }
+    .filters input { min-width:200px; }
+
+    .c-list { display:flex; flex-direction:column; }
+    .c-row { display:flex; gap:14px; padding:16px 20px; border-bottom:1px solid rgba(0,0,0,.06);
+      cursor:pointer; transition:background .12s; align-items:flex-start; }
+    .c-row:last-child { border-bottom:none; }
+    .c-row:hover { background:#F8F9FA; }
+    .c-row.unanswered { background:#fffdf5; }
+    .c-row.unanswered:hover { background:#fffaeb; }
+    .c-main { flex:1; min-width:0; }
+    .c-top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px; }
+    .c-name { font-size:14px; font-weight:800; color:#111; }
+    .c-msg { font-size:13px; color:#555; line-height:1.6; word-break:keep-all;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .c-meta { font-size:11.5px; color:#aaa; margin-top:6px; }
+    .c-side { flex-shrink:0; text-align:right; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:800; }
+    .b-open { background:#FEF3C7; color:#B45309; }
+    .b-done { background:#E8F5EE; color:#1A7A4A; }
+    .b-type { background:#EEF2FF; color:#4B6FD4; }
+    .b-guest{ background:#F3F4F6; color:#9CA3AF; }
+    .empty { padding:3rem; text-align:center; color:#aaa; font-size:14px; }
+
+    /* 답변 모달 */
+    #c-modal { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.5);
+      align-items:center; justify-content:center; padding:16px; }
+    #c-modal.open { display:flex; }
+    .c-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:760px;
+      max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .c-box h3 { margin:0 0 4px; font-size:17px; }
+    .c-box .sub { font-size:12.5px; color:#888; margin-bottom:18px; }
+    .c-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .c-field label { display:block; font-size:11px; font-weight:700; color:#999;
+      text-transform:uppercase; margin-bottom:4px; }
+    .c-field .val { font-size:13.5px; color:#111; }
+    .c-qbox { background:#f8f9fa; border:1px solid rgba(0,0,0,.06); border-radius:10px;
+      padding:18px 20px; font-size:15px; line-height:1.85; color:#222; white-space:pre-wrap;
+      word-break:keep-all; margin-bottom:16px; }
+    .c-prev { background:#f0faf5; border:1px solid #bfe6d2; border-radius:10px; padding:14px 18px;
+      font-size:14px; line-height:1.8; color:#155e40; white-space:pre-wrap; margin-bottom:16px; }
+    .c-answer { width:100%; padding:14px 16px; border:1.5px solid rgba(0,0,0,.12); border-radius:10px;
+      font-size:14.5px; line-height:1.8; font-family:inherit; box-sizing:border-box; resize:vertical; }
+    .c-answer:focus { outline:none; border-color:#2D9B6F; }
+    .c-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+    .btn-send  { padding:11px 26px; background:#2D9B6F; color:#fff; border:none; border-radius:9px;
+      font-size:14px; font-weight:800; cursor:pointer; font-family:inherit; }
+    .btn-send:hover { background:#1A7A4A; }
+    .btn-close { padding:11px 22px; background:#fff; color:#666; border:1px solid rgba(0,0,0,.12);
+      border-radius:9px; font-size:14px; cursor:pointer; font-family:inherit; }
+    .c-note { font-size:12px; color:#888; margin-top:8px; line-height:1.6; }
+  </style>
+</head>
+<body>
+
+<main class="admin-main">
+  <div class="admin-header">
+    <h1>💬 문의 관리</h1>
+  </div>
+  <p style="margin:-8px 0 20px;color:#888;font-size:13.5px;">
+    수강생이 보낸 1:1 문의를 확인하고 답변합니다. 답변을 등록하면 문의한 회원에게 알림이 갑니다.
+  </p>
+
+  <div class="kpi-row">
+    <div class="kpi open"><div class="lbl">답변 대기</div><div class="val" id="kpi-open">—</div></div>
+    <div class="kpi done"><div class="lbl">답변 완료</div><div class="val" id="kpi-done">—</div></div>
+    <div class="kpi total"><div class="lbl">전체</div><div class="val" id="kpi-total">—</div></div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-header" style="gap:12px;flex-wrap:wrap;">
+      <span class="admin-card-title">문의 목록</span>
+      <div class="filters">
+        <select id="f-status" onchange="applyFilter()">
+          <option value="open">답변 대기</option>
+          <option value="">전체</option>
+          <option value="done">답변 완료</option>
+        </select>
+        <select id="f-type" onchange="applyFilter()"><option value="">전체 유형</option></select>
+        <input id="f-search" placeholder="이름·내용 검색" oninput="applyFilter()">
+      </div>
+    </div>
+    <div class="c-list" id="c-list"><div class="empty">불러오는 중…</div></div>
+  </div>
+</main>
+
+<!-- 답변 모달 -->
+<div id="c-modal" onclick="if(event.target===this)closeModal()">
+  <div class="c-box">
+    <h3>문의 상세</h3>
+    <div class="sub" id="m-sub"></div>
+
+    <div class="c-grid">
+      <div class="c-field"><label>보낸 사람</label><div class="val" id="m-name"></div></div>
+      <div class="c-field"><label>연락처</label><div class="val" id="m-phone"></div></div>
+      <div class="c-field"><label>유형</label><div class="val" id="m-type"></div></div>
+      <div class="c-field"><label>접수 일시</label><div class="val" id="m-date"></div></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:6px;">문의 내용</div>
+    <div class="c-qbox" id="m-msg"></div>
+
+    <div id="m-prev-wrap" style="display:none;">
+      <div style="font-size:11px;font-weight:700;color:#1A7A4A;text-transform:uppercase;margin-bottom:6px;">등록된 답변</div>
+      <div class="c-prev" id="m-prev"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:6px;">
+      답변 <span id="m-answer-hint" style="text-transform:none;font-weight:600;color:#666;"></span>
+    </div>
+    <textarea class="c-answer" id="m-answer" rows="6" placeholder="답변을 입력하세요. 등록하면 문의한 회원에게 알림이 갑니다."></textarea>
+    <div class="c-note" id="m-guest-note" style="display:none;">
+      ⚠️ 비회원 문의라 사이트 알림을 보낼 수 없습니다. 남기신 연락처로 직접 회신해 주세요.
+    </div>
+
+    <div class="c-actions">
+      <button class="btn-send" onclick="saveAnswer()">답변 등록</button>
+      <button class="btn-close" onclick="closeModal()">닫기</button>
+    </div>
+    <div id="m-msg-result" style="margin-top:10px;font-size:13px;display:none;"></div>
+  </div>
+</div>
+
+<script>
+let allRows = [], filtered = [], current = null;
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(iso) {
+  return new Date(iso).toLocaleString('ko-KR', { year:'2-digit', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+(async function guard() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) { location.replace('login.html'); return; }
+  const { data: p } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!p || !['admin','super_admin'].includes(p.role)) {
+    alert('관리자 권한이 없는 계정입니다.');
+    location.replace('../index.html');
+    return;
+  }
+  loadAll();
+})();
+
+async function loadAll() {
+  const { data, error } = await supabaseClient
+    .from('contacts').select('*').order('created_at', { ascending: false });
+
+  if (error) {
+    document.getElementById('c-list').innerHTML =
+      '<div class="empty" style="color:#dc2626;">불러오지 못했습니다: ' + esc(error.message) + '</div>';
+    return;
+  }
+  allRows = data || [];
+
+  // 회원 이름 보완 (contacts.user_id 는 auth.users 를 가리켜 조인이 안 된다)
+  const ids = [...new Set(allRows.map(r => r.user_id).filter(Boolean))];
+  if (ids.length) {
+    const { data: profs } = await supabaseClient.from('profiles').select('id, name, email').in('id', ids);
+    const map = {};
+    (profs || []).forEach(p => { map[p.id] = p; });
+    allRows = allRows.map(r => ({ ...r, _p: map[r.user_id] || null }));
+  }
+
+  // 유형 선택지 채우기
+  const types = [...new Set(allRows.map(r => r.type).filter(Boolean))];
+  const sel = document.getElementById('f-type');
+  sel.innerHTML = '<option value="">전체 유형</option>' +
+    types.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+
+  updateKpi();
+  applyFilter();
+}
+
+function updateKpi() {
+  const done = allRows.filter(r => r.answer && r.answer.trim()).length;
+  document.getElementById('kpi-open').textContent  = allRows.length - done;
+  document.getElementById('kpi-done').textContent  = done;
+  document.getElementById('kpi-total').textContent = allRows.length;
+}
+
+function applyFilter() {
+  const st = document.getElementById('f-status').value;
+  const ty = document.getElementById('f-type').value;
+  const q  = document.getElementById('f-search').value.trim().toLowerCase();
+
+  filtered = allRows.filter(r => {
+    const answered = !!(r.answer && r.answer.trim());
+    if (st === 'open' && answered) return false;
+    if (st === 'done' && !answered) return false;
+    if (ty && r.type !== ty) return false;
+    if (q) {
+      const hay = [r.name, r.message, r.type, r._p && r._p.email].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  render();
+}
+
+function render() {
+  const el = document.getElementById('c-list');
+  if (!filtered.length) { el.innerHTML = '<div class="empty">해당하는 문의가 없습니다.</div>'; return; }
+
+  el.innerHTML = filtered.map((r, i) => {
+    const answered = !!(r.answer && r.answer.trim());
+    const who = r._p ? (r._p.name || r._p.email) : (r.name || '익명');
+    return `<div class="c-row${answered ? '' : ' unanswered'}" onclick="openDetail(${i})">
+      <div class="c-main">
+        <div class="c-top">
+          <span class="c-name">${esc(who)}</span>
+          ${r.type ? `<span class="badge b-type">${esc(r.type)}</span>` : ''}
+          ${r.user_id ? '' : '<span class="badge b-guest">비회원</span>'}
+        </div>
+        <div class="c-msg">${esc(r.message || '')}</div>
+        <div class="c-meta">${fmtDate(r.created_at)}${r.phone ? ' · ' + esc(r.phone) : ''}</div>
+      </div>
+      <div class="c-side">
+        <span class="badge ${answered ? 'b-done' : 'b-open'}">${answered ? '답변 완료' : '답변 대기'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDetail(i) {
+  const r = filtered[i];
+  current = r;
+  const who = r._p ? (r._p.name || r._p.email) : (r.name || '익명');
+  document.getElementById('m-sub').textContent  = fmtDate(r.created_at) + ' 접수';
+  document.getElementById('m-name').textContent = who + (r.user_id ? '' : ' (비회원)');
+  document.getElementById('m-phone').textContent = r.phone || '—';
+  document.getElementById('m-type').textContent  = r.type || '기타';
+  document.getElementById('m-date').textContent  = fmtDate(r.created_at);
+  document.getElementById('m-msg').textContent   = r.message || '';
+
+  const prevWrap = document.getElementById('m-prev-wrap');
+  if (r.answer && r.answer.trim()) {
+    prevWrap.style.display = '';
+    document.getElementById('m-prev').textContent = r.answer;
+    document.getElementById('m-answer-hint').textContent = '(수정하면 회원에게 다시 알림이 갑니다)';
+  } else {
+    prevWrap.style.display = 'none';
+    document.getElementById('m-answer-hint').textContent = '';
+  }
+  document.getElementById('m-answer').value = r.answer || '';
+  document.getElementById('m-guest-note').style.display = r.user_id ? 'none' : '';
+  document.getElementById('m-msg-result').style.display = 'none';
+  document.getElementById('c-modal').classList.add('open');
+  document.getElementById('m-answer').focus();
+}
+
+function closeModal() {
+  document.getElementById('c-modal').classList.remove('open');
+  current = null;
+}
+
+async function saveAnswer() {
+  if (!current) return;
+  const text = document.getElementById('m-answer').value.trim();
+  const msgEl = document.getElementById('m-msg-result');
+  if (!text) {
+    msgEl.style.cssText = 'display:block;color:#dc2626;font-size:13px;';
+    msgEl.textContent = '답변 내용을 입력해주세요.';
+    return;
+  }
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { error } = await supabaseClient.from('contacts').update({
+    answer: text,
+    answered_at: new Date().toISOString(),
+    answered_by: user ? user.id : null,
+    status: 'answered',
+  }).eq('id', current.id);
+
+  if (error) {
+    msgEl.style.cssText = 'display:block;color:#dc2626;font-size:13px;';
+    msgEl.textContent = '오류: ' + error.message;
+    return;
+  }
+
+  msgEl.style.cssText = 'display:block;color:#059669;font-size:13px;';
+  msgEl.textContent = current.user_id
+    ? '✅ 답변을 등록했습니다. 회원에게 알림이 갔습니다.'
+    : '✅ 답변을 저장했습니다. 비회원이라 알림은 가지 않습니다.';
+
+  const idx = allRows.findIndex(x => x.id === current.id);
+  if (idx !== -1) { allRows[idx].answer = text; allRows[idx].status = 'answered'; }
+  updateKpi();
+  setTimeout(() => { closeModal(); applyFilter(); }, 700);
+}
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>
