@@ -37,6 +37,23 @@ body {
 
 .tab-panel { display: none; }
   /* 한 탭 안에서 구역을 나눌 때 */
+  /* 계정 설정 폼 */
+  .acc-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:600px) { .acc-grid { grid-template-columns:1fr; } }
+  .acc-label { display:block; font-size:12px; font-weight:700; color:#888; margin-bottom:5px; }
+  .acc-input { width:100%; padding:11px 13px; border:1.5px solid rgba(0,0,0,.1); border-radius:9px;
+    font-size:14px; font-family:inherit; box-sizing:border-box; background:#fff; color:#111; }
+  .acc-input:focus { outline:none; border-color:#2D9B6F; }
+  .acc-input:disabled { background:#f4f6f7; color:#888; }
+  .acc-hint { font-size:12px; color:#999; margin-top:5px; line-height:1.6; display:block; }
+  .acc-btn { padding:10px 22px; background:#2D9B6F; color:#fff; border:none; border-radius:9px;
+    font-size:14px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .acc-btn:hover { background:#1A7A4A; }
+  .acc-btn:disabled { opacity:.55; cursor:not-allowed; }
+  .acc-check { display:flex; gap:10px; align-items:flex-start; cursor:pointer;
+    padding:14px 16px; border:1.5px solid rgba(0,0,0,.09); border-radius:11px; background:#fff; }
+  .acc-check input { margin-top:3px; width:17px; height:17px; accent-color:#2D9B6F; cursor:pointer; flex-shrink:0; }
+  .acc-check b { font-size:14px; color:#111; display:block; }
   .mc-subsec { margin-bottom:2.5rem; }
   .mc-subsec:last-child { margin-bottom:0; }
   .mc-subsec-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -441,9 +458,52 @@ body {
         <div id="my-contacts" class="loading-msg">불러오는 중...</div>
       </div>
 
-      <div style="max-width:480px; margin:0 auto; padding:2rem 0;">
-        <h3 style="font-size:18px; font-weight:800; margin-bottom:1.5rem;">연결된 소셜 계정</h3>
-        <p style="font-size:14px; color:var(--gray-500); margin-bottom:1.5rem; line-height:1.6;">
+      <!-- 내 정보: 이름·연락처는 문의·수료증·관리자 화면에 쓰이므로 직접 고칠 수 있어야 한다 -->
+      <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
+        <div class="mc-subsec-hdr"><h3>👤 내 정보</h3></div>
+        <div class="acc-grid">
+          <div>
+            <label class="acc-label">이름</label>
+            <input class="acc-input" id="acc-name" maxlength="50" placeholder="이름을 입력하세요">
+          </div>
+          <div>
+            <label class="acc-label">연락처</label>
+            <input class="acc-input" id="acc-phone" maxlength="20" placeholder="010-0000-0000">
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <label class="acc-label">이메일</label>
+          <input class="acc-input" id="acc-email" disabled>
+          <div class="acc-hint">이메일은 로그인 정보라 변경할 수 없습니다. 바꿔야 하면 문의해 주세요.</div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="acc-btn" onclick="saveProfile()">저장</button>
+          <span id="acc-profile-msg" style="font-size:13px;"></span>
+        </div>
+      </div>
+
+      <!-- 비밀번호 -->
+      <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
+        <div class="mc-subsec-hdr"><h3>🔒 비밀번호 변경</h3></div>
+        <div class="acc-grid">
+          <div>
+            <label class="acc-label">새 비밀번호</label>
+            <input class="acc-input" type="password" id="acc-pw1" placeholder="8자 이상" autocomplete="new-password">
+          </div>
+          <div>
+            <label class="acc-label">새 비밀번호 확인</label>
+            <input class="acc-input" type="password" id="acc-pw2" placeholder="한 번 더 입력" autocomplete="new-password">
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="acc-btn" onclick="changePassword()">비밀번호 변경</button>
+          <span id="acc-pw-msg" style="font-size:13px;"></span>
+        </div>
+      </div>
+
+      <div class="mc-subsec" style="max-width:720px; margin:0 auto;">
+        <div class="mc-subsec-hdr"><h3>🔗 연결된 소셜 계정</h3></div>
+        <p style="font-size:13.5px; color:var(--gray-500); margin-bottom:1rem; line-height:1.6;">
           소셜 계정을 연결하면 구글 또는 카카오로 바로 로그인할 수 있습니다.
         </p>
         <div id="identity-list" style="display:flex; flex-direction:column; gap:12px;">
@@ -520,6 +580,7 @@ function switchTab(id, el) {
   if (id === 'account') {
     loadAccountSettings();
     loadMyContacts();
+    loadProfileSettings();
   }
 }
 
@@ -1735,6 +1796,56 @@ async function loadMyContacts() {
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+// ── 내 정보 · 알림 · 비밀번호 ──────────────────────────────
+async function loadProfileSettings() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const { data: p } = await supabaseClient.from('profiles')
+    .select('name, phone, email').eq('id', user.id).maybeSingle();
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  set('acc-name',  p && p.name);
+  set('acc-phone', p && p.phone);
+  set('acc-email', (p && p.email) || user.email);
+}
+
+function accMsg(id, text, ok) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.color = ok ? '#059669' : '#dc2626';
+  el.textContent = text;
+  if (ok) setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+async function saveProfile() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const name  = document.getElementById('acc-name').value.trim();
+  const phone = document.getElementById('acc-phone').value.trim();
+  if (!name) { accMsg('acc-profile-msg', '이름을 입력해주세요.', false); return; }
+
+  const { error } = await supabaseClient.from('profiles')
+    .update({ name, phone: phone || null }).eq('id', user.id);
+  if (error) { accMsg('acc-profile-msg', '저장 실패: ' + error.message, false); return; }
+  accMsg('acc-profile-msg', '✅ 저장했습니다', true);
+
+  // 상단 인사말도 즉시 반영
+  const nameEl = document.getElementById('user-name');
+  if (nameEl) nameEl.textContent = name;
+}
+
+async function changePassword() {
+  const p1 = document.getElementById('acc-pw1').value;
+  const p2 = document.getElementById('acc-pw2').value;
+  if (p1.length < 8) { accMsg('acc-pw-msg', '비밀번호는 8자 이상이어야 합니다.', false); return; }
+  if (p1 !== p2)     { accMsg('acc-pw-msg', '두 비밀번호가 다릅니다.', false); return; }
+
+  const { error } = await supabaseClient.auth.updateUser({ password: p1 });
+  if (error) { accMsg('acc-pw-msg', '변경 실패: ' + error.message, false); return; }
+  document.getElementById('acc-pw1').value = '';
+  document.getElementById('acc-pw2').value = '';
+  accMsg('acc-pw-msg', '✅ 비밀번호를 변경했습니다', true);
 }
 
 async function loadAccountSettings() {
