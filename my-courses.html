@@ -54,10 +54,10 @@ body {
     padding:14px 16px; border:1.5px solid rgba(0,0,0,.09); border-radius:11px; background:#fff; }
   .acc-check input { margin-top:3px; width:17px; height:17px; accent-color:#2D9B6F; cursor:pointer; flex-shrink:0; }
   .acc-check b { font-size:14px; color:#111; display:block; }
-  .mc-subsec { margin-bottom:2.5rem; }
-  .mc-subsec:last-child { margin-bottom:0; }
+  .mc-subsec { margin-bottom:3.5rem; }
+  .mc-subsec:last-child { margin-bottom:1rem; }
   .mc-subsec-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px;
-    flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:14px; }
+    flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:16px; }
   .mc-subsec-hdr h3 { margin:0; font-size:16px; font-weight:800; color:#111; }
   .mc-subsec-desc { font-size:13px; color:#888; margin-bottom:14px; }
 .tab-panel.active { display: block; }
@@ -450,7 +450,7 @@ body {
     <!-- 계정 설정 탭 -->
     <div class="tab-panel" id="panel-account">
       <!-- 내 문의: 보낸 문의와 받은 답변을 여기서 확인한다 -->
-      <div class="mc-subsec" style="max-width:720px;margin:0 auto;padding-top:2rem;">
+      <div class="mc-subsec" style="max-width:720px;margin-left:auto;margin-right:auto;padding-top:2rem;">
         <div class="mc-subsec-hdr">
           <h3>💬 내 문의</h3>
           <a href="contact.html" class="btn btn-outline btn-sm" style="text-decoration:none;">문의하기</a>
@@ -459,7 +459,7 @@ body {
       </div>
 
       <!-- 내 정보: 이름·연락처는 문의·수료증·관리자 화면에 쓰이므로 직접 고칠 수 있어야 한다 -->
-      <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
+      <div class="mc-subsec" style="max-width:720px;margin-left:auto;margin-right:auto;">
         <div class="mc-subsec-hdr"><h3>👤 내 정보</h3></div>
         <div class="acc-grid">
           <div>
@@ -483,7 +483,7 @@ body {
       </div>
 
       <!-- 알림·메일 수신 -->
-      <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
+      <div class="mc-subsec" style="max-width:720px;margin-left:auto;margin-right:auto;">
         <div class="mc-subsec-hdr"><h3>🔔 알림 설정</h3></div>
         <label class="acc-check">
           <input type="checkbox" id="acc-marketing" onchange="saveMarketing(this)">
@@ -499,7 +499,7 @@ body {
       </div>
 
       <!-- 비밀번호 -->
-      <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
+      <div class="mc-subsec" style="max-width:720px;margin-left:auto;margin-right:auto;">
         <div class="mc-subsec-hdr"><h3>🔒 비밀번호 변경</h3></div>
         <div class="acc-grid">
           <div>
@@ -517,7 +517,7 @@ body {
         </div>
       </div>
 
-      <div class="mc-subsec" style="max-width:720px; margin:0 auto;">
+      <div class="mc-subsec" style="max-width:720px;margin-left:auto;margin-right:auto;">
         <div class="mc-subsec-hdr"><h3>🔗 연결된 소셜 계정</h3></div>
         <p style="font-size:13.5px; color:var(--gray-500); margin-bottom:1rem; line-height:1.6;">
           소셜 계정을 연결하면 구글 또는 카카오로 바로 로그인할 수 있습니다.
