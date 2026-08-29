@@ -2,6 +2,12 @@
 (function () {
   'use strict';
 
+  // iframe 으로 끼워 넣은 화면(?embed=1)에서는 네비와 안내 배너를 그리지 않는다.
+  // 부모 화면에 이미 있어서 두 겹으로 보이기 때문이다.
+  try {
+    if (new URLSearchParams(location.search).get('embed') === '1') return;
+  } catch (e) { /* 구형 브라우저면 그대로 진행 */ }
+
   // ── CSS 주입 ────────────────────────────────────────────────────
   var style = document.createElement('style');
   style.textContent = [

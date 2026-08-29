@@ -342,16 +342,13 @@ html.gc-embed .gc-wrap { padding-top: 0; margin-top: 0; }
 </head>
 <body>
 <!-- 공통 네비게이션.
-     탭 안에 iframe 으로 넣을 때(?embed=1)는 부모 화면에 이미 있으므로 불러오지 않는다.
-     안 그러면 네비와 안내 배너가 화면 안에 한 번 더 겹쳐 나온다. -->
+     탭 안에 iframe 으로 넣을 때(?embed=1)는 nav.js 가 스스로 빠져나온다. -->
 <script>
-  window.__GC_EMBED = new URLSearchParams(location.search).get('embed') === '1';
-  if (!window.__GC_EMBED) {
-    document.write('<scr' + 'ipt src="js/nav.js"></scr' + 'ipt>');
-  } else {
+  if (new URLSearchParams(location.search).get('embed') === '1') {
     document.documentElement.classList.add('gc-embed');
   }
 </script>
+<script src="js/nav.js"></script>
 
 <div class="gc-wrap">
   <div class="gc-header">
