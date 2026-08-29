@@ -220,7 +220,7 @@
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 <script>
-async // 로그인한 회원이면 이름·연락처를 채워두고, 답변을 어디서 보는지 알린다.
+// 로그인한 회원이면 이름·연락처를 채워두고, 답변을 어디서 보는지 알린다.
 // 비회원 문의는 알림을 보낼 수 없으므로 그 점도 함께 안내한다.
 (async function prefillContact() {
   const note = document.getElementById('contact-login-note');
@@ -252,7 +252,7 @@ async // 로그인한 회원이면 이름·연락처를 채워두고, 답변을 
   } catch (e) { /* 실패해도 문의는 그대로 가능 */ }
 })();
 
-function submitContact() {
+async function submitContact() {
   const name    = document.getElementById('contact-name').value.trim();
   const phone   = document.getElementById('contact-phone').value.trim();
   const type    = document.getElementById('contact-type').value;
