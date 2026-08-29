@@ -398,8 +398,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (type === 'new_course') {
-      if ((profile?.role as string) !== 'admin') return err(403, '관리자 권한이 필요합니다')
-      const { data: allProfiles } = await adminClient.from('profiles').select('email').not('email', 'is', null)
+      const role = profile?.role as string
+      if (role !== 'admin' && role !== 'super_admin') return err(403, '관리자 권한이 필요합니다')
+      // 광고성 안내이므로 수신을 끈 회원은 제외한다 (결제·수료·선물 메일은 영향 없음)
+      const { data: allProfiles } = await adminClient.from('profiles')
+        .select('email').not('email', 'is', null).eq('marketing_opt_in', true)
       if (!allProfiles?.length) return ok({ sent: 0 })
       const courseTitle  = String(data.courseTitle || '')
       const courseId     = data.courseId

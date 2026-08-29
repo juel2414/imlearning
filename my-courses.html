@@ -482,6 +482,22 @@ body {
         </div>
       </div>
 
+      <!-- 알림·메일 수신 -->
+      <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
+        <div class="mc-subsec-hdr"><h3>🔔 알림 설정</h3></div>
+        <label class="acc-check">
+          <input type="checkbox" id="acc-marketing" onchange="saveMarketing(this)">
+          <span>
+            <b>새 강좌·이벤트 안내 메일 받기</b>
+            <span class="acc-hint" style="margin-top:2px;">
+              끄더라도 <b>결제 영수증·수료 축하·선물 도착</b>과
+              노트 검토 결과·문의 답변 알림은 계속 받습니다.
+            </span>
+          </span>
+        </label>
+        <div id="acc-marketing-msg" style="font-size:13px;margin-top:8px;"></div>
+      </div>
+
       <!-- 비밀번호 -->
       <div class="mc-subsec" style="max-width:720px;margin:0 auto;">
         <div class="mc-subsec-hdr"><h3>🔒 비밀번호 변경</h3></div>
@@ -1812,11 +1828,13 @@ async function loadProfileSettings() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
   const { data: p } = await supabaseClient.from('profiles')
-    .select('name, phone, email').eq('id', user.id).maybeSingle();
+    .select('name, phone, email, marketing_opt_in').eq('id', user.id).maybeSingle();
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
   set('acc-name',  p && p.name);
   set('acc-phone', p && p.phone);
   set('acc-email', (p && p.email) || user.email);
+  const mk = document.getElementById('acc-marketing');
+  if (mk) mk.checked = !p || p.marketing_opt_in !== false;
 }
 
 function accMsg(id, text, ok) {
@@ -1842,6 +1860,20 @@ async function saveProfile() {
   // 상단 인사말도 즉시 반영
   const nameEl = document.getElementById('user-name');
   if (nameEl) nameEl.textContent = name;
+}
+
+async function saveMarketing(el) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const { error } = await supabaseClient.from('profiles')
+    .update({ marketing_opt_in: el.checked }).eq('id', user.id);
+  if (error) {
+    el.checked = !el.checked;   // 실패하면 되돌린다
+    accMsg('acc-marketing-msg', '변경 실패: ' + error.message, false);
+    return;
+  }
+  accMsg('acc-marketing-msg',
+    el.checked ? '✅ 안내 메일을 받습니다' : '✅ 안내 메일을 받지 않습니다', true);
 }
 
 async function changePassword() {
