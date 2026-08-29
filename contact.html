@@ -236,16 +236,21 @@ let CONTACT_ME = null;   // 로그인 회원의 계정 정보 (관리자에게 �
         note.style.color = '#92400e';
         note.style.padding = '20px';
         note.style.textAlign = 'center';
+        const back = encodeURIComponent(location.href);
         note.innerHTML =
-          '<div style="font-size:15px;font-weight:800;margin-bottom:6px;">문의는 로그인 후 이용하실 수 있어요</div>'
-          + '<div style="font-size:13px;line-height:1.7;margin-bottom:14px;">'
-          + '답변을 알림으로 보내드리기 위해 회원 확인이 필요합니다.<br>'
-          + '급하시면 전화(010-5307-6139)로 연락 주세요.</div>'
-          + '<a href="login.html?redirect=' + encodeURIComponent(location.href) + '" '
+          '<div style="font-size:34px;line-height:1;margin-bottom:10px;">✍️</div>'
+          + '<div style="font-size:16px;font-weight:800;margin-bottom:8px;">회원가입 후에 문의해 주세요</div>'
+          + '<div style="font-size:13px;line-height:1.75;margin-bottom:16px;">'
+          + '답변을 알림으로 보내드리려면 회원 확인이 필요합니다.<br>'
+          + '가입은 1분이면 됩니다.</div>'
+          + '<a href="signup.html" '
           + 'style="display:inline-block;background:#2D9B6F;color:#fff;text-decoration:none;'
-          + 'padding:11px 28px;border-radius:9px;font-size:14px;font-weight:800;">로그인하기 →</a>'
-          + '<div style="font-size:12.5px;margin-top:10px;">'
-          + '계정이 없으신가요? <a href="signup.html" style="color:#b45309;font-weight:700;">회원가입</a></div>';
+          + 'padding:12px 32px;border-radius:9px;font-size:14.5px;font-weight:800;">회원가입하기 →</a>'
+          + '<div style="font-size:12.5px;margin-top:12px;">'
+          + '이미 회원이신가요? <a href="login.html?redirect=' + back + '" '
+          + 'style="color:#b45309;font-weight:700;">로그인</a></div>'
+          + '<div style="font-size:12px;margin-top:14px;padding-top:12px;border-top:1px solid #fde68a;">'
+          + '급하시면 전화 <b>010-5307-6139</b> 로 연락 주세요.</div>';
       }
       return;
     }
