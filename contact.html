@@ -172,13 +172,14 @@
       <div class="contact-form reveal reveal-delay-1">
         <h3 style="font-size:18px;font-weight:800;color:var(--black);margin-bottom:1.5rem;">문의 남기기</h3>
         <div id="contact-login-note" style="display:none;background:#f0faf5;border:1px solid #bfe6d2;border-radius:10px;padding:12px 14px;font-size:13px;color:#155e40;line-height:1.65;margin-bottom:1.25rem;"></div>
-        <div class="form-group">
+        <!-- 로그인 회원은 계정 정보가 그대로 넘어가므로 이름·연락처를 묻지 않는다 -->
+        <div class="form-group" id="grp-name" style="display:none;">
           <label class="form-label" for="contact-name">이름 <span style="color:var(--green)">*</span></label>
           <input class="form-input" type="text" id="contact-name" placeholder="이름을 입력해주세요" maxlength="50">
         </div>
-        <div class="form-group">
-          <label class="form-label" for="contact-phone">연락처</label>
-          <input class="form-input" type="tel" id="contact-phone" placeholder="010-0000-0000" maxlength="20">
+        <div class="form-group" id="grp-email" style="display:none;">
+          <label class="form-label" for="contact-email">답변받을 이메일 <span style="color:var(--green)">*</span></label>
+          <input class="form-input" type="email" id="contact-email" placeholder="example@email.com" maxlength="120">
         </div>
         <div class="form-group">
           <label class="form-label" for="contact-type">문의 유형</label>
@@ -222,39 +223,68 @@
 <script>
 // 로그인한 회원이면 이름·연락처를 채워두고, 답변을 어디서 보는지 알린다.
 // 비회원 문의는 알림을 보낼 수 없으므로 그 점도 함께 안내한다.
+let CONTACT_ME = null;   // 로그인 회원의 계정 정보 (관리자에게 그대로 넘어간다)
+
 (async function prefillContact() {
-  const note = document.getElementById('contact-login-note');
+  const note  = document.getElementById('contact-login-note');
+  const gName = document.getElementById('grp-name');
+  const gMail = document.getElementById('grp-email');
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
+
     if (!session) {
+      // 비회원: 답변을 보내려면 이름과 이메일이 있어야 한다
+      gName.style.display = '';
+      gMail.style.display = '';
       if (note) {
-        // cssText 치환은 브라우저가 값을 정규화해 실패하므로 속성을 직접 지정한다
-        note.style.display    = 'block';
+        note.style.display = 'block';
         note.style.background = '#fffbeb';
         note.style.borderColor = '#fde68a';
-        note.style.color      = '#92400e';
-        note.innerHTML = '로그인 후 문의하시면 <b>답변을 사이트에서 바로 확인</b>하실 수 있어요. '
+        note.style.color = '#92400e';
+        note.innerHTML = '로그인 후 문의하시면 이름·연락처를 적지 않아도 되고, '
+          + '<b>답변을 사이트에서 바로 확인</b>하실 수 있어요. '
           + '<a href="login.html?redirect=' + encodeURIComponent(location.href) + '" style="color:#b45309;font-weight:700;">로그인하기 →</a>';
       }
       return;
     }
+
     const { data: p } = await supabaseClient.from('profiles')
-      .select('name, phone').eq('id', session.user.id).maybeSingle();
-    const nameEl  = document.getElementById('contact-name');
-    const phoneEl = document.getElementById('contact-phone');
-    if (p && p.name && nameEl && !nameEl.value)   nameEl.value  = p.name;
-    if (p && p.phone && phoneEl && !phoneEl.value) phoneEl.value = p.phone;
+      .select('name, email, phone').eq('id', session.user.id).maybeSingle();
+    CONTACT_ME = {
+      name:  (p && p.name)  || session.user.email || '회원',
+      email: (p && p.email) || session.user.email || '',
+      phone: (p && p.phone) || '',
+    };
+
+    // 회원은 이름·연락처 칸을 아예 보여주지 않는다
+    gName.style.display = 'none';
+    gMail.style.display = 'none';
+
     if (note) {
       note.style.display = 'block';
-      note.innerHTML = '답변이 등록되면 알림으로 알려드립니다. '
+      note.innerHTML =
+        '<b>' + escHtmlC(CONTACT_ME.name) + '</b> 님으로 문의가 접수됩니다'
+        + (CONTACT_ME.email ? ' · ' + escHtmlC(CONTACT_ME.email) : '')
+        + (CONTACT_ME.phone ? ' · ' + escHtmlC(CONTACT_ME.phone) : '')
+        + '<br>답변이 등록되면 알림으로 알려드립니다. '
         + '<a href="my-courses.html?tab=account" style="color:#1A7A4A;font-weight:700;">나의 강의실 › 계정 설정 › 내 문의</a> 에서도 확인하실 수 있어요.';
     }
-  } catch (e) { /* 실패해도 문의는 그대로 가능 */ }
+  } catch (e) {
+    // 조회에 실패하면 비회원처럼 직접 입력받는다
+    gName.style.display = '';
+    gMail.style.display = '';
+  }
 })();
 
+function escHtmlC(t) {
+  return String(t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 async function submitContact() {
-  const name    = document.getElementById('contact-name').value.trim();
-  const phone   = document.getElementById('contact-phone').value.trim();
+  // 로그인 회원이면 계정 정보를 그대로 쓰고, 비회원이면 입력값을 쓴다
+  const name    = CONTACT_ME ? CONTACT_ME.name  : document.getElementById('contact-name').value.trim();
+  const phone   = CONTACT_ME ? CONTACT_ME.phone : '';
+  const email   = CONTACT_ME ? CONTACT_ME.email : document.getElementById('contact-email').value.trim();
   const type    = document.getElementById('contact-type').value;
   const message = document.getElementById('contact-message').value.trim();
   const btn     = document.getElementById('contact-submit');
@@ -264,6 +294,9 @@ async function submitContact() {
   msgEl.textContent = '';
 
   if (!name) { showMsg('이름을 입력해주세요.', false); return; }
+  if (!CONTACT_ME && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    showMsg('답변받을 이메일을 정확히 입력해주세요.', false); return;
+  }
   if (!message) { showMsg('문의 내용을 입력해주세요.', false); return; }
 
   btn.disabled = true;
@@ -278,7 +311,7 @@ async function submitContact() {
     const res = await fetch(SUPABASE_URL + '/functions/v1/send-email', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ type: 'contact_inquiry', data: { name, phone, type, message } }),
+      body: JSON.stringify({ type: 'contact_inquiry', data: { name, phone, email, type, message } }),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -286,8 +319,10 @@ async function submitContact() {
     }
 
     showMsg('문의가 접수됐습니다. 빠르게 답변드리겠습니다 😊', true);
-    document.getElementById('contact-name').value = '';
-    document.getElementById('contact-phone').value = '';
+    if (!CONTACT_ME) {
+      document.getElementById('contact-name').value = '';
+      document.getElementById('contact-email').value = '';
+    }
     document.getElementById('contact-message').value = '';
     document.getElementById('contact-type').selectedIndex = 0;
     btn.textContent = '전송 완료 ✓';

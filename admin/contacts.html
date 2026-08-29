@@ -114,6 +114,7 @@
 
     <div class="c-grid">
       <div class="c-field"><label>보낸 사람</label><div class="val" id="m-name"></div></div>
+      <div class="c-field"><label>이메일</label><div class="val" id="m-email"></div></div>
       <div class="c-field"><label>연락처</label><div class="val" id="m-phone"></div></div>
       <div class="c-field"><label>유형</label><div class="val" id="m-type"></div></div>
       <div class="c-field"><label>접수 일시</label><div class="val" id="m-date"></div></div>
@@ -237,7 +238,7 @@ function render() {
           ${r.user_id ? '' : '<span class="badge b-guest">비회원</span>'}
         </div>
         <div class="c-msg">${esc(r.message || '')}</div>
-        <div class="c-meta">${fmtDate(r.created_at)}${r.phone ? ' · ' + esc(r.phone) : ''}</div>
+        <div class="c-meta">${fmtDate(r.created_at)}${(r.email || (r._p && r._p.email)) ? ' · ' + esc(r.email || r._p.email) : ''}${r.phone ? ' · ' + esc(r.phone) : ''}</div>
       </div>
       <div class="c-side">
         <span class="badge ${answered ? 'b-done' : 'b-open'}">${answered ? '답변 완료' : '답변 대기'}</span>
@@ -252,6 +253,7 @@ function openDetail(i) {
   const who = r._p ? (r._p.name || r._p.email) : (r.name || '익명');
   document.getElementById('m-sub').textContent  = fmtDate(r.created_at) + ' 접수';
   document.getElementById('m-name').textContent = who + (r.user_id ? '' : ' (비회원)');
+  document.getElementById('m-email').textContent = r.email || (r._p && r._p.email) || '—';
   document.getElementById('m-phone').textContent = r.phone || '—';
   document.getElementById('m-type').textContent  = r.type || '기타';
   document.getElementById('m-date').textContent  = fmtDate(r.created_at);
