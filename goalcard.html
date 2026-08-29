@@ -333,11 +333,25 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
   .gc-table { min-width: 620px; }
   .gc-table th, .gc-table td { padding: 8px 10px; }
 }
+
+/* 탭 안에 끼워 넣었을 때: 부모가 제목과 버튼을 이미 보여주므로 중복을 없앤다 */
+html.gc-embed body { background: transparent; }
+html.gc-embed .gc-header { display: none; }
+html.gc-embed .gc-wrap { padding-top: 0; margin-top: 0; }
 </style>
 </head>
 <body>
-<!-- 공통 네비게이션 -->
-<script src="js/nav.js"></script>
+<!-- 공통 네비게이션.
+     탭 안에 iframe 으로 넣을 때(?embed=1)는 부모 화면에 이미 있으므로 불러오지 않는다.
+     안 그러면 네비와 안내 배너가 화면 안에 한 번 더 겹쳐 나온다. -->
+<script>
+  window.__GC_EMBED = new URLSearchParams(location.search).get('embed') === '1';
+  if (!window.__GC_EMBED) {
+    document.write('<scr' + 'ipt src="js/nav.js"></scr' + 'ipt>');
+  } else {
+    document.documentElement.classList.add('gc-embed');
+  }
+</script>
 
 <div class="gc-wrap">
   <div class="gc-header">

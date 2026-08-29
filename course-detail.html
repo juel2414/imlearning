@@ -1416,8 +1416,9 @@ async function loadCourse() {
         goalcardBtn.style.display = '';
         // 골카드는 강좌별로 동작한다 — 현재 강좌 ID 를 넘긴다.
         const gcUrl = 'goalcard.html?course=' + course.id;
+        // iframe 은 embed 모드로 — 네비·배너·제목이 겹치지 않게 한다
         const gcFrame = document.getElementById('goalcard-frame');
-        if (gcFrame) gcFrame.src = gcUrl;
+        if (gcFrame) gcFrame.src = gcUrl + '&embed=1';
         const gcLink = document.getElementById('goalcard-newtab');
         if (gcLink) gcLink.href = gcUrl;
       }
