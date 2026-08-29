@@ -1702,7 +1702,7 @@ async function submitRefund() {
 }
 
 // ───── 계정 설정 (소셜 계정 연결) ─────
-async // ── 내 문의 (계정 설정 탭 안) ──────────────────────────────
+// ── 내 문의 (계정 설정 탭 안) ──────────────────────────────
 async function loadMyContacts() {
   const el = document.getElementById('my-contacts');
   if (!el) return;
@@ -1737,7 +1737,7 @@ async function loadMyContacts() {
   }).join('');
 }
 
-function loadAccountSettings() {
+async function loadAccountSettings() {
   const el = document.getElementById('identity-list');
   if (!el) return;
   el.innerHTML = '<div class="loading-msg">불러오는 중...</div>';
