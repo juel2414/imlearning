@@ -350,10 +350,9 @@ body {
   <div class="my-tabs">
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
     <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 기록</div>
-    <div class="my-tab" onclick="switchTab('orders', this)">🧾 결제 내역</div>
     <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
-    <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 선물·쿠폰함</div>
+    <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 결제·선물함</div>
     <div class="my-tab" onclick="switchTab('account', this)">⚙ 계정 설정</div>
   </div>
 </div>
@@ -389,11 +388,6 @@ body {
       </div>
     </div>
 
-    <!-- 결제 내역 탭 -->
-    <div class="tab-panel" id="panel-orders">
-      <div id="orders-content" class="loading-msg">불러오는 중...</div>
-    </div>
-
     <!-- CBUP 골카드 탭 -->
     <div class="tab-panel" id="panel-goalcard">
       <div style="padding:2rem 0 1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
@@ -414,8 +408,13 @@ body {
     </div>
 
     <!-- 선물함 탭 -->
-    <!-- 선물함 + 쿠폰함 (한 탭에 두 구역) -->
+    <!-- 결제 내역 + 선물함 + 쿠폰함 (한 탭에 세 구역) -->
     <div class="tab-panel" id="panel-gifts">
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr"><h3>🧾 결제 내역</h3></div>
+        <div id="orders-content" class="loading-msg">불러오는 중...</div>
+      </div>
+
       <div class="mc-subsec">
         <div class="mc-subsec-hdr">
           <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 선물함</h3>
@@ -503,7 +502,7 @@ function switchTab(id, el) {
     gStatsLoaded = true;
     loadAndRenderStats(gUserId);
   }
-  // 선물·쿠폰함 탭: 열 때마다 둘 다 새로고침
+  // 결제·선물함 탭: 열 때마다 선물·쿠폰을 새로고침 (결제 내역은 로드 시 이미 렌더됨)
   if (id === 'gifts' && gUserId) {
     loadGifts(gUserId);
     loadCoupons();
