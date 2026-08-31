@@ -2256,6 +2256,12 @@ function allDayCounts() {
   return days;
 }
 
+/** 그날 몫이 몇 강째인지. 한 강이면 '15강', 여러 강이면 '15~16강' */
+function lessonRange(item) {
+  if (!item || !item.from) return item && item.goal ? `${item.goal}강` : '';
+  return item.from === item.to ? `${item.from}강` : `${item.from}~${item.to}강`;
+}
+
 /** 칸에 넣을 짧은 강좌 이름. '[4세대] CBUP 수료과정' → 'CBUP 수료과정' */
 function shortCourseName(title) {
   return String(title || '')
@@ -2281,12 +2287,17 @@ function renderMonthCalendar() {
   const days     = allDayCounts();
   const todayStr = localDay(now);
 
-  // 그날 어느 강좌를 몇 강 들어야 하고, 실제로 몇 강 들었는지
+  // 그날 어느 강좌의 '몇 강째' 를 들어야 하고, 실제로 몇 강 들었는지
   const dayPlan = ds => {
     const map = {};
     (gPlanRows || []).forEach(r => {
-      if (ds >= r.start_date && ds <= r.target_date)
-        map[r.course_id] = { title: r.course_title, goal: r.daily_goal, done: 0 };
+      if (ds < r.start_date || ds > r.target_date) return;
+      // 시작일부터 며칠째인지 세어 그날 몫의 강의 번호를 낸다
+      const nth  = Math.round((new Date(ds) - new Date(r.start_date)) / 86400000) + 1;
+      const from = (nth - 1) * r.daily_goal + 1;
+      if (from > r.total_lessons) return;   // 계획대로면 이미 다 들은 뒤
+      const to = Math.min(nth * r.daily_goal, r.total_lessons);
+      map[r.course_id] = { title: r.course_title, goal: to - from + 1, from, to, done: 0 };
     });
     const st = days[ds];
     if (st) Object.entries(st.byCourse).forEach(([cid, n]) => {
@@ -2331,12 +2342,13 @@ function renderMonthCalendar() {
     const rest  = dp.items.length - shown.length;
     const list = shown.map(i => {
       const state = i.goal && i.done >= i.goal ? 'met' : i.done ? 'part' : '';
-      const qt    = i.goal ? (i.done ? `${i.done}/${i.goal}` : `${i.goal}강`) : `${i.done}강`;
+      // 계획이 있으면 '몇 강째' 를, 없으면 그날 들은 수를 적는다
+      const qt = i.goal ? lessonRange(i) : `${i.done}강`;
       return `<span class="cd-item ${state}"><span class="nm">${esc(shortCourseName(i.title))}</span><span class="qt">${qt}</span></span>`;
     }).join('') + (rest > 0 ? `<span class="cd-more">+${rest}개 더</span>` : '');
 
     let tip = `${gCalMonth + 1}월 ${d}일`;
-    if (dp.planned.length) tip += '\n들을 분량 — ' + dp.planned.map(i => `${i.title} ${i.goal}강`).join(', ');
+    if (dp.planned.length) tip += '\n들을 분량 — ' + dp.planned.map(i => `${i.title} ${lessonRange(i)} (${i.goal}강)`).join(', ');
     if (cnt) tip += '\n들은 것 — ' + dp.items.filter(i => i.done).map(i => `${i.title} ${i.done}강`).join(', ');
     else if (missed) tip += '\n(들은 강의 없음)';
 
@@ -2370,7 +2382,7 @@ function renderMonthCalendar() {
         <span><i style="background:#fff;border:1px dashed #cbd5d1"></i>학습 예정일</span>
         <span><i style="background:#fdf3f3;border:1px solid #f3cccc"></i>빠진 날</span>
       </div>
-      <div class="cal-note">칸 안 숫자는 그날 <b>들은 강의 / 들어야 할 강의</b> 수입니다. 다 채운 강좌는 초록으로 칠해집니다.</div>
+      <div class="cal-note">강좌 옆 숫자는 그날 들어야 할 <b>강의 번호</b>입니다(예: 15~16강). 오른쪽 위는 그날 <b>들은 강의 / 들어야 할 강의</b> 수이고, 다 채운 강좌는 초록으로 칠해집니다.</div>
     </div>`;
 }
 
