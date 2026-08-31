@@ -181,7 +181,22 @@ body {
   .btn-plan-del:hover { background:#fef2f2; }
 
   /* 강좌 기간 캘린더 */
-  .cc-grid { display:grid; grid-template-columns:42px repeat(7,1fr); gap:4px; max-width:520px; }
+  .cc-grid { display:grid; grid-template-columns:44px repeat(7,1fr); gap:5px; max-width:840px; }
+  .cc-grid .cal-day { aspect-ratio:auto; min-height:76px; padding:6px 5px; gap:3px;
+    justify-content:flex-start; }
+  .cc-num   { font-size:12.5px; font-weight:800; }
+  .cc-range { font-size:10px; font-weight:700; letter-spacing:-.02em; }
+  .cc-done  { font-size:9.5px; font-weight:800; background:#2D9B6F; color:#fff;
+    border-radius:5px; padding:1px 5px; max-width:100%; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .cal-day.missed  .cc-num, .cal-day.missed  .cc-range { color:#c05a5a; }
+  .cal-day.planned .cc-num, .cal-day.planned .cc-range { color:#9aa2a8; }
+  @media(max-width:820px){
+    .cc-grid { grid-template-columns:30px repeat(7,1fr); gap:3px; }
+    .cc-grid .cal-day { min-height:56px; padding:4px 2px; }
+    .cc-num { font-size:11px; } .cc-range { font-size:8.5px; }
+    .cc-done { font-size:8px; padding:1px 3px; }
+  }
   .cc-mon { font-size:10.5px; color:#888; font-weight:700; display:flex; align-items:center; }
   .cc-lbl { font-size:10.5px; color:#888; font-weight:700; text-align:center; }
   .cc-title { font-size:12px; font-weight:700; color:#888; margin:16px 0 8px; }
@@ -1996,6 +2011,7 @@ function courseDayCounts(courseId) {
 /** 한 강좌의 학습 캘린더. 계획이 있으면 계획 기간 전체를, 없으면 최근 8주를 그린다. */
 function courseCalendarHTML(courseId, plan) {
   const days     = courseDayCounts(courseId);
+  const doneNos  = courseDayLessonNos(courseId);
   const todayStr = localDay(new Date());
 
   let start, end;
@@ -2038,18 +2054,23 @@ function courseCalendarHTML(courseId, plan) {
       const lvl     = cnt === 0 ? 0 : cnt <= 1 ? 1 : cnt <= 3 ? 2 : cnt <= 5 ? 3 : 4;
       const isToday = ds === todayStr;
       const isPast  = ds < todayStr;
-      const missed  = !!plan && isPast && cnt === 0;          // 계획일인데 안 들은 날
-      const upcoming= !!plan && !isPast && cnt === 0;          // 앞으로 들어야 할 날
+      const sched   = planLessonsOn(plan, ds);                 // 그날 들어야 할 강의 번호
+      const missed  = !!sched && isPast && cnt === 0;          // 계획일인데 안 들은 날
+      const upcoming= !!sched && !isPast && cnt === 0;          // 앞으로 들어야 할 날
       const cls = ['cal-day', lvl > 0 && ('lv' + lvl), isToday && 'today-marker',
                    upcoming && 'planned', missed && 'missed'].filter(Boolean).join(' ');
-      // 칸 아래 작은 숫자: 그날 들은 강의 / 들어야 할 강의
-      const goal  = plan ? plan.daily_goal : 0;
-      const quota = goal ? (cnt ? `${cnt}/${goal}` : `${goal}강`) : (cnt ? `${cnt}강` : '');
+
+      const doneTxt = joinLessonNos(doneNos[ds]);
       let tip = `${x.getMonth() + 1}월 ${x.getDate()}일`;
-      if (goal) tip += `\n들을 분량 — ${goal}강`;
-      if (cnt)  tip += `\n들은 것 — ${cnt}강`;
+      if (sched)  tip += `\n들을 분량 — ${lessonRange(sched)} (${sched.goal}강)`;
+      if (cnt)    tip += `\n들은 것 — ${doneTxt || cnt + '강'}`;
       else if (missed) tip += '\n(들은 강의 없음)';
-      html += `<div class="${cls}" title="${esc(tip)}"><span>${x.getDate()}</span>${quota ? `<em>${quota}</em>` : ''}</div>`;
+
+      html += `<div class="${cls}" title="${esc(tip)}">
+          <span class="cc-num">${x.getDate()}</span>
+          ${sched ? `<span class="cc-range">${lessonRange(sched)}</span>` : ''}
+          ${cnt ? `<span class="cc-done">✓ ${doneTxt || cnt + '강'}</span>` : ''}
+        </div>`;
     });
 
     cur.setDate(cur.getDate() + 7);
@@ -2254,6 +2275,42 @@ function allDayCounts() {
     days[d].byCourse[pr.course_id] = (days[d].byCourse[pr.course_id] || 0) + 1;
   });
   return days;
+}
+
+/** 계획에서 그 날짜에 배정된 강의 번호. 계획 밖이거나 이미 끝났으면 null */
+function planLessonsOn(planRow, ds) {
+  if (!planRow || ds < planRow.start_date || ds > planRow.target_date) return null;
+  const nth  = Math.round((new Date(ds) - new Date(planRow.start_date)) / 86400000) + 1;
+  const from = (nth - 1) * planRow.daily_goal + 1;
+  if (from > planRow.total_lessons) return null;
+  const to = Math.min(nth * planRow.daily_goal, planRow.total_lessons);
+  return { from, to, goal: to - from + 1 };
+}
+
+/** 그 강좌에서 어느 날 몇 강째를 실제로 끝냈는지 (lesson_id 의 숫자를 읽는다) */
+function courseDayLessonNos(courseId) {
+  const map = {};
+  gProgressRows.forEach(pr => {
+    if (pr.course_id !== courseId || !pr.completed || !pr.watched_at) return;
+    const d = localDay(pr.watched_at);
+    const m = String(pr.lesson_id || '').match(/(\d+)/);
+    if (!map[d]) map[d] = [];
+    if (m) map[d].push(+m[1]);
+  });
+  Object.values(map).forEach(a => a.sort((x, y) => x - y));
+  return map;
+}
+
+/** 번호 목록을 '1~2, 5강' 처럼 묶어 적는다 */
+function joinLessonNos(nos) {
+  if (!nos || !nos.length) return '';
+  const out = []; let a = nos[0], b = nos[0];
+  for (let i = 1; i <= nos.length; i++) {
+    if (nos[i] === b + 1) { b = nos[i]; continue; }
+    out.push(a === b ? `${a}` : `${a}~${b}`);
+    a = b = nos[i];
+  }
+  return out.join(', ') + '강';
 }
 
 /** 그날 몫이 몇 강째인지. 한 강이면 '15강', 여러 강이면 '15~16강' */
