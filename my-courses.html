@@ -98,15 +98,24 @@ body {
   .prog-chip.done   { background:#2D9B6F; color:#fff; }
   .prog-chip.expired{ background:#f1f3f4; color:#c86a6a; }
 
-  /* 강좌별 상세 */
-  .cd-card { border:1px solid rgba(0,0,0,.09); border-radius:14px; background:#fff;
-    margin-bottom:12px; overflow:hidden; }
-  .cd-hdr { display:flex; align-items:center; gap:10px; padding:14px 18px; cursor:pointer; }
-  .cd-hdr h4 { margin:0; font-size:14.5px; font-weight:800; color:#111; flex:1; }
-  .cd-arrow { color:#bbb; font-size:12px; transition:transform .2s; }
-  .cd-card.open .cd-arrow { transform:rotate(90deg); }
-  .cd-body { display:none; padding:0 18px 18px; }
-  .cd-card.open .cd-body { display:block; }
+  /* 표 줄을 누르면 그 아래에 펼쳐지는 강좌 상세 */
+  .prog-arrow { display:inline-block; color:#bbb; font-size:10px; margin-right:7px;
+    transition:transform .2s; }
+  .prog-row.open .prog-arrow { transform:rotate(90deg); color:#2D9B6F; }
+  .prog-row.open { background:#f4faf7; }
+  .prog-detail-row { display:none; }
+  .prog-detail-row.open { display:table-row; }
+  .prog-detail-row > td { padding:0 !important; background:#fbfcfc;
+    border-bottom:1px solid rgba(0,0,0,.05); }
+  .pd-inner { padding:18px 20px 22px; }
+
+  /* 달력 위 달 이동 */
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+  .cal-nav-btn { width:32px; height:32px; border:1.5px solid rgba(0,0,0,.1); border-radius:9px;
+    background:#fff; color:#555; font-size:17px; line-height:1; cursor:pointer; flex:none; }
+  .cal-nav-btn:hover { border-color:#2D9B6F; color:#2D9B6F; }
+  .cal-nav-title { flex:1; text-align:center; font-size:15px; font-weight:800; color:#111; }
+  .cal-nav-title span { display:block; font-size:11.5px; font-weight:600; color:#888; margin-top:3px; }
 
   /* 강좌 카드 안에서 바로 고치는 계획 편집기 */
   .plan-edit { display:none; margin-top:12px; background:#f0faf5; border-radius:12px; padding:14px 16px; }
@@ -472,14 +481,15 @@ body {
     <!-- 학습 기록: 진도 현황 · 뱃지 · 수료증 · 통계 -->
     <div class="tab-panel" id="panel-stats">
       <div class="mc-subsec">
-        <div class="mc-subsec-hdr"><h3>📈 진도 한눈에 보기</h3></div>
-        <div class="mc-subsec-desc">계획을 세운 강좌는 '오늘까지 권장'과 '실제 완료'를 나란히 비교합니다. 줄을 누르면 아래에서 자세히 볼 수 있어요.</div>
-        <div id="prog-overview" class="loading-msg">불러오는 중...</div>
+        <div class="mc-subsec-hdr"><h3>📅 학습 달력</h3></div>
+        <div class="mc-subsec-desc">수강 중인 모든 강좌를 합쳐서 어느 날 몇 강을 들었는지 보여줍니다.</div>
+        <div id="prog-calendar" class="loading-msg">불러오는 중...</div>
       </div>
 
       <div class="mc-subsec">
-        <div class="mc-subsec-hdr"><h3>🔍 강좌별 자세히 보기</h3></div>
-        <div id="prog-detail"></div>
+        <div class="mc-subsec-hdr"><h3>📈 진도 한눈에 보기</h3></div>
+        <div class="mc-subsec-desc">계획을 세운 강좌는 '오늘까지 권장'과 '실제 완료'를 나란히 비교합니다. 강좌를 누르면 그 자리에서 펼쳐집니다.</div>
+        <div id="prog-overview" class="loading-msg">불러오는 중...</div>
       </div>
 
       <div class="mc-subsec">
@@ -1445,7 +1455,7 @@ async function loadMyPage() {
 
   if (!user) {
     document.getElementById('user-name').textContent = '로그인이 필요해요';
-    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content','prog-overview'].forEach(id => {
+    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content','prog-overview','prog-calendar'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = `
         <div class="empty-state">
@@ -1949,15 +1959,20 @@ function courseCalendarHTML(courseId, plan) {
   let html = '<div class="cc-grid"><div class="cc-lbl"></div>' +
     ['월','화','수','목','금','토','일'].map(d => `<div class="cc-lbl">${d}</div>`).join('');
 
-  let guard = 0;
+  let guard = 0, lastMonth = null;
   while (guard < 400) {
     const week = [];
     for (let i = 0; i < 7; i++) { const x = new Date(cur); x.setDate(cur.getDate() + i); week.push(x); }
 
-    // 달이 바뀌는 주에만 왼쪽에 '9월' 같은 표시를 둔다
-    const firstOfMonth = week.find(x => x.getDate() === 1);
-    const label = guard === 0 ? (week[0].getMonth() + 1) + '월'
-                : firstOfMonth ? (firstOfMonth.getMonth() + 1) + '월' : '';
+    // 왼쪽 표시는 '그 줄에서 실제로 보이는 첫 날'의 달을 따른다.
+    // 예전에는 그 주에 1일이 끼어 있으면 무조건 다음 달로 적어서,
+    // 8월 31일 한 칸뿐인 줄이 '9월'로 보였다.
+    const firstShown = week.find(x => { const d = localDay(x); return d >= start && d <= end; });
+    let label = '';
+    if (firstShown && firstShown.getMonth() !== lastMonth) {
+      label = (firstShown.getMonth() + 1) + '월';
+      lastMonth = firstShown.getMonth();
+    }
     html += `<div class="cc-mon">${label}</div>`;
 
     week.forEach(x => {
@@ -2040,7 +2055,6 @@ function buildProgRows() {
 /** 진도 현황 탭 전체 */
 async function loadProgressTab() {
   const ovEl = document.getElementById('prog-overview');
-  const dtEl = document.getElementById('prog-detail');
   if (!ovEl || !gUserId) return;
 
   ovEl.classList.remove('loading-msg');
@@ -2051,62 +2065,17 @@ async function loadProgressTab() {
   gPlanRanges = gPlanRows.map(r => ({ start: r.start_date, end: r.target_date }));
 
   const list = buildProgRows();
+  renderMonthCalendar();
 
   if (!list.length) {
     ovEl.innerHTML = '<div class="plan-empty">수강 중인 강좌가 없습니다. 강좌를 수강하면 여기에서 진도를 한눈에 볼 수 있어요.</div>';
-    dtEl.innerHTML = '';
     return;
   }
 
-  /* ── 한눈에 보기 ── */
-  const body = list.map(r => `
-    <tr onclick="openCourseDetail(${r.courseId})">
-      <td>
-        <div class="prog-name">${esc(r.title)}</div>
-        <div class="prog-mini" title="초록 = 실제 ${r.pct}%${r.planPct !== null ? ' / 검정 선 = 오늘까지 권장 ' + r.planPct + '%' : ''}">
-          <div class="a" style="width:${r.pct}%"></div>
-          ${r.planPct !== null ? `<div class="p" style="left:${r.planPct}%"></div>` : ''}
-        </div>
-      </td>
-      <td class="prog-num">${r.plan ? r.plan.planned_lessons + '강' : '—'}</td>
-      <td class="prog-num">${r.done}강</td>
-      <td class="prog-num">${r.total || '—'}${r.total ? '강' : ''}</td>
-      <td class="prog-num">${r.pct}%</td>
-      <td><span class="prog-chip ${r.state}">${r.chip}</span></td>
-    </tr>`).join('');
-
-  const planned = list.filter(r => r.plan && r.state !== 'done');
-  const behind  = planned.filter(r => r.plan.diff < 0);
-  let summary = '';
-  if (!planned.length) {
-    summary = '<div class="plan-empty" style="margin-bottom:14px;">아직 목표 기간을 정한 강좌가 없습니다. 아래 <b>학습 계획</b>에서 시작일과 목표 완강일을 정하면 하루에 몇 강을 들어야 하는지 계산해 드려요.</div>';
-  } else if (behind.length) {
-    const worst = behind[0];
-    summary = `<div class="plan-verdict behind" style="margin-bottom:14px;">계획보다 밀린 강좌가 <b>${behind.length}개</b> 있습니다. 가장 급한 건 <b>${esc(worst.title)}</b> — 남은 ${worst.plan.remaining_days}일 동안 <b>하루 ${worst.plan.catch_up_daily}강</b>씩 들으면 기한을 맞출 수 있어요.</div>`;
-  } else {
-    summary = `<div class="plan-verdict ahead" style="margin-bottom:14px;">계획을 세운 <b>${planned.length}개</b> 강좌 모두 일정대로 따라오고 있습니다. 이대로 가시면 됩니다.</div>`;
-  }
-
-  ovEl.innerHTML = summary + `
-    <div class="prog-wrap">
-      <table class="prog-table">
-        <thead><tr>
-          <th style="min-width:190px;">강좌</th>
-          <th>오늘까지 권장</th>
-          <th>실제 완료</th>
-          <th>전체</th>
-          <th>진도</th>
-          <th>상태</th>
-        </tr></thead>
-        <tbody>${body}</tbody>
-      </table>
-    </div>`;
-
-  /* ── 강좌별 자세히 보기 ── */
-  dtEl.innerHTML = list.map((r, i) => {
+  /* ── 강좌 하나의 상세 (표 줄 아래에 펼쳐진다) ── */
+  const detailHTML = r => {
     const p = r.plan;
-    let inner = '';
-
+    let inner;
     if (p) {
       const verdict = p.diff > 0
         ? `계획보다 <b>${p.diff}강 앞서</b> 있습니다. 이대로면 예정보다 일찍 끝냅니다.`
@@ -2114,7 +2083,6 @@ async function loadProgressTab() {
           ? `계획보다 <b>${-p.diff}강 밀렸습니다.</b> 남은 ${p.remaining_days}일 동안 <b>하루 ${p.catch_up_daily}강</b>씩 들으면 기한을 맞출 수 있어요.`
           : '계획대로 잘 따라오고 있습니다.';
       const cls = p.diff > 0 ? 'ahead' : p.diff < 0 ? 'behind' : 'ontime';
-
       inner = `
         <div class="plan-top">
           <span class="plan-range">${p.start_date} ~ ${p.target_date} · ${p.remaining_days}일 남음</span>
@@ -2141,7 +2109,7 @@ async function loadProgressTab() {
             style="padding:7px 14px;font-size:12.5px;margin-left:6px;text-decoration:none;display:inline-block;">이어 보기 →</a>
         </div>
         ${planEditorHTML(r.courseId, r.total, p)}
-        <div class="cc-title">📅 계획 기간 학습 캘린더</div>`;
+        <div class="cc-title">📅 계획 기간 학습 달력</div>`;
     } else {
       inner = `
         <div class="plan-nums">
@@ -2158,18 +2126,165 @@ async function loadProgressTab() {
             style="padding:7px 14px;font-size:12.5px;margin-left:6px;background:#fff;color:#2D9B6F;border:1.5px solid #2D9B6F;text-decoration:none;display:inline-block;">이어 보기 →</a>
         </div>
         ${planEditorHTML(r.courseId, r.total, null)}
-        <div class="cc-title">📅 최근 8주 학습 캘린더</div>`;
+        <div class="cc-title">📅 최근 8주 학습 달력</div>`;
     }
+    return inner + courseCalendarHTML(r.courseId, p);
+  };
 
-    return `<div class="cd-card${i === 0 ? ' open' : ''}" id="cd-${r.courseId}">
-      <div class="cd-hdr" onclick="toggleCourseDetail(${r.courseId})">
-        <span class="cd-arrow">▶</span>
-        <h4>${esc(r.title)}</h4>
-        <span class="prog-chip ${r.state}">${r.chip}</span>
-      </div>
-      <div class="cd-body">${inner}${courseCalendarHTML(r.courseId, p)}</div>
+  /* ── 한눈에 보기: 줄을 누르면 그 아래가 펼쳐진다 ── */
+  const body = list.map(r => `
+    <tr class="prog-row" id="pr-${r.courseId}" onclick="toggleProgRow(${r.courseId})">
+      <td>
+        <div class="prog-name"><span class="prog-arrow">▶</span>${esc(r.title)}</div>
+        <div class="prog-mini" title="초록 = 실제 ${r.pct}%${r.planPct !== null ? ' / 검정 선 = 오늘까지 권장 ' + r.planPct + '%' : ''}">
+          <div class="a" style="width:${r.pct}%"></div>
+          ${r.planPct !== null ? `<div class="p" style="left:${r.planPct}%"></div>` : ''}
+        </div>
+      </td>
+      <td class="prog-num">${r.plan ? r.plan.planned_lessons + '강' : '—'}</td>
+      <td class="prog-num">${r.done}강</td>
+      <td class="prog-num">${r.total || '—'}${r.total ? '강' : ''}</td>
+      <td class="prog-num">${r.pct}%</td>
+      <td><span class="prog-chip ${r.state}">${r.chip}</span></td>
+    </tr>
+    <tr class="prog-detail-row" id="pd-${r.courseId}">
+      <td colspan="6"><div class="pd-inner">${detailHTML(r)}</div></td>
+    </tr>`).join('');
+
+  const planned = list.filter(r => r.plan && r.state !== 'done');
+  const behind  = planned.filter(r => r.plan.diff < 0);
+  let summary = '';
+  if (!planned.length) {
+    summary = '<div class="plan-empty" style="margin-bottom:14px;">아직 목표 기간을 정한 강좌가 없습니다. 강좌를 눌러 펼친 뒤 <b>계획 세우기</b>에서 시작일과 목표 완강일을 정하면 하루에 몇 강을 들어야 하는지 계산해 드려요.</div>';
+  } else if (behind.length) {
+    const worst = behind[0];
+    summary = `<div class="plan-verdict behind" style="margin-bottom:14px;">계획보다 밀린 강좌가 <b>${behind.length}개</b> 있습니다. 가장 급한 건 <b>${esc(worst.title)}</b> — 남은 ${worst.plan.remaining_days}일 동안 <b>하루 ${worst.plan.catch_up_daily}강</b>씩 들으면 기한을 맞출 수 있어요.</div>`;
+  } else {
+    summary = `<div class="plan-verdict ahead" style="margin-bottom:14px;">계획을 세운 <b>${planned.length}개</b> 강좌 모두 일정대로 따라오고 있습니다. 이대로 가시면 됩니다.</div>`;
+  }
+
+  ovEl.innerHTML = summary + `
+    <div class="prog-wrap">
+      <table class="prog-table">
+        <thead><tr>
+          <th style="min-width:190px;">강좌</th>
+          <th>오늘까지 권장</th>
+          <th>실제 완료</th>
+          <th>전체</th>
+          <th>진도</th>
+          <th>상태</th>
+        </tr></thead>
+        <tbody>${body}</tbody>
+      </table>
     </div>`;
-  }).join('');
+}
+
+/* ── 전체 학습 달력 (모든 강좌를 합쳐서) ───────────────────── */
+
+let gCalYear = null, gCalMonth = null;   // 지금 보고 있는 달
+
+/** 날짜별로 어느 강좌를 몇 강 들었는지 (모든 강좌 합산) */
+function allDayCounts() {
+  const days = {};
+  gProgressRows.forEach(pr => {
+    if (!pr.completed || !pr.watched_at) return;
+    const d = localDay(pr.watched_at);
+    if (!days[d]) days[d] = { count: 0, courses: {} };
+    days[d].count++;
+    const t = (gCoursesMap[pr.course_id] || {}).title || '기타';
+    days[d].courses[t] = (days[d].courses[t] || 0) + 1;
+  });
+  return days;
+}
+
+function changeCalMonth(delta) {
+  const d = new Date(gCalYear, gCalMonth + delta, 1);
+  gCalYear = d.getFullYear(); gCalMonth = d.getMonth();
+  renderMonthCalendar();
+}
+
+function renderMonthCalendar() {
+  const el = document.getElementById('prog-calendar');
+  if (!el) return;
+  el.classList.remove('loading-msg');
+
+  const now = new Date();
+  if (gCalYear === null) { gCalYear = now.getFullYear(); gCalMonth = now.getMonth(); }
+
+  const days     = allDayCounts();
+  const todayStr = localDay(now);
+  const planRanges = gPlanRanges || [];
+  const inPlan = ds => planRanges.some(r => ds >= r.start && ds <= r.end);
+
+  const first     = new Date(gCalYear, gCalMonth, 1);
+  const daysInMon = new Date(gCalYear, gCalMonth + 1, 0).getDate();
+  const startEmpty = first.getDay() === 0 ? 6 : first.getDay() - 1;   // 월요일 시작
+
+  let cells = '';
+  for (let i = 0; i < startEmpty; i++) cells += '<div class="cal-day empty"></div>';
+
+  let monthLessons = 0, monthDays = 0;
+  for (let d = 1; d <= daysInMon; d++) {
+    const ds  = `${gCalYear}-${String(gCalMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const st  = days[ds];
+    const cnt = st ? st.count : 0;
+    if (cnt) { monthLessons += cnt; monthDays++; }
+    const lvl     = cnt === 0 ? 0 : cnt <= 1 ? 1 : cnt <= 3 ? 2 : cnt <= 5 ? 3 : 4;
+    const isToday = ds === todayStr;
+    const isPast  = ds < todayStr;
+    const planDay = inPlan(ds);
+    const missed  = isPast && cnt === 0 && planDay;
+    const cls = ['cal-day', lvl > 0 && ('lv' + lvl), isToday && 'today-marker',
+                 !cnt && planDay && !missed && 'planned', missed && 'missed'].filter(Boolean).join(' ');
+    const tip = `${gCalMonth + 1}월 ${d}일` + (cnt
+      ? ' · ' + Object.entries(st.courses).map(([t, n]) => `${t} ${n}강`).join(', ')
+      : missed ? ' · 계획일인데 들은 강의가 없어요'
+      : planDay ? ' · 학습 예정일' : '');
+    cells += `<div class="${cls}" title="${esc(tip)}"><span>${d}</span></div>`;
+  }
+
+  const thisMonth = gCalYear === now.getFullYear() && gCalMonth === now.getMonth();
+  const summary = monthLessons
+    ? `${monthDays}일 학습 · 모두 ${monthLessons}강`
+    : (thisMonth ? '이번 달은 아직 들은 강의가 없어요' : '이 달에는 들은 강의가 없어요');
+
+  el.innerHTML = `
+    <div class="month-cal-wrap">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeCalMonth(-1)" aria-label="이전 달">‹</button>
+        <div class="cal-nav-title">${gCalYear}년 ${gCalMonth + 1}월<span>${summary}</span></div>
+        <button class="cal-nav-btn" onclick="changeCalMonth(1)" aria-label="다음 달">›</button>
+      </div>
+      <div class="month-cal-labels">${
+        ['월','화','수','목','금','토','일'].map(d => `<div class="month-cal-label">${d}</div>`).join('')}</div>
+      <div class="month-calendar">${cells}</div>
+      <div class="cal-legend">
+        <span><i style="background:#d7f0e3"></i>1강</span>
+        <span><i style="background:#9fdcc0"></i>2~3강</span>
+        <span><i style="background:#5cc194"></i>4~5강</span>
+        <span><i style="background:#2D9B6F"></i>6강 이상</span>
+        <span><i style="background:#fff;border:1px dashed #cbd5d1"></i>학습 예정일</span>
+        <span><i style="background:#fdf0f0;border:1px solid #f6c9c9"></i>빠진 날</span>
+      </div>
+    </div>`;
+}
+
+/** 표에서 강좌 줄을 누르면 바로 아래가 펼쳐진다 */
+function toggleProgRow(courseId) {
+  const row = document.getElementById('pr-' + courseId);
+  const det = document.getElementById('pd-' + courseId);
+  if (!row || !det) return;
+  const open = det.classList.toggle('open');
+  row.classList.toggle('open', open);
+}
+
+function openProgRow(courseId) {
+  const row = document.getElementById('pr-' + courseId);
+  const det = document.getElementById('pd-' + courseId);
+  if (!row || !det) return;
+  det.classList.add('open');
+  row.classList.add('open');
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 /* ── 강좌마다 자기 자리에서 계획을 세우고 고친다 ───────────── */
@@ -2268,22 +2383,10 @@ async function deletePlanFor(courseId) {
 /** 다시 그린 뒤에도 보던 강좌가 펼쳐진 채로 남게 한다 */
 async function reopenAfterPlanChange(courseId) {
   await loadProgressTab();
-  const card = document.getElementById('cd-' + courseId);
-  if (card) { card.classList.add('open'); card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  openProgRow(courseId);
 }
 
-function toggleCourseDetail(courseId) {
-  const card = document.getElementById('cd-' + courseId);
-  if (card) card.classList.toggle('open');
-}
 
-/** 한눈에 보기의 줄을 누르면 해당 강좌 상세를 펼치고 그리로 데려간다 */
-function openCourseDetail(courseId) {
-  const card = document.getElementById('cd-' + courseId);
-  if (!card) return;
-  card.classList.add('open');
-  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
 
 
 
