@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아이엠러닝 — 신앙도, 공부도 한 곳에서</title>
+  <meta name="description" content="성경적 가치관 위에 세운 50개 강좌, 1,332개 강의. 목사님부터 학생까지 온 가족이 함께 배웁니다.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ───────────────────────────────────────────────
+       처음 들어온 사람에게 보여 주는 한 화면.
+       스크롤 없이 한 눈에 끝나야 하므로 세로를 3단(위·가운데·아래)으로
+       나누고, 글자 크기는 화면 높이에도 반응하도록 clamp 로 잡는다.
+       ─────────────────────────────────────────────── */
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: #0E2A1E;
+      color: #fff;
+      overflow: hidden;                 /* 한 화면 안에서 끝낸다 */
+    }
+    .wc {
+      min-height: 100dvh;               /* 모바일 주소창까지 감안 */
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(16px, 3vh, 30px) clamp(20px, 5vw, 56px);
+      position: relative;
+      isolation: isolate;
+    }
+    /* 배경 — 은은한 초록 그라데이션과 격자 */
+    .wc::before {
+      content: ''; position: absolute; inset: 0; z-index: -2;
+      background:
+        radial-gradient(1100px 620px at 78% -10%, rgba(45,155,111,.42), transparent 62%),
+        radial-gradient(760px 520px at 6% 106%, rgba(20,96,58,.55), transparent 60%),
+        linear-gradient(160deg, #0E2A1E 0%, #113826 55%, #0C2318 100%);
+    }
+    .wc::after {
+      content: ''; position: absolute; inset: 0; z-index: -1; opacity: .16;
+      background-image:
+        linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
+      background-size: 68px 68px;
+      mask-image: radial-gradient(circle at 50% 40%, #000 30%, transparent 78%);
+      -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 30%, transparent 78%);
+    }
+
+    /* ── 위: 로고와 건너뛰기 ── */
+    .wc-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .wc-logo img { height: clamp(26px, 3.4vh, 34px); width: auto; display: block; }
+    .wc-skip {
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,.62);
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 8px 14px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px;
+      transition: all .18s;
+    }
+    .wc-skip:hover { color: #fff; border-color: rgba(255,255,255,.45); }
+
+    /* ── 가운데 ── */
+    .wc-mid {
+      display: flex; flex-direction: column; justify-content: center;
+      align-items: center; text-align: center;
+      gap: clamp(14px, 2.4vh, 26px);
+      padding: clamp(12px, 3vh, 34px) 0;
+    }
+    .wc-eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-size: clamp(11px, 1.5vh, 12.5px); font-weight: 700; letter-spacing: .14em;
+      color: #8FE3BC; text-transform: uppercase;
+    }
+    .wc-eyebrow i {
+      width: 26px; height: 1px; background: rgba(143,227,188,.55); display: inline-block;
+    }
+    .wc-title {
+      font-size: clamp(30px, 6.4vh, 62px);
+      font-weight: 800; line-height: 1.16; letter-spacing: -0.04em;
+      margin: 0; text-wrap: balance; word-break: keep-all;
+    }
+    .wc-title em { font-style: normal; color: #6FDCA9; }
+    .wc-sub {
+      font-size: clamp(13.5px, 1.95vh, 17px);
+      color: rgba(255,255,255,.68); line-height: 1.7; margin: 0;
+      max-width: 44ch; word-break: keep-all;
+    }
+    .wc-sub b { color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* 대상 카드 */
+    .wc-paths {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(8px, 1.4vh, 14px); width: 100%; max-width: 900px;
+      margin-top: clamp(2px, 1vh, 10px);
+    }
+    .wc-path {
+      display: flex; flex-direction: column; gap: 3px;
+      padding: clamp(11px, 1.9vh, 18px) clamp(10px, 1.4vw, 16px);
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 13px; text-align: left;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+    .wc-path:hover, .wc-path:focus-visible {
+      background: rgba(255,255,255,.11); border-color: rgba(111,220,169,.6);
+      transform: translateY(-3px); outline: none;
+    }
+    .wc-path .who {
+      font-size: clamp(13px, 1.85vh, 15.5px); font-weight: 800;
+      color: #fff; letter-spacing: -0.02em;
+    }
+    .wc-path .what {
+      font-size: clamp(11px, 1.5vh, 12.5px); color: rgba(255,255,255,.55);
+      line-height: 1.55; font-variant-numeric: tabular-nums;
+    }
+    .wc-path .go { font-size: 12px; color: #6FDCA9; font-weight: 700; margin-top: auto; padding-top: 6px; }
+
+    /* ── 아래: 주 버튼과 안심 문구 ── */
+    .wc-bot {
+      display: flex; flex-direction: column; align-items: center;
+      gap: clamp(8px, 1.3vh, 13px); text-align: center;
+    }
+    .wc-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: clamp(12px, 1.9vh, 16px) clamp(26px, 4vw, 40px);
+      background: #2D9B6F; color: #fff;
+      font-size: clamp(14px, 1.9vh, 16px); font-weight: 800; letter-spacing: -0.02em;
+      border-radius: 12px; box-shadow: 0 10px 28px rgba(45,155,111,.32);
+      transition: background .18s, transform .18s, box-shadow .18s;
+    }
+    .wc-cta:hover { background: #35B37F; transform: translateY(-2px); box-shadow: 0 14px 34px rgba(45,155,111,.42); }
+    .wc-trust {
+      font-size: clamp(11.5px, 1.5vh, 13px); color: rgba(255,255,255,.45);
+      font-variant-numeric: tabular-nums;
+    }
+    .wc-trust b { color: rgba(255,255,255,.72); font-weight: 600; }
+
+    /* ── 좁은 화면 ── */
+    @media (max-width: 720px) {
+      .wc-paths { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 460px; }
+      .wc-path .go { display: none; }
+      .wc-skip { padding: 7px 12px; font-size: 12px; }
+    }
+    /* 화면이 아주 낮으면(가로로 눕힌 휴대폰 등) 카드 설명을 접는다 */
+    @media (max-height: 520px) {
+      .wc-path .what, .wc-path .go { display: none; }
+      .wc-sub { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .wc-path, .wc-cta { transition: none; }
+      .wc-path:hover, .wc-cta:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wc">
+
+    <div class="wc-top">
+      <a href="index.html" class="wc-logo" aria-label="아이엠러닝 홈">
+        <img src="images/logo-horizontal-white.png" alt="아이엠러닝"
+             onerror="this.src='images/logo-horizontal.png';this.style.filter='brightness(0) invert(1)';">
+      </a>
+      <a href="index.html" class="wc-skip">바로 홈으로 →</a>
+    </div>
+
+    <div class="wc-mid">
+      <div class="wc-eyebrow"><i></i> I'M Learning · I'M Running</div>
+
+      <h1 class="wc-title">신앙도, 공부도<br><em>한 곳에서 끝까지.</em></h1>
+
+      <p class="wc-sub">
+        성경적 가치관 위에 세운 <b>50개 강좌 · 1,332개 강의</b>.<br>
+        2020년부터 목사님, 교사, 부모, 학생까지 <b>1,313명</b>이 함께했습니다.
+      </p>
+
+      <nav class="wc-paths" aria-label="대상별 바로가기">
+        <a class="wc-path" href="courses.html?cat=faith">
+          <span class="who">목사 · 사역자</span>
+          <span class="what">설교와 사역에 바로 쓰는 성경 강의<br>15강좌 · 323강</span>
+          <span class="go">신앙 강좌 →</span>
+        </a>
+        <a class="wc-path" href="courses.html?cat=edu&amp;sub=cbup">
+          <span class="who">교회학교 교사</span>
+          <span class="what">교사 교육부터 수업 설계까지<br>CBUP 228강</span>
+          <span class="go">교사 과정 →</span>
+        </a>
+        <a class="wc-path" href="courses.html?cat=edu">
+          <span class="who">부모</span>
+          <span class="what">자녀를 신앙 안에서 세우는 법<br>18강좌 · 378강</span>
+          <span class="go">부모 교육 →</span>
+        </a>
+        <a class="wc-path" href="courses.html?cat=english">
+          <span class="who">학생 · 청년</span>
+          <span class="what">영어 495강 · 검정고시 136강<br>신앙과 함께</span>
+          <span class="go">영어 · 검정고시 →</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="wc-bot">
+      <a href="courses.html" class="wc-cta">전체 강좌 둘러보기 →</a>
+      <p class="wc-trust">
+        카드 등록 없이 <b>30초</b> 가입 · <b>26개 강의</b> 미리보기 · 무료 강좌 <b>5개</b>
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>
