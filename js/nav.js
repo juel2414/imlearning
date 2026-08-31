@@ -185,6 +185,12 @@
 
     /* 모바일 반응형 */
     '@media(max-width:768px){',
+    /* 닫힌 메뉴 서랍은 화면 오른쪽 바깥(translateX(100%))에 세워둔다.
+       그대로 두면 그 폭만큼 문서가 넓어져서 페이지 전체가 옆으로 밀렸다.
+       overflow-x:clip 은 hidden 과 달리 스크롤 컨테이너를 만들지 않아
+       상단 네비의 position:sticky 를 깨뜨리지 않는다. */
+    'html{overflow-x:clip;}',
+    'body{overflow-x:clip;}',
     '.nb-ham{display:flex;}',
     '.navbar-right{display:none!important;}',
     '#nb-search-btn{display:flex;}',

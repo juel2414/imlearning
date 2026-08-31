@@ -440,7 +440,6 @@ body {
 <div class="container">
   <div class="my-tabs">
     <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
-    <div class="my-tab" onclick="switchTab('progress', this)">📈 진도 현황</div>
     <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 기록</div>
     <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
@@ -458,10 +457,10 @@ body {
       <div id="courses-content" class="loading-msg">불러오는 중...</div>
     </div>
 
-    <!-- 진도 현황: 모든 강좌를 한눈에, 그리고 강좌별로 자세히 -->
-    <div class="tab-panel" id="panel-progress">
+    <!-- 학습 기록: 진도 현황 · 뱃지 · 수료증 · 통계 -->
+    <div class="tab-panel" id="panel-stats">
       <div class="mc-subsec">
-        <div class="mc-subsec-hdr"><h3>📈 한눈에 보기</h3></div>
+        <div class="mc-subsec-hdr"><h3>📈 진도 한눈에 보기</h3></div>
         <div class="mc-subsec-desc">계획을 세운 강좌는 '오늘까지 권장'과 '실제 완료'를 나란히 비교합니다. 줄을 누르면 아래에서 자세히 볼 수 있어요.</div>
         <div id="prog-overview" class="loading-msg">불러오는 중...</div>
       </div>
@@ -476,10 +475,7 @@ body {
         <div class="mc-subsec-hdr"><h3>🗓 학습 계획</h3></div>
         <div id="plan-content" class="loading-msg">불러오는 중...</div>
       </div>
-    </div>
 
-    <!-- 학습 통계 + 나의 뱃지 (한 탭에 두 구역) -->
-    <div class="tab-panel" id="panel-stats">
       <div class="mc-subsec">
         <div class="mc-subsec-hdr">
           <h3><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 나의 뱃지</h3>
@@ -687,12 +683,9 @@ function switchTab(id, el) {
   el.classList.add('active');
   document.getElementById('panel-' + id).classList.add('active');
 
-  // 진도 현황 탭: 열 때마다 최신 진도로 다시 그린다
-  if (id === 'progress' && gUserId) {
-    loadProgressTab().then(loadStudyPlans);
-  }
-  // 학습 통계 탭: 최초 1회 lazy load
+  // 학습 기록 탭: 진도는 열 때마다 최신으로, 통계는 최초 1회만
   if (id === 'stats' && gUserId) {
+    loadProgressTab().then(loadStudyPlans);
     if (!gStatsLoaded) { gStatsLoaded = true; loadAndRenderStats(gUserId); }
   }
   // 결제·선물함 탭: 열 때마다 선물·쿠폰을 새로고침 (결제 내역은 로드 시 이미 렌더됨)
@@ -1189,7 +1182,8 @@ async function checkAndAwardBadgesOnLoad(userId, recentLogs, totalCompleted, str
     renderBadgesTab(gBadges);
 
   // 알림에서 넘어온 경우 해당 탭을 연다 (?tab=account 등)
-  const _tab = new URLSearchParams(location.search).get('tab');
+  let _tab = new URLSearchParams(location.search).get('tab');
+  if (_tab === 'progress') _tab = 'stats';   // 진도 현황은 학습 기록 안으로 합쳐졌다
   if (_tab) {
     const btn = [...document.querySelectorAll('.my-tab')]
       .find(t => (t.getAttribute('onclick') || '').includes("'" + _tab + "'"));
