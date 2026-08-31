@@ -54,6 +54,28 @@ body {
     padding:14px 16px; border:1.5px solid rgba(0,0,0,.09); border-radius:11px; background:#fff; }
   .acc-check input { margin-top:3px; width:17px; height:17px; accent-color:#2D9B6F; cursor:pointer; flex-shrink:0; }
   .acc-check b { font-size:14px; color:#111; display:block; }
+  /* 학습 계획 */
+  .plan-card { border:1px solid rgba(0,0,0,.09); border-radius:14px; padding:18px 20px; margin-bottom:14px; background:#fff; }
+  .plan-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .plan-title { font-size:15px; font-weight:800; color:#111; }
+  .plan-range { font-size:12px; color:#888; font-variant-numeric:tabular-nums; }
+  .plan-nums { display:grid; grid-template-columns:repeat(auto-fit,minmax(96px,1fr)); gap:10px; margin-bottom:14px; }
+  .plan-num { background:#f7f9f8; border-radius:10px; padding:10px 12px; text-align:center; }
+  .plan-num b { display:block; font-size:19px; font-weight:900; color:#111; font-variant-numeric:tabular-nums; }
+  .plan-num span { font-size:11px; color:#888; }
+  .plan-bar { position:relative; height:12px; border-radius:999px; background:#eef0f2; overflow:hidden; margin-bottom:6px; }
+  .plan-bar .actual { position:absolute; inset:0 auto 0 0; border-radius:999px; background:#2D9B6F; }
+  .plan-bar .planned { position:absolute; top:-3px; bottom:-3px; width:2px; background:#111; }
+  .plan-legend { display:flex; gap:14px; font-size:11.5px; color:#888; flex-wrap:wrap; margin-bottom:12px; }
+  .plan-verdict { font-size:13.5px; font-weight:700; padding:10px 14px; border-radius:10px; line-height:1.6; }
+  .plan-verdict.ahead  { background:#e8f5ee; color:#1A7A4A; }
+  .plan-verdict.behind { background:#fef2f2; color:#991b1b; }
+  .plan-verdict.ontime { background:#eff6ff; color:#1e40af; }
+  .plan-form { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+  .plan-form label { font-size:11.5px; font-weight:700; color:#888; display:block; margin-bottom:4px; }
+  .plan-form input[type=date] { padding:9px 11px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px;
+    font-size:13px; font-family:inherit; }
+  .plan-empty { padding:1.25rem; background:#f8f9fa; border-radius:10px; color:#888; font-size:13.5px; line-height:1.7; }
   .mc-subsec { margin-bottom:3.5rem; }
   .mc-subsec:last-child { margin-bottom:1rem; }
   .mc-subsec-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -385,6 +407,12 @@ body {
 
     <!-- 학습 통계 + 나의 뱃지 (한 탭에 두 구역) -->
     <div class="tab-panel" id="panel-stats">
+      <!-- 학습 계획: 시작일·종료일을 잡으면 하루 권장 강의 수와 계획 대비 실제를 보여준다 -->
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr"><h3>🗓 학습 계획</h3></div>
+        <div id="plan-content" class="loading-msg">불러오는 중...</div>
+      </div>
+
       <div class="mc-subsec">
         <div class="mc-subsec-hdr">
           <h3><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 나의 뱃지</h3>
@@ -583,9 +611,9 @@ function switchTab(id, el) {
   document.getElementById('panel-' + id).classList.add('active');
 
   // 학습 통계 탭: 최초 1회 lazy load
-  if (id === 'stats' && !gStatsLoaded && gUserId) {
-    gStatsLoaded = true;
-    loadAndRenderStats(gUserId);
+  if (id === 'stats' && gUserId) {
+    loadStudyPlans();                       // 진도는 매번 최신으로
+    if (!gStatsLoaded) { gStatsLoaded = true; loadAndRenderStats(gUserId); }
   }
   // 결제·선물함 탭: 열 때마다 선물·쿠폰을 새로고침 (결제 내역은 로드 시 이미 렌더됨)
   if (id === 'gifts' && gUserId) {
@@ -649,18 +677,21 @@ async function savePlan(courseId) {
 
   const prog         = gProgressByCourse[courseId];
   const course       = gCoursesMap[courseId];
-  const totalLessons = (course && course.lesson_count)
-    ? course.lesson_count
+  // courses 에는 lesson_count 가 없다(lessons 다). 없는 컬럼을 읽어 늘 폴백으로 빠지고 있었다.
+  const totalLessons = (course && course.lessons > 0)
+    ? course.lessons
     : (prog && prog.total > 0 ? prog.total : 20);
   const done         = prog ? prog.done : 0;
   const remaining    = Math.max(totalLessons - done, 1);
   const dailyGoal    = Math.max(Math.ceil(remaining / daysUntil), 1);
 
   const { error } = await supabaseClient.from('study_plans').upsert({
-    user_id:     gUserId,
-    course_id:   courseId,
-    target_date: targetDate,
-    daily_goal:  dailyGoal,
+    user_id:      gUserId,
+    course_id:    courseId,
+    start_date:   new Date().toISOString().slice(0, 10),
+    target_date:  targetDate,
+    daily_goal:   dailyGoal,
+    total_lessons: totalLessons,
   }, { onConflict: 'user_id,course_id' });
 
   if (error) {
@@ -1824,6 +1855,122 @@ async function loadMyContacts() {
 }
 
 // ── 내 정보 · 알림 · 비밀번호 ──────────────────────────────
+// ── 학습 계획 ─────────────────────────────────────────────
+// 시작일·종료일을 잡으면 하루 몇 강을 들어야 하는지 계산하고,
+// 실제 수강과 비교해 얼마나 앞섰는지/밀렸는지 보여준다.
+async function loadStudyPlans() {
+  const el = document.getElementById('plan-content');
+  if (!el) return;
+
+  const { data: rows, error } = await supabaseClient.rpc('get_study_plan_status');
+  if (error) { el.innerHTML = '<div class="plan-empty">계획을 불러오지 못했습니다.</div>'; return; }
+
+  // 계획을 세울 수 있는 강좌 = 수강 중인 강좌
+  const owned = (gOrders || []).filter(o => o.course_id && gCoursesMap[o.course_id]);
+  const planned = new Set((rows || []).map(r => r.course_id));
+  const options = owned.filter(o => !planned.has(o.course_id));
+
+  let html = '';
+
+  (rows || []).forEach(r => {
+    const pct       = Math.min(100, Math.round(r.done_lessons / r.total_lessons * 100));
+    const planPct   = Math.min(100, Math.round(r.planned_lessons / r.total_lessons * 100));
+    const diff      = r.diff;
+    const cls       = diff > 0 ? 'ahead' : diff < 0 ? 'behind' : 'ontime';
+    const verdict   = diff > 0
+      ? `계획보다 <b>${diff}강 앞서</b> 있습니다. 이대로면 예정보다 일찍 끝냅니다.`
+      : diff < 0
+        ? `계획보다 <b>${-diff}강 밀렸습니다.</b> 남은 ${r.remaining_days}일 동안 <b>하루 ${r.catch_up_daily}강</b>씩 들으면 기한을 맞출 수 있어요.`
+        : '계획대로 잘 따라오고 있습니다.';
+
+    html += `<div class="plan-card">
+      <div class="plan-top">
+        <span class="plan-title">${esc(r.course_title)}</span>
+        <span class="plan-range">${r.start_date} ~ ${r.target_date} · ${r.remaining_days}일 남음</span>
+      </div>
+      <div class="plan-nums">
+        <div class="plan-num"><b>${r.daily_goal}강</b><span>하루 권장</span></div>
+        <div class="plan-num"><b>${r.planned_lessons}강</b><span>오늘까지 계획</span></div>
+        <div class="plan-num"><b>${r.done_lessons}강</b><span>실제 완료</span></div>
+        <div class="plan-num"><b>${r.total_lessons}강</b><span>전체</span></div>
+      </div>
+      <div class="plan-bar">
+        <div class="actual" style="width:${pct}%"></div>
+        <div class="planned" style="left:${planPct}%" title="오늘까지 계획: ${r.planned_lessons}강"></div>
+      </div>
+      <div class="plan-legend">
+        <span>▬ 초록 = 실제 진도 ${pct}%</span>
+        <span>▏검정 선 = 오늘까지 계획 ${planPct}%</span>
+      </div>
+      <div class="plan-verdict ${cls}">${verdict}</div>
+      <div style="margin-top:12px;">
+        <button class="acc-btn" style="padding:7px 14px;font-size:12.5px;background:#fff;color:#2D9B6F;border:1.5px solid #2D9B6F;"
+          onclick="editPlan(${r.course_id}, '${r.start_date}', '${r.target_date}')">기간 수정</button>
+      </div>
+    </div>`;
+  });
+
+  if (options.length) {
+    html += `<div class="plan-card" id="plan-new">
+      <div class="plan-title" style="margin-bottom:12px;">새 학습 계획 세우기</div>
+      <div class="plan-form">
+        <div style="flex:1;min-width:180px;">
+          <label>강좌</label>
+          <select id="plan-course" class="acc-input" style="padding:9px 11px;">
+            ${options.map(o => `<option value="${o.course_id}">${esc(gCoursesMap[o.course_id].title)}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>시작일</label><input type="date" id="plan-start" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div><label>목표 종료일</label><input type="date" id="plan-end"></div>
+        <button class="acc-btn" onclick="saveStudyPlan()">계획 만들기</button>
+      </div>
+      <div id="plan-msg" style="font-size:13px;margin-top:10px;"></div>
+    </div>`;
+  } else if (!rows || !rows.length) {
+    html += '<div class="plan-empty">계획을 세울 수강 강좌가 없습니다. 강좌를 수강하면 여기서 목표 기간을 정할 수 있어요.</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function editPlan(courseId, start, end) {
+  const box = document.getElementById('plan-new');
+  if (!box) {
+    // 모든 강좌에 계획이 있으면 새 계획 폼이 없다 — 임시로 만들어 준다
+    loadStudyPlans().then(() => setTimeout(() => editPlan(courseId, start, end), 100));
+    return;
+  }
+  document.getElementById('plan-course').value = courseId;
+  document.getElementById('plan-start').value  = start;
+  document.getElementById('plan-end').value    = end;
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function saveStudyPlan() {
+  const courseId = Number(document.getElementById('plan-course').value);
+  const start    = document.getElementById('plan-start').value;
+  const end      = document.getElementById('plan-end').value;
+  const msg      = document.getElementById('plan-msg');
+  const show = (t, ok) => { msg.style.color = ok ? '#059669' : '#dc2626'; msg.textContent = t; };
+
+  if (!start || !end) { show('시작일과 목표 종료일을 모두 정해주세요.', false); return; }
+  if (new Date(end) < new Date(start)) { show('종료일이 시작일보다 빠릅니다.', false); return; }
+
+  const total = (gCoursesMap[courseId] || {}).lessons || 0;
+  const days  = Math.max(Math.round((new Date(end) - new Date(start)) / 86400000) + 1, 1);
+  const daily = Math.max(Math.ceil(total / days), 1);
+
+  const { error } = await supabaseClient.from('study_plans').upsert({
+    user_id: gUserId, course_id: courseId,
+    start_date: start, target_date: end,
+    daily_goal: daily, total_lessons: total,
+  }, { onConflict: 'user_id,course_id' });
+
+  if (error) { show('저장 실패: ' + error.message, false); return; }
+  show(`✅ 하루 ${daily}강씩 ${days}일 계획으로 저장했습니다`, true);
+  setTimeout(loadStudyPlans, 700);
+}
+
 async function loadProfileSettings() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;

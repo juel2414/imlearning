@@ -1924,6 +1924,7 @@ class VimeoTracker {
     this._tick       = null;
     this._saver      = null;
     this._completed  = false;
+    this._logged     = false;   // 학습 기록(study_logs)을 이미 남겼는지
   }
 
   start() {
@@ -1976,6 +1977,7 @@ class VimeoTracker {
       for (let i = 0; i < existingData.actual_watched_seconds; i++) this.watchedSet.add(i);
     }
     this._completed = !!(existingData && existingData.completed);
+    this._logged    = !!(existingData && (existingData.actual_watched_seconds || 0) >= 60);
     this._refreshUI();
   }
 
@@ -2008,8 +2010,10 @@ class VimeoTracker {
         duration_seconds:      Math.round(this.totalSecs) || null,
       }, { onConflict: 'user_id,course_id,lesson_id' });
 
-      if (done && !this._completed) {
-        this._completed = true;
+      // 학습 기록(캘린더·스트릭·통계의 근거)은 '실제로 본 시간'이 쌓이면 남긴다.
+      // 예전에는 80% 를 넘겨야만 기록해서 사실상 아무것도 쌓이지 않았다.
+      if (actual >= 60 && !this._logged) {
+        this._logged = true;
         await window.supabaseClient.from('study_logs').upsert({
           user_id:          this.userId,
           course_id:        this.courseId,
@@ -2017,6 +2021,10 @@ class VimeoTracker {
           studied_at:       new Date().toISOString(),
           duration_minutes: Math.round(actual / 60),
         }, { onConflict: 'user_id,course_id,lesson_number' });
+      }
+
+      if (done && !this._completed) {
+        this._completed = true;
 
         await window.supabaseClient.from('progress').upsert({
           user_id:      this.userId,
