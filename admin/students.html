@@ -317,13 +317,19 @@ function buildStudentRows() {
     watchByUser[vp.user_id] = (watchByUser[vp.user_id] || 0) + (vp.actual_watched_seconds || 0);
   });
 
-  // user_id별 마지막 수강일 (study_logs 기준)
+  // user_id별 마지막 수강일
+  // study_logs 만 보다가 '오늘 영상을 본 회원'이 미접속·휴면으로 잡혔다.
+  // study_logs 는 한동안 저장이 실패해 기록이 거의 없다.
+  // 강의를 연 기록(video_progress)까지 함께 보고 더 나중 것을 쓴다.
   var lastStudyByUser = {};
-  allStudyLogs.forEach(function(sl) {
-    if (!lastStudyByUser[sl.user_id] || new Date(sl.studied_at) > new Date(lastStudyByUser[sl.user_id])) {
-      lastStudyByUser[sl.user_id] = sl.studied_at;
+  function markLastStudy(uid, when) {
+    if (!uid || !when) return;
+    if (!lastStudyByUser[uid] || new Date(when) > new Date(lastStudyByUser[uid])) {
+      lastStudyByUser[uid] = when;
     }
-  });
+  }
+  allStudyLogs.forEach(function(sl) { markLastStudy(sl.user_id, sl.studied_at); });
+  allVideoProgress.forEach(function(vp) { markLastStudy(vp.user_id, vp.updated_at); });
 
   // 전체 프로필 기준으로 행 구성 (수강 여부 무관)
   studentRows = allProfiles.map(function(profile) {
@@ -368,11 +374,14 @@ function renderKPI() {
   // 전체 회원
   document.getElementById('ks-members').textContent = allProfiles.length;
 
-  // 오늘 학습한 수강생
-  var todayLearners = new Set(
-    allStudyLogs.filter(function(sl){ return new Date(sl.studied_at) >= todayStart; })
-      .map(function(sl){ return sl.user_id; })
-  );
+  // 오늘 학습한 수강생 — 마지막 수강일과 같은 기준으로 센다
+  var todayLearners = new Set();
+  allStudyLogs.forEach(function(sl){
+    if (new Date(sl.studied_at) >= todayStart) todayLearners.add(sl.user_id);
+  });
+  allVideoProgress.forEach(function(vp){
+    if (vp.updated_at && new Date(vp.updated_at) >= todayStart) todayLearners.add(vp.user_id);
+  });
   document.getElementById('ks-today').textContent = todayLearners.size;
 
   // 총 수강생 (paid order 있는 유저)

@@ -638,7 +638,7 @@ function exportCourseCSV() {
 function exportOrdersCSV() { exportCSV(); }
 
 // ── 학습 현황 KPI 렌더 ──
-function renderLearningKPI(vpToday, studyLogsAll, ordersAll) {
+function renderLearningKPI(vpToday, studyLogsAll, ordersAll, vpAll) {
   // 오늘 총 시청 시간 합산
   const totalWatchSecs = vpToday.reduce((s, r) => s + (r.actual_watched_seconds || 0), 0);
   function fmtSecs(s) {
@@ -650,22 +650,25 @@ function renderLearningKPI(vpToday, studyLogsAll, ordersAll) {
   document.getElementById('kpi-watch-time').textContent = fmtSecs(totalWatchSecs);
   document.getElementById('kpi-watch-time-d').textContent = '총 ' + fmtSecs(totalWatchSecs) + ' 시청';
 
-  // 오늘 학습한 수강생 수 (study_logs에서 오늘 studied_at인 유니크 user_id)
+  // 오늘 학습한 수강생 수
+  // study_logs 만 보면 오늘 영상을 본 회원이 빠진다 (한동안 저장이 실패해 기록이 거의 없다)
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-  const todayLearners = new Set(
-    studyLogsAll.filter(r => new Date(r.studied_at) >= todayStart).map(r => r.user_id)
-  );
+  const todayLearners = new Set();
+  studyLogsAll.forEach(r => { if (new Date(r.studied_at) >= todayStart) todayLearners.add(r.user_id); });
+  (vpToday || []).forEach(r => { if (r.updated_at && new Date(r.updated_at) >= todayStart) todayLearners.add(r.user_id); });
   document.getElementById('kpi-today-learners').textContent = todayLearners.size;
 
   // 휴면 수강생: 수강생 중 14일 이상 미접속 (study_logs 없거나 오래됨)
   const cutoff14 = new Date(); cutoff14.setDate(cutoff14.getDate() - 14);
   const enrolledUsers = [...new Set(ordersAll.filter(o => o.status === 'paid').map(o => o.user_id))];
+  // 마지막 접속: 학습 기록과 강의를 연 기록 중 더 나중 것
   const lastStudyMap = {};
-  studyLogsAll.forEach(r => {
-    if (!lastStudyMap[r.user_id] || new Date(r.studied_at) > new Date(lastStudyMap[r.user_id])) {
-      lastStudyMap[r.user_id] = r.studied_at;
-    }
-  });
+  const mark = (uid, when) => {
+    if (!uid || !when) return;
+    if (!lastStudyMap[uid] || new Date(when) > new Date(lastStudyMap[uid])) lastStudyMap[uid] = when;
+  };
+  studyLogsAll.forEach(r => mark(r.user_id, r.studied_at));
+  (vpAll || []).forEach(r => mark(r.user_id, r.updated_at));
   const dormantCount = enrolledUsers.filter(uid => {
     const last = lastStudyMap[uid];
     return !last || new Date(last) < cutoff14;
@@ -684,19 +687,21 @@ function renderLearningKPI(vpToday, studyLogsAll, ordersAll) {
 async function loadAll() {
   try {
     const todayStr = new Date().toISOString().slice(0,10);
-    const [ordersRes, coursesRes, profilesRes, vpTodayRes, studyLogsRes] = await Promise.all([
+    const [ordersRes, coursesRes, profilesRes, vpTodayRes, studyLogsRes, vpAllRes] = await Promise.all([
       sb.from('orders').select('*').order('created_at', { ascending: false }),
       sb.from('courses').select('*').order('students', { ascending: false }),
       sb.from('profiles').select('id, created_at').order('created_at', { ascending: false }),
       sb.from('video_progress').select('user_id, actual_watched_seconds, updated_at').gte('updated_at', todayStr),
       sb.from('study_logs').select('user_id, studied_at').order('studied_at', { ascending: false }),
+      // 휴면 판정에는 오늘치가 아니라 전체 기간이 필요하다
+      sb.from('video_progress').select('user_id, updated_at'),
     ]);
 
     allOrders   = ordersRes.data   || [];
     allCourses  = coursesRes.data  || [];
     allProfiles = profilesRes.data || [];
 
-    renderLearningKPI(vpTodayRes.data || [], studyLogsRes.data || [], allOrders);
+    renderLearningKPI(vpTodayRes.data || [], studyLogsRes.data || [], allOrders, vpAllRes.data || []);
     renderAll();
 
     // 30초마다 자동 갱신
