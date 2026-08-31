@@ -151,9 +151,9 @@
     '.mega-col-thumb{display:block;width:100%;height:78px;',
     'background:#f4f4f4;border-radius:8px;overflow:hidden;',
     'margin-bottom:14px;text-decoration:none;}',
-    '.mega-col-thumb img{width:100%;height:100%;object-fit:cover;display:block;',
+    '.mega-col-thumb svg{width:100%;height:100%;display:block;',
     'transition:transform .3s ease;}',
-    '.mega-col-thumb:hover img{transform:scale(1.04);}',
+    '.mega-col-thumb:hover svg{transform:scale(1.04);}',
 
     /* 카테고리 열 */
     '.mega-col{display:flex;flex-direction:column;gap:0;padding:0 28px;}',
@@ -348,6 +348,53 @@
   }
 
   // ── 메가메뉴 동적 로드 (category 기준) ────────────────────
+  /* 카테고리 썸네일 — 강좌 표지를 쓰면 글자가 많아 메뉴가 시끄러웠다.
+     카테고리를 가리키는 단순한 그림으로 통일한다. */
+  var MEGA_ART = {
+    faith:
+      '<svg viewBox="0 0 200 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+      '<rect width="200" height="78" fill="#EAF6F0"/>' +
+      '<circle cx="163" cy="17" r="26" fill="#DCEFE5"/>' +
+      '<circle cx="34" cy="64" r="20" fill="#DCEFE5"/>' +
+      '<g stroke="#2D9B6F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">' +
+      '<path d="M100 16v16M93 23h14"/>' +
+      '<path d="M62 44c10-6 24-6 34 1v20c-10-7-24-7-34-1z" fill="#fff"/>' +
+      '<path d="M138 44c-10-6-24-6-34 1v20c10-7 24-7 34-1z" fill="#fff"/>' +
+      '<path d="M100 45v20"/>' +
+      '</g></svg>',
+    exam:
+      '<svg viewBox="0 0 200 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+      '<rect width="200" height="78" fill="#EDF2FB"/>' +
+      '<circle cx="38" cy="18" r="22" fill="#DFE9F8"/>' +
+      '<circle cx="168" cy="62" r="18" fill="#DFE9F8"/>' +
+      '<g stroke="#3C6DB8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">' +
+      '<path d="M72 30l28-13 28 13-28 13z" fill="#fff"/>' +
+      '<path d="M84 36v13c0 6 32 6 32 0V36"/>' +
+      '<path d="M128 30v14"/>' +
+      '</g></svg>',
+    edu:
+      '<svg viewBox="0 0 200 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+      '<rect width="200" height="78" fill="#FBF1EA"/>' +
+      '<circle cx="166" cy="20" r="22" fill="#F5E3D6"/>' +
+      '<circle cx="30" cy="60" r="18" fill="#F5E3D6"/>' +
+      '<g stroke="#C1783F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">' +
+      '<circle cx="84" cy="30" r="9" fill="#fff"/>' +
+      '<path d="M67 62c0-10 8-16 17-16s17 6 17 16" fill="#fff"/>' +
+      '<circle cx="119" cy="38" r="7" fill="#fff"/>' +
+      '<path d="M106 62c0-8 6-13 13-13s13 5 13 13" fill="#fff"/>' +
+      '</g></svg>',
+    english:
+      '<svg viewBox="0 0 200 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+      '<rect width="200" height="78" fill="#F2F0FB"/>' +
+      '<circle cx="34" cy="20" r="21" fill="#E5E1F6"/>' +
+      '<circle cx="170" cy="60" r="17" fill="#E5E1F6"/>' +
+      '<g stroke="#6B5BC4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">' +
+      '<path d="M66 22h44a6 6 0 016 6v18a6 6 0 01-6 6H84l-11 9v-9h-7a6 6 0 01-6-6V28a6 6 0 016-6z" fill="#fff"/>' +
+      '<path d="M79 44l9-16 9 16M82.5 38h11"/>' +
+      '<path d="M126 34h14a5 5 0 015 5v16a5 5 0 01-5 5h-8l-9 7v-7h-1" fill="#fff"/>' +
+      '</g></svg>',
+  };
+
   var MEGA_CATS = [
     { key: 'faith',   label: '신앙',            catParam: 'faith' },
     { key: 'exam',    label: '수능/검정고시',  catParam: 'exam',    badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
@@ -389,12 +436,9 @@
           var items = shown.map(function (c) {
             return '<a href="course-detail.html?id=' + c.id + '">' + esc(c.title) + '</a>';
           }).join('');
-          var thumbUrl = courses.length && courses[0].thumbnail_url ? courses[0].thumbnail_url : '';
           var catHref = 'courses.html?cat=' + (cat.catParam || 'all');
-          var thumbHtml = thumbUrl
-            ? '<a href="' + catHref + '" class="mega-col-thumb">' +
-              '<img src="' + esc(thumbUrl) + '" alt=""></a>'
-            : '<a href="' + catHref + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
+          var thumbHtml = '<a href="' + catHref + '" class="mega-col-thumb" aria-hidden="true" tabindex="-1">' +
+            (MEGA_ART[cat.key] || '') + '</a>';
           var moreHtml = courses.length > MEGA_MAX
             ? '<a href="' + catHref + '" class="mega-more">전체 ' + courses.length + '개 보기 →</a>'
             : '<a href="' + catHref + '" class="mega-more">전체 보기 →</a>';
