@@ -118,9 +118,11 @@ body {
   .mc-subsec { margin-bottom:3.5rem; }
   .mc-subsec:last-child { margin-bottom:1rem; }
   .mc-subsec-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px;
-    flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:16px; }
-  .mc-subsec-hdr h3 { margin:0; font-size:16px; font-weight:800; color:#111; }
-  .mc-subsec-desc { font-size:13px; color:#888; margin-bottom:14px; }
+    flex-wrap:wrap; padding-bottom:12px; border-bottom:1px solid rgba(0,0,0,.08); margin-bottom:18px; }
+  .mc-subsec-hdr h3 { margin:0; font-size:21px; font-weight:800; color:#111;
+    letter-spacing:-.02em; line-height:1.35; }
+  @media(max-width:768px){ .mc-subsec-hdr h3 { font-size:18.5px; } }
+  .mc-subsec-desc { font-size:13.5px; color:#888; margin-bottom:14px; }
 .tab-panel.active { display: block; }
 
 /* ── 강좌 카드 ── */
