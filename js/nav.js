@@ -54,15 +54,20 @@
     'font-weight:700!important;color:#111!important;}',
     /* 전강좌 무제한 */
     '.navbar-menu>li>a.nb-pass{color:var(--green,#2D9B6F)!important;font-weight:600!important;}',
-    /* 메뉴는 화면 가운데. 로고와 오른쪽 묶음 폭이 서로 달라서
-       flex 로는 정확히 가운데가 안 나온다. 자리를 넉넉히 잡을 수 있는
-       넓은 화면에서만 절대 위치로 가운데에 세운다. */
-    '@media(min-width:1100px){',
+    /* 메뉴를 가운데로.
+       로고(약 145px)와 오른쪽 묶음(로그인 상태에서 약 390px)의 폭이 달라
+       flex 만으로는 화면 정가운데가 나오지 않는다.
+       - 1260px 이상: 절대 위치로 화면 정가운데 (겹치지 않을 만큼 넓다)
+       - 그보다 좁으면: 남는 자리 가운데로. 정가운데는 아니지만 겹치지 않는다.
+       로그인하면 오른쪽이 넓어지므로 임계값은 그 상태(1233px)를 기준으로 잡았다. */
+    '.navbar-menu{margin-left:auto;margin-right:auto;}',
+    '@media(min-width:1260px){',
     '.navbar-inner{position:relative;}',
-    '.navbar-menu{position:absolute;left:50%;transform:translateX(-50%);}',
+    '.navbar-menu{position:absolute;left:50%;transform:translateX(-50%);margin:0;}',
+    '.nb-books{margin-left:auto;}',
     '}',
     /* 아이엠북스 — 강의 메뉴가 아니라 바깥 서점이라 오른쪽에 따로 둔다 */
-    '.nb-books{display:inline-flex;align-items:center;gap:4px;margin-left:auto;margin-right:14px;',
+    '.nb-books{display:inline-flex;align-items:center;gap:4px;margin-right:14px;',
     'padding:7px 13px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;',
     'font-size:13px;font-weight:600;color:#555;white-space:nowrap;transition:all .18s;}',
     '.nb-books:hover{border-color:var(--green,#2D9B6F);color:var(--green,#2D9B6F);}',
