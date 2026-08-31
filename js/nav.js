@@ -157,6 +157,23 @@
 
     /* 카테고리 열 */
     '.mega-col{display:flex;flex-direction:column;gap:0;padding:0 28px;}',
+    /* '더 보기' 를 아래에 붙여 열마다 끝선이 맞도록 */
+    '.mega-more{margin-top:auto!important;padding-top:12px!important;',
+    'font-size:12px!important;font-weight:700!important;color:#2D9B6F!important;',
+    'white-space:nowrap!important;}',
+    '.mega-more:hover{text-decoration:underline!important;text-underline-offset:2px!important;}',
+    /* 프리패스는 강좌 목록이 아니라 상품이라 카드로 따로 세운다 */
+    '.mega-col.mega-promo{border-left:none!important;padding:0 0 0 24px!important;}',
+    '.mega-promo-card{display:flex!important;flex-direction:column;gap:8px;',
+    'background:linear-gradient(160deg,#f2fbf6,#e6f6ee);border:1px solid #cfeadd;',
+    'border-radius:14px;padding:20px 18px;height:100%;box-sizing:border-box;',
+    'text-decoration:none!important;transition:border-color .15s,transform .15s;}',
+    '.mega-promo-card:hover{border-color:#2D9B6F;transform:translateY(-2px);}',
+    '.mega-promo-mark{font-size:22px;line-height:1;color:#2D9B6F;}',
+    '.mega-promo-name{font-size:14px;font-weight:800;color:#14603a;}',
+    '.mega-promo-desc{font-size:12px;color:#5b7a6b;line-height:1.65;flex:1;',
+    'white-space:normal!important;}',
+    '.mega-promo-cta{font-size:12px;font-weight:800;color:#2D9B6F;}',
     '.mega-col:first-child{padding-left:0;}',
     '.mega-col:last-child{padding-right:0;}',
     '.mega-col:not(:first-child){border-left:1px solid rgba(0,0,0,.06);}',
@@ -249,6 +266,10 @@
     'background:transparent!important;padding:0!important;',
     'border-radius:0!important;min-width:auto!important;animation:none!important;}',
     '.mega-col-thumb{display:none!important;}',
+    '.mega-col.mega-promo{padding:0!important;}',
+    '.mega-promo-card{background:none!important;border:none!important;',
+    'border-radius:0!important;padding:14px 0!important;height:auto!important;}',
+    '.mega-promo-desc{display:none!important;}',
     '.mega-col{border-bottom:1px solid rgba(0,0,0,.05)!important;',
     'padding:0!important;border-left:none!important;}',
     /* 모바일 카테고리 제목: 터치 영역 넉넉하게, 얇은 글씨 */
@@ -376,19 +397,25 @@
             ? '<span class="mega-cat-badge" style="background:' + cat.badgeBg + ';color:' + cat.badgeText + '">' + cat.badge + '</span>'
             : '';
 
+          // 프리패스는 강좌 목록이 아니라 상품이다. 한 줄짜리 열로 두면
+          // 옆 열이 스무 줄인 옆에서 빈 칸처럼 보여, 카드로 따로 세운다.
           if (cat.key === 'freepass') {
-            html += '<div class="mega-col">' +
-              '<a href="pass.html" class="mega-col-thumb" style="background:linear-gradient(135deg,#1A7A4A,#2D9B6F);display:flex;align-items:center;justify-content:center;">' +
-              '<span style="color:#fff;font-size:28px;">♾️</span></a>' +
-              '<a href="pass.html" class="mega-col-title">' + cat.label + '</a>' +
-              '<div class="mega-col-items">' +
-              '<a href="pass.html">아이엠러닝 프리패스</a>' +
-              '</div></div>';
+            html += '<div class="mega-col mega-promo">' +
+              '<a href="pass.html" class="mega-promo-card">' +
+              '<span class="mega-promo-mark">∞</span>' +
+              '<span class="mega-promo-name">' + cat.label + '</span>' +
+              '<span class="mega-promo-desc">한 번 결제로 아이엠러닝의 모든 강좌를 기간 내내 들을 수 있습니다.</span>' +
+              '<span class="mega-promo-cta">프리패스 보기 →</span>' +
+              '</a></div>';
             return;
           }
 
           var courses = groups[cat.key] || [];
-          var items = courses.map(function (c) {
+          // 열마다 길이가 스무 줄까지 벌어져 메뉴가 들쭉날쭉했다.
+          // 인기순 상위 여덟 개만 보이고 나머지는 '더 보기' 로 넘긴다.
+          var MEGA_MAX = 8;
+          var shown = courses.slice(0, MEGA_MAX);
+          var items = shown.map(function (c) {
             return '<a href="course-detail.html?id=' + c.id + '">' + esc(c.title) + '</a>';
           }).join('');
           var thumbUrl = courses.length && courses[0].thumbnail_url ? courses[0].thumbnail_url : '';
@@ -397,10 +424,14 @@
             ? '<a href="' + catHref + '" class="mega-col-thumb">' +
               '<img src="' + esc(thumbUrl) + '" alt=""></a>'
             : '<a href="' + catHref + '" class="mega-col-thumb" style="background:#f0f0f0;"></a>';
+          var moreHtml = courses.length > MEGA_MAX
+            ? '<a href="' + catHref + '" class="mega-more">전체 ' + courses.length + '개 보기 →</a>'
+            : '<a href="' + catHref + '" class="mega-more">전체 보기 →</a>';
           html += '<div class="mega-col">' +
             thumbHtml +
             '<a href="' + catHref + '" class="mega-col-title">' + cat.label + badgeHtml + '</a>' +
             '<div class="mega-col-items">' + items + '</div>' +
+            moreHtml +
             '</div>';
         });
         body.innerHTML = html;
