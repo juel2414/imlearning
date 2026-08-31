@@ -555,8 +555,8 @@ body {
               <div class="resume-banner" id="resume-banner">
                 <span id="resume-banner-text"></span>
                 <div style="display:flex;gap:6px;margin-left:auto;">
-                  <button class="resume-btn-yes" onclick="doResume()">이어보기</button>
-                  <button class="resume-btn-no" onclick="doStartOver()">처음부터</button>
+                  <button class="resume-btn-yes" onclick="doResume()">이어서 재생</button>
+                  <button class="resume-btn-no" onclick="doStartOver()">처음부터 보기</button>
                 </div>
               </div>
               <div class="lesson-iframe-wrap">
@@ -2118,6 +2118,16 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
     const totalSecs = await vimeoPlayer.getDuration();
     activeTracker = new VimeoTracker(vimeoPlayer, user.id, currentCourse.id, lessonNum, lessonTitle, totalSecs);
 
+    // '열어봤다' 는 '봤다' 와 다른 사실이라 따로 남긴다.
+    // 예전에는 이걸 0초짜리 시청 기록으로 남겨서 둘을 구분할 수 없었다.
+    window.supabaseClient.from('lesson_opens').upsert({
+      user_id:       user.id,
+      course_id:     currentCourse.id,
+      lesson_number: lessonNum,
+      lesson_title:  lessonTitle,
+      opened_at:     new Date().toISOString(),
+    }, { onConflict: 'user_id,course_id,lesson_number' }).then(() => {}, () => {});
+
     // duration_seconds 자동 저장 (처음 재생 시 채워짐)
     const lessonItem = curriculumLessons.find(c => c.num === lessonNum);
     if (lessonItem?.id && totalSecs > 0) {
@@ -2126,11 +2136,15 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
 
     if (vpData) {
       activeTracker.seed(vpData);
-      if ((vpData.last_position || 0) > 5) {
-        pendingResume = vpData.last_position;
-        const timeText = VimeoTracker.fmt(vpData.actual_watched_seconds || 0);
+      const resumeAt = vpData.last_position || 0;
+      // 이미 다 본 강의는 처음부터, 아니면 보던 자리로 재생 머리를 옮겨 둔다.
+      // 예전에는 배너에서 '이어보기' 를 눌러야만 옮겨져서, 그냥 재생하면
+      // 늘 0초부터 다시 시작했다.
+      if (resumeAt > 5 && !vpData.completed) {
+        pendingResume = resumeAt;
+        try { await vimeoPlayer.setCurrentTime(resumeAt); } catch (_) {}
         document.getElementById('resume-banner-text').textContent =
-          '지난번에 ' + timeText + ' 시청하셨어요. 이어볼까요?';
+          '지난번에 보시던 ' + VimeoTracker.fmt(resumeAt) + ' 지점부터 이어집니다.';
         document.getElementById('resume-banner').classList.add('show');
       }
     }
@@ -2168,6 +2182,7 @@ function closeLessonPlayer() {
 
 async function doResume() {
   document.getElementById('resume-banner').classList.remove('show');
+  // 재생 머리는 이미 옮겨져 있다. 여기서는 재생만 시작한다.
   if (vimeoPlayer && pendingResume > 0) {
     try { await vimeoPlayer.setCurrentTime(pendingResume); await vimeoPlayer.play(); } catch(_) {}
   }

@@ -272,6 +272,7 @@ var allProfiles   = [];
 var allOrders     = [];
 var allVideoProgress = [];
 var allStudyLogs  = [];
+var allLessonOpens = [];   // 강의를 '열어본' 기록 (시청과는 구분)
 var allCourses    = [];
 var studentRows   = []; // 계산된 행 데이터
 var currentUserId = null;
@@ -330,6 +331,11 @@ function buildStudentRows() {
   }
   allStudyLogs.forEach(function(sl) { markLastStudy(sl.user_id, sl.studied_at); });
   allVideoProgress.forEach(function(vp) { markLastStudy(vp.user_id, vp.updated_at); });
+  allLessonOpens.forEach(function(o) { markLastStudy(o.user_id, o.opened_at); });
+
+  // 열어보기만 하고 실제로 본 적은 없는지 구분하려고 따로 센다
+  var opensByUser = {};
+  allLessonOpens.forEach(function(o) { opensByUser[o.user_id] = (opensByUser[o.user_id] || 0) + 1; });
 
   // 전체 프로필 기준으로 행 구성 (수강 여부 무관)
   studentRows = allProfiles.map(function(profile) {
@@ -341,6 +347,7 @@ function buildStudentRows() {
     var avgProgress = courseCount ? Math.round(courseOrders.reduce(function(s,o){ return s+(o.progress||0); },0) / courseCount) : 0;
     var lastStudy   = lastStudyByUser[uid] || null;
     var totalWatch  = watchByUser[uid] || 0;
+    var openedCount = opensByUser[uid] || 0;
     var daysSinceLast = daysSince(lastStudy);
 
     var status;
@@ -361,6 +368,7 @@ function buildStudentRows() {
       lastStudy:      lastStudy,
       daysSinceLast:  daysSinceLast,
       totalWatch:     totalWatch,
+      openedCount:    openedCount,
       status:         status,
       isDormant:      courseCount > 0 && daysSinceLast > 14,
     };
@@ -492,7 +500,9 @@ function renderTable() {
         '<span style="font-size:12px;font-weight:700;">' + r.avgProgress + '%</span>' +
       '</div></td>' +
       '<td style="font-size:12px;color:#666;">' + lastTxt + '</td>' +
-      '<td style="font-size:12px;">' + fmtSecs(r.totalWatch) + '</td>' +
+      '<td style="font-size:12px;">' + fmtSecs(r.totalWatch) +
+        (r.openedCount ? '<div style="font-size:11px;color:#9aa2a8;margin-top:2px;">' + r.openedCount + '개 강의 열어봄</div>' : '') +
+      '</td>' +
       '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
       '<td style="white-space:nowrap;">' + roleBadge + '<br>' + roleBtn + '</td>' +
       '<td style="white-space:nowrap;">' + gcBtn + (gcBtn && (encBtn || refundBtn) ? '<br>' : '') + encBtn + (encBtn && refundBtn ? '<br>' : '') + refundBtn + '</td>' +
@@ -642,10 +652,11 @@ async function fetchAll(query) {
 // ── 데이터 로드 ──
 async function loadAll() {
   try {
-    var [ordersRes, vpRes, logsRes, coursesRes] = await Promise.all([
+    var [ordersRes, vpRes, logsRes, opensRes, coursesRes] = await Promise.all([
       sb.from('orders').select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, grant_type, grant_reason, created_at').in('status',['paid','completed']),
       sb.from('video_progress').select('user_id, course_id, lesson_number, lesson_title, actual_watched_seconds, actual_watched_text, total_seconds, watch_percentage, completed, updated_at'),
       sb.from('study_logs').select('user_id, course_id, lesson_number, studied_at'),
+      sb.from('lesson_opens').select('user_id, opened_at'),
       sb.from('courses').select('id, title'),
     ]);
 
@@ -653,6 +664,7 @@ async function loadAll() {
     allOrders        = ordersRes.data    || [];
     allVideoProgress = vpRes.data        || [];
     allStudyLogs     = logsRes.data      || [];
+    allLessonOpens   = opensRes.data     || [];
     allCourses       = coursesRes.data   || [];
 
     var userRes = await sb.auth.getUser();

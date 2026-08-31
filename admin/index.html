@@ -638,7 +638,7 @@ function exportCourseCSV() {
 function exportOrdersCSV() { exportCSV(); }
 
 // ── 학습 현황 KPI 렌더 ──
-function renderLearningKPI(vpToday, studyLogsAll, ordersAll, vpAll) {
+function renderLearningKPI(vpToday, studyLogsAll, ordersAll, vpAll, opensAll) {
   // 오늘 총 시청 시간 합산
   const totalWatchSecs = vpToday.reduce((s, r) => s + (r.actual_watched_seconds || 0), 0);
   function fmtSecs(s) {
@@ -656,6 +656,7 @@ function renderLearningKPI(vpToday, studyLogsAll, ordersAll, vpAll) {
   const todayLearners = new Set();
   studyLogsAll.forEach(r => { if (new Date(r.studied_at) >= todayStart) todayLearners.add(r.user_id); });
   (vpToday || []).forEach(r => { if (r.updated_at && new Date(r.updated_at) >= todayStart) todayLearners.add(r.user_id); });
+  (opensAll || []).forEach(r => { if (r.opened_at && new Date(r.opened_at) >= todayStart) todayLearners.add(r.user_id); });
   document.getElementById('kpi-today-learners').textContent = todayLearners.size;
 
   // 휴면 수강생: 수강생 중 14일 이상 미접속 (study_logs 없거나 오래됨)
@@ -669,6 +670,7 @@ function renderLearningKPI(vpToday, studyLogsAll, ordersAll, vpAll) {
   };
   studyLogsAll.forEach(r => mark(r.user_id, r.studied_at));
   (vpAll || []).forEach(r => mark(r.user_id, r.updated_at));
+  (opensAll || []).forEach(r => mark(r.user_id, r.opened_at));
   const dormantCount = enrolledUsers.filter(uid => {
     const last = lastStudyMap[uid];
     return !last || new Date(last) < cutoff14;
@@ -687,7 +689,7 @@ function renderLearningKPI(vpToday, studyLogsAll, ordersAll, vpAll) {
 async function loadAll() {
   try {
     const todayStr = new Date().toISOString().slice(0,10);
-    const [ordersRes, coursesRes, profilesRes, vpTodayRes, studyLogsRes, vpAllRes] = await Promise.all([
+    const [ordersRes, coursesRes, profilesRes, vpTodayRes, studyLogsRes, vpAllRes, opensRes] = await Promise.all([
       sb.from('orders').select('*').order('created_at', { ascending: false }),
       sb.from('courses').select('*').order('students', { ascending: false }),
       sb.from('profiles').select('id, created_at').order('created_at', { ascending: false }),
@@ -695,13 +697,15 @@ async function loadAll() {
       sb.from('study_logs').select('user_id, studied_at').order('studied_at', { ascending: false }),
       // 휴면 판정에는 오늘치가 아니라 전체 기간이 필요하다
       sb.from('video_progress').select('user_id, updated_at'),
+      // 강의를 열어본 것도 접속으로 친다 (시청 기록과는 별개)
+      sb.from('lesson_opens').select('user_id, opened_at'),
     ]);
 
     allOrders   = ordersRes.data   || [];
     allCourses  = coursesRes.data  || [];
     allProfiles = profilesRes.data || [];
 
-    renderLearningKPI(vpTodayRes.data || [], studyLogsRes.data || [], allOrders, vpAllRes.data || []);
+    renderLearningKPI(vpTodayRes.data || [], studyLogsRes.data || [], allOrders, vpAllRes.data || [], opensRes.data || []);
     renderAll();
 
     // 30초마다 자동 갱신
