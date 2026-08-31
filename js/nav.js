@@ -139,9 +139,9 @@
     'left:50%;transform:translateX(-50%);background:#fff;border-radius:16px;',
     'box-shadow:0 4px 20px rgba(0,0,0,.06);',
     'border:1px solid rgba(0,0,0,.05);z-index:200;',
-    'padding:28px 36px;width:min(96vw,1300px);}',
+    'padding:28px 36px;width:min(94vw,1080px);}',
     '.nb-dropdown.mega-open .nb-mega-menu{',
-    'display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:0;',
+    'display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:0;',
     'animation:megaFadeIn .18s ease-out both;}',
     '@keyframes megaFadeIn{',
     'from{opacity:0;transform:translateX(-50%) translateY(-4px)}',
@@ -162,18 +162,6 @@
     'font-size:12px!important;font-weight:700!important;color:#2D9B6F!important;',
     'white-space:nowrap!important;}',
     '.mega-more:hover{text-decoration:underline!important;text-underline-offset:2px!important;}',
-    /* 프리패스는 강좌 목록이 아니라 상품이라 카드로 따로 세운다 */
-    '.mega-col.mega-promo{border-left:none!important;padding:0 0 0 24px!important;}',
-    '.mega-promo-card{display:flex!important;flex-direction:column;gap:8px;',
-    'background:linear-gradient(160deg,#f2fbf6,#e6f6ee);border:1px solid #cfeadd;',
-    'border-radius:14px;padding:20px 18px;height:100%;box-sizing:border-box;',
-    'text-decoration:none!important;transition:border-color .15s,transform .15s;}',
-    '.mega-promo-card:hover{border-color:#2D9B6F;transform:translateY(-2px);}',
-    '.mega-promo-mark{font-size:22px;line-height:1;color:#2D9B6F;}',
-    '.mega-promo-name{font-size:14px;font-weight:800;color:#14603a;}',
-    '.mega-promo-desc{font-size:12px;color:#5b7a6b;line-height:1.65;flex:1;',
-    'white-space:normal!important;}',
-    '.mega-promo-cta{font-size:12px;font-weight:800;color:#2D9B6F;}',
     '.mega-col:first-child{padding-left:0;}',
     '.mega-col:last-child{padding-right:0;}',
     '.mega-col:not(:first-child){border-left:1px solid rgba(0,0,0,.06);}',
@@ -202,7 +190,7 @@
 
     /* 하위 항목 — 여백과 절제 */
     '.mega-col-items{display:flex;flex-direction:column;gap:0;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more){',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-more){',
     'font-size:13px!important;color:#333!important;font-weight:400!important;',
     'font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif!important;',
     'letter-spacing:-0.02em!important;',
@@ -211,7 +199,7 @@
     'transition:color .12s!important;white-space:nowrap!important;',
     'overflow:hidden!important;text-overflow:ellipsis!important;',
     'background:transparent!important;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more):hover{',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-more):hover{',
     'color:var(--green,#2D9B6F)!important;',
     'text-decoration:underline!important;text-underline-offset:2px!important;',
     'text-decoration-thickness:1px!important;background:transparent!important;}',
@@ -266,10 +254,6 @@
     'background:transparent!important;padding:0!important;',
     'border-radius:0!important;min-width:auto!important;animation:none!important;}',
     '.mega-col-thumb{display:none!important;}',
-    '.mega-col.mega-promo{padding:0!important;}',
-    '.mega-promo-card{background:none!important;border:none!important;',
-    'border-radius:0!important;padding:14px 0!important;height:auto!important;}',
-    '.mega-promo-desc{display:none!important;}',
     '.mega-col{border-bottom:1px solid rgba(0,0,0,.05)!important;',
     'padding:0!important;border-left:none!important;}',
     /* 모바일 카테고리 제목: 터치 영역 넉넉하게, 얇은 글씨 */
@@ -288,11 +272,11 @@
     '.mega-col-items{display:none!important;flex-direction:column!important;',
     'padding:0 0 8px 24px!important;}',
     '.mega-col.open .mega-col-items{display:flex!important;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more){',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-more){',
     'padding:10px 0!important;font-size:14px!important;line-height:1.5!important;',
     'border-radius:0!important;white-space:normal!important;',
     'border-bottom:1px solid rgba(0,0,0,.04)!important;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more):last-child{border-bottom:none!important;}',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-more):last-child{border-bottom:none!important;}',
     '.mega-col-sublabel{padding:6px 0 2px!important;font-size:10px!important;color:#ccc!important;}',
     '}',
   ].join('');
@@ -369,7 +353,6 @@
     { key: 'exam',    label: '수능/검정고시',  catParam: 'exam',    badge: 'NEW',  badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
     { key: 'edu',     label: '부모·교사',      catParam: 'edu',     badge: '추천', badgeBg: 'rgba(45,155,111,.13)', badgeText: '#1A7A4A' },
     { key: 'english', label: '영어',            catParam: 'english' },
-    { key: 'freepass', label: '전강좌 무제한',  catParam: 'freepass' },
   ];
 
   function loadMegaCourses() {
@@ -397,18 +380,6 @@
             ? '<span class="mega-cat-badge" style="background:' + cat.badgeBg + ';color:' + cat.badgeText + '">' + cat.badge + '</span>'
             : '';
 
-          // 프리패스는 강좌 목록이 아니라 상품이다. 한 줄짜리 열로 두면
-          // 옆 열이 스무 줄인 옆에서 빈 칸처럼 보여, 카드로 따로 세운다.
-          if (cat.key === 'freepass') {
-            html += '<div class="mega-col mega-promo">' +
-              '<a href="pass.html" class="mega-promo-card">' +
-              '<span class="mega-promo-mark">∞</span>' +
-              '<span class="mega-promo-name">' + cat.label + '</span>' +
-              '<span class="mega-promo-desc">한 번 결제로 아이엠러닝의 모든 강좌를 기간 내내 들을 수 있습니다.</span>' +
-              '<span class="mega-promo-cta">프리패스 보기 →</span>' +
-              '</a></div>';
-            return;
-          }
 
           var courses = groups[cat.key] || [];
           // 열마다 길이가 스무 줄까지 벌어져 메뉴가 들쭉날쭉했다.
