@@ -54,6 +54,13 @@
     'font-weight:700!important;color:#111!important;}',
     /* 전강좌 무제한 */
     '.navbar-menu>li>a.nb-pass{color:var(--green,#2D9B6F)!important;font-weight:600!important;}',
+    /* 메뉴는 화면 가운데. 로고와 오른쪽 묶음 폭이 서로 달라서
+       flex 로는 정확히 가운데가 안 나온다. 자리를 넉넉히 잡을 수 있는
+       넓은 화면에서만 절대 위치로 가운데에 세운다. */
+    '@media(min-width:1100px){',
+    '.navbar-inner{position:relative;}',
+    '.navbar-menu{position:absolute;left:50%;transform:translateX(-50%);}',
+    '}',
     /* 아이엠북스 — 강의 메뉴가 아니라 바깥 서점이라 오른쪽에 따로 둔다 */
     '.nb-books{display:inline-flex;align-items:center;gap:4px;margin-left:auto;margin-right:14px;',
     'padding:7px 13px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;',
