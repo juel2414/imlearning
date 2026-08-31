@@ -1,4 +1,6 @@
 /* ───── 폰트 정의 ───── */
+/* 본문은 읽기 위한 글꼴(Pretendard 고딕), Jua 는 큰 브랜드 문구에만 쓴다 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 @font-face {
   font-family: 'S-CoreDream';
@@ -50,7 +52,11 @@
   --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
   --shadow-lg: 0 16px 48px rgba(0,0,0,0.14);
   --transition: 0.2s cubic-bezier(.4,0,.2,1);
-  --font-body: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  /* 정보를 읽는 글자는 전부 이것 — Jua 는 획이 둥글고 굵어 본문에서 잘 안 읽혔다 */
+  --font-body: 'Pretendard Variable', Pretendard, 'Noto Sans KR',
+    -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  /* 히어로·브랜드 문구처럼 '읽는 글'이 아닌 자리에만 */
+  --font-display: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-accent: 'Cafe24Surround', 'S-CoreDream', sans-serif;
 }
 
@@ -62,7 +68,9 @@ body {
   font-family: var(--font-body);
   color: var(--gray-900);
   background: var(--white);
-  line-height: 1.6;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
+  word-break: keep-all;      /* 한글이 낱말 가운데서 끊기지 않게 */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -214,6 +222,7 @@ ul, ol { list-style: none; }
   letter-spacing: 0.5px;
 }
 .hero-title {
+  font-family: var(--font-display);
   font-size: clamp(39px, 5vw, 59px);
   font-weight: 800;
   line-height: 1.15;
@@ -321,6 +330,7 @@ ul, ol { list-style: none; }
   padding: 6rem 0;
 }
 .brand-title {
+  font-family: var(--font-display);
   font-size: clamp(28px, 4vw, 48px);
   font-weight: 800;
   line-height: 1.3;
@@ -439,11 +449,11 @@ ul, ol { list-style: none; }
 }
 .enrolled-badge { background: rgba(22,163,74,0.85); }
 .course-body { padding: 14px 16px; }
-.course-cat { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 6px; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; letter-spacing: 0; }
-.course-title { font-size: 15px; font-weight: 600; color: var(--black); line-height: 1.55; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; word-break: keep-all; letter-spacing: -0.02em; }
-.course-instructor { font-size: 12px; font-weight: 400; color: #666; margin-bottom: 10px; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; }
+.course-cat { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 6px; letter-spacing: 0; }
+.course-title { font-size: 15px; font-weight: 600; color: var(--black); line-height: 1.55; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: keep-all; letter-spacing: -0.02em; }
+.course-instructor { font-size: 12px; font-weight: 400; color: #666; margin-bottom: 10px; }
 .course-footer { display: flex; justify-content: space-between; align-items: center; }
-.course-students { font-size: 12px; color: var(--gray-500); font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; font-weight: 400; }
+.course-students { font-size: 12px; color: var(--gray-500); font-weight: 400; }
 .course-price { font-size: 16px; font-weight: 800; color: var(--black); }
 .course-price-original { font-size: 12px; color: var(--gray-300); text-decoration: line-through; margin-right: 4px; }
 .course-price-discount { color: var(--green); }
@@ -472,7 +482,7 @@ ul, ol { list-style: none; }
   align-items: center;
 }
 .freepass-eyebrow { font-size: 12px; font-weight: 600; color: var(--green); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
-.freepass-title { font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; color: var(--white); line-height: 1.2; letter-spacing: -1px; margin-bottom: 1rem; }
+.freepass-title { font-family: var(--font-display); font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; color: var(--white); line-height: 1.2; letter-spacing: -1px; margin-bottom: 1rem; }
 .freepass-title span { color: var(--green); font-family: var(--font-accent); }
 .freepass-desc { font-size: 16px; color: rgba(255,255,255,0.55); line-height: 1.75; margin-bottom: 2rem; }
 .freepass-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 2.5rem; }
