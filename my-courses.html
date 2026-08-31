@@ -1180,17 +1180,18 @@ async function checkAndAwardBadgesOnLoad(userId, recentLogs, totalCompleted, str
   if (newBadges.length > 0) {
     gBadges = [...gBadges, ...newBadges];
     renderBadgesTab(gBadges);
-
-  // 알림에서 넘어온 경우 해당 탭을 연다 (?tab=account 등)
-  let _tab = new URLSearchParams(location.search).get('tab');
-  if (_tab === 'progress') _tab = 'stats';   // 진도 현황은 학습 기록 안으로 합쳐졌다
-  if (_tab) {
-    const btn = [...document.querySelectorAll('.my-tab')]
-      .find(t => (t.getAttribute('onclick') || '').includes("'" + _tab + "'"));
-    if (btn) switchTab(_tab, btn);
-  }
     newBadges.forEach((b, i) => setTimeout(() => showBadgeToast(b), i * 3200));
   }
+}
+
+/** 알림·링크에서 넘어온 경우 해당 탭을 연다 (?tab=account 등) */
+function openTabFromUrl() {
+  let tab = new URLSearchParams(location.search).get('tab');
+  if (!tab) return;
+  if (tab === 'progress') tab = 'stats';   // 진도 현황은 학습 기록 안으로 합쳐졌다
+  const btn = [...document.querySelectorAll('.my-tab')]
+    .find(t => (t.getAttribute('onclick') || '').includes("'" + tab + "'"));
+  if (btn) switchTab(tab, btn);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1617,6 +1618,8 @@ async function loadMyPage() {
 
   const streak         = calcStreak(recentLogs || []);
   const totalCompleted = Object.values(gProgressByCourse).reduce((s, p) => s + p.done, 0);
+
+  openTabFromUrl();
 
   await checkAndAwardBadgesOnLoad(
     user.id, recentLogs, totalCompleted, streak, ordersWithProgress, avgData
