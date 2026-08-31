@@ -109,65 +109,6 @@ body {
     border-bottom:1px solid rgba(0,0,0,.05); }
   .pd-inner { padding:18px 20px 22px; }
 
-  /* 달력 위 달 이동 */
-  .cal-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
-  .cal-nav-btn { width:32px; height:32px; border:1.5px solid rgba(0,0,0,.1); border-radius:9px;
-    background:#fff; color:#555; font-size:17px; line-height:1; cursor:pointer; flex:none; }
-  .cal-nav-btn:hover { border-color:#2D9B6F; color:#2D9B6F; }
-  .cal-nav-title { flex:1; text-align:center; font-size:15px; font-weight:800; color:#111; }
-  .cal-nav-title span { display:block; font-size:11.5px; font-weight:600; color:#888; margin-top:3px; }
-
-  /* ── 큰 학습 달력: 칸 안에 강좌 이름까지 ── */
-  .month-cal-wrap.big { max-width: 980px; }
-  .month-calendar.big { gap: 6px; }
-  .month-calendar.big .cal-day {
-    aspect-ratio: auto; min-height: 104px; padding: 7px 8px; gap: 5px;
-    align-items: stretch; justify-content: flex-start;
-    background: #fff; border: 1px solid rgba(0,0,0,.07); color: #333; }
-  .month-calendar.big .cal-day.empty { background: transparent; border-color: transparent; }
-  /* 학습량은 배경 농도로, 글씨는 계속 읽히도록 옅은 초록만 쓴다 */
-  .month-calendar.big .cal-day.lv1 { background:#eefaf3; border-color:#cdeadb; }
-  .month-calendar.big .cal-day.lv2 { background:#dcf3e8; border-color:#b6e2cd; }
-  .month-calendar.big .cal-day.lv3 { background:#c6ecd9; border-color:#96d7ba; }
-  .month-calendar.big .cal-day.lv4 { background:#aee2c8; border-color:#71c69f; }
-  .month-calendar.big .cal-day.planned { background:#fff; border:1px dashed #cbd5d1; }
-  .month-calendar.big .cal-day.missed  { background:#fdf3f3; border:1px solid #f3cccc; }
-  .month-calendar.big .cal-day.today-marker { outline:2px solid #f59e0b; outline-offset:1px; }
-
-  .cd-top { display:flex; align-items:baseline; justify-content:space-between; gap:6px; }
-  .cd-num { font-size:13px; font-weight:800; color:#444; }
-  .cal-day.missed .cd-num { color:#c05a5a; }
-  .cal-day.planned .cd-num { color:#9aa2a8; }
-  .cd-q { font-size:10.5px; font-weight:800; color:#2D9B6F; }
-  .cal-day.missed .cd-q { color:#c05a5a; }
-  .cal-day.planned .cd-q { color:#9aa2a8; }
-  .cd-list { display:flex; flex-direction:column; gap:3px; overflow:hidden; }
-  .cd-item { display:flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700;
-    line-height:1.3; background:rgba(255,255,255,.75); border-radius:5px; padding:2px 5px;
-    color:#4b5a53; white-space:nowrap; }
-  .cd-item .nm { overflow:hidden; text-overflow:ellipsis; }
-  .cd-item .qt { margin-left:auto; flex:none; font-variant-numeric:tabular-nums; }
-  .cd-item.met  { background:#2D9B6F; color:#fff; }
-  .cd-item.part { background:#d7f0e3; color:#14603a; }
-  .cd-more { font-size:10px; color:#98a3a9; font-weight:700; padding-left:4px; }
-
-  /* 화면이 좁으면 이름은 접고 숫자만 (7칸이라 이름 넣을 자리가 없다) */
-  @media(max-width:820px){
-    .month-calendar.big .cal-day { min-height:0; aspect-ratio:1; padding:4px;
-      align-items:center; justify-content:center; }
-    .month-calendar.big .cd-list { display:none; }
-    .cd-top { flex-direction:column; align-items:center; gap:1px; }
-    .cd-num { font-size:12px; }
-    .cd-q { font-size:9px; }
-  }
-  /* 달력 아래 '어느 강좌를 하루 몇 강' 목록 */
-  .cal-plans { margin-top:14px; display:flex; flex-direction:column; gap:7px; }
-  .cal-plan { display:flex; align-items:center; gap:9px; font-size:12.5px; color:#444;
-    background:#f7f9f8; border-radius:9px; padding:9px 12px; }
-  .cal-plan i { width:9px; height:9px; border-radius:50%; background:#2D9B6F; flex:none; }
-  .cal-plan b { color:#111; font-weight:800; }
-  .cal-plan span { margin-left:auto; color:#888; font-size:11.5px; white-space:nowrap;
-    font-variant-numeric:tabular-nums; }
   .cal-note { margin-top:10px; font-size:11.5px; color:#999; text-align:center; line-height:1.6; }
 
   /* 강좌 카드 안에서 바로 고치는 계획 편집기 */
@@ -200,6 +141,8 @@ body {
   .cc-mon { font-size:10.5px; color:#888; font-weight:700; display:flex; align-items:center; }
   .cc-lbl { font-size:10.5px; color:#888; font-weight:700; text-align:center; }
   .cc-title { font-size:12px; font-weight:700; color:#888; margin:16px 0 8px; }
+  .cc-summary { font-size:12.5px; color:#777; margin-bottom:10px; font-variant-numeric:tabular-nums; }
+  .cc-summary b { color:#2D9B6F; font-weight:800; }
 
   .plan-empty { padding:1.25rem; background:#f8f9fa; border-radius:10px; color:#888; font-size:13.5px; line-height:1.7; }
   .mc-subsec { margin-bottom:3.5rem; }
@@ -321,12 +264,6 @@ body {
 .bar-label { font-size: 11px; color: var(--gray-500); }
 .bar-today-label { color: var(--green) !important; font-weight: 700 !important; }
 
-/* 월간 캘린더 (GitHub grass style) */
-/* 월간 캘린더 — 달력답게 날짜를 보이고, 학습량에 따라 색이 진해진다 */
-.month-cal-wrap { max-width: 460px; margin: 0 auto; }
-.month-cal-labels { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 6px; }
-.month-cal-label { font-size: 11px; text-align: center; color: var(--gray-500); font-weight: 700; }
-.month-calendar { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
 .cal-day { aspect-ratio: 1; border-radius: 7px; background: #f1f3f4; display: flex;
   flex-direction: column; align-items: center; justify-content: center; gap: 1px;
   font-size: 12px; color: #9aa2a8; font-variant-numeric: tabular-nums; line-height: 1.15; }
@@ -552,12 +489,6 @@ body {
     <!-- 학습 기록: 진도 현황 · 뱃지 · 수료증 · 통계 -->
     <div class="tab-panel" id="panel-stats">
       <div class="mc-subsec">
-        <div class="mc-subsec-hdr"><h3>📅 학습 달력</h3></div>
-        <div class="mc-subsec-desc">수강 중인 모든 강좌를 합쳐서 어느 날 몇 강을 들었는지 보여줍니다.</div>
-        <div id="prog-calendar" class="loading-msg">불러오는 중...</div>
-      </div>
-
-      <div class="mc-subsec">
         <div class="mc-subsec-hdr"><h3>📈 진도 한눈에 보기</h3></div>
         <div class="mc-subsec-desc">계획을 세운 강좌는 '오늘까지 권장'과 '실제 완료'를 나란히 비교합니다. 강좌를 누르면 그 자리에서 펼쳐집니다.</div>
         <div id="prog-overview" class="loading-msg">불러오는 중...</div>
@@ -744,7 +675,6 @@ let gProgressByCourse = {};   // { courseId: { total, done } }
 let gPlans            = {};   // { courseId: { target_date, daily_goal } }
 let gTodayLogsByCourse= {};   // { courseId: count }
 let gBadges           = [];   // 사용자의 뱃지 배열
-let gPlanRanges   = [];   // 캘린더에 겹칠 학습 계획 기간
 let gPlanRows     = [];   // get_study_plan_status 결과
 let gProgressRows = [];   // 내 progress 원본 (완료 날짜 포함)
 
@@ -1526,7 +1456,7 @@ async function loadMyPage() {
 
   if (!user) {
     document.getElementById('user-name').textContent = '로그인이 필요해요';
-    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content','prog-overview','prog-calendar'].forEach(id => {
+    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content','prog-overview'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = `
         <div class="empty-state">
@@ -2028,7 +1958,17 @@ function courseCalendarHTML(courseId, plan) {
   cur.setDate(cur.getDate() - (cur.getDay() === 0 ? 6 : cur.getDay() - 1));
   const endDate = new Date(end + 'T00:00:00');
 
-  let html = '<div class="cc-grid"><div class="cc-lbl"></div>' +
+  // 이 기간에 며칠, 몇 강을 들었는지
+  let studiedDays = 0, studiedLessons = 0;
+  Object.entries(days).forEach(([d, n]) => {
+    if (d >= start && d <= end) { studiedDays++; studiedLessons += n; }
+  });
+  const summary = studiedLessons
+    ? `${start} ~ ${end} · <b>${studiedDays}일 학습 · 모두 ${studiedLessons}강</b>`
+    : `${start} ~ ${end} · 아직 들은 강의가 없어요`;
+
+  let html = `<div class="cc-summary">${summary}</div>` +
+    '<div class="cc-grid"><div class="cc-lbl"></div>' +
     ['월','화','수','목','금','토','일'].map(d => `<div class="cc-lbl">${d}</div>`).join('');
 
   let guard = 0, lastMonth = null;
@@ -2143,10 +2083,8 @@ async function loadProgressTab() {
   const { data: rows, error } = await supabaseClient.rpc('get_study_plan_status');
   if (error) { ovEl.innerHTML = '<div class="plan-empty">진도를 불러오지 못했습니다.</div>'; return; }
   gPlanRows   = rows || [];
-  gPlanRanges = gPlanRows.map(r => ({ start: r.start_date, end: r.target_date }));
 
   const list = buildProgRows();
-  renderMonthCalendar();
 
   if (!list.length) {
     ovEl.innerHTML = '<div class="plan-empty">수강 중인 강좌가 없습니다. 강좌를 수강하면 여기에서 진도를 한눈에 볼 수 있어요.</div>';
@@ -2260,22 +2198,8 @@ async function loadProgressTab() {
     </div>`;
 }
 
-/* ── 전체 학습 달력 (모든 강좌를 합쳐서) ───────────────────── */
 
-let gCalYear = null, gCalMonth = null;   // 지금 보고 있는 달
 
-/** 날짜별로 어느 강좌를 몇 강 들었는지 (모든 강좌 합산) */
-function allDayCounts() {
-  const days = {};
-  gProgressRows.forEach(pr => {
-    if (!pr.completed || !pr.watched_at) return;
-    const d = localDay(pr.watched_at);
-    if (!days[d]) days[d] = { count: 0, byCourse: {} };
-    days[d].count++;
-    days[d].byCourse[pr.course_id] = (days[d].byCourse[pr.course_id] || 0) + 1;
-  });
-  return days;
-}
 
 /** 계획에서 그 날짜에 배정된 강의 번호. 계획 밖이거나 이미 끝났으면 null */
 function planLessonsOn(planRow, ds) {
@@ -2319,143 +2243,9 @@ function lessonRange(item) {
   return item.from === item.to ? `${item.from}강` : `${item.from}~${item.to}강`;
 }
 
-/** 칸에 넣을 짧은 강좌 이름. '[4세대] CBUP 수료과정' → 'CBUP 수료과정' */
-function shortCourseName(title) {
-  return String(title || '')
-    .replace(/^\[[^\]]*\]\s*/, '')
-    .replace(/^(복음스쿨|소명스쿨|제자스쿨|온택 검고)[_\s]*/, '')
-    .trim() || String(title || '');
-}
 
-function changeCalMonth(delta) {
-  const d = new Date(gCalYear, gCalMonth + delta, 1);
-  gCalYear = d.getFullYear(); gCalMonth = d.getMonth();
-  renderMonthCalendar();
-}
 
-function renderMonthCalendar() {
-  const el = document.getElementById('prog-calendar');
-  if (!el) return;
-  el.classList.remove('loading-msg');
 
-  const now = new Date();
-  if (gCalYear === null) { gCalYear = now.getFullYear(); gCalMonth = now.getMonth(); }
-
-  const days     = allDayCounts();
-  const todayStr = localDay(now);
-
-  // 그날 어느 강좌의 '몇 강째' 를 들어야 하고, 실제로 몇 강 들었는지
-  const dayPlan = ds => {
-    const map = {};
-    (gPlanRows || []).forEach(r => {
-      if (ds < r.start_date || ds > r.target_date) return;
-      // 시작일부터 며칠째인지 세어 그날 몫의 강의 번호를 낸다
-      const nth  = Math.round((new Date(ds) - new Date(r.start_date)) / 86400000) + 1;
-      const from = (nth - 1) * r.daily_goal + 1;
-      if (from > r.total_lessons) return;   // 계획대로면 이미 다 들은 뒤
-      const to = Math.min(nth * r.daily_goal, r.total_lessons);
-      map[r.course_id] = { title: r.course_title, goal: to - from + 1, from, to, done: 0 };
-    });
-    const st = days[ds];
-    if (st) Object.entries(st.byCourse).forEach(([cid, n]) => {
-      if (!map[cid]) map[cid] = { title: (gCoursesMap[cid] || {}).title || '기타', goal: 0, done: 0 };
-      map[cid].done = n;
-    });
-    const items = Object.values(map);
-    return { items,
-      total: items.reduce((sum, i) => sum + i.goal, 0),
-      planned: items.filter(i => i.goal > 0) };
-  };
-
-  const first     = new Date(gCalYear, gCalMonth, 1);
-  const daysInMon = new Date(gCalYear, gCalMonth + 1, 0).getDate();
-  const startEmpty = first.getDay() === 0 ? 6 : first.getDay() - 1;   // 월요일 시작
-
-  let cells = '';
-  for (let i = 0; i < startEmpty; i++) cells += '<div class="cal-day empty"></div>';
-
-  let monthLessons = 0, monthDays = 0;
-  for (let d = 1; d <= daysInMon; d++) {
-    const ds  = `${gCalYear}-${String(gCalMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const st  = days[ds];
-    const cnt = st ? st.count : 0;
-    if (cnt) { monthLessons += cnt; monthDays++; }
-    const lvl     = cnt === 0 ? 0 : cnt <= 1 ? 1 : cnt <= 3 ? 2 : cnt <= 5 ? 3 : 4;
-    const isToday = ds === todayStr;
-    const isPast  = ds < todayStr;
-    const dp      = dayPlan(ds);
-    const planDay = dp.planned.length > 0;
-    const missed  = isPast && cnt === 0 && planDay;
-    const cls = ['cal-day', lvl > 0 && ('lv' + lvl), isToday && 'today-marker',
-                 !cnt && planDay && !missed && 'planned', missed && 'missed'].filter(Boolean).join(' ');
-
-    // 오른쪽 위 숫자: 계획이 있으면 '들은 것/들어야 할 것', 없으면 들은 것
-    const quota = dp.total
-      ? (cnt ? `${cnt}/${dp.total}` : `${dp.total}강`)
-      : (cnt ? `${cnt}강` : '');
-
-    // 칸 안에 강좌 이름과 분량 (최대 3개, 넘치면 '+N')
-    const shown = dp.items.slice(0, 3);
-    const rest  = dp.items.length - shown.length;
-    const list = shown.map(i => {
-      const state = i.goal && i.done >= i.goal ? 'met' : i.done ? 'part' : '';
-      // 계획이 있으면 '몇 강째' 를, 없으면 그날 들은 수를 적는다
-      const qt = i.goal ? lessonRange(i) : `${i.done}강`;
-      return `<span class="cd-item ${state}"><span class="nm">${esc(shortCourseName(i.title))}</span><span class="qt">${qt}</span></span>`;
-    }).join('') + (rest > 0 ? `<span class="cd-more">+${rest}개 더</span>` : '');
-
-    let tip = `${gCalMonth + 1}월 ${d}일`;
-    if (dp.planned.length) tip += '\n들을 분량 — ' + dp.planned.map(i => `${i.title} ${lessonRange(i)} (${i.goal}강)`).join(', ');
-    if (cnt) tip += '\n들은 것 — ' + dp.items.filter(i => i.done).map(i => `${i.title} ${i.done}강`).join(', ');
-    else if (missed) tip += '\n(들은 강의 없음)';
-
-    cells += `<div class="${cls}" title="${esc(tip)}">
-        <div class="cd-top"><span class="cd-num">${d}</span>${quota ? `<span class="cd-q">${quota}</span>` : ''}</div>
-        ${list ? `<div class="cd-list">${list}</div>` : ''}
-      </div>`;
-  }
-
-  const thisMonth = gCalYear === now.getFullYear() && gCalMonth === now.getMonth();
-  const summary = monthLessons
-    ? `${monthDays}일 학습 · 모두 ${monthLessons}강`
-    : (thisMonth ? '이번 달은 아직 들은 강의가 없어요' : '이 달에는 들은 강의가 없어요');
-
-  el.innerHTML = `
-    <div class="month-cal-wrap big">
-      <div class="cal-nav">
-        <button class="cal-nav-btn" onclick="changeCalMonth(-1)" aria-label="이전 달">‹</button>
-        <div class="cal-nav-title">${gCalYear}년 ${gCalMonth + 1}월<span>${summary}</span></div>
-        <button class="cal-nav-btn" onclick="changeCalMonth(1)" aria-label="다음 달">›</button>
-      </div>
-      <div class="month-cal-labels">${
-        ['월','화','수','목','금','토','일'].map(d => `<div class="month-cal-label">${d}</div>`).join('')}</div>
-      <div class="month-calendar big">${cells}</div>
-      ${monthPlanListHTML()}
-      <div class="cal-legend">
-        <span><i style="background:#eefaf3;border:1px solid #cdeadb"></i>1강</span>
-        <span><i style="background:#dcf3e8;border:1px solid #b6e2cd"></i>2~3강</span>
-        <span><i style="background:#c6ecd9;border:1px solid #96d7ba"></i>4~5강</span>
-        <span><i style="background:#aee2c8;border:1px solid #71c69f"></i>6강 이상</span>
-        <span><i style="background:#fff;border:1px dashed #cbd5d1"></i>학습 예정일</span>
-        <span><i style="background:#fdf3f3;border:1px solid #f3cccc"></i>빠진 날</span>
-      </div>
-      <div class="cal-note">강좌 옆 숫자는 그날 들어야 할 <b>강의 번호</b>입니다(예: 15~16강). 오른쪽 위는 그날 <b>들은 강의 / 들어야 할 강의</b> 수이고, 다 채운 강좌는 초록으로 칠해집니다.</div>
-    </div>`;
-}
-
-/** 달력 아래에 '어느 강좌를 하루 몇 강씩 언제까지' 를 적어 준다 */
-function monthPlanListHTML() {
-  const rows = gPlanRows || [];
-  if (!rows.length) {
-    return '<div class="cal-note">아직 계획을 세운 강좌가 없습니다. 아래 표에서 강좌를 눌러 <b>계획 세우기</b>로 기간을 정하면, 어느 날 몇 강을 들어야 하는지 이 달력에 표시됩니다.</div>';
-  }
-  return '<div class="cal-plans">' + rows.map(r => `
-    <div class="cal-plan">
-      <i></i>
-      <b>${esc(r.course_title)}</b> 하루 ${r.daily_goal}강
-      <span>${r.start_date} ~ ${r.target_date}</span>
-    </div>`).join('') + '</div>';
-}
 
 /** 표에서 강좌 줄을 누르면 바로 아래가 펼쳐진다 */
 function toggleProgRow(courseId) {
