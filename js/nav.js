@@ -202,7 +202,7 @@
 
     /* 하위 항목 — 여백과 절제 */
     '.mega-col-items{display:flex;flex-direction:column;gap:0;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb){',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more){',
     'font-size:13px!important;color:#333!important;font-weight:400!important;',
     'font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif!important;',
     'letter-spacing:-0.02em!important;',
@@ -211,7 +211,7 @@
     'transition:color .12s!important;white-space:nowrap!important;',
     'overflow:hidden!important;text-overflow:ellipsis!important;',
     'background:transparent!important;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):hover{',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more):hover{',
     'color:var(--green,#2D9B6F)!important;',
     'text-decoration:underline!important;text-underline-offset:2px!important;',
     'text-decoration-thickness:1px!important;background:transparent!important;}',
@@ -288,11 +288,11 @@
     '.mega-col-items{display:none!important;flex-direction:column!important;',
     'padding:0 0 8px 24px!important;}',
     '.mega-col.open .mega-col-items{display:flex!important;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb){',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more){',
     'padding:10px 0!important;font-size:14px!important;line-height:1.5!important;',
     'border-radius:0!important;white-space:normal!important;',
     'border-bottom:1px solid rgba(0,0,0,.04)!important;}',
-    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):last-child{border-bottom:none!important;}',
+    '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-promo-card):not(.mega-more):last-child{border-bottom:none!important;}',
     '.mega-col-sublabel{padding:6px 0 2px!important;font-size:10px!important;color:#ccc!important;}',
     '}',
   ].join('');
