@@ -108,6 +108,16 @@ body {
   .cd-body { display:none; padding:0 18px 18px; }
   .cd-card.open .cd-body { display:block; }
 
+  /* 강좌 카드 안에서 바로 고치는 계획 편집기 */
+  .plan-edit { display:none; margin-top:12px; background:#f0faf5; border-radius:12px; padding:14px 16px; }
+  .plan-edit.open { display:block; }
+  .plan-edit .plan-form label { color:#5b7a6b; }
+  .plan-hint { font-size:12.5px; color:#16A34A; font-weight:700; margin-top:10px; line-height:1.6; }
+  .plan-msg { font-size:12.5px; font-weight:700; margin-top:8px; min-height:16px; }
+  .btn-plan-del { padding:9px 13px; font-size:12.5px; font-weight:700; background:#fff;
+    color:#b91c1c; border:1.5px solid #f3c9c9; border-radius:8px; cursor:pointer; }
+  .btn-plan-del:hover { background:#fef2f2; }
+
   /* 강좌 기간 캘린더 */
   .cc-grid { display:grid; grid-template-columns:42px repeat(7,1fr); gap:4px; max-width:520px; }
   .cc-mon { font-size:10.5px; color:#888; font-weight:700; display:flex; align-items:center; }
@@ -472,12 +482,6 @@ body {
         <div id="prog-detail"></div>
       </div>
 
-      <!-- 학습 계획: 시작일·종료일을 잡으면 하루 권장 강의 수와 계획 대비 실제를 보여준다 -->
-      <div class="mc-subsec">
-        <div class="mc-subsec-hdr"><h3>🗓 학습 계획</h3></div>
-        <div id="plan-content" class="loading-msg">불러오는 중...</div>
-      </div>
-
       <div class="mc-subsec">
         <div class="mc-subsec-hdr">
           <h3><img src="icons/trophy.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 나의 뱃지</h3>
@@ -687,7 +691,7 @@ function switchTab(id, el) {
 
   // 학습 기록 탭: 진도는 열 때마다 최신으로, 통계는 최초 1회만
   if (id === 'stats' && gUserId) {
-    loadProgressTab().then(loadStudyPlans);
+    loadProgressTab();
     if (!gStatsLoaded) { gStatsLoaded = true; loadAndRenderStats(gUserId); }
   }
   // 결제·선물함 탭: 열 때마다 선물·쿠폰을 새로고침 (결제 내역은 로드 시 이미 렌더됨)
@@ -1441,7 +1445,7 @@ async function loadMyPage() {
 
   if (!user) {
     document.getElementById('user-name').textContent = '로그인이 필요해요';
-    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content','prog-overview','plan-content'].forEach(id => {
+    ['courses-content','orders-content','certs-content','wishlist-content','stats-content','badges-content','prog-overview'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = `
         <div class="empty-state">
@@ -2132,10 +2136,11 @@ async function loadProgressTab() {
         <div class="plan-verdict ${cls}">${verdict}</div>
         <div style="margin-top:12px;">
           <button class="acc-btn" style="padding:7px 14px;font-size:12.5px;background:#fff;color:#2D9B6F;border:1.5px solid #2D9B6F;"
-            onclick="event.stopPropagation(); editPlan(${r.courseId}, '${p.start_date}', '${p.target_date}')">기간 수정</button>
+            onclick="togglePlanEditor(${r.courseId})">📅 기간 수정</button>
           <a href="course-detail.html?id=${r.courseId}" class="acc-btn"
             style="padding:7px 14px;font-size:12.5px;margin-left:6px;text-decoration:none;display:inline-block;">이어 보기 →</a>
         </div>
+        ${planEditorHTML(r.courseId, r.total, p)}
         <div class="cc-title">📅 계획 기간 학습 캘린더</div>`;
     } else {
       inner = `
@@ -2145,11 +2150,14 @@ async function loadProgressTab() {
           <div class="plan-num"><b>${r.pct}%</b><span>진도</span></div>
         </div>
         <div class="plan-bar"><div class="actual" style="width:${r.pct}%"></div></div>
-        <div class="plan-verdict ontime" style="margin-top:12px;">아직 목표 기간을 정하지 않았습니다. 아래 <b>학습 계획</b>에서 기간을 정하면 하루 권장 강의 수와 계획 대비 진도를 여기에 함께 보여드려요.</div>
+        <div class="plan-verdict ontime" style="margin-top:12px;">아직 목표 기간을 정하지 않았습니다. 기간을 정하면 하루에 몇 강씩 들어야 하는지 계산해서 계획 대비 진도를 여기에 함께 보여드려요.</div>
         <div style="margin-top:12px;">
+          <button class="acc-btn" style="padding:7px 14px;font-size:12.5px;"
+            onclick="togglePlanEditor(${r.courseId})">📅 계획 세우기</button>
           <a href="course-detail.html?id=${r.courseId}" class="acc-btn"
-            style="padding:7px 14px;font-size:12.5px;text-decoration:none;display:inline-block;">이어 보기 →</a>
+            style="padding:7px 14px;font-size:12.5px;margin-left:6px;background:#fff;color:#2D9B6F;border:1.5px solid #2D9B6F;text-decoration:none;display:inline-block;">이어 보기 →</a>
         </div>
+        ${planEditorHTML(r.courseId, r.total, null)}
         <div class="cc-title">📅 최근 8주 학습 캘린더</div>`;
     }
 
@@ -2162,6 +2170,106 @@ async function loadProgressTab() {
       <div class="cd-body">${inner}${courseCalendarHTML(r.courseId, p)}</div>
     </div>`;
   }).join('');
+}
+
+/* ── 강좌마다 자기 자리에서 계획을 세우고 고친다 ───────────── */
+
+/** 하루 몇 강인지 계산 (기간은 시작일·종료일을 모두 포함) */
+function planDaily(total, start, end) {
+  const days  = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
+  const daily = Math.max(Math.ceil((total || 0) / Math.max(days, 1)), 1);
+  return { days, daily };
+}
+
+function planEditorHTML(courseId, total, plan) {
+  const today = localDay(new Date());
+  return `<div class="plan-edit" id="plan-edit-${courseId}" onclick="event.stopPropagation()">
+      <div class="plan-form">
+        <div><label>시작일</label>
+          <input type="date" id="pe-start-${courseId}" value="${plan ? plan.start_date : today}"
+            oninput="previewPlan(${courseId}, ${total || 0})"></div>
+        <div><label>목표 완강일</label>
+          <input type="date" id="pe-end-${courseId}" value="${plan ? plan.target_date : ''}"
+            oninput="previewPlan(${courseId}, ${total || 0})"></div>
+        <button class="acc-btn" onclick="savePlanFor(${courseId}, ${total || 0})">${plan ? '기간 저장' : '계획 만들기'}</button>
+        ${plan ? `<button class="btn-plan-del" onclick="deletePlanFor(${courseId})">계획 삭제</button>` : ''}
+      </div>
+      <div class="plan-hint" id="pe-hint-${courseId}">${
+        plan ? `전체 ${total}강 · 지금은 하루 ${plan.daily_goal}강 계획입니다`
+             : `전체 ${total || '?'}강 · 목표 완강일을 정하면 하루 몇 강인지 계산해 드려요`}</div>
+      <div class="plan-msg" id="pe-msg-${courseId}"></div>
+    </div>`;
+}
+
+function togglePlanEditor(courseId) {
+  const box = document.getElementById('plan-edit-' + courseId);
+  if (!box) return;
+  box.classList.toggle('open');
+  if (box.classList.contains('open')) {
+    const end = document.getElementById('pe-end-' + courseId);
+    if (end && !end.value) end.focus();
+  }
+}
+
+/** 날짜를 고치는 동안 하루 몇 강이 되는지 바로 보여준다 */
+function previewPlan(courseId, total) {
+  const start = document.getElementById('pe-start-' + courseId).value;
+  const end   = document.getElementById('pe-end-' + courseId).value;
+  const hint  = document.getElementById('pe-hint-' + courseId);
+  if (!hint) return;
+  if (!start || !end) {
+    hint.style.color = '#16A34A';
+    hint.textContent = `전체 ${total || '?'}강 · 목표 완강일을 정하면 하루 몇 강인지 계산해 드려요`;
+    return;
+  }
+  if (end < start) {
+    hint.style.color = '#dc2626';
+    hint.textContent = '목표 완강일이 시작일보다 빠릅니다.';
+    return;
+  }
+  const { days, daily } = planDaily(total, start, end);
+  hint.style.color = '#16A34A';
+  hint.textContent = `${days}일 동안 전체 ${total}강 → 하루 ${daily}강씩`;
+}
+
+async function savePlanFor(courseId, total) {
+  const start = document.getElementById('pe-start-' + courseId).value;
+  const end   = document.getElementById('pe-end-' + courseId).value;
+  const msg   = document.getElementById('pe-msg-' + courseId);
+  const show  = (t, ok) => { msg.style.color = ok ? '#059669' : '#dc2626'; msg.textContent = t; };
+
+  if (!start || !end) { show('시작일과 목표 완강일을 모두 정해주세요.', false); return; }
+  if (end < start)    { show('목표 완강일이 시작일보다 빠릅니다.', false); return; }
+
+  const { days, daily } = planDaily(total, start, end);
+  const { error } = await supabaseClient.from('study_plans').upsert({
+    user_id: gUserId, course_id: courseId,
+    start_date: start, target_date: end,
+    daily_goal: daily, total_lessons: total,
+  }, { onConflict: 'user_id,course_id' });
+
+  if (error) { show('저장 실패: ' + error.message, false); return; }
+  show(`✅ 하루 ${daily}강씩 ${days}일 계획으로 저장했습니다`, true);
+  gPlans[courseId] = { target_date: end, daily_goal: daily };   // 강좌 카드 쪽 표시도 맞춰둔다
+  setTimeout(() => reopenAfterPlanChange(courseId), 700);
+}
+
+async function deletePlanFor(courseId) {
+  const title = (gCoursesMap[courseId] || {}).title || '이 강좌';
+  if (!confirm(`${title}의 학습 계획을 지울까요?\n진도 기록은 그대로 남습니다.`)) return;
+  const msg = document.getElementById('pe-msg-' + courseId);
+  const { error } = await supabaseClient.from('study_plans')
+    .delete().eq('user_id', gUserId).eq('course_id', courseId);
+  if (error) { msg.style.color = '#dc2626'; msg.textContent = '삭제 실패: ' + error.message; return; }
+  delete gPlans[courseId];
+  reopenAfterPlanChange(courseId);
+}
+
+/** 다시 그린 뒤에도 보던 강좌가 펼쳐진 채로 남게 한다 */
+async function reopenAfterPlanChange(courseId) {
+  await loadProgressTab();
+  const card = document.getElementById('cd-' + courseId);
+  if (card) { card.classList.add('open'); card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
 
 function toggleCourseDetail(courseId) {
@@ -2177,80 +2285,8 @@ function openCourseDetail(courseId) {
   card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-async function loadStudyPlans() {
-  const el = document.getElementById('plan-content');
-  if (!el) return;
-  el.classList.remove('loading-msg');
 
-  // 계획을 세울 수 있는 강좌 = 수강 중인 강좌 (이미 계획이 있어도 기간을 고칠 수 있어야 한다)
-  const seen  = new Set();
-  const owned = (gOrders || []).filter(o => {
-    if (!o.course_id || seen.has(o.course_id) || !gCoursesMap[o.course_id]) return false;
-    if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
-    seen.add(o.course_id);
-    return true;
-  });
 
-  if (!owned.length) {
-    el.innerHTML = '<div class="plan-empty">계획을 세울 수강 강좌가 없습니다. 강좌를 수강하면 여기서 목표 기간을 정할 수 있어요.</div>';
-    return;
-  }
-
-  const planned = new Set(gPlanRows.map(r => r.course_id));
-
-  el.innerHTML = `<div class="plan-card" id="plan-new">
-      <div class="mc-subsec-desc" style="margin-bottom:14px;">
-        시작일과 목표 완강일을 정하면 하루에 몇 강씩 들어야 하는지 계산해서 위 <b>진도 현황</b>에 반영합니다.
-        이미 계획이 있는 강좌를 고르면 기간이 새로 바뀝니다.
-      </div>
-      <div class="plan-form">
-        <div style="flex:1;min-width:180px;">
-          <label>강좌</label>
-          <select id="plan-course" class="acc-input" style="padding:9px 11px;">
-            ${owned.map(o => `<option value="${o.course_id}">${esc(gCoursesMap[o.course_id].title)}${planned.has(o.course_id) ? ' (계획 있음)' : ''}</option>`).join('')}
-          </select>
-        </div>
-        <div><label>시작일</label><input type="date" id="plan-start" value="${localDay(new Date())}"></div>
-        <div><label>목표 완강일</label><input type="date" id="plan-end"></div>
-        <button class="acc-btn" onclick="saveStudyPlan()">계획 저장</button>
-      </div>
-      <div id="plan-msg" style="font-size:13px;margin-top:10px;"></div>
-    </div>`;
-}
-
-function editPlan(courseId, start, end) {
-  const box = document.getElementById('plan-new');
-  if (!box) return;
-  document.getElementById('plan-course').value = courseId;
-  document.getElementById('plan-start').value  = start;
-  document.getElementById('plan-end').value    = end;
-  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-async function saveStudyPlan() {
-  const courseId = Number(document.getElementById('plan-course').value);
-  const start    = document.getElementById('plan-start').value;
-  const end      = document.getElementById('plan-end').value;
-  const msg      = document.getElementById('plan-msg');
-  const show = (t, ok) => { msg.style.color = ok ? '#059669' : '#dc2626'; msg.textContent = t; };
-
-  if (!start || !end) { show('시작일과 목표 종료일을 모두 정해주세요.', false); return; }
-  if (new Date(end) < new Date(start)) { show('종료일이 시작일보다 빠릅니다.', false); return; }
-
-  const total = (gCoursesMap[courseId] || {}).lessons || 0;
-  const days  = Math.max(Math.round((new Date(end) - new Date(start)) / 86400000) + 1, 1);
-  const daily = Math.max(Math.ceil(total / days), 1);
-
-  const { error } = await supabaseClient.from('study_plans').upsert({
-    user_id: gUserId, course_id: courseId,
-    start_date: start, target_date: end,
-    daily_goal: daily, total_lessons: total,
-  }, { onConflict: 'user_id,course_id' });
-
-  if (error) { show('저장 실패: ' + error.message, false); return; }
-  show(`✅ 하루 ${daily}강씩 ${days}일 계획으로 저장했습니다`, true);
-  setTimeout(() => loadProgressTab().then(loadStudyPlans), 700);
-}
 
 async function loadProfileSettings() {
   const { data: { user } } = await supabaseClient.auth.getUser();
