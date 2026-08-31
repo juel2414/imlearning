@@ -22,11 +22,20 @@ const BADGE_DEFINITIONS = [
  * @param {Array} studyLogs  studied_at 컬럼을 포함한 배열
  * @returns {number} 연속 학습 일수
  */
+// 날짜를 '보는 사람의 달력 기준'으로 YYYY-MM-DD 로 만든다.
+// toISOString() 은 UTC 라서 한국 시간에서는 하루가 밀린다.
+function badgeLocalDay(d) {
+  const x = (d instanceof Date) ? d : new Date(d);
+  return x.getFullYear() + '-' +
+         String(x.getMonth() + 1).padStart(2, '0') + '-' +
+         String(x.getDate()).padStart(2, '0');
+}
+
 function calcLearningStreak(studyLogs) {
   if (!studyLogs || studyLogs.length === 0) return 0;
 
   const dateSet = new Set(
-    studyLogs.map(l => new Date(l.studied_at).toISOString().split('T')[0])
+    studyLogs.map(l => badgeLocalDay(l.studied_at))
   );
 
   const today = new Date();
@@ -35,8 +44,11 @@ function calcLearningStreak(studyLogs) {
   let streak = 0;
   const check = new Date(today);
 
+  // 오늘 아직 공부 전이면 스트릭이 끊긴 게 아니므로 어제부터 센다
+  if (!dateSet.has(badgeLocalDay(check))) check.setDate(check.getDate() - 1);
+
   while (true) {
-    const checkStr = check.toISOString().split('T')[0];
+    const checkStr = badgeLocalDay(check);
     if (dateSet.has(checkStr)) {
       streak++;
       check.setDate(check.getDate() - 1);

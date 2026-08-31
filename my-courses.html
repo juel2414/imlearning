@@ -608,6 +608,13 @@ let gPlans            = {};   // { courseId: { target_date, daily_goal } }
 let gTodayLogsByCourse= {};   // { courseId: count }
 let gBadges           = [];   // 사용자의 뱃지 배열
 let gPlanRanges = [];   // 캘린더에 겹칠 학습 계획 기간
+
+// 날짜를 '보는 사람의 달력 기준'으로 YYYY-MM-DD 로 만든다.
+// toISOString() 은 UTC 라서 한국 시간 새벽에 공부하면 전날 칸에 찍혔다.
+function localDay(d) {
+  const x = (d instanceof Date) ? d : new Date(d);
+  return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+}
 let gStatsLoaded      = false;// 통계 탭 최초 로드 여부
 
 const CATEGORY_LABELS_LOCAL = {
@@ -755,7 +762,7 @@ function renderCourses(orders, coursesMap) {
     return;
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = localDay(new Date());
 
   const cards = orders.map(order => {
     const course = coursesMap[order.course_id];
@@ -844,13 +851,15 @@ function renderCourses(orders, coursesMap) {
 function calcStreak(studyLogs) {
   if (!studyLogs || studyLogs.length === 0) return 0;
   const dateSet = new Set(
-    studyLogs.map(l => new Date(l.studied_at).toISOString().split('T')[0])
+    studyLogs.map(l => localDay(l.studied_at))
   );
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let streak = 0;
   const cur = new Date(today);
+  // 오늘 아직 공부 전이면 스트릭이 끊긴 게 아니므로 어제부터 센다
+  if (!dateSet.has(localDay(cur))) cur.setDate(cur.getDate() - 1);
   while (true) {
-    if (dateSet.has(cur.toISOString().split('T')[0])) {
+    if (dateSet.has(localDay(cur))) {
       streak++;
       cur.setDate(cur.getDate() - 1);
     } else break;
@@ -863,7 +872,7 @@ async function loadAndRenderStats(userId) {
   el.innerHTML = '<div class="loading-msg">통계를 불러오는 중...</div>';
 
   const now      = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = localDay(now);
 
   // 이번 주 월요일
   const dow       = now.getDay(); // 0=Sun
@@ -871,7 +880,7 @@ async function loadAndRenderStats(userId) {
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() + monOffset);
   weekStart.setHours(0, 0, 0, 0);
-  const weekStartStr = weekStart.toISOString().split('T')[0];
+  const weekStartStr = localDay(weekStart);
 
   // 이번 달 1일
   const monthStartStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
@@ -911,7 +920,7 @@ async function loadAndRenderStats(userId) {
   // 날짜별로 몇 강 / 몇 분 공부했는지 모은다 (칸 색 농도와 툴팁에 쓴다)
   const dayStats = {};
   monthArr.forEach(l => {
-    const d = new Date(l.studied_at).toISOString().split('T')[0];
+    const d = localDay(l.studied_at);
     if (!dayStats[d]) dayStats[d] = { count: 0, mins: 0 };
     dayStats[d].count++;
     dayStats[d].mins += (l.duration_minutes || 0);
@@ -938,7 +947,7 @@ async function loadAndRenderStats(userId) {
 }
 
 function buildStatsHTML({ weekCounts, weekStart, now, studiedDays, dayStats, totalCompleted, totalHours, totalMins, streak, weeklyCount, avgWeekly, totalLearners }) {
-  const todayStr   = now.toISOString().split('T')[0];
+  const todayStr   = localDay(now);
   const weekLabels = ['월','화','수','목','금','토','일'];
   const maxCount   = Math.max(...weekCounts, 1);
 
@@ -946,7 +955,7 @@ function buildStatsHTML({ weekCounts, weekStart, now, studiedDays, dayStats, tot
   const barChartHTML = weekCounts.map((cnt, i) => {
     const barDate   = new Date(weekStart);
     barDate.setDate(weekStart.getDate() + i);
-    const isToday   = barDate.toISOString().split('T')[0] === todayStr;
+    const isToday   = localDay(barDate) === todayStr;
     const heightPct = Math.max(Math.round((cnt / maxCount) * 100), cnt > 0 ? 8 : 0);
     return `
       <div class="bar-col">
@@ -1557,8 +1566,8 @@ async function loadMyPage() {
   (plansData || []).forEach(p => { gPlans[p.course_id] = p; });
 
   // ── 오늘의 학습 로그 조회 ──
-  const todayStr    = new Date().toISOString().split('T')[0];
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const todayStr    = localDay(new Date());
+  const tomorrowStr = localDay(new Date(Date.now() + 86400000));
   const { data: todayLogs } = await supabaseClient
     .from('study_logs')
     .select('course_id')
@@ -1612,7 +1621,7 @@ async function loadMyPage() {
   renderBadgesTab(gBadges);
 
   // ── 뱃지 체크 (최근 90일 로그 + 평균 RPC 병렬) ──
-  const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0];
+  const ninetyDaysAgo = localDay(new Date(Date.now() - 90 * 86400000));
   const [{ data: recentLogs }, { data: avgData }] = await Promise.all([
     supabaseClient.from('study_logs').select('studied_at, course_id')
       .eq('user_id', user.id)
