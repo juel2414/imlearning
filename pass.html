@@ -113,11 +113,14 @@
   }
 
   .pass-hero-title {
-    font-family: var(--font-display);
+    /* 프리패스는 값이 있는 상품이라 둥근 Jua 로는 가벼워 보였다.
+       고딕을 굵게 쓰고 자간을 좁혀 단단한 인상으로. */
+    font-family: var(--font-body);
     font-size: clamp(42px, 5.5vw, 72px);
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: -2px;
+    font-weight: 800;
+    line-height: 1.14;
+    letter-spacing: -0.035em;
+    word-break: keep-all;
     margin: 0 0 24px;
   }
   /* 골드 메탈릭 텍스트 */
