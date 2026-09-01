@@ -306,6 +306,9 @@ body {
 .textbook-desc { font-size:12px; color:var(--gray-500); line-height:1.65; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .textbook-buy-btn { display:block; text-align:center; padding:9px 14px; background:var(--green); color:#fff; border-radius:8px; font-size:13px; font-weight:700; text-decoration:none; transition:background .15s; }
 .textbook-buy-btn:hover { background:var(--green-dark); }
+/* 아이엠북스에서 팔지 않는 필독서 — 눌리지 않는 버튼 대신 안내만 */
+.textbook-note { text-align:center; padding:9px 14px; border:1px dashed rgba(0,0,0,.14);
+  border-radius:8px; font-size:12.5px; font-weight:600; color:var(--gray-500); }
 
 /* ── 강좌 메타 스트립 ── */
 .detail-meta-strip { display:flex; align-items:center; flex-wrap:wrap; gap:0; font-size:13px; color:var(--gray-500); margin-bottom:10px; }
@@ -1781,7 +1784,9 @@ async function loadTextbooks(courseId) {
       const hasCover = !!(t.cover_image_url && String(t.cover_image_url).trim());
       const price = t.price ? `₩${Number(t.price).toLocaleString()}` : '';
       const desc = t.description ? `<p class="textbook-desc">${esc(t.description)}</p>` : '';
-      const buyHref = /^https?:\/\//i.test(t.imbooks_url||'') ? esc(t.imbooks_url) : '#';
+      // 아이엠북스에 없는 책(타 출판사 필독서)은 살 수 있는 곳이 없다.
+      // 예전에는 그런 책에도 '구매하기' 버튼이 붙어 '#' 로 아무 데도 가지 않았다.
+      const buyHref = /^https?:\/\//i.test(t.imbooks_url||'') ? esc(t.imbooks_url) : '';
       return `<div class="textbook-card">
         <div class="textbook-cover${hasCover ? '' : ' no-img'}">${
           hasCover
@@ -1792,7 +1797,9 @@ async function loadTextbooks(courseId) {
           <div class="textbook-title">${esc(t.title)}</div>
           ${price ? `<div class="textbook-price">${price}</div>` : ''}
           ${desc}
-          <a href="${buyHref}" target="_blank" rel="noopener" class="textbook-buy-btn">아이엠북스에서 구매하기 →</a>
+          ${buyHref
+            ? `<a href="${buyHref}" target="_blank" rel="noopener" class="textbook-buy-btn">아이엠북스에서 구매하기 →</a>`
+            : `<div class="textbook-note">필독 도서 · 서점에서 구입</div>`}
         </div>
       </div>`;
     }).join('');
