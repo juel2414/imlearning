@@ -1784,9 +1784,17 @@ async function loadTextbooks(courseId) {
       const hasCover = !!(t.cover_image_url && String(t.cover_image_url).trim());
       const price = t.price ? `₩${Number(t.price).toLocaleString()}` : '';
       const desc = t.description ? `<p class="textbook-desc">${esc(t.description)}</p>` : '';
-      // 아이엠북스에 없는 책(타 출판사 필독서)은 살 수 있는 곳이 없다.
-      // 예전에는 그런 책에도 '구매하기' 버튼이 붙어 '#' 로 아무 데도 가지 않았다.
-      const buyHref = /^https?:\/\//i.test(t.imbooks_url||'') ? esc(t.imbooks_url) : '';
+      // 파는 곳이 아이엠북스일 수도, 교보문고·예스24 일 수도 있다.
+      // 버튼에 '아이엠북스' 라고 못박아 두면 타 출판사 필독서에서 거짓말이 된다.
+      const rawUrl  = String(t.imbooks_url || '');
+      const buyHref = /^https?:\/\//i.test(rawUrl) ? esc(rawUrl) : '';
+      const shop =
+        /imbooks\.kr/i.test(rawUrl)      ? '아이엠북스에서 구매하기 →' :
+        /search\./i.test(rawUrl)          ? '교보문고에서 찾기 →' :
+        /kyobobook/i.test(rawUrl)         ? '교보문고에서 구매하기 →' :
+        /yes24/i.test(rawUrl)             ? '예스24에서 구매하기 →' :
+        /aladin/i.test(rawUrl)            ? '알라딘에서 구매하기 →' :
+                                            '구매하러 가기 →';
       return `<div class="textbook-card">
         <div class="textbook-cover${hasCover ? '' : ' no-img'}">${
           hasCover
@@ -1798,7 +1806,7 @@ async function loadTextbooks(courseId) {
           ${price ? `<div class="textbook-price">${price}</div>` : ''}
           ${desc}
           ${buyHref
-            ? `<a href="${buyHref}" target="_blank" rel="noopener" class="textbook-buy-btn">아이엠북스에서 구매하기 →</a>`
+            ? `<a href="${buyHref}" target="_blank" rel="noopener" class="textbook-buy-btn">${shop}</a>`
             : `<div class="textbook-note">필독 도서 · 서점에서 구입</div>`}
         </div>
       </div>`;
