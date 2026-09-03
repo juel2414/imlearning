@@ -42,6 +42,21 @@ tr:hover td { background:#fafafa; }
 .badge.approved { background:#ECFDF5; color:#059669; }
 .badge.rejected { background:#FEF2F2; color:#DC2626; }
 
+/* 검토 대기 / 처리 완료 구분.
+   손댈 것이 위, 지나간 기록이 아래로 가도록 표를 두 구역으로 나눈다. */
+.sec-row td { padding:0; border-bottom:none; }
+.sec-row:hover td { background:transparent; }
+.sec-bar { display:flex; align-items:center; gap:9px; padding:9px 14px;
+           font-size:12px; font-weight:800; letter-spacing:.2px; }
+.sec-bar .sec-count { font-weight:700; opacity:.75; }
+.sec-bar.wait { background:#FFF9E6; color:#B45309; border-top:1px solid rgba(180,83,9,.14);
+                border-bottom:1px solid rgba(180,83,9,.14); }
+.sec-bar.done { background:#F3F4F6; color:#4B5563; border-top:1px solid rgba(0,0,0,.08);
+                border-bottom:1px solid rgba(0,0,0,.06); }
+/* 처리 끝난 줄은 한 톤 낮춰서 대기 건이 먼저 눈에 들어오게 한다 */
+tr.done-row td { background:#FCFCFD; color:#6B7280; }
+tr.done-row:hover td { background:#F5F6F8; }
+
 /* 실제 시청 시간 */
 /* 실제 시청 vs 영상 길이 — 한눈에 대비되도록 막대로 보여준다 */
 .watch-box  { line-height:1.35; white-space:nowrap; min-width:132px; }
@@ -141,8 +156,9 @@ tr:hover td { background:#fafafa; }
       <div class="card-title">제출 목록</div>
       <div class="filter-row">
         <select id="filter-status" onchange="applyFilter()">
-          <option value="">전체 상태</option>
-          <option value="pending" selected>검토 대기</option>
+          <!-- 기본은 전체. 대기 건이 위, 처리 완료가 아래로 나뉘어 한 화면에 보인다 -->
+          <option value="" selected>전체 상태</option>
+          <option value="pending">검토 대기</option>
           <option value="approved">승인됨</option>
           <option value="rejected">반려됨</option>
         </select>
@@ -358,10 +374,17 @@ function applyFilter() {
     return true;
   });
 
+  // 검토 대기가 항상 위. 같은 구역 안에서는 최근 제출이 먼저다.
+  filtered.sort((a, b) =>
+    subGroup(a) - subGroup(b) || new Date(b.created_at) - new Date(a.created_at));
+
   currentPage = 1;
   renderTable();
   renderPagination();
 }
+
+/** 0 = 손봐야 할 것(검토 대기), 1 = 지나간 기록(승인·반려) */
+function subGroup(r) { return r.status === 'pending' ? 0 : 1; }
 
 function renderTable() {
   const tbody = document.getElementById('sub-tbody');
@@ -372,6 +395,18 @@ function renderTable() {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="9">검색 결과가 없습니다.</td></tr>';
     return;
   }
+
+  // 구역 머리띠. 페이지가 넘어가도 지금 보는 곳이 어디인지 알 수 있도록
+  // 각 페이지의 첫 줄 앞에도 붙인다.
+  const waitTotal = filtered.filter(r => subGroup(r) === 0).length;
+  const doneTotal = filtered.length - waitTotal;
+  const sectionRow = g => `<tr class="sec-row"><td colspan="9"><div class="sec-bar ${g === 0 ? 'wait' : 'done'}">`
+    + (g === 0
+        ? `⏳ 검토 대기 <span class="sec-count">${waitTotal}건</span>`
+        : `✅ 처리 완료 기록 <span class="sec-count">${doneTotal}건</span>`)
+    + '</div></td></tr>';
+
+  let lastGroup = null;
 
   tbody.innerHTML = rows.map(r => {
     const date      = new Date(r.created_at).toLocaleDateString('ko-KR');
@@ -390,7 +425,12 @@ function renderTable() {
       : r.file_name
         ? `<span style="color:#4338CA;font-weight:600;">${isImg ? '🖼 사진' : '📎 파일'}</span> <span style="color:#6b7280;">${esc(r.file_name)}</span>`
         : '<span style="color:#dc2626;font-weight:700;">⚠️ 내용 없음</span>';
-    return `<tr>
+
+    const g   = subGroup(r);
+    const hdr = (g !== lastGroup) ? sectionRow(g) : '';
+    lastGroup = g;
+
+    return hdr + `<tr class="${g === 1 ? 'done-row' : ''}">
       <td style="white-space:nowrap;">${date}</td>
       <td>${typeBadge}</td>
       <td>${esc(r._userName || '')}</td>
