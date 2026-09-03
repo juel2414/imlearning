@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아이엠러닝 — 그리스도인의 성장을 위한 모든 것</title>
+  <meta name="description" content="말씀, 신앙, 결혼관, 영어, 수능, 수학, 선교까지. 그리스도인의 성장에 필요한 모든 배움을 온라인에서.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       신규 유입자용 랜딩.
+       가운데에 문장 하나, 그 둘레를 배움의 갈래들이 '생물처럼' 떠다닌다.
+       배움이 딱딱한 목록이 아니라 살아 움직이는 것이라는 인상을 준다.
+       ═══════════════════════════════════════════════════════════ */
+
+    :root {
+      --paper:    #F4F8F5;   /* 초록기를 살짝 머금은 종이색 — 순백은 차갑다 */
+      --paper-2:  #E9F2EC;
+      --ink:      #10221A;
+      --ink-soft: #4B6056;
+      --brand:    #2D9B6F;
+      --brand-dk: #1A7A4A;
+    }
+
+    html, body { height: 100%; overflow-x: clip; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+    }
+
+    .lp {
+      position: relative;
+      min-height: 100dvh;
+      height: 100dvh;                    /* 스크롤 없이 한 화면에서 끝낸다 */
+      box-sizing: border-box;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(16px, 3vh, 28px) clamp(18px, 4vw, 48px);
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    /* 배경 — 은은한 빛무리 두 개. 색은 브랜드 초록 하나로만 쓴다. */
+    .lp::before {
+      content: ''; position: absolute; inset: 0; z-index: -2;
+      background:
+        radial-gradient(900px 620px at 84% -8%,  rgba(45,155,111,.20), transparent 62%),
+        radial-gradient(760px 560px at 4% 104%,  rgba(45,155,111,.14), transparent 60%),
+        linear-gradient(170deg, var(--paper) 0%, var(--paper-2) 100%);
+    }
+    /* 아주 옅은 점무늬 — 종이 질감 */
+    .lp::after {
+      content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5;
+      background-image: radial-gradient(rgba(16,34,26,.055) 1px, transparent 1px);
+      background-size: 22px 22px;
+      -webkit-mask-image: radial-gradient(75% 60% at 50% 45%, transparent 30%, #000 100%);
+              mask-image: radial-gradient(75% 60% at 50% 45%, transparent 30%, #000 100%);
+    }
+
+    /* ── 위: 로고 · 홈 ── */
+    .lp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .lp-logo { text-decoration: none; }
+    .lp-logo img { height: clamp(26px, 3.4vh, 34px); display: block; }
+    .lp-home {
+      text-decoration: none;
+      font-size: 13px; font-weight: 700; color: var(--ink-soft);
+      padding: 8px 14px; border-radius: 999px;
+      border: 1px solid rgba(16,34,26,.12); background: rgba(255,255,255,.6);
+      transition: background .18s, border-color .18s, color .18s;
+    }
+    .lp-home:hover { background: #fff; border-color: rgba(45,155,111,.5); color: var(--brand-dk); }
+
+    /* ── 가운데: 문장 + 떠다니는 갈래들 ── */
+    .lp-mid { position: relative; display: grid; place-items: center; }
+
+    /* 문장은 넓게 편다. 좁히면 큰 글씨가 한 어절씩 끊겨 읽는 리듬이 깨진다.
+       크리처는 좌우 가장자리에 두므로 가운데는 이만큼 내줘도 겹치지 않는다. */
+    .lp-copy { position: relative; z-index: 3; text-align: center; max-width: min(88vw, 860px); }
+
+    .lp-eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: clamp(11.5px, 1.5vh, 13px); font-weight: 800; letter-spacing: .06em;
+      color: var(--brand-dk); background: rgba(45,155,111,.11);
+      border: 1px solid rgba(45,155,111,.2);
+      padding: 6px 13px; border-radius: 999px; margin-bottom: clamp(14px, 2.4vh, 22px);
+    }
+    .lp-eyebrow i {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(45,155,111,.18);
+    }
+
+    .lp-title {
+      font-family: var(--font-display);
+      font-size: clamp(31px, 6.6vw, 66px);
+      line-height: 1.24; letter-spacing: -0.03em;
+      margin: 0; color: var(--ink); word-break: keep-all; text-wrap: balance;
+    }
+    .lp-title em {
+      font-style: normal; color: var(--brand-dk); position: relative;
+      white-space: nowrap;
+    }
+    /* 밑줄은 글자 뒤로 깔아 손으로 그은 것처럼 */
+    .lp-title em::after {
+      content: ''; position: absolute; left: -2px; right: -2px; bottom: .1em; height: .28em;
+      background: rgba(45,155,111,.2); border-radius: 4px; z-index: -1;
+    }
+
+    .lp-shout {
+      font-family: var(--font-display);
+      font-size: clamp(20px, 3.4vw, 34px);
+      color: var(--brand); margin: clamp(10px, 1.8vh, 18px) 0 0;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── 크리처 ──────────────────────────────────────────────
+       각자 다른 속도로 떠다닌다. 눈이 있어 '살아 있는 것'으로 읽힌다. */
+    .lp-orbit { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+
+    .creature {
+      position: absolute;
+      left: var(--x); top: var(--y);
+      pointer-events: auto;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      padding: 13px 20px 12px;
+      /* 흰 바탕에 제 색을 아주 옅게 섞어, 여덟 갈래가 각자 색을 갖되
+         한 화면에서 서로 싸우지 않게 한다. */
+      background: linear-gradient(#fff, var(--c-wash, #fff));
+      border: 1.5px solid var(--c-line, rgba(16,34,26,.1));
+      border-radius: 20px 20px 22px 22px / 22px 22px 20px 20px;
+      box-shadow: 0 10px 26px rgba(16,34,26,.09), 0 2px 0 var(--c-line, rgba(16,34,26,.06));
+      text-decoration: none;
+      animation: drift var(--dur, 18s) ease-in-out var(--delay, 0s) infinite alternate;
+      transition: transform .2s, box-shadow .2s;
+      will-change: transform;
+    }
+    .creature:hover, .creature:focus-visible {
+      transform: translateY(-5px) scale(1.05) rotate(0deg);
+      box-shadow: 0 16px 34px rgba(16,34,26,.16);
+      outline: none; z-index: 5;
+    }
+
+    .cr-face { display: flex; gap: 8px; align-items: center; height: 12px; }
+    .cr-face i {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--c-ink, var(--brand));
+      animation: blink 6s ease-in-out var(--delay, 0s) infinite;
+    }
+    .cr-label {
+      font-family: var(--font-display);
+      font-size: clamp(15px, 1.7vw, 21px);
+      color: var(--c-ink, var(--brand-dk)); letter-spacing: -0.02em; white-space: nowrap;
+    }
+    .cr-soon {
+      position: absolute; top: -9px; right: -12px;
+      font-size: 10px; font-weight: 800; letter-spacing: -0.01em;
+      color: #6B7E76; background: #EDF1EE;
+      border: 1px solid rgba(16,34,26,.12);
+      padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+    }
+    /* 예정인 갈래는 색을 빼서 '아직'임을 형태로도 알린다 */
+    .creature.soon { background: #FAFCFB; box-shadow: 0 6px 18px rgba(16,34,26,.06); }
+    .creature.soon .cr-label { color: #7C8C85; }
+    .creature.soon .cr-face i { background: #B4C1BA; }
+
+    @keyframes drift {
+      from { transform: translate3d(0, 0, 0) rotate(var(--rot, -3deg)); }
+      to   { transform: translate3d(var(--dx, 14px), var(--dy, -18px), 0) rotate(calc(var(--rot, -3deg) * -1)); }
+    }
+    @keyframes blink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      95%           { transform: scaleY(.12); }
+    }
+
+    /* ── 아래: 버튼과 안심 문구 ── */
+    .lp-bot {
+      position: relative; z-index: 3;
+      display: flex; flex-direction: column; align-items: center;
+      gap: clamp(9px, 1.4vh, 14px); text-align: center;
+    }
+    .lp-cta {
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: clamp(13px, 2vh, 17px) clamp(28px, 4.5vw, 42px);
+      background: var(--brand); color: #fff;
+      font-size: clamp(14.5px, 1.9vh, 16.5px); font-weight: 800; letter-spacing: -0.02em;
+      border-radius: 14px; box-shadow: 0 12px 28px rgba(45,155,111,.3);
+      transition: background .18s, transform .18s, box-shadow .18s;
+    }
+    .lp-cta:hover { background: #34B07E; transform: translateY(-2px); box-shadow: 0 16px 36px rgba(45,155,111,.4); }
+    .lp-trust { font-size: clamp(11.5px, 1.5vh, 13px); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+    .lp-trust b { color: var(--ink); font-weight: 700; }
+
+    /* ── 좁은 화면: 떠다니지 않고 아래에 한 줄로 모인다 ────────
+       작은 화면에서 절대 배치를 유지하면 글자 위로 겹친다. */
+    @media (max-width: 860px) {
+      .lp-mid { align-content: center; }
+      .lp-orbit {
+        position: static; display: flex; flex-wrap: wrap;
+        justify-content: center; gap: 9px;
+        margin-top: clamp(20px, 3.5vh, 32px); max-width: 460px;
+      }
+      .creature {
+        position: static; flex-direction: row; gap: 8px;
+        padding: 9px 14px; animation: bob var(--dur, 5s) ease-in-out var(--delay, 0s) infinite alternate;
+      }
+      .cr-face { height: auto; gap: 5px; }
+      .cr-face i { width: 5px; height: 5px; }
+      .cr-soon { position: static; margin-left: 2px; }
+      @keyframes bob {
+        from { transform: translateY(0); }
+        to   { transform: translateY(-5px); }
+      }
+    }
+    @media (max-height: 620px) and (min-width: 861px) {
+      .lp-eyebrow { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .creature, .cr-face i { animation: none; }
+      .creature, .lp-cta, .lp-home { transition: none; }
+      .creature:hover, .lp-cta:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lp">
+
+    <div class="lp-top">
+      <a href="index.html" class="lp-logo" aria-label="아이엠러닝 홈">
+        <img src="images/logo-horizontal.png" alt="아이엠러닝">
+      </a>
+      <a href="index.html" class="lp-home">바로 홈으로 →</a>
+    </div>
+
+    <div class="lp-mid">
+
+      <div class="lp-copy">
+        <div class="lp-eyebrow"><i></i> I'M Learning</div>
+        <h1 class="lp-title">그리스도인의 성장을 위한<br><em>모든 것</em>이 여기 있다</h1>
+        <p class="lp-shout">온라인으로 배우자!</p>
+      </div>
+
+      <!-- 배움의 갈래들. 각자 다른 속도·방향으로 떠다닌다. -->
+      <div class="lp-orbit" aria-label="배움의 갈래">
+
+        <a class="creature" href="courses.html?cat=faith"
+           style="--x:7%;  --y:14%; --c-ink:#2D9B6F; --c-wash:#F2FAF6; --c-line:rgba(45,155,111,.32);  --dur:19s; --delay:0s;   --dx:16px;  --dy:-20px; --rot:-4deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">말씀</span>
+        </a>
+
+        <a class="creature" href="courses.html?cat=faith"
+           style="--x:20%; --y:63%; --c-ink:#3F7FD6; --c-wash:#F2F6FD; --c-line:rgba(63,127,214,.32);  --dur:23s; --delay:1.4s; --dx:-18px; --dy:16px;  --rot:5deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">신앙</span>
+        </a>
+
+        <a class="creature" href="search.html?q=%EA%B2%B0%ED%98%BC"
+           style="--x:5%;  --y:80%; --c-ink:#DD6488; --c-wash:#FDF3F6; --c-line:rgba(221,100,136,.32); --dur:17s; --delay:.7s;  --dx:20px;  --dy:-14px; --rot:4deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">결혼관</span>
+        </a>
+
+        <a class="creature" href="courses.html?cat=english"
+           style="--x:84%; --y:13%; --c-ink:#7B5BD6; --c-wash:#F6F4FD; --c-line:rgba(123,91,214,.32);  --dur:21s; --delay:.3s;  --dx:-16px; --dy:20px;  --rot:6deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">영어</span>
+        </a>
+
+        <a class="creature" href="courses.html?cat=exam"
+           style="--x:88%; --y:44%; --c-ink:#E08A2E; --c-wash:#FDF7EF; --c-line:rgba(224,138,46,.32);  --dur:25s; --delay:2.1s; --dx:-22px; --dy:-16px; --rot:-5deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">수능</span>
+        </a>
+
+        <a class="creature" href="search.html?q=%EC%88%98%ED%95%99"
+           style="--x:77%; --y:76%; --c-ink:#17A2A8; --c-wash:#F0FAFB; --c-line:rgba(23,162,168,.32);  --dur:16s; --delay:1s;   --dx:-14px; --dy:-22px; --rot:3deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">수학</span>
+        </a>
+
+        <a class="creature" href="search.html?q=%EC%84%A0%EA%B5%90"
+           style="--x:33%; --y:6%;  --c-ink:#E0603E; --c-wash:#FDF4F1; --c-line:rgba(224,96,62,.32);   --dur:20s; --delay:1.8s; --dx:12px;  --dy:22px;  --rot:5deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">선교</span>
+        </a>
+
+        <!-- 아직 열지 않은 갈래. 색을 빼고 '예정'을 달아 기대만 남긴다. -->
+        <span class="creature soon" aria-label="부동산 — 준비 중"
+              style="--x:62%; --y:88%; --dur:22s; --delay:.5s; --dx:18px; --dy:-12px; --rot:-3deg;">
+          <span class="cr-face"><i></i><i></i></span><span class="cr-label">부동산</span>
+          <span class="cr-soon">예정</span>
+        </span>
+
+      </div>
+    </div>
+
+    <div class="lp-bot">
+      <a href="courses.html" class="lp-cta">전체 강좌 둘러보기 →</a>
+      <p class="lp-trust">
+        카드 등록 없이 <b>30초</b> 가입 · <b>26개 강의</b> 미리보기 · 무료 강좌 <b>5개</b>
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>
