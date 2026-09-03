@@ -88,27 +88,24 @@
       background: rgba(143,227,188,.45);
     }
 
+    /* 제목은 고딕(Pretendard) 900. 둥근 Jua 는 굴림처럼 보여 이 톤에 안 맞는다.
+       가변 폰트라 획을 덧대지 않아도 굵기가 제대로 올라간다. */
     .lp-title {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
+      font-weight: 900;
       font-size: clamp(30px, 6.2vw, 64px);
-      line-height: 1.24; letter-spacing: -0.03em;
+      line-height: 1.2; letter-spacing: -0.04em;
       margin: 0; color: #fff; word-break: keep-all; text-wrap: balance;
       text-shadow: 0 2px 24px rgba(0,0,0,.35);
-      /* Jua 는 굵기가 하나뿐이라 font-weight 로는 더 두꺼워지지 않는다.
-         글자 색과 같은 획을 덧대 살을 붙인다. em 은 색이 다르므로 currentColor. */
-      -webkit-text-stroke: 0.035em currentColor;
-      paint-order: stroke fill;
     }
     .lp-title em { font-style: normal; color: var(--mint); white-space: nowrap; }
 
     .lp-shout {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
+      font-weight: 800;
       font-size: clamp(19px, 3.2vw, 32px);
       color: var(--mint-dim); margin: clamp(10px, 1.8vh, 18px) 0 0;
-      letter-spacing: -0.02em;
-      /* 제목만 두꺼워지면 두 줄이 따로 놀아서, 여기도 살짝 살을 붙인다 */
-      -webkit-text-stroke: 0.02em currentColor;
-      paint-order: stroke fill;
+      letter-spacing: -0.03em;
     }
 
     /* ── 크리처 ──────────────────────────────────────────────
@@ -150,9 +147,10 @@
       animation: blink 6s ease-in-out var(--delay, 0s) infinite;
     }
     .cr-label {
-      font-family: var(--font-display);
-      font-size: clamp(15px, 1.7vw, 21px);
-      color: var(--c-ink, var(--mint)); letter-spacing: -0.02em; white-space: nowrap;
+      font-family: var(--font-body);
+      font-weight: 800;
+      font-size: clamp(14px, 1.55vw, 19px);
+      color: var(--c-ink, var(--mint)); letter-spacing: -0.03em; white-space: nowrap;
     }
     .cr-soon {
       position: absolute; top: -10px; right: -12px;
