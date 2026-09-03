@@ -1278,8 +1278,12 @@ async function initPersonal() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    // 인사말
-    const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '회원';
+    // 인사말. profiles.name이 먼저다 — user_metadata.full_name은 소셜 공급자가
+    // 준 값이라 '내 정보'에서 이름을 고쳐도 여기에 반영되지 않는다.
+    const { data: prof } = await sb.from('profiles')
+      .select('name').eq('id', user.id).maybeSingle();
+    const userName = (prof && prof.name)
+      || user.user_metadata?.full_name || user.email?.split('@')[0] || '회원';
     document.getElementById('lp-greet').textContent = userName + '님, 환영합니다';
     document.getElementById('lp-personal').classList.add('show');
 
