@@ -11,31 +11,41 @@
        신규 유입자용 랜딩.
        가운데에 문장 하나, 그 둘레를 배움의 갈래들이 '생물처럼' 떠다닌다.
        배움이 딱딱한 목록이 아니라 살아 움직이는 것이라는 인상을 준다.
-       바탕은 welcome.html 과 같은 짙은 초록 — 한 화면짜리 입구의 톤을 맞춘다.
+       색은 받은 팔레트 다섯 색(#2B4D3B·#6E9B7B·#B9D2C2·#E7D7C7·#FBF7F1)으로만 짠다.
        ═══════════════════════════════════════════════════════════ */
 
+    /* 받은 팔레트 다섯 색으로만 짠다. 화면을 채우는 것은 가장 어두운 초록,
+       강조는 연한 민트, 따뜻한 모래색은 아주 조금씩만 얹는다. */
     :root {
-      --mint:     #6FDCA9;   /* 어두운 바탕 위의 강조색 */
-      --mint-dim: #8FE3BC;
-      --brand:    #2D9B6F;
+      --deep:  #16281E;   /* 가장 깊은 바닥 */
+      --deep2: #1E3729;
+      --base:  #2B4D3B;   /* 팔레트의 진초록 — 바탕의 기준 */
+      --sage:  #6E9B7B;   /* 중간 초록 — 버튼·보조 */
+      --mist:  #B9D2C2;   /* 연한 민트 — 강조 */
+      --sand:  #E7D7C7;   /* 따뜻한 모래 — 아주 조금 */
+      --paper: #FBF7F1;   /* 글자 */
+
+      --mint:     var(--mist);
+      --mint-dim: var(--sand);
+      --brand:    var(--sage);
     }
 
     html, body { overflow-x: clip; }
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      color: #fff;
+      color: var(--paper);
       font-family: var(--font-body);
       /* 섹션마다 배경을 따로 주면 경계에서 뚝뚝 끊긴다. 문서 전체에 하나를 깔고
          background-attachment:fixed 로 고정해, 내용만 그 위를 지나가게 한다. */
-      /* 초록으로 화면을 채우면 무거워진다. 바탕은 거의 검정으로 두고
-         초록은 '빛'으로만 남긴다 — 글자와 크리처가 그만큼 살아난다. */
+      /* 팔레트의 진초록(#2B4D3B)에서 가장 깊은 색(#16281E)으로 내려간다.
+         빛무리는 sage·mist·sand 로만 얹어 다섯 색 밖으로 나가지 않는다. */
       background:
-        radial-gradient(1100px 760px at 78% -4%,  rgba(45,155,111,.30), transparent 60%),
-        radial-gradient(900px 700px at 4% 38%,    rgba(29,120,78,.22),  transparent 58%),
-        radial-gradient(950px 780px at 100% 70%,  rgba(45,155,111,.16), transparent 58%),
-        radial-gradient(800px 640px at 12% 100%,  rgba(29,120,78,.20),  transparent 60%),
-        linear-gradient(180deg, #060B08 0%, #08120D 30%, #050807 62%, #070E0A 100%);
+        radial-gradient(1100px 760px at 78% -4%,  rgba(110,155,123,.34), transparent 60%),
+        radial-gradient(900px 700px at 4% 38%,    rgba(185,210,194,.13), transparent 58%),
+        radial-gradient(950px 780px at 100% 70%,  rgba(231,215,199,.10), transparent 58%),
+        radial-gradient(800px 640px at 12% 100%,  rgba(110,155,123,.22), transparent 60%),
+        linear-gradient(180deg, #2B4D3B 0%, #24402F 32%, #1A2E22 66%, #16281E 100%);
       background-attachment: fixed;
     }
 
@@ -54,8 +64,8 @@
     .lp::after {
       content: ''; position: absolute; inset: 0; z-index: -1; opacity: .10;
       background-image:
-        linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
+        linear-gradient(rgba(251,247,241,.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(251,247,241,.14) 1px, transparent 1px);
       background-size: 68px 68px;
       -webkit-mask-image: radial-gradient(circle at 50% 42%, #000 28%, transparent 78%);
               mask-image: radial-gradient(circle at 50% 42%, #000 28%, transparent 78%);
@@ -67,12 +77,12 @@
     .lp-logo img { height: clamp(26px, 3.4vh, 34px); width: auto; display: block; }
     .lp-home {
       text-decoration: none;
-      font-size: 13px; font-weight: 600; color: rgba(255,255,255,.62);
+      font-size: 13px; font-weight: 600; color: rgba(251,247,241,.62);
       display: inline-flex; align-items: center; gap: 5px;
-      padding: 8px 14px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px;
+      padding: 8px 14px; border: 1px solid rgba(251,247,241,.18); border-radius: 999px;
       transition: color .18s, border-color .18s;
     }
-    .lp-home:hover { color: #fff; border-color: rgba(255,255,255,.45); }
+    .lp-home:hover { color: var(--paper); border-color: rgba(251,247,241,.45); }
 
     /* ── 가운데: 문장 + 떠다니는 갈래들 ── */
     .lp-mid { position: relative; display: grid; place-items: center; }
@@ -89,31 +99,30 @@
     }
     .lp-eyebrow::before, .lp-eyebrow::after {
       content: ''; width: clamp(18px, 3vw, 34px); height: 1px;
-      background: rgba(143,227,188,.45);
+      background: rgba(231,215,199,.45);
     }
 
-    /* 제목은 고딕(Pretendard) 900. 둥근 Jua 는 굴림처럼 보여 이 톤에 안 맞는다.
-       가변 폰트라 획을 덧대지 않아도 굵기가 제대로 올라간다. */
-    /* 굵기로 밀지 않고 얇게 크게 간다. 강약은 색으로만 준다 —
-       레퍼런스가 쓰는 방식이고, 큰 글씨일수록 이쪽이 고급스럽다. */
+    /* 제목은 굵은 고딕(Pretendard 800). 두 줄로 꽉 채우고 자간을 좁혀
+       덩어리로 보이게 한다 — Angstrom 히어로가 쓰는 방식.
+       강약은 굵기가 아니라 색으로 준다. */
     .lp-title {
       font-family: var(--font-body);
-      font-weight: 300;
-      font-size: clamp(32px, 6.8vw, 72px);
-      line-height: 1.22; letter-spacing: -0.045em;
-      margin: 0; color: #fff; word-break: keep-all; text-wrap: balance;
-      text-shadow: 0 2px 24px rgba(0,0,0,.35);
+      font-weight: 800;
+      font-size: clamp(31px, 6.4vw, 68px);
+      line-height: 1.18; letter-spacing: -0.042em;
+      margin: 0; color: var(--paper); word-break: keep-all; text-wrap: balance;
+      text-shadow: 0 2px 24px rgba(11,20,15,.35);
     }
-    .lp-title em { font-style: normal; color: var(--mint); white-space: nowrap;
-      font-weight: 500; text-shadow: 0 0 34px rgba(111,220,169,.45); }
-    .lp-title b { font-weight: 500; color: #fff; }
+    .lp-title em { font-style: normal; color: var(--mist); white-space: nowrap;
+      text-shadow: 0 0 38px rgba(185,210,194,.4); }
+    .lp-title b { color: var(--paper); }
     /* 문장 전체가 똑같이 밝으면 어디를 봐야 할지 모른다. 연결어를 낮춰
        '성장'과 '모든 것'만 남긴다. */
-    .lp-title i { font-style: normal; color: rgba(255,255,255,.42); }
+    .lp-title i { font-style: normal; color: rgba(251,247,241,.52); font-weight: 700; }
 
     .lp-shout {
       font-family: var(--font-body);
-      font-weight: 500;
+      font-weight: 700;
       font-size: clamp(19px, 3.2vw, 32px);
       color: var(--mint-dim); margin: clamp(10px, 1.8vh, 18px) 0 0;
       letter-spacing: -0.03em;
@@ -129,13 +138,13 @@
     .lp-stats div { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
     .lp-stats div + div::before {
       content: ''; position: absolute; left: calc(clamp(18px, 3.4vw, 44px) / -2);
-      top: 12%; bottom: 12%; width: 1px; background: rgba(255,255,255,.14);
+      top: 12%; bottom: 12%; width: 1px; background: rgba(251,247,241,.14);
     }
     .lp-stats b {
-      font-weight: 900; font-size: clamp(20px, 2.6vw, 30px); color: #fff;
+      font-weight: 900; font-size: clamp(20px, 2.6vw, 30px); color: var(--paper);
       letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1.1;
     }
-    .lp-stats span { font-size: clamp(11px, 1.4vh, 12.5px); color: rgba(255,255,255,.5); font-weight: 600; }
+    .lp-stats span { font-size: clamp(11px, 1.4vh, 12.5px); color: rgba(251,247,241,.5); font-weight: 600; }
 
     /* ── 크리처 ──────────────────────────────────────────────
        각자 다른 속도로 떠다닌다. 눈이 있어 '살아 있는 것'으로 읽힌다.
@@ -150,12 +159,12 @@
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       padding: 13px 20px 12px;
       text-decoration: none;
-      background: rgba(255,255,255,.05);
-      border: 1.5px solid var(--c-line, rgba(255,255,255,.16));
+      background: rgba(251,247,241,.05);
+      border: 1.5px solid var(--c-line, rgba(251,247,241,.16));
       /* 타원에 가까우면 알약처럼 보인다. 모서리만 둥근 사각으로 두되
          네 귀를 조금씩 어긋나게 해 손으로 그린 티를 남긴다. */
       border-radius: 14px 12px 13px 15px / 13px 15px 14px 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+      box-shadow: 0 12px 30px rgba(11,20,15,.28), inset 0 1px 0 rgba(251,247,241,.08);
       -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
       transition: transform .2s, box-shadow .2s, background .2s;
       will-change: transform;
@@ -163,8 +172,8 @@
     .creature:hover, .creature:focus-visible {
       animation-play-state: paused;      /* 잡으면 멈춰 선다 */
       transform: translateY(-7px) scale(1.1) rotate(0deg);
-      background: rgba(255,255,255,.11);
-      box-shadow: 0 18px 40px rgba(0,0,0,.4), 0 0 0 1px var(--c-line, rgba(255,255,255,.3));
+      background: rgba(251,247,241,.11);
+      box-shadow: 0 18px 40px rgba(11,20,15,.4), 0 0 0 1px var(--c-line, rgba(251,247,241,.3));
       outline: none; z-index: 5;
     }
 
@@ -175,7 +184,7 @@
     .cr-face i {
       width: 7px; height: 7px; border-radius: 50%;
       background: var(--c-ink, var(--mint));
-      box-shadow: 0 0 14px var(--c-glow, rgba(111,220,169,.7));
+      box-shadow: 0 0 14px var(--c-glow, rgba(185,210,194,.7));
       animation: blink 6.5s ease-in-out var(--delay, 0s) infinite;
     }
     .cr-label {
@@ -187,18 +196,18 @@
     .cr-soon {
       position: absolute; top: -10px; right: -12px;
       font-size: 10px; font-weight: 800; letter-spacing: -0.01em;
-      color: rgba(255,255,255,.62); background: rgba(14,42,30,.92);
-      border: 1px solid rgba(255,255,255,.22);
+      color: rgba(251,247,241,.62); background: rgba(22,40,30,.92);
+      border: 1px solid rgba(251,247,241,.22);
       padding: 2px 8px; border-radius: 7px; white-space: nowrap;
     }
     /* 예정인 갈래는 빛을 빼서 '아직'임을 형태로도 알린다 */
     .creature.soon {
-      background: rgba(255,255,255,.03);
-      border-color: rgba(255,255,255,.11);
-      box-shadow: 0 8px 20px rgba(0,0,0,.2);
+      background: rgba(251,247,241,.03);
+      border-color: rgba(251,247,241,.11);
+      box-shadow: 0 8px 20px rgba(11,20,15,.2);
     }
-    .creature.soon .cr-label { color: rgba(255,255,255,.5); }
-    .creature.soon .cr-face i { background: rgba(255,255,255,.38); box-shadow: none; }
+    .creature.soon .cr-label { color: rgba(251,247,241,.5); }
+    .creature.soon .cr-face i { background: rgba(251,247,241,.38); box-shadow: none; }
 
     /* 두 점 사이를 오가면 진자처럼 보인다. 네 지점을 거쳐 제자리로 돌아오는
        닫힌 경로로 만들어, 같은 자리를 맴돌되 궤적이 반복으로 안 읽히게 한다.
@@ -247,16 +256,16 @@
       text-decoration: none;
       display: inline-flex; align-items: center; gap: 9px;
       padding: clamp(13px, 2vh, 17px) clamp(28px, 4.5vw, 42px);
-      background: var(--brand); color: #fff;
-      font-size: clamp(14.5px, 1.9vh, 16.5px); font-weight: 800; letter-spacing: -0.02em;
+      background: var(--sage); color: var(--deep);
+      font-size: clamp(14.5px, 1.9vh, 16.5px); font-weight: 700; letter-spacing: -0.02em;
       border-radius: 14px;
-      box-shadow: 0 12px 34px rgba(45,155,111,.42), 0 0 0 1px rgba(111,220,169,.28), 0 0 44px rgba(45,155,111,.22);
+      box-shadow: 0 12px 34px rgba(110,155,123,.42), 0 0 0 1px rgba(185,210,194,.28), 0 0 44px rgba(110,155,123,.22);
       transition: background .18s, transform .18s, box-shadow .18s;
     }
-    .lp-cta:hover { background: #35B37F; transform: translateY(-2px);
-      box-shadow: 0 18px 46px rgba(45,155,111,.55), 0 0 0 1px rgba(111,220,169,.45), 0 0 60px rgba(45,155,111,.34); }
-    .lp-trust { font-size: clamp(11.5px, 1.5vh, 13px); color: rgba(255,255,255,.45); font-variant-numeric: tabular-nums; }
-    .lp-trust b { color: rgba(255,255,255,.75); font-weight: 600; }
+    .lp-cta:hover { background: #86B492; color: var(--deep); transform: translateY(-2px);
+      box-shadow: 0 18px 46px rgba(110,155,123,.55), 0 0 0 1px rgba(185,210,194,.45), 0 0 60px rgba(110,155,123,.34); }
+    .lp-trust { font-size: clamp(11.5px, 1.5vh, 13px); color: rgba(251,247,241,.45); font-variant-numeric: tabular-nums; }
+    .lp-trust b { color: rgba(251,247,241,.75); font-weight: 600; }
 
     /* ── 좁은 화면: 떠다니지 않고 아래에 한 줄로 모인다 ────────
        작은 화면에서 절대 배치를 유지하면 글자 위로 겹친다. */
@@ -304,7 +313,7 @@
     /* 밝은 띠도 선으로 자르지 않는다. 위아래를 투명하게 녹여 스며들게 한다. */
     .sec-alt::before {
       content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-      background: rgba(255,255,255,.025);
+      background: rgba(251,247,241,.025);
       -webkit-mask-image: linear-gradient(transparent 0, #000 14%, #000 86%, transparent 100%);
               mask-image: linear-gradient(transparent 0, #000 14%, #000 86%, transparent 100%);
     }
@@ -314,11 +323,11 @@
       color: var(--mint); margin-bottom: 12px;
     }
     .sec-h {
-      font-weight: 400; font-size: clamp(25px, 4.1vw, 44px); line-height: 1.32;
+      font-weight: 700; font-size: clamp(25px, 4.1vw, 42px); line-height: 1.3;
       letter-spacing: -0.04em; margin: 0 0 14px; word-break: keep-all; text-wrap: balance;
     }
-    .sec-h em { font-style: normal; color: var(--mint); font-weight: 600; }
-    .sec-p { font-size: clamp(14px, 1.6vw, 16.5px); line-height: 1.8; color: rgba(255,255,255,.62);
+    .sec-h em { font-style: normal; color: var(--mist); }
+    .sec-p { font-size: clamp(14px, 1.6vw, 16.5px); line-height: 1.8; color: rgba(251,247,241,.62);
              margin: 0; max-width: 62ch; word-break: keep-all; }
     .sec-center { text-align: center; }
     .sec-center .sec-p { margin-left: auto; margin-right: auto; }
@@ -330,32 +339,32 @@
     .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
 
     .card {
-      background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.1);
+      background: rgba(251,247,241,.045); border: 1px solid rgba(251,247,241,.1);
       border-radius: 16px; padding: 22px 22px 24px;
     }
     .card h3 { margin: 0 0 8px; font-size: clamp(15px, 1.8vw, 18px); font-weight: 800; letter-spacing: -0.03em; }
-    .card p  { margin: 0; font-size: 13.5px; line-height: 1.75; color: rgba(255,255,255,.58); word-break: keep-all; }
+    .card p  { margin: 0; font-size: 13.5px; line-height: 1.75; color: rgba(251,247,241,.58); word-break: keep-all; }
     .card .ico { font-size: 22px; display: block; margin-bottom: 12px; }
 
     /* 고통 → 해결. 같은 번호를 달아 눈으로 짝이 보이게 한다. */
-    .pain { border-color: rgba(255,255,255,.08); background: rgba(0,0,0,.16); }
-    .pain h3 { color: rgba(255,255,255,.9); }
-    .cure { border-color: rgba(111,220,169,.24); background: rgba(45,155,111,.09); }
+    .pain { border-color: rgba(251,247,241,.08); background: rgba(11,20,15,.16); }
+    .pain h3 { color: rgba(251,247,241,.9); }
+    .cure { border-color: rgba(185,210,194,.24); background: rgba(110,155,123,.09); }
     .cure h3 { color: var(--mint); }
     .pair-no {
       display: inline-flex; align-items: center; justify-content: center;
       width: 22px; height: 22px; border-radius: 7px; font-size: 11.5px; font-weight: 900;
-      background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); margin-bottom: 12px;
+      background: rgba(251,247,241,.1); color: rgba(251,247,241,.7); margin-bottom: 12px;
     }
-    .cure .pair-no { background: rgba(111,220,169,.18); color: var(--mint); }
+    .cure .pair-no { background: rgba(185,210,194,.18); color: var(--mint); }
 
     /* 갈래별 규모 — 숫자가 주인공이다 */
     .track { text-decoration: none; display: block; transition: transform .18s, border-color .18s, background .18s; }
-    .track:hover { transform: translateY(-4px); border-color: rgba(111,220,169,.4); background: rgba(45,155,111,.1); }
-    .track .t-name { display: block; font-size: clamp(16px, 1.9vw, 19px); font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+    .track:hover { transform: translateY(-4px); border-color: rgba(185,210,194,.4); background: rgba(110,155,123,.1); }
+    .track .t-name { display: block; font-size: clamp(16px, 1.9vw, 19px); font-weight: 800; letter-spacing: -0.03em; color: var(--paper); }
     .track .t-num  { display: block; font-size: clamp(26px, 3.4vw, 36px); font-weight: 900; color: var(--mint);
                      letter-spacing: -0.04em; font-variant-numeric: tabular-nums; margin: 10px 0 2px; }
-    .track .t-sub  { display: block; font-size: 12.5px; color: rgba(255,255,255,.5); }
+    .track .t-sub  { display: block; font-size: 12.5px; color: rgba(251,247,241,.5); }
     .track .t-go   { font-size: 12.5px; color: var(--mint-dim); font-weight: 700; margin-top: 14px; display: block; }
 
     /* 3단계 */
@@ -364,19 +373,19 @@
       position: absolute; left: 0; top: 0;
       width: 38px; height: 38px; border-radius: 12px;
       display: grid; place-items: center; font-weight: 900; font-size: 15px;
-      background: rgba(111,220,169,.14); color: var(--mint); border: 1px solid rgba(111,220,169,.3);
+      background: rgba(185,210,194,.14); color: var(--mint); border: 1px solid rgba(185,210,194,.3);
     }
 
     /* 후기 — 세 건만. 없는 것을 있는 척 벌리지 않는다. */
-    .quote { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+    .quote { background: rgba(251,247,241,.04); border: 1px solid rgba(251,247,241,.1);
              border-radius: 16px; padding: 22px; display: flex; flex-direction: column; }
-    .quote p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.85; color: rgba(255,255,255,.78); word-break: keep-all; }
-    .quote .who { margin-top: auto; font-size: 12px; color: rgba(255,255,255,.42); }
-    .quote .stars { color: #FFC066; font-size: 12px; letter-spacing: 2px; margin-bottom: 10px; }
+    .quote p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.85; color: rgba(251,247,241,.78); word-break: keep-all; }
+    .quote .who { margin-top: auto; font-size: 12px; color: rgba(251,247,241,.42); }
+    .quote .stars { color: #E7D7C7; font-size: 12px; letter-spacing: 2px; margin-bottom: 10px; }
 
     /* FAQ */
-    .faq { border-top: 1px solid rgba(255,255,255,.1); }
-    .faq details { border-bottom: 1px solid rgba(255,255,255,.1); }
+    .faq { border-top: 1px solid rgba(251,247,241,.1); }
+    .faq details { border-bottom: 1px solid rgba(251,247,241,.1); }
     .faq summary {
       list-style: none; cursor: pointer; padding: 18px 34px 18px 0; position: relative;
       font-size: clamp(14.5px, 1.7vw, 16px); font-weight: 700; letter-spacing: -0.02em;
@@ -387,35 +396,35 @@
       font-size: 19px; color: var(--mint); font-weight: 400;
     }
     .faq details[open] summary::after { content: '−'; }
-    .faq .a { padding: 0 34px 20px 0; font-size: 13.5px; line-height: 1.85; color: rgba(255,255,255,.6); word-break: keep-all; }
+    .faq .a { padding: 0 34px 20px 0; font-size: 13.5px; line-height: 1.85; color: rgba(251,247,241,.6); word-break: keep-all; }
 
     /* 반복하는 CTA — imvoca 처럼 매번 같은 안심 문구를 붙인다 */
     .cta-band { text-align: center; }
     .cta-band .lp-cta { margin-top: 24px; }
-    .cta-note { font-size: 12.5px; color: rgba(255,255,255,.42); margin-top: 12px; }
+    .cta-note { font-size: 12.5px; color: rgba(251,247,241,.42); margin-top: 12px; }
 
     .lp-ghost {
       text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
       padding: clamp(13px, 2vh, 17px) clamp(24px, 4vw, 34px);
-      border: 1px solid rgba(255,255,255,.26); color: #fff; border-radius: 14px;
+      border: 1px solid rgba(251,247,241,.26); color: var(--paper); border-radius: 14px;
       font-size: clamp(14px, 1.9vh, 16px); font-weight: 700; letter-spacing: -0.02em;
       transition: background .18s, border-color .18s;
     }
-    .lp-ghost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.45); }
+    .lp-ghost:hover { background: rgba(251,247,241,.08); border-color: rgba(251,247,241,.45); }
     .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
 
     .lp-foot {
       padding: 28px clamp(18px, 4vw, 48px) 40px; text-align: center;
-      font-size: 12px; color: rgba(255,255,255,.34);
-      border-top: 1px solid rgba(255,255,255,.07);
+      font-size: 12px; color: rgba(251,247,241,.34);
+      border-top: 1px solid rgba(251,247,241,.07);
     }
-    .lp-foot a { color: rgba(255,255,255,.5); text-decoration: none; }
-    .lp-foot a:hover { color: #fff; }
+    .lp-foot a { color: rgba(251,247,241,.5); text-decoration: none; }
+    .lp-foot a:hover { color: var(--paper); }
 
     /* 스크롤 안내 — 아래에 더 있다는 신호 */
     .scroll-cue {
       position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
-      font-size: 11px; letter-spacing: .1em; color: rgba(255,255,255,.34);
+      font-size: 11px; letter-spacing: .1em; color: rgba(251,247,241,.34);
       text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px;
       animation: cue 2.4s ease-in-out infinite;
     }
@@ -449,7 +458,7 @@
     .lp-mark {
       display: inline-block; vertical-align: -0.12em;
       width: .92em; height: .92em; margin-right: .1em;
-      filter: drop-shadow(0 0 10px var(--m-glow, rgba(111,220,169,.75)));
+      filter: drop-shadow(0 0 10px var(--m-glow, rgba(185,210,194,.75)));
       animation: markPulse 3.6s ease-in-out var(--m-delay, 0s) infinite;
     }
     .lp-mark path, .lp-mark circle { vector-effect: non-scaling-stroke; }
@@ -494,40 +503,40 @@
       position: absolute; left: 0; top: clamp(28px, 9vh, 90px);
       width: 38px; height: 38px; border-radius: 12px;
       display: grid; place-items: center; font-weight: 700; font-size: 15px;
-      background: rgba(111,220,169,.12); color: var(--mint); border: 1px solid rgba(111,220,169,.28);
+      background: rgba(185,210,194,.12); color: var(--mint); border: 1px solid rgba(185,210,194,.28);
       transition: background .45s ease, box-shadow .45s ease;
     }
-    .flow-step.is-on .n { background: rgba(111,220,169,.2); box-shadow: 0 0 24px rgba(111,220,169,.35); }
+    .flow-step.is-on .n { background: rgba(185,210,194,.2); box-shadow: 0 0 24px rgba(185,210,194,.35); }
     .flow-step h3 { margin: 0 0 10px; font-size: clamp(19px, 2.4vw, 26px); font-weight: 500; letter-spacing: -0.03em; }
-    .flow-step p  { margin: 0; font-size: 14px; line-height: 1.85; color: rgba(255,255,255,.6); word-break: keep-all; }
+    .flow-step p  { margin: 0; font-size: 14px; line-height: 1.85; color: rgba(251,247,241,.6); word-break: keep-all; }
 
     .flow-stage { position: sticky; top: 22vh; }
     .flow-panels { position: relative; height: 230px; }
     .panel {
       position: absolute; inset: 0;
-      background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.11);
+      background: rgba(251,247,241,.045); border: 1px solid rgba(251,247,241,.11);
       border-radius: 16px; padding: 20px 22px;
-      box-shadow: 0 18px 44px rgba(0,0,0,.45);
+      box-shadow: 0 18px 44px rgba(11,20,15,.45);
       -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
       opacity: 0; transform: translateY(14px) scale(.985);
       transition: opacity .45s ease, transform .45s ease;
       pointer-events: none;
     }
     .panel.is-on { opacity: 1; transform: none; pointer-events: auto; }
-    .p-head { font-size: 12.5px; color: rgba(255,255,255,.5); margin-bottom: 14px; }
-    .p-num  { font-size: clamp(24px, 3vw, 32px); font-weight: 600; color: #fff;
+    .p-head { font-size: 12.5px; color: rgba(251,247,241,.5); margin-bottom: 14px; }
+    .p-num  { font-size: clamp(24px, 3vw, 32px); font-weight: 600; color: var(--paper);
               letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
-    .p-num span { font-size: .5em; font-weight: 500; color: rgba(255,255,255,.4); margin-left: 4px; }
-    .p-bar { height: 7px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; margin: 14px 0 16px; }
+    .p-num span { font-size: .5em; font-weight: 500; color: rgba(251,247,241,.4); margin-left: 4px; }
+    .p-bar { height: 7px; border-radius: 999px; background: rgba(251,247,241,.1); overflow: hidden; margin: 14px 0 16px; }
     .p-bar i { display: block; height: 100%; border-radius: 999px;
-               background: linear-gradient(90deg, #2D9B6F, #6FDCA9); box-shadow: 0 0 18px rgba(111,220,169,.5); }
-    .p-note { font-size: 13px; line-height: 1.8; color: rgba(255,255,255,.72);
-              background: rgba(0,0,0,.28); border-radius: 10px; padding: 13px 14px; margin-bottom: 16px;
+               background: linear-gradient(90deg, #6E9B7B, #B9D2C2); box-shadow: 0 0 18px rgba(185,210,194,.5); }
+    .p-note { font-size: 13px; line-height: 1.8; color: rgba(251,247,241,.72);
+              background: rgba(11,20,15,.28); border-radius: 10px; padding: 13px 14px; margin-bottom: 16px;
               display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .p-foot { font-size: 12px; color: rgba(255,255,255,.42); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .p-foot { font-size: 12px; color: rgba(251,247,241,.42); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .p-chip { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
-    .p-chip.ok   { background: rgba(111,220,169,.16); color: var(--mint); }
-    .p-chip.wait { background: rgba(255,192,102,.16); color: #FFC066; }
+    .p-chip.ok   { background: rgba(185,210,194,.16); color: var(--mint); }
+    .p-chip.wait { background: rgba(231,215,199,.18); color: #E7D7C7; }
 
     @media (max-width: 860px) {
       /* 좁은 화면에서는 sticky 를 쓰지 않는다. 문장 하나에 화면 하나를 붙여 세로로 쌓는다. */
@@ -556,7 +565,7 @@
 
       <div class="lp-copy">
         <div class="lp-eyebrow">I'M Learning · I'M Running</div>
-        <h1 class="lp-title"><i>그리스도인의</i> <svg class="lp-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="--m-glow:rgba(111,220,169,.8);--m-delay:0s;"><path d="M12 21V10" stroke="#6FDCA9" stroke-width="1.7" stroke-linecap="round"/><path d="M12 12C12 8.5 9.4 5.9 6 5.6c-.3 3.4 2.3 6.1 6 6.4Z" stroke="#6FDCA9" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 13.4c0-3.5 2.6-6.1 6-6.4.3 3.4-2.3 6.1-6 6.4Z" stroke="#8FE3BC" stroke-width="1.5" stroke-linejoin="round"/></svg><b>성장</b><i>을 위한</i><br><svg class="lp-mark" viewBox="0 0 24 24" aria-hidden="true" style="--m-glow:rgba(143,227,188,.85);--m-delay:1.2s;"><path d="M12 1.5c.9 5.4 4.2 8.7 9.6 9.6-5.4.9-8.7 4.2-9.6 9.6-.9-5.4-4.2-8.7-9.6-9.6 5.4-.9 8.7-4.2 9.6-9.6Z" fill="#6FDCA9"/></svg><em>모든 것</em><i>이 여기 있다</i></h1>
+        <h1 class="lp-title"><i>그리스도인의</i> <svg class="lp-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="--m-glow:rgba(185,210,194,.8);--m-delay:0s;"><path d="M12 21V10" stroke="#B9D2C2" stroke-width="1.7" stroke-linecap="round"/><path d="M12 12C12 8.5 9.4 5.9 6 5.6c-.3 3.4 2.3 6.1 6 6.4Z" stroke="#B9D2C2" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 13.4c0-3.5 2.6-6.1 6-6.4.3 3.4-2.3 6.1-6 6.4Z" stroke="#CFE0D5" stroke-width="1.5" stroke-linejoin="round"/></svg><b>성장</b><i>을 위한</i><br><svg class="lp-mark" viewBox="0 0 24 24" aria-hidden="true" style="--m-glow:rgba(231,215,199,.85);--m-delay:1.2s;"><path d="M12 1.5c.9 5.4 4.2 8.7 9.6 9.6-5.4.9-8.7 4.2-9.6 9.6-.9-5.4-4.2-8.7-9.6-9.6 5.4-.9 8.7-4.2 9.6-9.6Z" fill="#B9D2C2"/></svg><em>모든 것</em><i>이 여기 있다</i></h1>
         <p class="lp-shout">온라인으로 배우자!</p>
 
         <div class="lp-stats">
@@ -571,37 +580,37 @@
       <div class="lp-orbit" aria-label="배움의 갈래">
 
         <a class="creature" href="courses.html?cat=faith"
-           style="--x:7%;  --y:14%; --c-ink:#6FDCA9; --c-line:rgba(111,220,169,.42); --c-glow:rgba(111,220,169,.65); --dur:20s; --delay:0s;   --dx:24px;  --dy:-26px; --rot:-5deg;">
+           style="--x:7%;  --y:14%; --c-ink:#B9D2C2; --c-line:rgba(185,210,194,.46); --c-glow:rgba(185,210,194,.55); --dur:20s; --delay:0s;   --dx:24px;  --dy:-26px; --rot:-5deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">말씀</span>
         </a>
 
         <a class="creature" href="courses.html?cat=faith"
-           style="--x:13%; --y:63%; --c-ink:#7FB6FF; --c-line:rgba(127,182,255,.42); --c-glow:rgba(127,182,255,.6);  --dur:25s; --delay:1.4s; --dx:-22px; --dy:20px;  --rot:6deg;">
+           style="--x:13%; --y:63%; --c-ink:#A8C3D2; --c-line:rgba(168,195,210,.46); --c-glow:rgba(168,195,210,.55);  --dur:25s; --delay:1.4s; --dx:-22px; --dy:20px;  --rot:6deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">신앙</span>
         </a>
 
         <a class="creature" href="search.html?q=%EA%B2%B0%ED%98%BC"
-           style="--x:5%;  --y:80%; --c-ink:#FF9FBB; --c-line:rgba(255,159,187,.42); --c-glow:rgba(255,159,187,.6);  --dur:19s; --delay:.7s;  --dx:27px;  --dy:-17px; --rot:5deg;">
+           style="--x:5%;  --y:80%; --c-ink:#D8BCC0; --c-line:rgba(216,188,192,.46); --c-glow:rgba(216,188,192,.55);  --dur:19s; --delay:.7s;  --dx:27px;  --dy:-17px; --rot:5deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">결혼관</span>
         </a>
 
         <a class="creature" href="courses.html?cat=english"
-           style="--x:84%; --y:13%; --c-ink:#B49CFF; --c-line:rgba(180,156,255,.42); --c-glow:rgba(180,156,255,.6);  --dur:22s; --delay:.3s;  --dx:-20px; --dy:25px;  --rot:7deg;">
+           style="--x:84%; --y:13%; --c-ink:#C2BBD8; --c-line:rgba(194,187,216,.46); --c-glow:rgba(194,187,216,.55);  --dur:22s; --delay:.3s;  --dx:-20px; --dy:25px;  --rot:7deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">영어</span>
         </a>
 
         <a class="creature" href="courses.html?cat=exam"
-           style="--x:88%; --y:44%; --c-ink:#FFC066; --c-line:rgba(255,192,102,.42); --c-glow:rgba(255,192,102,.6);  --dur:27s; --delay:2.1s; --dx:-28px; --dy:-19px; --rot:-6deg;">
+           style="--x:88%; --y:44%; --c-ink:#E7D7C7; --c-line:rgba(231,215,199,.46); --c-glow:rgba(231,215,199,.55);  --dur:27s; --delay:2.1s; --dx:-28px; --dy:-19px; --rot:-6deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">수능</span>
         </a>
 
         <a class="creature" href="search.html?q=%EC%88%98%ED%95%99"
-           style="--x:77%; --y:76%; --c-ink:#5FD8DE; --c-line:rgba(95,216,222,.42);  --c-glow:rgba(95,216,222,.6);   --dur:18s; --delay:1s;   --dx:-18px; --dy:-28px; --rot:4deg;">
+           style="--x:81%; --y:76%; --c-ink:#A9CBC7; --c-line:rgba(169,203,199,.46);  --c-glow:rgba(169,203,199,.55);   --dur:18s; --delay:1s;   --dx:-18px; --dy:-28px; --rot:4deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">수학</span>
         </a>
 
         <a class="creature" href="search.html?q=%EC%84%A0%EA%B5%90"
-           style="--x:33%; --y:6%;  --c-ink:#FF9B78; --c-line:rgba(255,155,120,.42); --c-glow:rgba(255,155,120,.6);  --dur:23s; --delay:1.8s; --dx:17px;  --dy:27px;  --rot:6deg;">
+           style="--x:33%; --y:6%;  --c-ink:#DCC0AC; --c-line:rgba(220,192,172,.46); --c-glow:rgba(220,192,172,.55);  --dur:23s; --delay:1.8s; --dx:17px;  --dy:27px;  --rot:6deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">선교</span>
         </a>
 
