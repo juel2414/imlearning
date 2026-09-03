@@ -148,7 +148,7 @@
       border-radius: 14px 12px 13px 15px / 13px 15px 14px 12px;
       box-shadow: 0 12px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
       -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-      animation: wander var(--dur, 14s) ease-in-out var(--delay, 0s) infinite;
+      animation: wander var(--dur, 22s) ease-in-out var(--delay, 0s) infinite;
       transition: transform .2s, box-shadow .2s, background .2s;
       will-change: transform;
     }
@@ -162,13 +162,13 @@
 
     .cr-face {
       display: flex; gap: 8px; align-items: center; height: 12px;
-      animation: glance calc(var(--dur, 14s) * 0.7) ease-in-out var(--delay, 0s) infinite;
+      animation: glance calc(var(--dur, 22s) * 0.85) ease-in-out var(--delay, 0s) infinite;
     }
     .cr-face i {
       width: 7px; height: 7px; border-radius: 50%;
       background: var(--c-ink, var(--mint));
       box-shadow: 0 0 10px var(--c-glow, rgba(111,220,169,.7));
-      animation: blink 4.5s ease-in-out var(--delay, 0s) infinite;
+      animation: blink 6.5s ease-in-out var(--delay, 0s) infinite;
     }
     .cr-label {
       font-family: var(--font-body);
@@ -201,15 +201,15 @@
       }
       25% {
         transform: translate3d(var(--dx, 30px), var(--dy, -34px), 0)
-                   rotate(calc(var(--rot, -3deg) * -1.4)) scale(1.035);
+                   rotate(calc(var(--rot, -3deg) * -1.1)) scale(1.02);
       }
       50% {
         transform: translate3d(calc(var(--dx, 30px) * -0.75), calc(var(--dy, -34px) * -0.55), 0)
-                   rotate(calc(var(--rot, -3deg) * 1.5)) scale(.975);
+                   rotate(calc(var(--rot, -3deg) * 1.15)) scale(.99);
       }
       75% {
         transform: translate3d(calc(var(--dx, 30px) * 0.45), calc(var(--dy, -34px) * 1.15), 0)
-                   rotate(calc(var(--rot, -3deg) * -0.7)) scale(1.02);
+                   rotate(calc(var(--rot, -3deg) * -0.6)) scale(1.01);
       }
       100% {
         transform: translate3d(0, 0, 0) rotate(var(--rot, -3deg)) scale(1);
@@ -217,9 +217,9 @@
     }
     /* 눈은 두 가지를 따로 한다 — 얼굴이 좌우를 훑고(glance), 눈알이 깜빡인다(blink) */
     @keyframes glance {
-      0%, 34%, 100% { transform: translateX(0); }
-      44%, 62%      { transform: translateX(3px); }
-      78%           { transform: translateX(-2px); }
+      0%, 46%, 100% { transform: translateX(0); }
+      54%, 68%      { transform: translateX(2px); }
+      82%           { transform: translateX(-1.5px); }
     }
     @keyframes blink {
       0%, 46%, 100% { transform: scaleY(1); }
@@ -463,43 +463,43 @@
       <div class="lp-orbit" aria-label="배움의 갈래">
 
         <a class="creature" href="courses.html?cat=faith"
-           style="--x:7%;  --y:14%; --c-ink:#6FDCA9; --c-line:rgba(111,220,169,.42); --c-glow:rgba(111,220,169,.65); --dur:12s; --delay:0s;   --dx:34px;  --dy:-40px; --rot:-5deg;">
+           style="--x:7%;  --y:14%; --c-ink:#6FDCA9; --c-line:rgba(111,220,169,.42); --c-glow:rgba(111,220,169,.65); --dur:20s; --delay:0s;   --dx:24px;  --dy:-26px; --rot:-5deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">말씀</span>
         </a>
 
         <a class="creature" href="courses.html?cat=faith"
-           style="--x:13%; --y:63%; --c-ink:#7FB6FF; --c-line:rgba(127,182,255,.42); --c-glow:rgba(127,182,255,.6);  --dur:15s; --delay:1.4s; --dx:-30px; --dy:30px;  --rot:6deg;">
+           style="--x:13%; --y:63%; --c-ink:#7FB6FF; --c-line:rgba(127,182,255,.42); --c-glow:rgba(127,182,255,.6);  --dur:25s; --delay:1.4s; --dx:-22px; --dy:20px;  --rot:6deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">신앙</span>
         </a>
 
         <a class="creature" href="search.html?q=%EA%B2%B0%ED%98%BC"
-           style="--x:5%;  --y:80%; --c-ink:#FF9FBB; --c-line:rgba(255,159,187,.42); --c-glow:rgba(255,159,187,.6);  --dur:11s; --delay:.7s;  --dx:42px;  --dy:-26px; --rot:5deg;">
+           style="--x:5%;  --y:80%; --c-ink:#FF9FBB; --c-line:rgba(255,159,187,.42); --c-glow:rgba(255,159,187,.6);  --dur:19s; --delay:.7s;  --dx:27px;  --dy:-17px; --rot:5deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">결혼관</span>
         </a>
 
         <a class="creature" href="courses.html?cat=english"
-           style="--x:84%; --y:13%; --c-ink:#B49CFF; --c-line:rgba(180,156,255,.42); --c-glow:rgba(180,156,255,.6);  --dur:13s; --delay:.3s;  --dx:-30px; --dy:38px;  --rot:7deg;">
+           style="--x:84%; --y:13%; --c-ink:#B49CFF; --c-line:rgba(180,156,255,.42); --c-glow:rgba(180,156,255,.6);  --dur:22s; --delay:.3s;  --dx:-20px; --dy:25px;  --rot:7deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">영어</span>
         </a>
 
         <a class="creature" href="courses.html?cat=exam"
-           style="--x:88%; --y:44%; --c-ink:#FFC066; --c-line:rgba(255,192,102,.42); --c-glow:rgba(255,192,102,.6);  --dur:16s; --delay:2.1s; --dx:-44px; --dy:-30px; --rot:-6deg;">
+           style="--x:88%; --y:44%; --c-ink:#FFC066; --c-line:rgba(255,192,102,.42); --c-glow:rgba(255,192,102,.6);  --dur:27s; --delay:2.1s; --dx:-28px; --dy:-19px; --rot:-6deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">수능</span>
         </a>
 
         <a class="creature" href="search.html?q=%EC%88%98%ED%95%99"
-           style="--x:77%; --y:76%; --c-ink:#5FD8DE; --c-line:rgba(95,216,222,.42);  --c-glow:rgba(95,216,222,.6);   --dur:10s; --delay:1s;   --dx:-28px; --dy:-44px; --rot:4deg;">
+           style="--x:77%; --y:76%; --c-ink:#5FD8DE; --c-line:rgba(95,216,222,.42);  --c-glow:rgba(95,216,222,.6);   --dur:18s; --delay:1s;   --dx:-18px; --dy:-28px; --rot:4deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">수학</span>
         </a>
 
         <a class="creature" href="search.html?q=%EC%84%A0%EA%B5%90"
-           style="--x:33%; --y:6%;  --c-ink:#FF9B78; --c-line:rgba(255,155,120,.42); --c-glow:rgba(255,155,120,.6);  --dur:14s; --delay:1.8s; --dx:26px;  --dy:42px;  --rot:6deg;">
+           style="--x:33%; --y:6%;  --c-ink:#FF9B78; --c-line:rgba(255,155,120,.42); --c-glow:rgba(255,155,120,.6);  --dur:23s; --delay:1.8s; --dx:17px;  --dy:27px;  --rot:6deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">선교</span>
         </a>
 
         <!-- 아직 열지 않은 갈래. 빛을 빼고 '예정'을 달아 기대만 남긴다. -->
         <span class="creature soon" aria-label="부동산 — 준비 중"
-              style="--x:62%; --y:88%; --dur:17s; --delay:.5s; --dx:32px; --dy:-22px; --rot:-4deg;">
+              style="--x:62%; --y:88%; --dur:28s; --delay:.5s; --dx:21px; --dy:-15px; --rot:-4deg;">
           <span class="cr-face"><i></i><i></i></span><span class="cr-label">부동산</span>
           <span class="cr-soon">예정</span>
         </span>
