@@ -20,7 +20,8 @@
       --brand:    #2D9B6F;
     }
 
-    html, body { height: 100%; overflow-x: clip; }
+    html, body { overflow-x: clip; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       background: #0E2A1E;
@@ -30,7 +31,7 @@
 
     .lp {
       position: relative;
-      height: 100dvh;                    /* 스크롤 없이 한 화면에서 끝낸다 */
+      min-height: 100dvh;                /* 히어로는 한 화면, 아래로는 이어서 읽는다 */
       box-sizing: border-box;
       display: grid;
       grid-template-rows: auto 1fr auto;
@@ -107,6 +108,24 @@
       color: var(--mint-dim); margin: clamp(10px, 1.8vh, 18px) 0 0;
       letter-spacing: -0.03em;
     }
+
+    /* 문장만 있으면 가운데가 빈다. 실제 규모를 숫자로 받쳐 준다.
+       형용사보다 계측값이 낫다 — '많은 강의' 대신 1,332. */
+    .lp-stats {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: clamp(18px, 3.4vw, 44px);
+      margin-top: clamp(20px, 3.4vh, 34px);
+    }
+    .lp-stats div { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+    .lp-stats div + div::before {
+      content: ''; position: absolute; left: calc(clamp(18px, 3.4vw, 44px) / -2);
+      top: 12%; bottom: 12%; width: 1px; background: rgba(255,255,255,.14);
+    }
+    .lp-stats b {
+      font-weight: 900; font-size: clamp(20px, 2.6vw, 30px); color: #fff;
+      letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1.1;
+    }
+    .lp-stats span { font-size: clamp(11px, 1.4vh, 12.5px); color: rgba(255,255,255,.5); font-weight: 600; }
 
     /* ── 크리처 ──────────────────────────────────────────────
        각자 다른 속도로 떠다닌다. 눈이 있어 '살아 있는 것'으로 읽힌다.
@@ -228,6 +247,139 @@
       .creature, .lp-cta, .lp-home { transition: none; }
       .creature:hover, .lp-cta:hover { transform: none; }
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       히어로 아래로 이어지는 본문.
+       imvoca 랜딩의 뼈대를 참고했다 — 고통을 먼저 말하고 1:1로 풀어 주기,
+       'X가 아니라 Y' 대조, 섹션마다 같은 자리에 영문 eyebrow, CTA 반복.
+       다만 후기는 20건뿐이라 크게 벌리지 않고 세 건만 인용한다.
+       ═══════════════════════════════════════════════════════════ */
+    .sec { padding: clamp(60px, 9vh, 110px) clamp(18px, 4vw, 48px); position: relative; }
+    .sec-alt { background: rgba(255,255,255,.028); border-top: 1px solid rgba(255,255,255,.06);
+               border-bottom: 1px solid rgba(255,255,255,.06); }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+    .sec-eyebrow {
+      font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--mint); margin-bottom: 12px;
+    }
+    .sec-h {
+      font-weight: 900; font-size: clamp(24px, 3.9vw, 40px); line-height: 1.3;
+      letter-spacing: -0.04em; margin: 0 0 14px; word-break: keep-all; text-wrap: balance;
+    }
+    .sec-h em { font-style: normal; color: var(--mint); }
+    .sec-p { font-size: clamp(14px, 1.6vw, 16.5px); line-height: 1.8; color: rgba(255,255,255,.62);
+             margin: 0; max-width: 62ch; word-break: keep-all; }
+    .sec-center { text-align: center; }
+    .sec-center .sec-p { margin-left: auto; margin-right: auto; }
+
+    /* 제목은 가운데, 카드 본문은 왼쪽. 여러 줄 글이 가운데 정렬이면 읽기 나쁘다 */
+    .grid { display: grid; gap: 14px; margin-top: clamp(26px, 4vh, 44px); text-align: left; }
+    .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+
+    .card {
+      background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px; padding: 22px 22px 24px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: clamp(15px, 1.8vw, 18px); font-weight: 800; letter-spacing: -0.03em; }
+    .card p  { margin: 0; font-size: 13.5px; line-height: 1.75; color: rgba(255,255,255,.58); word-break: keep-all; }
+    .card .ico { font-size: 22px; display: block; margin-bottom: 12px; }
+
+    /* 고통 → 해결. 같은 번호를 달아 눈으로 짝이 보이게 한다. */
+    .pain { border-color: rgba(255,255,255,.08); background: rgba(0,0,0,.16); }
+    .pain h3 { color: rgba(255,255,255,.9); }
+    .cure { border-color: rgba(111,220,169,.24); background: rgba(45,155,111,.09); }
+    .cure h3 { color: var(--mint); }
+    .pair-no {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 7px; font-size: 11.5px; font-weight: 900;
+      background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); margin-bottom: 12px;
+    }
+    .cure .pair-no { background: rgba(111,220,169,.18); color: var(--mint); }
+
+    /* 갈래별 규모 — 숫자가 주인공이다 */
+    .track { text-decoration: none; display: block; transition: transform .18s, border-color .18s, background .18s; }
+    .track:hover { transform: translateY(-4px); border-color: rgba(111,220,169,.4); background: rgba(45,155,111,.1); }
+    .track .t-name { display: block; font-size: clamp(16px, 1.9vw, 19px); font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+    .track .t-num  { display: block; font-size: clamp(26px, 3.4vw, 36px); font-weight: 900; color: var(--mint);
+                     letter-spacing: -0.04em; font-variant-numeric: tabular-nums; margin: 10px 0 2px; }
+    .track .t-sub  { display: block; font-size: 12.5px; color: rgba(255,255,255,.5); }
+    .track .t-go   { font-size: 12.5px; color: var(--mint-dim); font-weight: 700; margin-top: 14px; display: block; }
+
+    /* 3단계 */
+    .step { position: relative; padding-left: 54px; }
+    .step .n {
+      position: absolute; left: 0; top: 0;
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center; font-weight: 900; font-size: 15px;
+      background: rgba(111,220,169,.14); color: var(--mint); border: 1px solid rgba(111,220,169,.3);
+    }
+
+    /* 후기 — 세 건만. 없는 것을 있는 척 벌리지 않는다. */
+    .quote { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+             border-radius: 16px; padding: 22px; display: flex; flex-direction: column; }
+    .quote p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.85; color: rgba(255,255,255,.78); word-break: keep-all; }
+    .quote .who { margin-top: auto; font-size: 12px; color: rgba(255,255,255,.42); }
+    .quote .stars { color: #FFC066; font-size: 12px; letter-spacing: 2px; margin-bottom: 10px; }
+
+    /* FAQ */
+    .faq { border-top: 1px solid rgba(255,255,255,.1); }
+    .faq details { border-bottom: 1px solid rgba(255,255,255,.1); }
+    .faq summary {
+      list-style: none; cursor: pointer; padding: 18px 34px 18px 0; position: relative;
+      font-size: clamp(14.5px, 1.7vw, 16px); font-weight: 700; letter-spacing: -0.02em;
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after {
+      content: '+'; position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+      font-size: 19px; color: var(--mint); font-weight: 400;
+    }
+    .faq details[open] summary::after { content: '−'; }
+    .faq .a { padding: 0 34px 20px 0; font-size: 13.5px; line-height: 1.85; color: rgba(255,255,255,.6); word-break: keep-all; }
+
+    /* 반복하는 CTA — imvoca 처럼 매번 같은 안심 문구를 붙인다 */
+    .cta-band { text-align: center; }
+    .cta-band .lp-cta { margin-top: 24px; }
+    .cta-note { font-size: 12.5px; color: rgba(255,255,255,.42); margin-top: 12px; }
+
+    .lp-ghost {
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      padding: clamp(13px, 2vh, 17px) clamp(24px, 4vw, 34px);
+      border: 1px solid rgba(255,255,255,.26); color: #fff; border-radius: 14px;
+      font-size: clamp(14px, 1.9vh, 16px); font-weight: 700; letter-spacing: -0.02em;
+      transition: background .18s, border-color .18s;
+    }
+    .lp-ghost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.45); }
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+
+    .lp-foot {
+      padding: 28px clamp(18px, 4vw, 48px) 40px; text-align: center;
+      font-size: 12px; color: rgba(255,255,255,.34);
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .lp-foot a { color: rgba(255,255,255,.5); text-decoration: none; }
+    .lp-foot a:hover { color: #fff; }
+
+    /* 스크롤 안내 — 아래에 더 있다는 신호 */
+    .scroll-cue {
+      position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+      font-size: 11px; letter-spacing: .1em; color: rgba(255,255,255,.34);
+      text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      animation: cue 2.4s ease-in-out infinite;
+    }
+    @keyframes cue { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 5px); } }
+
+    @media (max-width: 860px) {
+      .g4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .g3 { grid-template-columns: 1fr; }
+      .g2 { grid-template-columns: 1fr; }
+      .scroll-cue { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-cue { animation: none; }
+      .track:hover { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -248,6 +400,13 @@
         <div class="lp-eyebrow">I'M Learning · I'M Running</div>
         <h1 class="lp-title">그리스도인의 성장을 위한<br><em>모든 것</em>이 여기 있다</h1>
         <p class="lp-shout">온라인으로 배우자!</p>
+
+        <div class="lp-stats">
+          <div><b>50</b><span>강좌</span></div>
+          <div><b>1,332</b><span>강의</span></div>
+          <div><b>557</b><span>시간</span></div>
+          <div><b>1,313</b><span>함께한 사람</span></div>
+        </div>
       </div>
 
       <!-- 배움의 갈래들. 각자 다른 속도·방향으로 떠다닌다. -->
@@ -305,7 +464,235 @@
       </p>
     </div>
 
+    <a class="scroll-cue" href="#why" aria-label="아래로">더 알아보기<span>↓</span></a>
   </div>
+
+
+  <!-- ── 1. 고통 ─────────────────────────────────────────────
+       기능 자랑보다 먼저, 읽는 사람이 겪는 일을 말한다. -->
+  <section class="sec" id="why">
+    <div class="wrap sec-center">
+      <div class="sec-eyebrow">Why I'M Learning</div>
+      <h2 class="sec-h">이런 고민, 있으시죠?</h2>
+      <p class="sec-p">배우고 싶은 마음은 있는데 늘 여기서 막힙니다.</p>
+
+      <div class="grid g4">
+        <div class="card pain"><span class="pair-no">1</span>
+          <h3>어디서 배워야 할지 모르겠다</h3>
+          <p>성경적 관점으로 가르치는 곳을 찾기가 어렵습니다. 일반 강의는 가치관이 맞지 않고, 교회 안에는 체계가 없습니다.</p></div>
+        <div class="card pain"><span class="pair-no">2</span>
+          <h3>신앙 따로, 공부 따로</h3>
+          <p>주일에 배운 것과 평일에 공부하는 것이 따로 놉니다. 아이에게도 그 분리가 그대로 전해집니다.</p></div>
+        <div class="card pain"><span class="pair-no">3</span>
+          <h3>시작은 하는데 끝을 못 낸다</h3>
+          <p>특강 몇 개 듣고 흐지부지. 어디까지 왔는지, 무엇이 남았는지 아무도 알려주지 않습니다.</p></div>
+        <div class="card pain"><span class="pair-no">4</span>
+          <h3>시간과 거리가 막는다</h3>
+          <p>좋은 세미나는 서울에서, 평일 낮에 열립니다. 사역하며 아이 키우며 갈 수 있는 시간이 아닙니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. 해결 (고통과 1:1) ───────────────────────────────── -->
+  <section class="sec sec-alt">
+    <div class="wrap sec-center">
+      <div class="sec-eyebrow">What We Do</div>
+      <h2 class="sec-h">아이엠러닝이 <em>이렇게</em> 풀었습니다</h2>
+      <p class="sec-p">위의 네 가지에 하나씩 답합니다.</p>
+
+      <div class="grid g4">
+        <div class="card cure"><span class="pair-no">1</span>
+          <h3>성경적 가치관 위에 세운 50강좌</h3>
+          <p>말씀·신앙부터 영어·수능까지, 모든 과목을 같은 관점 위에서 만들었습니다. 강사 15명이 직접 가르칩니다.</p></div>
+        <div class="card cure"><span class="pair-no">2</span>
+          <h3>한 곳에서 둘 다</h3>
+          <p>신앙 323강과 영어 495강이 같은 계정 안에 있습니다. 아이도 부모도 같은 곳에서 배웁니다.</p></div>
+        <div class="card cure"><span class="pair-no">3</span>
+          <h3>끝이 있는 과정</h3>
+          <p>CBUP 수료과정은 12주 155강. 강의마다 노트를 제출하고 검토받고, 다 마치면 수료증이 나옵니다.</p></div>
+        <div class="card cure"><span class="pair-no">4</span>
+          <h3>새벽이든 지방이든</h3>
+          <p>온라인이라 시간과 장소를 가리지 않습니다. 보던 지점부터 이어보기가 되고, 진도는 자동으로 기록됩니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3. 무엇을 배우나 ──────────────────────────────────── -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-center">
+        <div class="sec-eyebrow">What You Learn</div>
+        <h2 class="sec-h">네 갈래, <em>1,332개</em> 강의</h2>
+        <p class="sec-p">골라 듣는 특강이 아니라, 갈래마다 끝까지 이어지는 과정입니다.</p>
+      </div>
+
+      <div class="grid g4">
+        <a class="card track" href="courses.html?cat=faith">
+          <span class="t-name">말씀 · 신앙</span>
+          <span class="t-num">323<small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub">15강좌 · 139시간</span>
+          <span class="t-go">신앙 강좌 보기 →</span>
+        </a>
+        <a class="card track" href="courses.html?cat=edu">
+          <span class="t-name">부모 · 교사</span>
+          <span class="t-num">378<small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub">18강좌 · 200시간</span>
+          <span class="t-go">부모·교사 과정 →</span>
+        </a>
+        <a class="card track" href="courses.html?cat=english">
+          <span class="t-name">영어</span>
+          <span class="t-num">495<small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub">13강좌 · 166시간</span>
+          <span class="t-go">영어 강좌 보기 →</span>
+        </a>
+        <a class="card track" href="courses.html?cat=exam">
+          <span class="t-name">수능 · 검정고시</span>
+          <span class="t-num">136<small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub">4강좌 · 52시간</span>
+          <span class="t-go">수능·검정고시 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. 대조 — 'X가 아니라 Y' ─────────────────────────── -->
+  <section class="sec sec-alt">
+    <div class="wrap sec-center">
+      <div class="sec-eyebrow">Not a Seminar</div>
+      <h2 class="sec-h">한 번 듣고 끝나는 특강이 아니라,<br><em>끝까지 가는 과정</em>입니다</h2>
+      <p class="sec-p">
+        영상만 올려두고 알아서 보라고 하지 않습니다. 강의마다 노트를 쓰고, 사람이 읽고 검토합니다.
+        다 마친 사람에게만 수료증이 나갑니다.
+      </p>
+
+      <div class="grid g3">
+        <div class="card step"><span class="n">1</span>
+          <h3>본다</h3>
+          <p>실제 시청 시간이 초 단위로 쌓입니다. 틀어만 놓은 것과 본 것을 구분합니다. 보던 지점부터 이어집니다.</p></div>
+        <div class="card step"><span class="n">2</span>
+          <h3>쓴다</h3>
+          <p>강의 노트와 독서 노트를 제출합니다. 관리자가 읽고 승인하거나 보완을 요청합니다.</p></div>
+        <div class="card step"><span class="n">3</span>
+          <h3>남는다</h3>
+          <p>진도·학습 기록·뱃지가 쌓이고, 과정을 마치면 수료증이 발급됩니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. 검증 열어두기 ─────────────────────────────────── -->
+  <section class="sec">
+    <div class="wrap sec-center">
+      <div class="sec-eyebrow">Try Before You Pay</div>
+      <h2 class="sec-h">사기 전에 <em>먼저 보세요</em></h2>
+      <p class="sec-p">말로 설득하는 대신 열어 두었습니다. 결제 없이 지금 확인할 수 있습니다.</p>
+
+      <div class="grid g3">
+        <div class="card"><span class="ico">🎬</span>
+          <h3>미리보기 26개 강의</h3>
+          <p>로그인 없이 지금 바로 재생됩니다. 강사와 강의 방식이 맞는지 직접 보세요.</p></div>
+        <div class="card"><span class="ico">🎁</span>
+          <h3>무료 강좌 5개</h3>
+          <p>가입만 하면 처음부터 끝까지 무료로 수강할 수 있는 강좌가 다섯 개 있습니다.</p></div>
+        <div class="card"><span class="ico">⏱</span>
+          <h3>가입 30초 · 카드 등록 없음</h3>
+          <p>결제 수단을 먼저 요구하지 않습니다. 구글·카카오 계정이면 더 빠릅니다.</p></div>
+      </div>
+
+      <div class="btn-row">
+        <a href="courses.html" class="lp-cta">전체 강좌 둘러보기 →</a>
+        <a href="signup.html" class="lp-ghost">30초 가입하기</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 6. 후기 — 세 건만 ────────────────────────────────── -->
+  <section class="sec sec-alt">
+    <div class="wrap sec-center">
+      <div class="sec-eyebrow">Real Voices</div>
+      <h2 class="sec-h">먼저 걸어간 분들의 말</h2>
+      <p class="sec-p">과정을 끝까지 마친 분들이 남긴 후기입니다.</p>
+
+      <div class="grid g3">
+        <div class="quote">
+          <div class="stars">★★★★★</div>
+          <p>과정 중에는 참 힘들었지만, 정말이지 길이 열리는 체험을 합니다. 다시 한번 신앙을 점검하고 무엇을 어떻게 해야 하는지 비전을 세우는 시간이 되었습니다.</p>
+          <div class="who">수강생 · CBUP 교육선교사 과정</div>
+        </div>
+        <div class="quote">
+          <div class="stars">★★★★★</div>
+          <p>부모로서 마땅히 자녀들에게 알려줘야 하는 성경적 가치관과 훈육 방법 등, 지·정·의가 균형 잡힌 자녀로 양육할 수 있도록 지식과 지혜를 주셨습니다.</p>
+          <div class="who">수강생 · 부모대안학교</div>
+        </div>
+        <div class="quote">
+          <div class="stars">★★★★★</div>
+          <p>가벼운 마음으로 시작했지만 수강할수록 다음세대를 위해 어떻게 일하면 좋을지 깨닫게 되었습니다. 매주 책을 읽는 것이 힘들었는데 그만큼 독서의 기쁨도 느낄 수 있었습니다.</p>
+          <div class="who">수강생 · CBUP 교육선교사 과정</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 7. FAQ ───────────────────────────────────────────── -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-center">
+        <div class="sec-eyebrow">FAQ</div>
+        <h2 class="sec-h">자주 묻는 질문</h2>
+      </div>
+
+      <div class="faq" style="margin-top:32px;">
+        <details>
+          <summary>정말 무료로 볼 수 있나요?</summary>
+          <div class="a">네. 로그인 없이 볼 수 있는 미리보기 강의가 26개 있고, 가입만 하면 끝까지 무료로 들을 수 있는 강좌가 5개 있습니다. 카드 등록은 필요 없습니다.</div>
+        </details>
+        <details>
+          <summary>모바일에서도 볼 수 있나요?</summary>
+          <div class="a">웹이라 앱 설치 없이 브라우저에서 바로 재생됩니다. 보던 지점이 저장돼 휴대폰에서 보다가 컴퓨터에서 이어 볼 수 있습니다.</div>
+        </details>
+        <details>
+          <summary>수료증이 나오나요?</summary>
+          <div class="a">CBUP 수료과정처럼 수료 체계가 있는 과정은 강의 노트와 독서 노트를 제출해 승인받아야 합니다. 과정을 마치면 수료증이 발급됩니다.</div>
+        </details>
+        <details>
+          <summary>교회나 단체로 함께 들을 수 있나요?</summary>
+          <div class="a">가능합니다. 단체 수강과 선물하기를 지원합니다. 인원과 과정에 따라 안내가 달라지니 문의해 주세요.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 8. 마지막 CTA — 히어로와 같은 안심 문구를 반복 ────── -->
+  <section class="sec sec-alt cta-band">
+    <div class="wrap">
+      <h2 class="sec-h">배움을 미루지 마세요</h2>
+      <p class="sec-p sec-center">지금 26개 강의를 결제 없이 볼 수 있습니다.</p>
+      <a href="courses.html" class="lp-cta">전체 강좌 둘러보기 →</a>
+      <p class="cta-note">카드 등록 없이 · 30초 가입</p>
+    </div>
+  </section>
+
+  <!-- ── 9. 교회·단체 — imvoca 가 B2B 를 맨 아래 둔 것과 같다 ── -->
+  <section class="sec">
+    <div class="wrap sec-center">
+      <div class="sec-eyebrow">For Churches</div>
+      <h2 class="sec-h">교회 · 단체로 함께 배우신다면</h2>
+      <p class="sec-p">
+        교사 전체를 한 과정에 올리고, 제출한 노트를 한 화면에서 검토하고, 수료까지 관리할 수 있습니다.
+        인원과 과정에 맞춰 안내해 드립니다.
+      </p>
+      <div class="btn-row">
+        <a href="contact.html" class="lp-ghost">단체 수강 문의하기 →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="lp-foot">
+    아이엠러닝 · IM선교회 &nbsp;·&nbsp;
+    <a href="index.html">홈</a> ·
+    <a href="courses.html">전체 강좌</a> ·
+    <a href="about.html">소개</a> ·
+    <a href="contact.html">문의</a>
+  </footer>
 
 </body>
 </html>
