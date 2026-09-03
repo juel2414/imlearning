@@ -95,6 +95,7 @@ tr.detail-row:hover > td { background:#FAFBFC; }
 .wd-bucket-time { margin-left:auto; font-size:12.5px; font-weight:800; color:#2D9B6F; font-variant-numeric:tabular-nums; }
 .wd-item { display:flex; align-items:center; gap:10px; padding:8px 14px; border-top:1px solid rgba(0,0,0,.035); font-size:12px; }
 .wd-item:first-child { border-top:none; }
+.wd-item-day { width:64px; flex-shrink:0; font-size:11px; color:#9aa2a8; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .wd-item-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#333; }
 .wd-item-course { font-size:11px; color:#9aa2a8; }
 .wd-item-time { font-variant-numeric:tabular-nums; color:#555; font-weight:700; white-space:nowrap; }
@@ -550,31 +551,41 @@ function renderTable() {
   el.innerHTML = html;
 }
 
-// ── 수강생별 시청 내역 (일·주·월) ─────────────────────────
+// ── 수강생별 시청 내역 (금일·금주·금월·전체) ───────────────
 // 어느 강의를 언제 얼마나 봤는지 행을 펼쳐서 보여준다.
-var wdMode = {};   // uid → 'day' | 'week' | 'month'
+var wdMode = {};   // uid → 'today' | 'week' | 'month' | 'all'
+
+var WD_TABS = [['today','금일'], ['week','금주'], ['month','금월'], ['all','전체']];
 
 function wdDayKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-/** 한 시점을 선택한 단위의 '칸'으로 바꾼다. 정렬용 key 와 사람이 읽을 label 을 같이 준다. */
-function wdBucket(when, mode) {
-  var d = new Date(when);
-  if (mode === 'month') {
-    return { key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'),
-             label: d.getFullYear() + '년 ' + (d.getMonth()+1) + '월' };
+/** 지금 기준으로 그 단위의 시작·끝을 잡는다. '전체'는 범위를 두지 않는다. */
+function wdRange(mode) {
+  var now = new Date();
+  var WD  = ['일','월','화','수','목','금','토'];
+  if (mode === 'today') {
+    var s = new Date(now); s.setHours(0,0,0,0);
+    var e = new Date(s);   e.setDate(e.getDate()+1);
+    return { start:s, end:e, label:'오늘 · ' + (s.getMonth()+1) + '월 ' + s.getDate() + '일 (' + WD[s.getDay()] + ')', empty:'오늘 시청한 강의가 없습니다' };
   }
   if (mode === 'week') {
-    var mon = new Date(d);
-    mon.setHours(0,0,0,0);
+    var mon = new Date(now); mon.setHours(0,0,0,0);
     mon.setDate(mon.getDate() - (mon.getDay() === 0 ? 6 : mon.getDay() - 1));  // 주 시작은 월요일
-    var sun = new Date(mon); sun.setDate(sun.getDate() + 6);
-    return { key: wdDayKey(mon),
-             label: (mon.getMonth()+1) + '월 ' + mon.getDate() + '일 ~ ' + (sun.getMonth()+1) + '월 ' + sun.getDate() + '일' };
+    var nxt = new Date(mon); nxt.setDate(nxt.getDate()+7);
+    var sun = new Date(mon); sun.setDate(sun.getDate()+6);
+    return { start:mon, end:nxt,
+             label:'이번 주 · ' + (mon.getMonth()+1) + '월 ' + mon.getDate() + '일 ~ ' + (sun.getMonth()+1) + '월 ' + sun.getDate() + '일',
+             empty:'이번 주에 시청한 강의가 없습니다' };
   }
-  var WD = ['일','월','화','수','목','금','토'];
-  return { key: wdDayKey(d), label: (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + WD[d.getDay()] + ')' };
+  if (mode === 'month') {
+    var ms = new Date(now.getFullYear(), now.getMonth(), 1);
+    var me = new Date(now.getFullYear(), now.getMonth()+1, 1);
+    return { start:ms, end:me, label:'이번 달 · ' + ms.getFullYear() + '년 ' + (ms.getMonth()+1) + '월',
+             empty:'이번 달에 시청한 강의가 없습니다' };
+  }
+  return { start:null, end:null, label:null, empty:'시청 기록이 없습니다' };
 }
 
 function toggleWatchDetail(uid) {
@@ -592,31 +603,47 @@ function setWatchPeriod(uid, mode) { wdMode[uid] = mode; renderWatchDetail(uid);
 function renderWatchDetail(uid) {
   var cell = document.getElementById('wd-cell-' + uid);
   if (!cell) return;
-  var mode = wdMode[uid] || 'day';
+  var mode = wdMode[uid] || 'today';
+  var rng  = wdRange(mode);
 
-  var rows = allVideoProgress.filter(function(v) {
+  var all = allVideoProgress.filter(function(v) {
     return v.user_id === uid && (v.actual_watched_seconds || 0) > 0 && v.updated_at;
   });
+  var rows = rng.start
+    ? all.filter(function(v) { var t = new Date(v.updated_at); return t >= rng.start && t < rng.end; })
+    : all;
 
-  var tabs = '<div class="wd-tabs">' + [['day','일별'],['week','주별'],['month','월별']].map(function(t) {
+  var tabs = '<div class="wd-tabs">' + WD_TABS.map(function(t) {
     return '<button class="wd-tab' + (mode === t[0] ? ' on' : '') + '" onclick="event.stopPropagation();setWatchPeriod(\'' + uid + '\',\'' + t[0] + '\')">' + t[1] + '</button>';
   }).join('') + '</div>';
 
+  var allSecs = all.reduce(function(s,v){ return s + (v.actual_watched_seconds||0); }, 0);
+
   if (!rows.length) {
-    cell.innerHTML = '<div class="wd-wrap"><div class="wd-head">' + tabs +
-      '<div class="wd-sum">시청 기록이 없습니다</div></div></div>';
+    // 해당 기간이 비었어도 전체 기록은 알려준다. 아무것도 없는 화면은 고장처럼 보인다.
+    cell.innerHTML = '<div class="wd-wrap" onclick="event.stopPropagation()"><div class="wd-head">' + tabs +
+      '<div class="wd-sum">' + (all.length ? rng.empty : '시청 기록이 없습니다') +
+        (all.length ? ' <span style="color:#b9bfc4;">· 전체 ' + fmtSecs(allSecs) + ' · 강의 ' + all.length + '개</span>' : '') +
+      '</div></div></div>';
     return;
   }
 
   var totalSecs = rows.reduce(function(s,v){ return s + (v.actual_watched_seconds||0); }, 0);
 
-  // 칸별로 묶기
+  // 칸별로 묶기. 기간 탭은 한 칸으로, '전체'는 달 단위로 나눈다.
   var buckets = {};
   rows.forEach(function(v) {
-    var b = wdBucket(v.updated_at, mode);
-    if (!buckets[b.key]) buckets[b.key] = { label: b.label, secs: 0, items: [] };
-    buckets[b.key].secs += (v.actual_watched_seconds || 0);
-    buckets[b.key].items.push(v);
+    var key, label;
+    if (rng.start) {
+      key = 'cur'; label = rng.label;
+    } else {
+      var d = new Date(v.updated_at);
+      key   = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      label = d.getFullYear() + '년 ' + (d.getMonth()+1) + '월';
+    }
+    if (!buckets[key]) buckets[key] = { label: label, secs: 0, items: [] };
+    buckets[key].secs += (v.actual_watched_seconds || 0);
+    buckets[key].items.push(v);
   });
 
   var body = Object.keys(buckets).sort().reverse().map(function(k) {
@@ -626,7 +653,12 @@ function renderWatchDetail(uid) {
         var course = allCourses.find(function(c){ return String(c.id) === String(v.course_id); });
         var pct = v.total_seconds ? Math.min(100, Math.round((v.actual_watched_seconds/v.total_seconds)*100)) : null;
         var cls = pct === null ? '' : pct >= 80 ? 'wd-pct-high' : pct >= 40 ? 'wd-pct-mid' : 'wd-pct-low';
+        // 한 칸 안에 여러 날이 섞이므로 줄마다 날짜를 적는다
+        var wdn = ['일','월','화','수','목','금','토'];
+        var dt  = new Date(v.updated_at);
+        var day = (dt.getMonth()+1) + '/' + dt.getDate() + ' (' + wdn[dt.getDay()] + ')';
         return '<div class="wd-item">' +
+          '<div class="wd-item-day">' + day + '</div>' +
           '<div class="wd-item-title">' + (v.lesson_number ? v.lesson_number + '강. ' : '') + esc(v.lesson_title || '제목 없음') +
             '<span class="wd-item-course"> · ' + esc(course ? course.title : '강좌 ' + v.course_id) + '</span></div>' +
           '<div class="wd-item-time">' + fmtSecs(v.actual_watched_seconds) +
@@ -643,7 +675,12 @@ function renderWatchDetail(uid) {
 
   cell.innerHTML = '<div class="wd-wrap" onclick="event.stopPropagation()">' +
     '<div class="wd-head">' + tabs +
-      '<div class="wd-sum">모두 <b>' + fmtSecs(totalSecs) + '</b> · 강의 <b>' + rows.length + '개</b></div>' +
+      '<div class="wd-sum">' +
+        (rng.start ? WD_TABS.filter(function(t){ return t[0]===mode; })[0][1] : '전체') +
+        ' <b>' + fmtSecs(totalSecs) + '</b> · 강의 <b>' + rows.length + '개</b>' +
+        (rng.start && all.length !== rows.length
+          ? ' <span style="color:#b9bfc4;">· 전체 ' + fmtSecs(allSecs) + ' · 강의 ' + all.length + '개</span>' : '') +
+      '</div>' +
     '</div>' + body +
     '<div class="wd-note">※ 날짜는 그 강의를 <b>마지막으로 본 시각</b> 기준입니다. 한 강의를 여러 날에 걸쳐 보면 마지막 날에 모아서 표시됩니다.</div>' +
   '</div>';
