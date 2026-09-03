@@ -101,7 +101,9 @@ tr.done-row:hover td { background:#E9EBEE; filter:none; opacity:1; }
 /* 상세 모달 */
 #detail-modal { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.5); align-items:center; justify-content:center; }
 #detail-modal.open { display:flex; }
-.detail-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:860px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+/* overscroll-behavior: 끝까지 스크롤해도 뒤 목록으로 넘어가지 않게 한다 */
+.detail-box { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:860px; max-height:92vh;
+  overflow-y:auto; overscroll-behavior:contain; box-shadow:0 20px 60px rgba(0,0,0,.25); }
 .detail-box h3 { margin:0 0 4px; font-size:16px; }
 .detail-sub { font-size:12px; color:#888; margin-bottom:16px; }
 .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
@@ -113,7 +115,7 @@ tr.done-row:hover td { background:#E9EBEE; filter:none; opacity:1; }
   max-height:none; margin-bottom:12px; border:1px solid rgba(0,0,0,.06); }
 /* 아주 긴 노트만 접어둔다. 접힌 상태에서도 스크롤은 되어야 한다 —
    예전에는 overflow:hidden 이라 '전체 보기'를 누르기 전에는 뒷부분을 볼 방법이 없었다. */
-.detail-note-text.clamped { max-height:46vh; overflow-y:auto; position:relative; }
+.detail-note-text.clamped { max-height:46vh; overflow-y:auto; overscroll-behavior:contain; position:relative; }
 #dm-note-more { display:none; background:none; border:none; color:#4338CA; font-weight:700; font-size:13px;
   cursor:pointer; padding:4px 0 10px; font-family:inherit; }
 .detail-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;
@@ -574,18 +576,8 @@ async function openDetail(row) {
     noteWrap.style.display = '';
     noteText.textContent = row.note_text;
     document.getElementById('dm-note-len').textContent = '· ' + row.note_text.length.toLocaleString() + '자';
-    // 화면을 넘길 만큼 길 때만 접는다
     noteText.classList.remove('clamped');
     moreBtn.style.display = 'none';
-    requestAnimationFrame(() => {
-      if (noteText.scrollHeight > window.innerHeight * 0.46) {
-        noteText.classList.add('clamped');
-        // display:'' 로는 안 된다 — #dm-note-more 의 기본값이 display:none 이라
-        // 인라인 스타일을 지우면 다시 숨겨진다. 예전에 버튼이 안 보이던 이유다.
-        moreBtn.style.display = 'inline-block';
-        moreBtn.textContent = '▾ 전체 보기';
-      }
-    });
   } else {
     noteWrap.style.display = 'none';
     moreBtn.style.display = 'none';
@@ -641,6 +633,31 @@ async function openDetail(row) {
   }
 
   document.getElementById('detail-modal').classList.add('open');
+  // 창이 열려 있는 동안 뒤 목록은 잠근다. 안 잠그면 노트 안에서 휠을 굴렸을 때
+  // 뒤에 있는 제출 목록이 대신 오르내린다.
+  document.body.style.overflow = 'hidden';
+  // 접힘 판정은 반드시 창이 보이게 된 '뒤'에 한다. 숨겨진 동안 재보면 높이가
+  // 0으로 나와 아무리 긴 노트도 접히지 않았다. 첨부가 있는 제출은 그 사이에
+  // await 가 끼어 있어 더 확실히 어긋났다.
+  applyNoteClamp();
+}
+
+/** 노트가 화면을 넘길 만큼 길면 접고 '전체 보기' 버튼을 띄운다. */
+function applyNoteClamp() {
+  const noteText = document.getElementById('dm-note-text');
+  const moreBtn  = document.getElementById('dm-note-more');
+  if (!noteText || !moreBtn || !currentSub || !currentSub.note_text) return;
+  noteText.classList.remove('clamped');
+  moreBtn.style.display = 'none';
+  requestAnimationFrame(() => {
+    if (noteText.scrollHeight > window.innerHeight * 0.46) {
+      noteText.classList.add('clamped');
+      // display:'' 로는 안 된다 — #dm-note-more 의 기본값이 display:none 이라
+      // 인라인 스타일을 지우면 다시 숨겨진다. 예전에 버튼이 안 보이던 이유다.
+      moreBtn.style.display = 'inline-block';
+      moreBtn.textContent = '▾ 전체 보기';
+    }
+  });
 }
 
 function toggleNoteClamp(btn) {
@@ -651,6 +668,7 @@ function toggleNoteClamp(btn) {
 
 function closeDetailModal() {
   document.getElementById('detail-modal').classList.remove('open');
+  document.body.style.overflow = '';
   currentSub = null;
 }
 
