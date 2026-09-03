@@ -24,9 +24,17 @@
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      background: #0E2A1E;
       color: #fff;
       font-family: var(--font-body);
+      /* 섹션마다 배경을 따로 주면 경계에서 뚝뚝 끊긴다. 문서 전체에 하나를 깔고
+         background-attachment:fixed 로 고정해, 내용만 그 위를 지나가게 한다. */
+      background:
+        radial-gradient(1200px 820px at 82% 2%,   rgba(45,155,111,.34), transparent 62%),
+        radial-gradient(1000px 760px at 2% 34%,   rgba(20,96,58,.42),   transparent 60%),
+        radial-gradient(1000px 820px at 100% 66%, rgba(45,155,111,.20), transparent 60%),
+        radial-gradient(900px 700px at 10% 98%,   rgba(20,96,58,.34),   transparent 62%),
+        linear-gradient(180deg, #0E2A1E 0%, #123B28 34%, #0C2318 68%, #102E21 100%);
+      background-attachment: fixed;
     }
 
     .lp {
@@ -40,14 +48,7 @@
       overflow: hidden;
     }
 
-    /* 배경 — 초록 빛무리 두 개 위에 옅은 격자 */
-    .lp::before {
-      content: ''; position: absolute; inset: 0; z-index: -2;
-      background:
-        radial-gradient(1100px 620px at 78% -10%, rgba(45,155,111,.42), transparent 62%),
-        radial-gradient(760px 520px at 6% 106%, rgba(20,96,58,.55), transparent 60%),
-        linear-gradient(160deg, #0E2A1E 0%, #113826 55%, #0C2318 100%);
-    }
+    /* 격자만 히어로에 남긴다. 색 배경은 body 가 이어서 깐다. */
     .lp::after {
       content: ''; position: absolute; inset: 0; z-index: -1; opacity: .16;
       background-image:
@@ -254,9 +255,14 @@
        'X가 아니라 Y' 대조, 섹션마다 같은 자리에 영문 eyebrow, CTA 반복.
        다만 후기는 20건뿐이라 크게 벌리지 않고 세 건만 인용한다.
        ═══════════════════════════════════════════════════════════ */
-    .sec { padding: clamp(60px, 9vh, 110px) clamp(18px, 4vw, 48px); position: relative; }
-    .sec-alt { background: rgba(255,255,255,.028); border-top: 1px solid rgba(255,255,255,.06);
-               border-bottom: 1px solid rgba(255,255,255,.06); }
+    .sec { padding: clamp(66px, 10vh, 124px) clamp(18px, 4vw, 48px); position: relative; z-index: 0; }
+    /* 밝은 띠도 선으로 자르지 않는다. 위아래를 투명하게 녹여 스며들게 한다. */
+    .sec-alt::before {
+      content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: rgba(255,255,255,.035);
+      -webkit-mask-image: linear-gradient(transparent 0, #000 14%, #000 86%, transparent 100%);
+              mask-image: linear-gradient(transparent 0, #000 14%, #000 86%, transparent 100%);
+    }
     .wrap { max-width: 1080px; margin: 0 auto; }
     .sec-eyebrow {
       font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
@@ -376,9 +382,20 @@
       .g2 { grid-template-columns: 1fr; }
       .scroll-cue { display: none; }
     }
+    /* 스크롤을 따라 떠오르게 한다. 한꺼번에 다 떠 있으면 판이 쌓인 것처럼 보이고,
+       차례로 올라오면 하나의 흐름으로 읽힌다. */
+    /* 숨김은 html.js-rise 아래에서만 건다. 스크립트가 안 돌면 그냥 다 보인다 —
+       연출 하나 때문에 본문이 통째로 사라지는 일은 없어야 한다. */
+    .js-rise .rise { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .js-rise .rise.in { opacity: 1; transform: none; }
+    .rise-d1 { transition-delay: .07s; }
+    .rise-d2 { transition-delay: .14s; }
+    .rise-d3 { transition-delay: .21s; }
+
     @media (prefers-reduced-motion: reduce) {
       .scroll-cue { animation: none; }
       .track:hover { transform: none; }
+      .rise { opacity: 1; transform: none; transition: none; }
     }
   </style>
 </head>
@@ -472,11 +489,11 @@
        기능 자랑보다 먼저, 읽는 사람이 겪는 일을 말한다. -->
   <section class="sec" id="why">
     <div class="wrap sec-center">
-      <div class="sec-eyebrow">Why I'M Learning</div>
-      <h2 class="sec-h">이런 고민, 있으시죠?</h2>
-      <p class="sec-p">배우고 싶은 마음은 있는데 늘 여기서 막힙니다.</p>
+      <div class="sec-eyebrow rise">Why I'M Learning</div>
+      <h2 class="sec-h rise rise-d1">이런 고민, 있으시죠?</h2>
+      <p class="sec-p rise rise-d2">배우고 싶은 마음은 있는데 늘 여기서 막힙니다.</p>
 
-      <div class="grid g4">
+      <div class="rise rise-d2 grid g4">
         <div class="card pain"><span class="pair-no">1</span>
           <h3>어디서 배워야 할지 모르겠다</h3>
           <p>성경적 관점으로 가르치는 곳을 찾기가 어렵습니다. 일반 강의는 가치관이 맞지 않고, 교회 안에는 체계가 없습니다.</p></div>
@@ -496,11 +513,11 @@
   <!-- ── 2. 해결 (고통과 1:1) ───────────────────────────────── -->
   <section class="sec sec-alt">
     <div class="wrap sec-center">
-      <div class="sec-eyebrow">What We Do</div>
-      <h2 class="sec-h">아이엠러닝이 <em>이렇게</em> 풀었습니다</h2>
-      <p class="sec-p">위의 네 가지에 하나씩 답합니다.</p>
+      <div class="sec-eyebrow rise">What We Do</div>
+      <h2 class="sec-h rise rise-d1">아이엠러닝이 <em>이렇게</em> 풀었습니다</h2>
+      <p class="sec-p rise rise-d2">위의 네 가지에 하나씩 답합니다.</p>
 
-      <div class="grid g4">
+      <div class="rise rise-d2 grid g4">
         <div class="card cure"><span class="pair-no">1</span>
           <h3>성경적 가치관 위에 세운 50강좌</h3>
           <p>말씀·신앙부터 영어·수능까지, 모든 과목을 같은 관점 위에서 만들었습니다. 강사 15명이 직접 가르칩니다.</p></div>
@@ -521,12 +538,12 @@
   <section class="sec">
     <div class="wrap">
       <div class="sec-center">
-        <div class="sec-eyebrow">What You Learn</div>
-        <h2 class="sec-h">네 갈래, <em>1,332개</em> 강의</h2>
-        <p class="sec-p">골라 듣는 특강이 아니라, 갈래마다 끝까지 이어지는 과정입니다.</p>
+        <div class="sec-eyebrow rise">What You Learn</div>
+        <h2 class="sec-h rise rise-d1">네 갈래, <em>1,332개</em> 강의</h2>
+        <p class="sec-p rise rise-d2">골라 듣는 특강이 아니라, 갈래마다 끝까지 이어지는 과정입니다.</p>
       </div>
 
-      <div class="grid g4">
+      <div class="rise rise-d2 grid g4">
         <a class="card track" href="courses.html?cat=faith">
           <span class="t-name">말씀 · 신앙</span>
           <span class="t-num">323<small style="font-size:.5em;font-weight:800;">강</small></span>
@@ -558,14 +575,14 @@
   <!-- ── 4. 대조 — 'X가 아니라 Y' ─────────────────────────── -->
   <section class="sec sec-alt">
     <div class="wrap sec-center">
-      <div class="sec-eyebrow">Not a Seminar</div>
-      <h2 class="sec-h">한 번 듣고 끝나는 특강이 아니라,<br><em>끝까지 가는 과정</em>입니다</h2>
-      <p class="sec-p">
+      <div class="sec-eyebrow rise">Not a Seminar</div>
+      <h2 class="sec-h rise rise-d1">한 번 듣고 끝나는 특강이 아니라,<br><em>끝까지 가는 과정</em>입니다</h2>
+      <p class="sec-p rise rise-d2">
         영상만 올려두고 알아서 보라고 하지 않습니다. 강의마다 노트를 쓰고, 사람이 읽고 검토합니다.
         다 마친 사람에게만 수료증이 나갑니다.
       </p>
 
-      <div class="grid g3">
+      <div class="rise rise-d2 grid g3">
         <div class="card step"><span class="n">1</span>
           <h3>본다</h3>
           <p>실제 시청 시간이 초 단위로 쌓입니다. 틀어만 놓은 것과 본 것을 구분합니다. 보던 지점부터 이어집니다.</p></div>
@@ -582,11 +599,11 @@
   <!-- ── 5. 검증 열어두기 ─────────────────────────────────── -->
   <section class="sec">
     <div class="wrap sec-center">
-      <div class="sec-eyebrow">Try Before You Pay</div>
-      <h2 class="sec-h">사기 전에 <em>먼저 보세요</em></h2>
-      <p class="sec-p">말로 설득하는 대신 열어 두었습니다. 결제 없이 지금 확인할 수 있습니다.</p>
+      <div class="sec-eyebrow rise">Try Before You Pay</div>
+      <h2 class="sec-h rise rise-d1">사기 전에 <em>먼저 보세요</em></h2>
+      <p class="sec-p rise rise-d2">말로 설득하는 대신 열어 두었습니다. 결제 없이 지금 확인할 수 있습니다.</p>
 
-      <div class="grid g3">
+      <div class="rise rise-d2 grid g3">
         <div class="card"><span class="ico">🎬</span>
           <h3>미리보기 26개 강의</h3>
           <p>로그인 없이 지금 바로 재생됩니다. 강사와 강의 방식이 맞는지 직접 보세요.</p></div>
@@ -598,7 +615,7 @@
           <p>결제 수단을 먼저 요구하지 않습니다. 구글·카카오 계정이면 더 빠릅니다.</p></div>
       </div>
 
-      <div class="btn-row">
+      <div class="btn-row rise rise-d3">
         <a href="courses.html" class="lp-cta">전체 강좌 둘러보기 →</a>
         <a href="signup.html" class="lp-ghost">30초 가입하기</a>
       </div>
@@ -608,11 +625,11 @@
   <!-- ── 6. 후기 — 세 건만 ────────────────────────────────── -->
   <section class="sec sec-alt">
     <div class="wrap sec-center">
-      <div class="sec-eyebrow">Real Voices</div>
-      <h2 class="sec-h">먼저 걸어간 분들의 말</h2>
-      <p class="sec-p">과정을 끝까지 마친 분들이 남긴 후기입니다.</p>
+      <div class="sec-eyebrow rise">Real Voices</div>
+      <h2 class="sec-h rise rise-d1">먼저 걸어간 분들의 말</h2>
+      <p class="sec-p rise rise-d2">과정을 끝까지 마친 분들이 남긴 후기입니다.</p>
 
-      <div class="grid g3">
+      <div class="rise rise-d2 grid g3">
         <div class="quote">
           <div class="stars">★★★★★</div>
           <p>과정 중에는 참 힘들었지만, 정말이지 길이 열리는 체험을 합니다. 다시 한번 신앙을 점검하고 무엇을 어떻게 해야 하는지 비전을 세우는 시간이 되었습니다.</p>
@@ -636,11 +653,11 @@
   <section class="sec">
     <div class="wrap">
       <div class="sec-center">
-        <div class="sec-eyebrow">FAQ</div>
-        <h2 class="sec-h">자주 묻는 질문</h2>
+        <div class="sec-eyebrow rise">FAQ</div>
+        <h2 class="sec-h rise rise-d1">자주 묻는 질문</h2>
       </div>
 
-      <div class="faq" style="margin-top:32px;">
+      <div class="rise rise-d2 faq" style="margin-top:32px;">
         <details>
           <summary>정말 무료로 볼 수 있나요?</summary>
           <div class="a">네. 로그인 없이 볼 수 있는 미리보기 강의가 26개 있고, 가입만 하면 끝까지 무료로 들을 수 있는 강좌가 5개 있습니다. 카드 등록은 필요 없습니다.</div>
@@ -664,23 +681,23 @@
   <!-- ── 8. 마지막 CTA — 히어로와 같은 안심 문구를 반복 ────── -->
   <section class="sec sec-alt cta-band">
     <div class="wrap">
-      <h2 class="sec-h">배움을 미루지 마세요</h2>
-      <p class="sec-p sec-center">지금 26개 강의를 결제 없이 볼 수 있습니다.</p>
-      <a href="courses.html" class="lp-cta">전체 강좌 둘러보기 →</a>
-      <p class="cta-note">카드 등록 없이 · 30초 가입</p>
+      <h2 class="sec-h rise rise-d1">배움을 미루지 마세요</h2>
+      <p class="sec-p sec-center rise rise-d2">지금 26개 강의를 결제 없이 볼 수 있습니다.</p>
+      <a href="courses.html" class="lp-cta rise rise-d3">전체 강좌 둘러보기 →</a>
+      <p class="cta-note rise rise-d3">카드 등록 없이 · 30초 가입</p>
     </div>
   </section>
 
   <!-- ── 9. 교회·단체 — imvoca 가 B2B 를 맨 아래 둔 것과 같다 ── -->
   <section class="sec">
     <div class="wrap sec-center">
-      <div class="sec-eyebrow">For Churches</div>
-      <h2 class="sec-h">교회 · 단체로 함께 배우신다면</h2>
-      <p class="sec-p">
+      <div class="sec-eyebrow rise">For Churches</div>
+      <h2 class="sec-h rise rise-d1">교회 · 단체로 함께 배우신다면</h2>
+      <p class="sec-p rise rise-d2">
         교사 전체를 한 과정에 올리고, 제출한 노트를 한 화면에서 검토하고, 수료까지 관리할 수 있습니다.
         인원과 과정에 맞춰 안내해 드립니다.
       </p>
-      <div class="btn-row">
+      <div class="btn-row rise rise-d3">
         <a href="contact.html" class="lp-ghost">단체 수강 문의하기 →</a>
       </div>
     </div>
@@ -694,5 +711,36 @@
     <a href="contact.html">문의</a>
   </footer>
 
+
+<script>
+  // 섹션이 화면에 들어올 때 차례로 떠오르게 한다.
+  // 판이 한꺼번에 쌓여 있으면 끊겨 보이고, 스크롤을 따라 올라오면 하나로 이어져 읽힌다.
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) return;   // 숨기지 않는다
+
+    document.documentElement.classList.add('js-rise');            // 여기서부터 숨김이 걸린다
+    var items = document.querySelectorAll('.rise');
+
+    function revealAll() {
+      for (var i = 0; i < items.length; i++) items[i].classList.add('in');
+    }
+
+    // 안전장치: 어떤 이유로든 관찰이 돌지 않으면 2.5초 뒤 전부 드러낸다.
+    // 연출이 실패했다고 본문이 영영 안 보이는 일은 없어야 한다.
+    var guard = setTimeout(revealAll, 2500);
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        clearTimeout(guard);             // 관찰이 살아 있다 — 안전장치는 거둔다
+        e.target.classList.add('in');
+        io.unobserve(e.target);          // 한 번 떠오르면 그대로 둔다
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+
+    items.forEach(function (el) { io.observe(el); });
+  })();
+</script>
 </body>
 </html>
