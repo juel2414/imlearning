@@ -94,23 +94,26 @@
 
     /* 제목은 고딕(Pretendard) 900. 둥근 Jua 는 굴림처럼 보여 이 톤에 안 맞는다.
        가변 폰트라 획을 덧대지 않아도 굵기가 제대로 올라간다. */
+    /* 굵기로 밀지 않고 얇게 크게 간다. 강약은 색으로만 준다 —
+       레퍼런스가 쓰는 방식이고, 큰 글씨일수록 이쪽이 고급스럽다. */
     .lp-title {
       font-family: var(--font-body);
-      font-weight: 900;
-      font-size: clamp(30px, 6.2vw, 64px);
-      line-height: 1.2; letter-spacing: -0.04em;
+      font-weight: 300;
+      font-size: clamp(32px, 6.8vw, 72px);
+      line-height: 1.22; letter-spacing: -0.045em;
       margin: 0; color: #fff; word-break: keep-all; text-wrap: balance;
       text-shadow: 0 2px 24px rgba(0,0,0,.35);
     }
     .lp-title em { font-style: normal; color: var(--mint); white-space: nowrap;
-      text-shadow: 0 0 34px rgba(111,220,169,.45); }
+      font-weight: 500; text-shadow: 0 0 34px rgba(111,220,169,.45); }
+    .lp-title b { font-weight: 500; color: #fff; }
     /* 문장 전체가 똑같이 밝으면 어디를 봐야 할지 모른다. 연결어를 낮춰
        '성장'과 '모든 것'만 남긴다. */
     .lp-title i { font-style: normal; color: rgba(255,255,255,.42); }
 
     .lp-shout {
       font-family: var(--font-body);
-      font-weight: 800;
+      font-weight: 500;
       font-size: clamp(19px, 3.2vw, 32px);
       color: var(--mint-dim); margin: clamp(10px, 1.8vh, 18px) 0 0;
       letter-spacing: -0.03em;
@@ -154,7 +157,6 @@
       border-radius: 14px 12px 13px 15px / 13px 15px 14px 12px;
       box-shadow: 0 12px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
       -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-      animation: wander var(--dur, 22s) ease-in-out var(--delay, 0s) infinite;
       transition: transform .2s, box-shadow .2s, background .2s;
       will-change: transform;
     }
@@ -285,7 +287,9 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .creature, .cr-face, .cr-face i { animation: none; }
+      .creature, .cr-face, .cr-face i, .lp-mark { animation: none; }
+      .creature { opacity: 1; }
+      .lp-copy > * { animation: none; }
       .creature, .lp-cta, .lp-home { transition: none; }
       .creature:hover, .lp-cta:hover { transform: none; }
     }
@@ -310,10 +314,10 @@
       color: var(--mint); margin-bottom: 12px;
     }
     .sec-h {
-      font-weight: 900; font-size: clamp(24px, 3.9vw, 40px); line-height: 1.3;
+      font-weight: 400; font-size: clamp(25px, 4.1vw, 44px); line-height: 1.32;
       letter-spacing: -0.04em; margin: 0 0 14px; word-break: keep-all; text-wrap: balance;
     }
-    .sec-h em { font-style: normal; color: var(--mint); }
+    .sec-h em { font-style: normal; color: var(--mint); font-weight: 600; }
     .sec-p { font-size: clamp(14px, 1.6vw, 16.5px); line-height: 1.8; color: rgba(255,255,255,.62);
              margin: 0; max-width: 62ch; word-break: keep-all; }
     .sec-center { text-align: center; }
@@ -438,6 +442,102 @@
       .track:hover { transform: none; }
       .rise { opacity: 1; transform: none; transition: none; }
     }
+
+    /* ── 제목 안에서 빛나는 마크 ─────────────────────────────
+       레퍼런스는 문장 한가운데에 발광하는 아이콘을 박아 둔다.
+       글자와 같은 줄에 있어서 장식이 아니라 문장의 일부로 읽힌다. */
+    .lp-mark {
+      display: inline-block; vertical-align: -0.12em;
+      width: .92em; height: .92em; margin-right: .1em;
+      filter: drop-shadow(0 0 10px var(--m-glow, rgba(111,220,169,.75)));
+      animation: markPulse 3.6s ease-in-out var(--m-delay, 0s) infinite;
+    }
+    .lp-mark path, .lp-mark circle { vector-effect: non-scaling-stroke; }
+    @keyframes markPulse {
+      0%, 100% { opacity: .82; transform: scale(1); }
+      50%      { opacity: 1;   transform: scale(1.07); }
+    }
+
+    /* ── 히어로 등장 ────────────────────────────────────────
+       스크롤과 무관하게 열자마자 한 번. CSS 만으로 돌아서
+       스크립트가 없어도 반드시 보인다(끝 상태가 forwards). */
+    .lp-copy > * { animation: heroIn .9s cubic-bezier(.16,.84,.44,1) both; }
+    .lp-eyebrow  { animation-delay: .05s; }
+    .lp-title    { animation-delay: .18s; }
+    .lp-shout    { animation-delay: .34s; }
+    .lp-stats    { animation-delay: .46s; }
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+      to   { opacity: 1; transform: none; filter: none; }
+    }
+    /* 크리처는 조금 늦게, 떠오르듯 들어온다 */
+    .creature { opacity: 0; animation-name: creatureIn, wander;
+      animation-duration: .8s, var(--dur, 22s);
+      animation-timing-function: cubic-bezier(.16,.84,.44,1), ease-in-out;
+      animation-delay: calc(.5s + var(--delay, 0s) * .18), var(--delay, 0s);
+      animation-iteration-count: 1, infinite;
+      animation-fill-mode: forwards, none; }
+    @keyframes creatureIn {
+      from { opacity: 0; transform: scale(.8); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── 스크롤 연동 3단계 ───────────────────────────────────
+       왼쪽 문장을 길게 늘여 세우고, 오른쪽 화면은 sticky 로 붙여 둔다.
+       읽고 있는 문장만 밝고 나머지는 가라앉는다. */
+    .flow { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px);
+            margin-top: clamp(30px, 5vh, 56px); align-items: start; text-align: left; }
+    .flow-step { padding: clamp(28px, 9vh, 90px) 0; position: relative; padding-left: 54px;
+                 opacity: .32; transition: opacity .45s ease; }
+    .flow-step.is-on { opacity: 1; }
+    .flow-step .n {
+      position: absolute; left: 0; top: clamp(28px, 9vh, 90px);
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center; font-weight: 700; font-size: 15px;
+      background: rgba(111,220,169,.12); color: var(--mint); border: 1px solid rgba(111,220,169,.28);
+      transition: background .45s ease, box-shadow .45s ease;
+    }
+    .flow-step.is-on .n { background: rgba(111,220,169,.2); box-shadow: 0 0 24px rgba(111,220,169,.35); }
+    .flow-step h3 { margin: 0 0 10px; font-size: clamp(19px, 2.4vw, 26px); font-weight: 500; letter-spacing: -0.03em; }
+    .flow-step p  { margin: 0; font-size: 14px; line-height: 1.85; color: rgba(255,255,255,.6); word-break: keep-all; }
+
+    .flow-stage { position: sticky; top: 22vh; }
+    .flow-panels { position: relative; height: 230px; }
+    .panel {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.11);
+      border-radius: 16px; padding: 20px 22px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.45);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      opacity: 0; transform: translateY(14px) scale(.985);
+      transition: opacity .45s ease, transform .45s ease;
+      pointer-events: none;
+    }
+    .panel.is-on { opacity: 1; transform: none; pointer-events: auto; }
+    .p-head { font-size: 12.5px; color: rgba(255,255,255,.5); margin-bottom: 14px; }
+    .p-num  { font-size: clamp(24px, 3vw, 32px); font-weight: 600; color: #fff;
+              letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+    .p-num span { font-size: .5em; font-weight: 500; color: rgba(255,255,255,.4); margin-left: 4px; }
+    .p-bar { height: 7px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; margin: 14px 0 16px; }
+    .p-bar i { display: block; height: 100%; border-radius: 999px;
+               background: linear-gradient(90deg, #2D9B6F, #6FDCA9); box-shadow: 0 0 18px rgba(111,220,169,.5); }
+    .p-note { font-size: 13px; line-height: 1.8; color: rgba(255,255,255,.72);
+              background: rgba(0,0,0,.28); border-radius: 10px; padding: 13px 14px; margin-bottom: 16px;
+              display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .p-foot { font-size: 12px; color: rgba(255,255,255,.42); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .p-chip { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
+    .p-chip.ok   { background: rgba(111,220,169,.16); color: var(--mint); }
+    .p-chip.wait { background: rgba(255,192,102,.16); color: #FFC066; }
+
+    @media (max-width: 860px) {
+      /* 좁은 화면에서는 sticky 를 쓰지 않는다. 문장 하나에 화면 하나를 붙여 세로로 쌓는다. */
+      .flow { grid-template-columns: 1fr; gap: 0; }
+      .flow-step { opacity: 1; padding: 22px 0 14px 54px; }
+      .flow-step .n { top: 22px; }
+      .flow-stage { position: static; }
+      .flow-panels { height: auto; display: grid; gap: 12px; }
+      .panel { position: static; opacity: 1; transform: none; pointer-events: auto; }
+    }
   </style>
 </head>
 <body>
@@ -456,7 +556,7 @@
 
       <div class="lp-copy">
         <div class="lp-eyebrow">I'M Learning · I'M Running</div>
-        <h1 class="lp-title"><i>그리스도인의</i> 성장<i>을 위한</i><br><em>모든 것</em><i>이 여기 있다</i></h1>
+        <h1 class="lp-title"><i>그리스도인의</i> <svg class="lp-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="--m-glow:rgba(111,220,169,.8);--m-delay:0s;"><path d="M12 21V10" stroke="#6FDCA9" stroke-width="1.7" stroke-linecap="round"/><path d="M12 12C12 8.5 9.4 5.9 6 5.6c-.3 3.4 2.3 6.1 6 6.4Z" stroke="#6FDCA9" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 13.4c0-3.5 2.6-6.1 6-6.4.3 3.4-2.3 6.1-6 6.4Z" stroke="#8FE3BC" stroke-width="1.5" stroke-linejoin="round"/></svg><b>성장</b><i>을 위한</i><br><svg class="lp-mark" viewBox="0 0 24 24" aria-hidden="true" style="--m-glow:rgba(143,227,188,.85);--m-delay:1.2s;"><path d="M12 1.5c.9 5.4 4.2 8.7 9.6 9.6-5.4.9-8.7 4.2-9.6 9.6-.9-5.4-4.2-8.7-9.6-9.6 5.4-.9 8.7-4.2 9.6-9.6Z" fill="#6FDCA9"/></svg><em>모든 것</em><i>이 여기 있다</i></h1>
         <p class="lp-shout">온라인으로 배우자!</p>
 
         <div class="lp-stats">
@@ -623,16 +723,54 @@
         다 마친 사람에게만 수료증이 나갑니다.
       </p>
 
-      <div class="rise rise-d2 grid g3">
-        <div class="card step"><span class="n">1</span>
-          <h3>본다</h3>
-          <p>실제 시청 시간이 초 단위로 쌓입니다. 틀어만 놓은 것과 본 것을 구분합니다. 보던 지점부터 이어집니다.</p></div>
-        <div class="card step"><span class="n">2</span>
-          <h3>쓴다</h3>
-          <p>강의 노트와 독서 노트를 제출합니다. 관리자가 읽고 승인하거나 보완을 요청합니다.</p></div>
-        <div class="card step"><span class="n">3</span>
-          <h3>남는다</h3>
-          <p>진도·학습 기록·뱃지가 쌓이고, 과정을 마치면 수료증이 발급됩니다.</p></div>
+      <!-- 스크롤에 따라 왼쪽 문장이 하나씩 밝아지고, 오른쪽 화면이 그에 맞춰 바뀐다.
+           레퍼런스가 쓰던 장치. 셋을 나란히 놓는 것보다 순서가 분명하게 읽힌다. -->
+      <div class="flow">
+        <div class="flow-steps">
+          <div class="flow-step is-on" data-step="0">
+            <span class="n">1</span>
+            <h3>본다</h3>
+            <p>실제 시청 시간이 초 단위로 쌓입니다. 틀어만 놓은 것과 끝까지 본 것을 구분합니다.
+               보던 지점부터 이어집니다.</p>
+          </div>
+          <div class="flow-step" data-step="1">
+            <span class="n">2</span>
+            <h3>쓴다</h3>
+            <p>강의를 듣고 노트를 제출합니다. 관리자가 직접 읽고 승인하거나 보완을 요청합니다.
+               읽지 않고 통과되는 일은 없습니다.</p>
+          </div>
+          <div class="flow-step" data-step="2">
+            <span class="n">3</span>
+            <h3>남는다</h3>
+            <p>진도와 학습 기록이 쌓이고, 과정을 다 마치면 수료증이 발급됩니다.
+               어디까지 왔는지 늘 보입니다.</p>
+          </div>
+        </div>
+
+        <div class="flow-stage">
+          <div class="flow-panels">
+            <!-- 1. 시청 기록 -->
+            <div class="panel is-on" data-panel="0">
+              <div class="p-head">18강 · 교육 메커니즘 : 자기주도</div>
+              <div class="p-num">25분 57초 <span>/ 25분 58초</span></div>
+              <div class="p-bar"><i style="width:100%"></i></div>
+              <div class="p-foot"><span class="p-chip ok">충분히 시청</span> 이어보기 지점 저장됨</div>
+            </div>
+            <!-- 2. 노트 검토 -->
+            <div class="panel" data-panel="1">
+              <div class="p-head">강의 노트 제출</div>
+              <div class="p-note">독서의 이해 — 가르치거나 배워야 할 지식 및 경험의 체계를 세분화하여 계통을 세운 영역…</div>
+              <div class="p-foot"><span class="p-chip wait">검토 중</span> 771자 · 관리자 확인 대기</div>
+            </div>
+            <!-- 3. 수료 -->
+            <div class="panel" data-panel="2">
+              <div class="p-head">CBUP 수료과정</div>
+              <div class="p-num">19<span>/ 155강</span></div>
+              <div class="p-bar"><i style="width:12%"></i></div>
+              <div class="p-foot"><span class="p-chip ok">수료증 발급 대상</span> 12주 과정</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -782,6 +920,25 @@
 
     items.forEach(function (el) { io.observe(el); });
   })();
+
+    // 스크롤 위치에 따라 왼쪽 문장과 오른쪽 화면을 함께 바꾼다.
+    (function () {
+      var steps  = [].slice.call(document.querySelectorAll('.flow-step'));
+      var panels = [].slice.call(document.querySelectorAll('.panel'));
+      if (!steps.length || !('IntersectionObserver' in window)) return;
+      if (window.matchMedia('(max-width: 860px)').matches) return;   // 좁은 화면은 그냥 쌓아 둔다
+
+      function activate(i) {
+        steps.forEach(function (s, j)  { s.classList.toggle('is-on', j === i); });
+        panels.forEach(function (p, j) { p.classList.toggle('is-on', j === i); });
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) activate(+e.target.dataset.step);
+        });
+      }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });   // 화면 한가운데를 지날 때
+      steps.forEach(function (s) { io.observe(s); });
+    })();
 </script>
 </body>
 </html>
