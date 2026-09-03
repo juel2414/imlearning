@@ -72,6 +72,36 @@ tr.dormant-row:hover td { background:#FFE8E8; }
 .empty   { text-align:center; padding:2.5rem; color:#aaa; font-size:13px; }
 .loading { text-align:center; padding:2rem; color:#aaa; font-size:13px; }
 
+/* 수강생별 시청 내역 펼치기 */
+.exp-btn { width:22px; height:22px; flex-shrink:0; border:1px solid #e2e5e8; background:#fff; color:#7a8288;
+  border-radius:6px; font-size:11px; line-height:1; cursor:pointer; padding:0; font-family:inherit; }
+.exp-btn:hover { background:#F0FAF5; border-color:#bfe3d0; color:#2D9B6F; }
+.exp-btn.open { background:#2D9B6F; border-color:#2D9B6F; color:#fff; }
+tr.detail-row > td { background:#FAFBFC; padding:0; border-bottom:1px solid rgba(0,0,0,.06); }
+tr.detail-row:hover > td { background:#FAFBFC; }
+.wd-wrap { padding:16px 20px 20px 46px; }
+.wd-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.wd-sum  { font-size:12px; color:#666; }
+.wd-sum b { color:#222; font-size:13px; }
+.wd-tabs { display:flex; gap:4px; background:#EEF1F3; border-radius:8px; padding:3px; }
+.wd-tab  { border:none; background:transparent; font-family:inherit; font-size:12px; font-weight:700;
+  color:#7a8288; padding:5px 14px; border-radius:6px; cursor:pointer; }
+.wd-tab.on { background:#fff; color:#2D9B6F; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.wd-bucket { border:1px solid rgba(0,0,0,.07); border-radius:10px; background:#fff; margin-bottom:8px; overflow:hidden; }
+.wd-bucket-hdr { display:flex; align-items:baseline; gap:10px; padding:9px 14px; background:#F6F8F9;
+  border-bottom:1px solid rgba(0,0,0,.05); }
+.wd-bucket-when { font-size:12.5px; font-weight:800; color:#222; }
+.wd-bucket-meta { font-size:11.5px; color:#8b9196; font-variant-numeric:tabular-nums; }
+.wd-bucket-time { margin-left:auto; font-size:12.5px; font-weight:800; color:#2D9B6F; font-variant-numeric:tabular-nums; }
+.wd-item { display:flex; align-items:center; gap:10px; padding:8px 14px; border-top:1px solid rgba(0,0,0,.035); font-size:12px; }
+.wd-item:first-child { border-top:none; }
+.wd-item-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#333; }
+.wd-item-course { font-size:11px; color:#9aa2a8; }
+.wd-item-time { font-variant-numeric:tabular-nums; color:#555; font-weight:700; white-space:nowrap; }
+.wd-item-pct { width:44px; text-align:right; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.wd-pct-high { color:#16A34A; } .wd-pct-mid { color:#B45309; } .wd-pct-low { color:#DC2626; }
+.wd-note { font-size:11px; color:#9aa2a8; line-height:1.6; margin-top:10px; }
+
 /* 강좌 태그 */
 .course-tag { display:inline-block; background:#F0FAF5; color:#2D9B6F; border:1px solid #d1f0e0;
   border-radius:6px; font-size:11px; font-weight:600; padding:2px 7px; margin:2px 2px 0 0; white-space:nowrap; }
@@ -490,10 +520,15 @@ function renderTable() {
     // 첫 열: 이름 + 이메일 + 전화번호 + 가입일
     var phoneTxt  = r.phone ? '<div style="font-size:11px;color:#666;margin-top:1px;">📞 ' + esc(r.phone) + '</div>' : '';
     var joinedTxt = r.joinedAt ? '<div style="font-size:11px;color:#aaa;margin-top:1px;">가입 ' + fmtDate(r.joinedAt) + '</div>' : '';
+    // 이름 왼쪽 화살표 = 시청 내역 펼치기. 행 클릭(모달)과 겹치지 않게 전파를 끊는다.
+    var expBtn = '<button class="exp-btn" id="exp-btn-' + esc(r.uid) + '" title="시청 내역 보기"' +
+      ' onclick="event.stopPropagation();toggleWatchDetail(\'' + r.uid + '\')">▸</button>';
+
     html += '<tr class="' + rowClass + '" onclick="openModal(\'' + r.uid + '\')">' +
-      '<td><div style="font-weight:600;">' + esc(r.name) + '</div>' +
+      '<td><div style="display:flex;align-items:flex-start;gap:9px;">' + expBtn + '<div style="min-width:0;">' +
+      '<div style="font-weight:600;">' + esc(r.name) + '</div>' +
       '<div style="font-size:11px;color:#888;">' + esc(r.email) + '</div>' +
-      phoneTxt + joinedTxt + '</td>' +
+      phoneTxt + joinedTxt + '</div></div></td>' +
       '<td>' + (shownTags || '<span style="color:#ccc;font-size:12px;">-</span>') + '</td>' +
       '<td><div style="display:flex;align-items:center;gap:8px;">' +
         '<div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:' + r.avgProgress + '%;"></div></div>' +
@@ -506,11 +541,112 @@ function renderTable() {
       '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
       '<td style="white-space:nowrap;">' + roleBadge + '<br>' + roleBtn + '</td>' +
       '<td style="white-space:nowrap;">' + gcBtn + (gcBtn && (encBtn || refundBtn) ? '<br>' : '') + encBtn + (encBtn && refundBtn ? '<br>' : '') + refundBtn + '</td>' +
-      '</tr>';
+      '</tr>' +
+      '<tr class="detail-row" id="wd-row-' + esc(r.uid) + '" style="display:none;">' +
+        '<td colspan="8" id="wd-cell-' + esc(r.uid) + '"></td></tr>';
   });
 
   html += '</tbody></table></div>';
   el.innerHTML = html;
+}
+
+// ── 수강생별 시청 내역 (일·주·월) ─────────────────────────
+// 어느 강의를 언제 얼마나 봤는지 행을 펼쳐서 보여준다.
+var wdMode = {};   // uid → 'day' | 'week' | 'month'
+
+function wdDayKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+/** 한 시점을 선택한 단위의 '칸'으로 바꾼다. 정렬용 key 와 사람이 읽을 label 을 같이 준다. */
+function wdBucket(when, mode) {
+  var d = new Date(when);
+  if (mode === 'month') {
+    return { key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'),
+             label: d.getFullYear() + '년 ' + (d.getMonth()+1) + '월' };
+  }
+  if (mode === 'week') {
+    var mon = new Date(d);
+    mon.setHours(0,0,0,0);
+    mon.setDate(mon.getDate() - (mon.getDay() === 0 ? 6 : mon.getDay() - 1));  // 주 시작은 월요일
+    var sun = new Date(mon); sun.setDate(sun.getDate() + 6);
+    return { key: wdDayKey(mon),
+             label: (mon.getMonth()+1) + '월 ' + mon.getDate() + '일 ~ ' + (sun.getMonth()+1) + '월 ' + sun.getDate() + '일' };
+  }
+  var WD = ['일','월','화','수','목','금','토'];
+  return { key: wdDayKey(d), label: (d.getMonth()+1) + '월 ' + d.getDate() + '일 (' + WD[d.getDay()] + ')' };
+}
+
+function toggleWatchDetail(uid) {
+  var row = document.getElementById('wd-row-' + uid);
+  var btn = document.getElementById('exp-btn-' + uid);
+  if (!row) return;
+  var opening = row.style.display === 'none';
+  row.style.display = opening ? '' : 'none';
+  if (btn) { btn.textContent = opening ? '▾' : '▸'; btn.classList.toggle('open', opening); }
+  if (opening) renderWatchDetail(uid);
+}
+
+function setWatchPeriod(uid, mode) { wdMode[uid] = mode; renderWatchDetail(uid); }
+
+function renderWatchDetail(uid) {
+  var cell = document.getElementById('wd-cell-' + uid);
+  if (!cell) return;
+  var mode = wdMode[uid] || 'day';
+
+  var rows = allVideoProgress.filter(function(v) {
+    return v.user_id === uid && (v.actual_watched_seconds || 0) > 0 && v.updated_at;
+  });
+
+  var tabs = '<div class="wd-tabs">' + [['day','일별'],['week','주별'],['month','월별']].map(function(t) {
+    return '<button class="wd-tab' + (mode === t[0] ? ' on' : '') + '" onclick="event.stopPropagation();setWatchPeriod(\'' + uid + '\',\'' + t[0] + '\')">' + t[1] + '</button>';
+  }).join('') + '</div>';
+
+  if (!rows.length) {
+    cell.innerHTML = '<div class="wd-wrap"><div class="wd-head">' + tabs +
+      '<div class="wd-sum">시청 기록이 없습니다</div></div></div>';
+    return;
+  }
+
+  var totalSecs = rows.reduce(function(s,v){ return s + (v.actual_watched_seconds||0); }, 0);
+
+  // 칸별로 묶기
+  var buckets = {};
+  rows.forEach(function(v) {
+    var b = wdBucket(v.updated_at, mode);
+    if (!buckets[b.key]) buckets[b.key] = { label: b.label, secs: 0, items: [] };
+    buckets[b.key].secs += (v.actual_watched_seconds || 0);
+    buckets[b.key].items.push(v);
+  });
+
+  var body = Object.keys(buckets).sort().reverse().map(function(k) {
+    var b = buckets[k];
+    var items = b.items.slice().sort(function(a,c){ return new Date(c.updated_at) - new Date(a.updated_at); })
+      .map(function(v) {
+        var course = allCourses.find(function(c){ return String(c.id) === String(v.course_id); });
+        var pct = v.total_seconds ? Math.min(100, Math.round((v.actual_watched_seconds/v.total_seconds)*100)) : null;
+        var cls = pct === null ? '' : pct >= 80 ? 'wd-pct-high' : pct >= 40 ? 'wd-pct-mid' : 'wd-pct-low';
+        return '<div class="wd-item">' +
+          '<div class="wd-item-title">' + (v.lesson_number ? v.lesson_number + '강. ' : '') + esc(v.lesson_title || '제목 없음') +
+            '<span class="wd-item-course"> · ' + esc(course ? course.title : '강좌 ' + v.course_id) + '</span></div>' +
+          '<div class="wd-item-time">' + fmtSecs(v.actual_watched_seconds) +
+            (v.total_seconds ? ' <span style="color:#b9bfc4;font-weight:600;">/ ' + fmtSecs(v.total_seconds) + '</span>' : '') + '</div>' +
+          '<div class="wd-item-pct ' + cls + '">' + (pct === null ? '–' : pct + '%') + '</div>' +
+        '</div>';
+      }).join('');
+    return '<div class="wd-bucket">' +
+      '<div class="wd-bucket-hdr"><span class="wd-bucket-when">' + b.label + '</span>' +
+        '<span class="wd-bucket-meta">강의 ' + b.items.length + '개</span>' +
+        '<span class="wd-bucket-time">' + fmtSecs(b.secs) + '</span></div>' +
+      items + '</div>';
+  }).join('');
+
+  cell.innerHTML = '<div class="wd-wrap" onclick="event.stopPropagation()">' +
+    '<div class="wd-head">' + tabs +
+      '<div class="wd-sum">모두 <b>' + fmtSecs(totalSecs) + '</b> · 강의 <b>' + rows.length + '개</b></div>' +
+    '</div>' + body +
+    '<div class="wd-note">※ 날짜는 그 강의를 <b>마지막으로 본 시각</b> 기준입니다. 한 강의를 여러 날에 걸쳐 보면 마지막 날에 모아서 표시됩니다.</div>' +
+  '</div>';
 }
 
 function encourage(uid, name) {
