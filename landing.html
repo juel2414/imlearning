@@ -251,6 +251,8 @@
       position: relative; z-index: 3;
       display: flex; flex-direction: column; align-items: center;
       gap: clamp(9px, 1.4vh, 14px); text-align: center;
+      /* 아래를 비워 둔다. 바닥에 붙이면 스크롤 안내가 안심 문구 위로 겹친다. */
+      margin-bottom: clamp(48px, 8vh, 92px);
     }
     .lp-cta {
       text-decoration: none;
@@ -309,7 +311,8 @@
        'X가 아니라 Y' 대조, 섹션마다 같은 자리에 영문 eyebrow, CTA 반복.
        다만 후기는 20건뿐이라 크게 벌리지 않고 세 건만 인용한다.
        ═══════════════════════════════════════════════════════════ */
-    .sec { padding: clamp(66px, 10vh, 124px) clamp(18px, 4vw, 48px); position: relative; z-index: 0; }
+    /* 섹션은 넉넉히 띄운다. 붙어 있으면 읽는 사람이 숨 쉴 곳이 없다. */
+    .sec { padding: clamp(88px, 14vh, 172px) clamp(18px, 4vw, 48px); position: relative; z-index: 0; }
     /* 밝은 띠도 선으로 자르지 않는다. 위아래를 투명하게 녹여 스며들게 한다. */
     .sec-alt::before {
       content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -333,7 +336,7 @@
     .sec-center .sec-p { margin-left: auto; margin-right: auto; }
 
     /* 제목은 가운데, 카드 본문은 왼쪽. 여러 줄 글이 가운데 정렬이면 읽기 나쁘다 */
-    .grid { display: grid; gap: 14px; margin-top: clamp(26px, 4vh, 44px); text-align: left; }
+    .grid { display: grid; gap: 16px; margin-top: clamp(34px, 5.5vh, 60px); text-align: left; }
     .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
     .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
@@ -400,7 +403,7 @@
 
     /* 반복하는 CTA — imvoca 처럼 매번 같은 안심 문구를 붙인다 */
     .cta-band { text-align: center; }
-    .cta-band .lp-cta { margin-top: 24px; }
+    .cta-band .lp-cta { margin-top: 32px; }
     .cta-note { font-size: 12.5px; color: rgba(251,247,241,.42); margin-top: 12px; }
 
     .lp-ghost {
@@ -411,7 +414,7 @@
       transition: background .18s, border-color .18s;
     }
     .lp-ghost:hover { background: rgba(251,247,241,.08); border-color: rgba(251,247,241,.45); }
-    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
 
     .lp-foot {
       padding: 28px clamp(18px, 4vw, 48px) 40px; text-align: center;
@@ -423,7 +426,8 @@
 
     /* 스크롤 안내 — 아래에 더 있다는 신호 */
     .scroll-cue {
-      position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+      position: absolute; left: 50%; bottom: clamp(12px, 2.2vh, 22px); transform: translateX(-50%);
+      z-index: 4;
       font-size: 11px; letter-spacing: .1em; color: rgba(251,247,241,.34);
       text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px;
       animation: cue 2.4s ease-in-out infinite;
@@ -490,12 +494,20 @@
       from { opacity: 0; transform: scale(.8); }
       to   { opacity: 1; transform: none; }
     }
+    /* 좁은 화면 재지정. 위 .creature 의 animation-name 이 미디어쿼리보다 뒤에 있어
+       그대로 두면 모바일에서도 wander 가 돌아 칩들이 서로 밀려 흩어진다. */
+    @media (max-width: 860px) {
+      .creature {
+        animation-name: creatureIn, bob;
+        animation-duration: .7s, calc(var(--dur, 22s) * 0.22);
+      }
+    }
 
     /* ── 스크롤 연동 3단계 ───────────────────────────────────
        왼쪽 문장을 길게 늘여 세우고, 오른쪽 화면은 sticky 로 붙여 둔다.
        읽고 있는 문장만 밝고 나머지는 가라앉는다. */
     .flow { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px);
-            margin-top: clamp(30px, 5vh, 56px); align-items: start; text-align: left; }
+            margin-top: clamp(38px, 6vh, 72px); align-items: start; text-align: left; }
     .flow-step { padding: clamp(28px, 9vh, 90px) 0; position: relative; padding-left: 54px;
                  opacity: .32; transition: opacity .45s ease; }
     .flow-step.is-on { opacity: 1; }
@@ -845,7 +857,7 @@
         <h2 class="sec-h rise rise-d1">자주 묻는 질문</h2>
       </div>
 
-      <div class="rise rise-d2 faq" style="margin-top:32px;">
+      <div class="rise rise-d2 faq" style="margin-top:44px;">
         <details>
           <summary>정말 무료로 볼 수 있나요?</summary>
           <div class="a">네. 로그인 없이 볼 수 있는 미리보기 강의가 26개 있고, 가입만 하면 끝까지 무료로 들을 수 있는 강좌가 5개 있습니다. 카드 등록은 필요 없습니다.</div>
