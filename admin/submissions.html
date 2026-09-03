@@ -75,6 +75,10 @@ tr.done-row:hover td { background:#F5F6F8; }
 .watch-low  .watch-bar i { background:#DC2626; }
 .watch-none { font-size:11.5px; color:#DC2626; font-weight:700; }
 .watch-na   { color:#D1D5DB; }
+/* 시청 기록이 없을 때 대신 보여주는 근거들 — 단정하지 말고 아는 만큼만 말한다 */
+.watch-alt  { font-size:11.5px; color:#6B7280; font-weight:700; line-height:1.45; }
+.watch-alt .watch-sub { font-weight:600; }
+.watch-opened { font-size:11.5px; color:#B45309; font-weight:700; line-height:1.45; }
 .badge.lecture  { background:#EEF2FF; color:#4338CA; }
 .badge.reading  { background:#FDF4FF; color:#9333EA; }
 .action-btn { padding:5px 12px; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
@@ -317,9 +321,29 @@ async function attachWatchData(userIds) {
   const map = {};
   vps.forEach(v => { map[`${v.user_id}|${v.course_id}|${v.lesson_number}`] = v; });
 
+  // video_progress 가 비어 있어도 '안 봤다'고 단정할 수 없다. 재생 위치(progress)와
+  // 열어본 기록(lesson_opens)이 따로 남으므로, 아는 만큼은 보여준다.
+  const [{ data: prs }, { data: opens }] = await Promise.all([
+    supabaseClient.from('progress')
+      .select('user_id, course_id, lesson_id, last_position_seconds, duration_seconds, watched_at')
+      .in('user_id', userIds),
+    supabaseClient.from('lesson_opens')
+      .select('user_id, course_id, lesson_number, opened_at, open_count')
+      .in('user_id', userIds),
+  ]);
+
+  const posMap = {};
+  (prs || []).forEach(p => {
+    const m = /^lesson-(\d+)$/.exec(p.lesson_id || '');
+    if (m) posMap[`${p.user_id}|${p.course_id}|${Number(m[1])}`] = p;
+  });
+  const openMap = {};
+  (opens || []).forEach(o => { openMap[`${o.user_id}|${o.course_id}|${o.lesson_number}`] = o; });
+
   allRows = allRows.map(r => {
     if (r.type !== 'lecture' || !r.lesson_num) return r;
-    return { ...r, _watch: map[`${r.user_id}|${r.course_id}|${r.lesson_num}`] || null };
+    const k = `${r.user_id}|${r.course_id}|${r.lesson_num}`;
+    return { ...r, _watch: map[k] || null, _pos: posMap[k] || null, _open: openMap[k] || null };
   });
 }
 
@@ -331,11 +355,33 @@ function fmtSecs(s) {
   return `${s}초`;
 }
 
+/** 시청 기록이 없을 때. 재생 위치 > 열어봄 > 기록 없음 순으로 아는 만큼만 말한다. */
+function watchFallbackCell(r) {
+  const p = r._pos;
+  if (p && (p.last_position_seconds || 0) > 0) {
+    const pos = p.last_position_seconds;
+    const dur = p.duration_seconds || 0;
+    const pct = dur ? Math.min(100, Math.round(pos / dur * 100)) : null;
+    const cls = pct === null ? 'watch-mid' : pct >= 80 ? 'watch-high' : pct >= 40 ? 'watch-mid' : 'watch-low';
+    return `<div class="watch-box ${cls}">
+      <div class="watch-main"><strong>${fmtSecs(pos)}</strong><span class="of">/ ${dur ? fmtSecs(dur) : '?'}</span>${pct !== null ? `<span class="pct">${pct}%</span>` : ''}</div>
+      <div class="watch-bar"><i style="width:${pct || 0}%"></i></div>
+      <div class="watch-sub">재생 위치 기준 · 시청 기록 유실</div>
+    </div>`;
+  }
+  const o = r._open;
+  if (o) {
+    const when = new Date(o.opened_at).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
+    return `<div class="watch-opened">▸ 열어봄 <span class="watch-sub">${when}${o.open_count > 1 ? ' · ' + o.open_count + '회' : ''}</span><div class="watch-sub">재생 기록 없음</div></div>`;
+  }
+  return '<span class="watch-none">▁ 기록 없음</span>';
+}
+
 // 시청 시간 셀: 실제 시청 / 영상 길이 (%)
 function watchCell(r) {
   if (r.type !== 'lecture') return '<span class="watch-na">—</span>';
   const v = r._watch;
-  if (!v) return '<span class="watch-none">▁ 재생 안 함</span>';
+  if (!v) return watchFallbackCell(r);
   const actual = v.actual_watched_seconds || 0;
   const total  = v.total_seconds || 0;
   const pct    = total ? Math.min(100, Math.round(actual / total * 100)) : null;

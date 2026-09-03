@@ -2037,19 +2037,25 @@ class VimeoTracker {
     const pct    = this.pct;
     const done   = pct >= 80;
     try {
-      await window.supabaseClient.from('video_progress').upsert({
+      // last_position·total_seconds 는 integer 칼럼이다. Vimeo 의 getCurrentTime()·
+      // getDuration() 은 소수를 주므로 반드시 반올림해서 보내야 한다. 그냥 보내면
+      // PostgREST 가 22P02(invalid input syntax for type integer)로 400을 돌려주고,
+      // 아래 progress·study_logs 만 저장돼 '봤는데 시청 기록이 없는' 상태가 된다.
+      const { error: vpErr } = await window.supabaseClient.from('video_progress').upsert({
         user_id:                this.userId,
         course_id:              this.courseId,
         lesson_number:          this.lessonNum,
         lesson_title:           this.lessonTitle,
-        actual_watched_seconds: actual,
+        actual_watched_seconds: Math.round(actual),
         actual_watched_text:    VimeoTracker.fmt(actual),
-        total_seconds:          this.totalSecs,
+        total_seconds:          Math.round(this.totalSecs) || null,
         watch_percentage:       pct,
-        last_position:          this.lastPos,
+        last_position:          Math.round(this.lastPos),
         completed:              done,
         updated_at:             new Date().toISOString(),
       }, { onConflict: 'user_id,course_id,lesson_number' });
+      // 조용히 실패하면 아무도 모른다. 이 버그가 엿새 동안 안 보였던 이유다.
+      if (vpErr) console.error('[시청기록] video_progress 저장 실패:', vpErr);
 
       // progress 테이블에 시청 위치 저장 (completed는 건드리지 않음)
       await window.supabaseClient.from('progress').upsert({
