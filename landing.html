@@ -94,6 +94,10 @@
       line-height: 1.24; letter-spacing: -0.03em;
       margin: 0; color: #fff; word-break: keep-all; text-wrap: balance;
       text-shadow: 0 2px 24px rgba(0,0,0,.35);
+      /* Jua 는 굵기가 하나뿐이라 font-weight 로는 더 두꺼워지지 않는다.
+         글자 색과 같은 획을 덧대 살을 붙인다. em 은 색이 다르므로 currentColor. */
+      -webkit-text-stroke: 0.035em currentColor;
+      paint-order: stroke fill;
     }
     .lp-title em { font-style: normal; color: var(--mint); white-space: nowrap; }
 
@@ -102,6 +106,9 @@
       font-size: clamp(19px, 3.2vw, 32px);
       color: var(--mint-dim); margin: clamp(10px, 1.8vh, 18px) 0 0;
       letter-spacing: -0.02em;
+      /* 제목만 두꺼워지면 두 줄이 따로 놀아서, 여기도 살짝 살을 붙인다 */
+      -webkit-text-stroke: 0.02em currentColor;
+      paint-order: stroke fill;
     }
 
     /* ── 크리처 ──────────────────────────────────────────────
