@@ -111,10 +111,9 @@ tr.done-row:hover td { background:#E9EBEE; filter:none; opacity:1; }
 .detail-note-text { background:#f8f9fa; border-radius:10px; padding:18px 20px; font-size:15px; line-height:1.85;
   color:#222; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere;
   max-height:none; margin-bottom:12px; border:1px solid rgba(0,0,0,.06); }
-/* 아주 긴 노트만 접어두고 '더 보기'로 펼친다 */
-.detail-note-text.clamped { max-height:46vh; overflow:hidden; position:relative; }
-.detail-note-text.clamped::after { content:''; position:absolute; left:0; right:0; bottom:0; height:64px;
-  background:linear-gradient(rgba(248,249,250,0), #f8f9fa); }
+/* 아주 긴 노트만 접어둔다. 접힌 상태에서도 스크롤은 되어야 한다 —
+   예전에는 overflow:hidden 이라 '전체 보기'를 누르기 전에는 뒷부분을 볼 방법이 없었다. */
+.detail-note-text.clamped { max-height:46vh; overflow-y:auto; position:relative; }
 #dm-note-more { display:none; background:none; border:none; color:#4338CA; font-weight:700; font-size:13px;
   cursor:pointer; padding:4px 0 10px; font-family:inherit; }
 .detail-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;
@@ -581,7 +580,9 @@ async function openDetail(row) {
     requestAnimationFrame(() => {
       if (noteText.scrollHeight > window.innerHeight * 0.46) {
         noteText.classList.add('clamped');
-        moreBtn.style.display = '';
+        // display:'' 로는 안 된다 — #dm-note-more 의 기본값이 display:none 이라
+        // 인라인 스타일을 지우면 다시 숨겨진다. 예전에 버튼이 안 보이던 이유다.
+        moreBtn.style.display = 'inline-block';
         moreBtn.textContent = '▾ 전체 보기';
       }
     });
