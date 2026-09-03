@@ -2777,7 +2777,7 @@ async function renderNotesTab() {
   html += '<div class="note-section-title">📚 독서 노트</div>';
   const { data: ctData } = await supabaseClient
     .from('course_textbooks')
-    .select('week_number, sort_order, textbooks(id, title, cover_url, textbook_chapters(id, chapter_no, title))')
+    .select('week_number, sort_order, textbooks(id, title, cover_image_url, textbook_chapters(id, chapter_no, title))')
     .eq('course_id', currentCourse.id)
     .order('week_number', { ascending: true, nullsFirst: false })
     .order('sort_order', { ascending: true });
