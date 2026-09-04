@@ -335,10 +335,15 @@ function renderCourseGrid() {
 // ───── Top3 인기 강좌 렌더 ─────
 function renderTop3() {
   const grid = document.getElementById('top10-grid');
-  const top3 = allCourses
-    .filter(c => c.status === 'active')
-    .sort((a, b) => (b.students || 0) - (a.students || 0))
-    .slice(0, 3);
+  // 인기 배지(featured)가 붙은 강좌를 올린다. 예전에는 students 로 정렬했는데
+  // 그 값이 전 강좌 0 이라 사실상 목록 앞의 세 개가 그냥 올라오고 있었다.
+  // 목록에는 인기 배지가 붙어 있는데 Top3 에는 다른 강좌가 뜨던 이유다.
+  const active = allCourses.filter(c => c.status === 'active');
+  const byStudents = (a, b) => (b.students || 0) - (a.students || 0);
+  const featured = active.filter(c => c.featured).sort(byStudents);
+  // 배지가 세 개에 못 미치면 나머지로 채운다.
+  const rest = active.filter(c => !c.featured).sort(byStudents);
+  const top3 = featured.concat(rest).slice(0, 3);
 
   if (top3.length === 0) {
     grid.innerHTML = '<div class="loading-placeholder">등록된 강좌가 없어요</div>';
