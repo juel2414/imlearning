@@ -273,7 +273,8 @@ function contactInquiryHtml(name: string, phone: string, type: string, message: 
   `)
 }
 
-async function resendSend(to: string, subject: string, html: string) {
+// to 는 한 명이거나 여러 명일 수 있다 (Resend 는 배열을 그대로 받는다)
+async function resendSend(to: string | string[], subject: string, html: string) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -360,7 +361,9 @@ Deno.serve(async (req: Request) => {
       // 예전에는 여기서 throw 되면 500 이 나가, 이미 저장된 문의를 두고
       // 사용자에게 '전송 실패' 를 보여 줬다. 그래서 같은 문의가 여러 번 쌓였다.
       // 관리자에게는 contacts_notify_new 트리거로 사이트 알림도 함께 간다.
-      const ADMIN_EMAIL = 'imkorea.mission@gmail.com'
+      // 받는 주소는 ADMIN_EMAIL 시크릿으로 바꿀 수 있다. 쉼표로 여러 명도 된다.
+      const ADMIN_EMAIL = (Deno.env.get('ADMIN_EMAIL') || 'imkorea.mission@gmail.com')
+        .split(',').map(s => s.trim()).filter(Boolean)
       let emailSent = true
       try {
         await resendSend(ADMIN_EMAIL, `[아이엠러닝] 새 문의: ${name} (${inquiryType})`, contactInquiryHtml(name, phone, inquiryType, message))
