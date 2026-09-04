@@ -648,7 +648,7 @@
   <div class="save-inner">
     <div class="section-eyebrow">WHAT YOU SAVE</div>
     <h2 class="section-title">낱개로 사면 <span id="sv-full">₩1,878,000</span>입니다</h2>
-    <p class="section-sub">프리패스에 담긴 28개 강좌를 하나씩 결제했을 때의 값입니다.</p>
+    <p class="section-sub">개별 구매가 가능한 <span id="sv-basis">18</span>개 강좌를 하나씩 결제했을 때의 값입니다.<br>프리패스에는 이 강좌들을 포함해 <b>28개</b>가 담겨 있습니다.</p>
 
     <div class="save-bars">
       <div class="save-row">
@@ -677,7 +677,7 @@
 
     <p class="save-note">
       28개 강좌 · 846개 강의 · 343시간을 365일 동안 무제한으로 봅니다.
-      낱개 합계는 각 강좌의 현재 판매가를 더한 값입니다.
+      낱개 합계는 개별 구매가 가능한 강좌의 현재 판매가를 더한 값입니다.
     </p>
   </div>
 </section>
@@ -742,7 +742,10 @@ let alreadyOwns = false;
 // 낱개 합계와 프리패스 값을 실제 데이터로 채운다. 가격이 바뀌어도 문구가 따라간다.
 function renderSaving(rows, pass) {
   var won = function (n) { return '₩' + Math.round(n).toLocaleString(); };
-  var full = rows.reduce(function (s, r) { return s + (r.course_price || 0); }, 0);
+  // 낱개로 살 수 있는 강좌만 센다. 목록에서 감춘 강좌는 개별 구매가 불가능하니
+  // 그 값을 '정가' 에 얹으면 부풀린 숫자가 된다.
+  var priced = rows.filter(function (r) { return (r.course_price || 0) > 0; });
+  var full = priced.reduce(function (s, r) { return s + r.course_price; }, 0);
   if (!full || !pass.price) return;
 
   var save = full - pass.price;
@@ -761,6 +764,7 @@ function renderSaving(rows, pass) {
   }
 
   set('sv-per-course', won(pass.price / rows.length));
+  set('sv-basis', priced.length);
   if (pass.lessonCount) set('sv-per-lesson', won(pass.price / pass.lessonCount));
   if (pass.duration_days) set('sv-per-day', won(pass.price / pass.duration_days));
 
