@@ -215,6 +215,13 @@
        상단 네비의 position:sticky 를 깨뜨리지 않는다. */
     'html{overflow-x:clip;}',
     'body{overflow-x:clip;}',
+    /* 서랍이 화면 전체 높이로 안 펴지던 이유.
+       #site-navbar 의 backdrop-filter 가 그 안의 position:fixed 요소에게
+       '화면' 대신 '네비 박스'를 기준으로 만들어서, top:0/bottom:0 이
+       네비 높이(64px)로 계산됐다. 모바일에서는 블러를 끄고 배경을 불투명하게
+       둔다 — 좁은 화면에서 블러는 거의 보이지도 않는다. */
+    '#site-navbar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;',
+    'background:#fff!important;}',
     '.nb-ham{display:flex;}',
     '.navbar-right{display:none!important;}',
     '.nb-books{display:none!important;}',
