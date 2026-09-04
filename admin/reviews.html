@@ -172,10 +172,11 @@ let allReviews = [];
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+// 별은 글자·이모지가 아니라 도형으로 그린다(admin-common.css 의 .im-stars).
 function stars(n) {
-  let s = '';
-  for (let i = 1; i <= 5; i++) s += (i <= n ? '⭐' : '☆');
-  return s;
+  const v = Math.max(0, Math.min(5, Number(n) || 0));
+  return `<span class="im-stars" style="--im-star-fill:${(v / 5 * 100).toFixed(1)}%"`
+       + ` role="img" aria-label="5점 만점에 ${v}점"></span>`;
 }
 function fmtDate(iso) {
   return iso ? iso.slice(0,10).replace(/-/g,'.') : '';

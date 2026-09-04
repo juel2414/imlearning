@@ -1063,10 +1063,12 @@ async function loadRealReviews() {
     if (!data || data.length === 0) { section.style.display = 'none'; return; }
     const dl = ['','reveal-delay-1','reveal-delay-2','','reveal-delay-1','reveal-delay-2'];
     g.innerHTML = data.map((r, i) => {
-      const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+      const rate = Math.max(0, Math.min(5, Number(r.rating) || 0));
+      const stars = '<span class="im-stars" style="--im-star-fill:' + (rate / 5 * 100).toFixed(1)
+                  + '%" role="img" aria-label="5점 만점에 ' + rate + '점"></span>';
       const first = (r.reviewer_display_name || '익명').charAt(0);
       return `<div class="lp-rcard reveal ${dl[i]}">
-        <div class="lp-rstars" style="color:#FBBF24;font-size:15px;">${stars}</div>
+        <div class="lp-rstars" style="font-size:15px;line-height:1;">${stars}</div>
         <p class="lp-rtext">"${esc(r.content)}"</p>
         <div class="lp-rauthor">
           <div class="lp-ravatar">${esc(first)}</div>
