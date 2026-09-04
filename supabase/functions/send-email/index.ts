@@ -413,6 +413,14 @@ Deno.serve(async (req: Request) => {
     if (type === 'new_course') {
       const role = profile?.role as string
       if (role !== 'admin' && role !== 'super_admin') return err(403, '관리자 권한이 필요합니다')
+
+      // 전체 발송은 쓰지 않기로 했다. 회원 1,314명에게 한 번 보내면 무료
+      // 한도(하루 100통)를 열 배 넘겨, 그날 결제·선물·문의 메일이 전부
+      // 같이 죽는다. 실제로 그렇게 한 번 막혔다.
+      // 다시 쓰려면 ALLOW_BROADCAST=true 를 넣으면 된다. 그전에 유료 플랜을
+      // 올려야 한다는 뜻이기도 하다.
+      if ((Deno.env.get('ALLOW_BROADCAST') ?? '') !== 'true')
+        return err(403, '전체 발송은 꺼져 있습니다. 무료 한도(하루 100통)를 넘겨 거래 메일까지 막히기 때문입니다.')
       // 광고성 안내이므로 수신을 끈 회원은 제외한다 (결제·수료·선물 메일은 영향 없음)
       const { data: allProfiles } = await adminClient.from('profiles')
         .select('email').not('email', 'is', null).eq('marketing_opt_in', true)

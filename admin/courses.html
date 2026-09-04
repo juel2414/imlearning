@@ -606,16 +606,10 @@ async function saveCourse() {
     await loadCourses();
     toggleForm();
     if (!editingId && courseData.status === 'active') {
+      // 전체 발송은 쓰지 않기로 했다. 회원 1,314명에게 한 번 보내면
+      // 무료 한도(하루 100통)를 훌쩍 넘겨, 그날 결제·선물·문의 메일이
+      // 전부 같이 죽는다. 서버에서도 막아 두었다.
       showToast('새 강좌가 추가됐습니다!');
-      var newId = result.data && result.data.id;
-      if (confirm('📢 전체 수강생에게 새 강좌 오픈 알림을 발송할까요?\n\n강좌: ' + courseData.title)) {
-        sendEmail('new_course', {
-          courseTitle: courseData.title,
-          courseId: newId,
-          thumbnailUrl: courseData.thumbnail_url || null,
-        });
-        showToast('📧 전체 수강생에게 알림 이메일을 발송 중입니다...');
-      }
     } else {
       showToast(editingId ? '강좌가 수정됐습니다! Supabase에 바로 반영됩니다.' : '새 강좌가 추가됐습니다!');
     }
@@ -850,7 +844,6 @@ function renderTable(list) {
         '<button class="btn-sm" style="border:1px solid #2D9B6F;color:#2D9B6F;" data-id="' + c.id + '" data-name="' + escHtml(c.title) + '" onclick="openLessonMgmt(+this.dataset.id, this.dataset.name)">강의</button>' +
         '<button class="btn-sm" style="border:1px solid #7C3AED;color:#7C3AED;" data-id="' + c.id + '" data-name="' + escHtml(c.title) + '" onclick="openFileMgmt(+this.dataset.id, this.dataset.name)">자료실</button>' +
         '<button class="btn-sm edit" onclick="editCourse(' + c.id + ')">수정</button>' +
-        (c.status === 'active' ? '<button class="btn-sm" style="border:1px solid #d97706;color:#d97706;" data-id="' + c.id + '" data-title="' + escHtml(c.title) + '" data-thumb="' + escHtml(c.thumbnail_url||'') + '" onclick="notifyCourse(+this.dataset.id, this.dataset.title, this.dataset.thumb)">📢</button>' : '') +
         '<button class="btn-sm del" onclick="deleteCourse(' + c.id + ')">삭제</button>' +
       '</div></td>' +
       '</tr>';
@@ -858,11 +851,6 @@ function renderTable(list) {
   return '<div class="table-wrap"><table><thead><tr><th>썸네일</th><th>강좌명</th><th>카테고리</th><th>난이도</th><th>강사</th><th>가격</th><th>강의수</th><th>상태</th><th>관리</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
-function notifyCourse(courseId, courseTitle, thumbnailUrl) {
-  if (!confirm('📢 전체 수강생에게 알림 이메일을 발송할까요?\n\n강좌: ' + courseTitle)) return;
-  sendEmail('new_course', { courseTitle: courseTitle, courseId: courseId, thumbnailUrl: thumbnailUrl || null });
-  showToast('📧 전체 수강생에게 알림 이메일을 발송 중입니다...');
-}
 
 function showToast(msg, isError) {
   var toast = document.getElementById('toast');
