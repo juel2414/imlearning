@@ -817,11 +817,12 @@
 
   function showNoticeBanner(notice) {
     if (document.getElementById(BANNER_ID)) return;
-    var typeMap = { notice:'📢 공지', event:'🎉 이벤트', info:'ℹ️ 안내' };
+    // 배지에는 글자만 둔다. 제목에도 이모지가 붙으면 한 줄에 두 개가 되어 산만하다.
+    var typeMap = { notice:'공지', event:'이벤트', info:'안내' };
     var banner = document.createElement('div');
     banner.id = BANNER_ID;
     banner.innerHTML =
-      '<span class="bnr-type">' + (typeMap[notice.type] || '📢 공지') + '</span>' +
+      '<span class="bnr-type">' + (typeMap[notice.type] || '공지') + '</span>' +
       '<span class="bnr-text">' + String(notice.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' +
       '<div class="bnr-right">' +
         (notice.content ? '<a href="notices.html" class="bnr-link">자세히 보기 →</a>' : '') +
