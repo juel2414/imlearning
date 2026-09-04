@@ -74,9 +74,14 @@ Deno.serve(async (req: Request) => {
   let evt: any = null;
   try { evt = JSON.parse(raw); } catch { return new Response('bad json', { status: 400 }); }
 
-  // 승인된 결제만 처리한다. 취소·실패는 별도 흐름이라 여기서 건드리지 않는다.
+  // 서명을 통과한 요청은 무엇이든 한 줄 남긴다. 나중에 "웹훅이 왔는데
+  // 왜 아무 일도 안 일어났나" 를 볼 때 이 줄이 있고 없고가 크다.
   const type = String(evt?.type ?? '');
+  console.log('[웹훅] 도착', type, evt?.data?.paymentId ?? '(결제번호 없음)');
+
+  // 승인된 결제만 처리한다. 취소·실패는 별도 흐름이라 여기서 건드리지 않는다.
   if (type !== 'Transaction.Paid') {
+    console.log('[웹훅] 처리 대상 아님 — 넘김', type);
     return new Response(JSON.stringify({ skipped: type }), { status: 200 });
   }
 
