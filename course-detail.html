@@ -1767,7 +1767,7 @@ async function requestPayment() {
       // 모바일 필수. 없으면 결제창 자체가 뜨지 않는다.
       // PC 는 이 값이 있어도 팝업 방식 그대로라 영향이 없다.
       redirectUrl: location.origin + location.pathname + '?id=' + currentCourse.id,
-      customData: JSON.stringify(payCtx),
+      customData: payCtx,   // 객체로 넘긴다. 문자열로 넣으면 SDK 가 한 번 더 감싼다.
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile?.name) c.fullName = profile.name;
@@ -1986,7 +1986,7 @@ async function requestGift() {
       payMethod: 'CARD',
       // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
       redirectUrl: location.origin + location.pathname + '?id=' + currentCourse.id,
-      customData: JSON.stringify(payCtx),
+      customData: payCtx,   // 객체로 넘긴다. 문자열로 넣으면 SDK 가 한 번 더 감싼다.
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile?.name) c.fullName = profile.name;

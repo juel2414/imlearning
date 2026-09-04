@@ -2926,7 +2926,7 @@ async function gmRequestGift() {
       payMethod: 'CARD',
       // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
       redirectUrl: location.origin + location.pathname + '?tab=gifts',
-      customData: JSON.stringify(payCtx),
+      customData: payCtx,   // 객체로 넘긴다. 문자열로 넣으면 SDK 가 한 번 더 감싼다.
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile.name) c.fullName = profile.name;

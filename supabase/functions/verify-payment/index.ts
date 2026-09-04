@@ -49,13 +49,25 @@ async function ownsCoupon(sb: any, couponId: string, userId: string): Promise<bo
   return issued.some((r: any) => r.user_id === userId);
 }
 
+// customData 를 꺼낸다. 브라우저가 문자열로 넣으면 포트원 SDK 가 그것을
+// 다시 한 번 문자열로 감싸 돌려준다. 그래서 한 번 파싱하면 객체가 아니라
+// 문자열이 나온다. 이걸 놓쳐서 결제를 통째로 흘렸다. 객체가 될 때까지 푼다.
+function parseCustomData(payment: any): any {
+  var v = payment && payment.customData;
+  for (var i = 0; i < 3; i++) {
+    if (v == null) return null;
+    if (typeof v === 'object') return v;
+    try { v = JSON.parse(v); } catch (e) { return null; }
+  }
+  return typeof v === 'object' ? v : null;
+}
+
 // 결제와 결제자를 묶는다. 예전에는 결제번호만 알면 남이 낸 돈으로 강좌를
 // 받아갈 수 있었다(먼저 검증하는 쪽이 가져간다). 결제 요청 때 넣어 둔
 // customData 에 요청자가 적혀 있으므로 그것과 맞춘다.
 // customData 가 붙기 전에 만들어진 결제에는 값이 없으므로 그대로 통과시킨다.
 function payerMismatch(payment: any, userId: string): boolean {
-  let ctx: any = null;
-  try { ctx = JSON.parse(payment?.customData || 'null'); } catch {}
+  const ctx = parseCustomData(payment);
   return !!(ctx && ctx.userId && ctx.userId !== userId);
 }
 
@@ -133,8 +145,7 @@ Deno.serve(async (req: Request) => {
       const payment = await pr.json();
       if (payment.status !== 'PAID') return err(`결제 미완료: ${payment.status}`);
 
-      let ctx: any = null;
-      try { ctx = JSON.parse(payment.customData || 'null'); } catch {}
+      const ctx: any = parseCustomData(payment);
       if (!ctx || !ctx.kind) return err('결제 정보를 복원하지 못했습니다');
       // 남의 결제번호를 넣어 남의 강좌를 받아가지 못하게 한다.
       if (ctx.userId && ctx.userId !== user.id) return err('결제자와 로그인 사용자가 다릅니다', 403);

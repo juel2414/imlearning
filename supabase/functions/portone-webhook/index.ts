@@ -11,6 +11,19 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 //   PORTONE_API_SECRET      결제 단건 조회용
 //   SUPABASE_SERVICE_ROLE_KEY / SUPABASE_URL
 
+// customData 를 꺼낸다. 브라우저가 문자열로 넣으면 포트원 SDK 가 그것을
+// 다시 한 번 문자열로 감싸 돌려준다. 그래서 한 번 파싱하면 객체가 아니라
+// 문자열이 나온다. 이걸 놓쳐서 결제를 통째로 흘렸다. 객체가 될 때까지 푼다.
+function parseCustomData(payment: any): any {
+  var v = payment && payment.customData;
+  for (var i = 0; i < 3; i++) {
+    if (v == null) return null;
+    if (typeof v === 'object') return v;
+    try { v = JSON.parse(v); } catch (e) { return null; }
+  }
+  return typeof v === 'object' ? v : null;
+}
+
 function b64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
@@ -121,8 +134,7 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ skipped: payment.status }), { status: 200 });
     }
 
-    let ctx: any = null;
-    try { ctx = JSON.parse(payment.customData || 'null'); } catch {}
+    const ctx: any = parseCustomData(payment);
     if (!ctx || !ctx.userId || !ctx.kind) {
       // customData 가 붙기 전에 만들어진 결제이거나 형식이 깨진 경우.
       // 사람이 확인해야 하므로 실패로 남겨 포트원이 재시도하지 않게 200 을 준다.
