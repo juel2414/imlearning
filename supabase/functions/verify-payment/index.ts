@@ -49,6 +49,16 @@ async function ownsCoupon(sb: any, couponId: string, userId: string): Promise<bo
   return issued.some((r: any) => r.user_id === userId);
 }
 
+// 결제와 결제자를 묶는다. 예전에는 결제번호만 알면 남이 낸 돈으로 강좌를
+// 받아갈 수 있었다(먼저 검증하는 쪽이 가져간다). 결제 요청 때 넣어 둔
+// customData 에 요청자가 적혀 있으므로 그것과 맞춘다.
+// customData 가 붙기 전에 만들어진 결제에는 값이 없으므로 그대로 통과시킨다.
+function payerMismatch(payment: any, userId: string): boolean {
+  let ctx: any = null;
+  try { ctx = JSON.parse(payment?.customData || 'null'); } catch {}
+  return !!(ctx && ctx.userId && ctx.userId !== userId);
+}
+
 function calcServerPrice(course: CourseRow, now: Date): number {
   let price = course.price ?? 0;
   if (course.discount_price != null) {
@@ -166,6 +176,7 @@ Deno.serve(async (req: Request) => {
         const payment = await pr.json();
         if (payment.status !== 'PAID') return err(`결제 미완료: ${payment.status}`);
         if (payment.amount?.total !== amount) return err('금액 불일치');
+        if (payerMismatch(payment, user.id)) return err('결제자와 로그인 사용자가 다릅니다', 403);
       }
       if (amount !== pass.price) return err(`결제금액 불일치 (예상: ${pass.price}원)`);
 
@@ -343,6 +354,7 @@ Deno.serve(async (req: Request) => {
       const payment = await pr.json();
       if (payment.status !== 'PAID') return err(`결제 미완료: ${payment.status}`);
       if (payment.amount?.total !== amount) return err('금액 불일치');
+      if (payerMismatch(payment, user.id)) return err('결제자와 로그인 사용자가 다릅니다', 403);
     }
 
     // ── 선물 결제 ────────────────────────────────────────────────────
