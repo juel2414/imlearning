@@ -1,0 +1,12 @@
+-- 쿠폰 조회와 후기 보상이 둘 다 죽어 있던 것을 고친다.
+--
+-- lookup_coupon: 반환 타입이 실제 컬럼과 어긋나 모든 호출이 42804 로 죽었다.
+--   coupons.id 는 uuid, min_amount 는 numeric 인데 bigint/integer 로
+--   선언돼 있었다. 쿠폰 코드 입력이 아예 동작하지 않았다.
+--
+-- reward_review: discount_type 에 'fixed' 를 넣는데 체크 제약은
+--   'rate'/'amount' 만 허용한다. 후기를 써도 쿠폰이 한 장도 발급되지
+--   않았다(후기 21건, 쿠폰 0건). 호출부가 오류를 버리고 있어 조용히 실패했다.
+--
+-- 실제 적용본은 Supabase 마이그레이션 fix_coupon_lookup_and_review_reward.
+-- 이 파일은 저장소에 기록으로 남긴다.

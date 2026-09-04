@@ -39,6 +39,16 @@ interface CourseRow {
   discount_end: string | null;
 }
 
+// 개인에게 발급된 쿠폰인지 확인한다. user_coupons 에 주인이 적혀 있으면
+// 그 사람만 쓸 수 있고, 아무 행도 없으면 공개 프로모션 코드로 본다.
+// 예전에는 이 확인이 없어 남의 쿠폰 코드를 알면 그대로 쓸 수 있었다.
+async function ownsCoupon(sb: any, couponId: string, userId: string): Promise<boolean> {
+  const { data: issued } = await sb.from('user_coupons')
+    .select('user_id').eq('coupon_id', couponId);
+  if (!issued || issued.length === 0) return true;         // 공개 쿠폰
+  return issued.some((r: any) => r.user_id === userId);
+}
+
 function calcServerPrice(course: CourseRow, now: Date): number {
   let price = course.price ?? 0;
   if (course.discount_price != null) {
@@ -255,28 +265,41 @@ Deno.serve(async (req: Request) => {
     // ── 무료 수강 신청 (amount === 0, 선물 아님) ──────────────────────
     if (isFree) {
       let allowFree = serverBasePrice === 0;
+      let freeCoupon: any = null;
+
       if (!allowFree && couponId) {
         const { data: coupon } = await sb.from('coupons')
-          .select('discount_type, discount_value, expires_at, max_uses, used_count, min_amount')
+          .select('code, discount_type, discount_value, expires_at, max_uses, used_count, min_amount')
           .eq('id', couponId).eq('status', 'active').single();
-        if (coupon) {
-          if (coupon.expires_at && new Date(coupon.expires_at) < now)
-            return err('만료된 쿠폰입니다');
-          if (coupon.max_uses != null && coupon.used_count >= coupon.max_uses)
-            return err('쿠폰 사용 한도를 초과했습니다');
-          const discounted = coupon.discount_type === 'rate'
-            ? serverBasePrice * (1 - coupon.discount_value / 100)
-            : serverBasePrice - coupon.discount_value;
-          allowFree = discounted <= 0;
-        }
+        if (!coupon) return err('유효하지 않은 쿠폰입니다');
+
+        if (coupon.expires_at && new Date(coupon.expires_at) < now)
+          return err('만료된 쿠폰입니다');
+        if (coupon.max_uses != null && coupon.used_count >= coupon.max_uses)
+          return err('쿠폰 사용 한도를 초과했습니다');
+        // 유료 경로에는 있는데 여기만 빠져 있었다. 최소 결제금액이 걸린
+        // 쿠폰을 0원 경로로 우회해서 쓸 수 있었다.
+        if (coupon.min_amount != null && serverBasePrice < coupon.min_amount)
+          return err(`최소 결제금액 ${Number(coupon.min_amount).toLocaleString('ko-KR')}원 이상 사용 가능한 쿠폰입니다`);
+        if (!(await ownsCoupon(sb, couponId, user.id)))
+          return err('본인에게 발급된 쿠폰이 아닙니다', 403);
+
+        const discounted = coupon.discount_type === 'rate'
+          ? serverBasePrice * (1 - coupon.discount_value / 100)
+          : serverBasePrice - coupon.discount_value;
+        allowFree = discounted <= 0;
+        freeCoupon = coupon;
       }
 
       if (!allowFree)
         return err('이 강좌는 무료 등록이 허용되지 않습니다.', 403);
 
-      if (couponCode) {
+      // 재사용 검사는 DB 가 가진 코드로 한다. 예전에는 브라우저가 보낸
+      // couponCode 로만 봐서, 그 값을 빼고 보내면 검사를 건너뛸 수 있었다.
+      const freeCode = freeCoupon?.code ?? couponCode;
+      if (freeCode) {
         const { data: prevUse } = await sb.from('orders')
-          .select('id').eq('user_id', user.id).eq('coupon_code', couponCode)
+          .select('id').eq('user_id', user.id).eq('coupon_code', freeCode)
           .eq('status', 'paid').maybeSingle();
         if (prevUse) return err('이미 사용한 쿠폰입니다');
       }
@@ -295,7 +318,7 @@ Deno.serve(async (req: Request) => {
         user_id: user.id, course_id: courseId_n, course_name: course.title ?? '강좌',
         payment_id: `free-${user.id}-${courseId}-${Date.now()}`,
         amount: 0, original_amount: originalAmount,
-        coupon_code: couponCode ?? null, status: 'paid', progress: 0,
+        coupon_code: freeCode ?? null, status: 'paid', progress: 0,
       }).select().single();
       if (orderError) return err(`주문 저장 실패: ${orderError.message}`, 500);
 
@@ -349,9 +372,10 @@ Deno.serve(async (req: Request) => {
 
     // ── 일반 결제: 서버사이드 쿠폰 검증 + 가격 확인 ────────────────
     let expectedAmount = serverBasePrice;
+    let paidCoupon: any = null;
     if (couponId) {
       const { data: coupon } = await sb.from('coupons')
-        .select('discount_type, discount_value, expires_at, max_uses, used_count, min_amount')
+        .select('code, discount_type, discount_value, expires_at, max_uses, used_count, min_amount')
         .eq('id', couponId).eq('status', 'active').single();
 
       if (!coupon)
@@ -363,15 +387,22 @@ Deno.serve(async (req: Request) => {
       if (coupon.min_amount != null && serverBasePrice < coupon.min_amount)
         return err(`최소 결제금액 ${Number(coupon.min_amount).toLocaleString('ko-KR')}원 이상 사용 가능한 쿠폰입니다`);
 
+      if (!(await ownsCoupon(sb, couponId, user.id)))
+        return err('본인에게 발급된 쿠폰이 아닙니다', 403);
+
       const discount = coupon.discount_type === 'rate'
         ? Math.floor(serverBasePrice * (coupon.discount_value / 100))
         : Number(coupon.discount_value);
       expectedAmount = Math.max(0, serverBasePrice - discount);
+      paidCoupon = coupon;
     }
 
-    if (couponCode) {
+    // 재사용 검사는 DB 가 가진 코드로 한다. 브라우저가 보낸 값만 보면
+    // 그 값을 빼고 보내는 것으로 검사를 건너뛸 수 있다.
+    const paidCode = paidCoupon?.code ?? couponCode;
+    if (paidCode) {
       const { data: prevUse } = await sb.from('orders')
-        .select('id').eq('user_id', user.id).eq('coupon_code', couponCode)
+        .select('id').eq('user_id', user.id).eq('coupon_code', paidCode)
         .eq('status', 'paid').maybeSingle();
       if (prevUse) return err('이미 사용한 쿠폰입니다');
     }
@@ -399,7 +430,7 @@ Deno.serve(async (req: Request) => {
     const { data: order, error: orderError } = await sb.from('orders').insert({
       user_id: user.id, course_id: courseId_n, course_name: course.title ?? '강좌',
       payment_id: paymentId, amount, original_amount: originalAmount,
-      coupon_code: couponCode ?? null, status: 'paid', progress: 0,
+      coupon_code: paidCode ?? null, status: 'paid', progress: 0,
     }).select().single();
     if (orderError) return err(`주문 저장 실패: ${orderError.message}`, 500);
 
