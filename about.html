@@ -24,7 +24,19 @@
     .about-hero-title { font-size: clamp(36px,5vw,60px); font-weight: 900; color: var(--black); letter-spacing: -2px; line-height: 1.15; margin-bottom: 1.5rem; }
     .about-hero-title em { color: var(--green); font-style: normal; }
     .about-hero-desc { font-size: 18px; color: var(--gray-700); line-height: 1.8; max-width: 580px; margin: 0 auto; }
-    .about-values { padding: 6rem 0; background: var(--gray-100); }
+    /* 가치 섹션: 히어로와 같은 숲이되 다른 자리를 썼다. 같은 크롭을 두 번
+       쓰면 배경을 반복해 붙인 티가 나기 때문이다. 흰 카드가 위에 얹히므로
+       베일은 히어로보다 조금 더 두껍다. */
+    .about-values {
+      padding: 6rem 0;
+      background-color: var(--gray-100);
+      background-image:
+        linear-gradient(180deg, rgba(255,255,255,.88) 0%, rgba(255,255,255,.78) 45%, rgba(255,255,255,.90) 100%),
+        image-set(url('images/about-values.webp') type('image/webp'), url('images/about-values.jpg') type('image/jpeg'));
+      background-size: cover, cover;
+      background-position: center, center 55%;
+      background-repeat: no-repeat;
+    }
     .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 3rem; }
     .value-card { background: var(--white); border-radius: var(--radius-lg); padding: 2rem; }
     .value-icon { font-size: 36px; margin-bottom: 1rem; }
@@ -35,7 +47,19 @@
     .story-text h2 { font-size: 32px; font-weight: 800; color: var(--black); margin-bottom: 1.5rem; letter-spacing: -0.5px; }
     .story-text p { font-size: 15px; color: var(--gray-500); line-height: 1.85; margin-bottom: 1rem; }
     .story-text strong { color: var(--black); font-weight: 700; }
-    .story-visual { background: linear-gradient(135deg,#e8f5ee,#c8eada); border-radius: var(--radius-xl); padding: 3rem; display: flex; align-items: center; justify-content: center; min-height: 280px; }
+    /* 로고 카드도 초록 그라데이션 대신 사진으로. 로고가 어두운 색이라
+       밝은 잎 부분을 골랐고, 베일은 로고가 읽힐 만큼만 덮었다. */
+    .story-visual {
+      background-color: #e8f5ee;
+      background-image:
+        linear-gradient(160deg, rgba(255,255,255,.60), rgba(255,255,255,.78)),
+        image-set(url('images/about-story.webp') type('image/webp'), url('images/about-story.jpg') type('image/jpeg'));
+      background-size: cover, cover;
+      background-position: center;
+      border-radius: var(--radius-xl); padding: 3rem;
+      display: flex; align-items: center; justify-content: center; min-height: 280px;
+      overflow: hidden;
+    }
     .story-visual img { max-width: 240px; width: 70%; height: auto; display: block; }
     @media(max-width:768px){
       .values-grid,.story-inner{grid-template-columns:1fr;}
