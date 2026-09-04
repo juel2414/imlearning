@@ -58,30 +58,30 @@
     }
 
     /* ── 배경 결 ────────────────────────────────────────────────────
-       린넨. 이 사이트가 파는 것은 결국 책이고, 양장 성경과 교재의 표지
-       천이 그것과 가장 가깝다. 짜임이 규칙적이라 위에 떠 있는 크리처나
-       카드와 싸우지 않는다.
+       잎맥. 소개 페이지의 숲 사진과 이어지고, "성장" 이라는 이 사이트의
+       말과 같은 것을 가리킨다.
 
-       세로실·가로실을 각각 한 겹씩 긋고 그 위에 고운 입자를 얹어 실이
-       기계로 그은 선처럼 보이지 않게 한다.
+       비교용으로 만든 것보다 무늬를 훨씬 키우고 옅게 잡았다. 화면 전면에
+       깔면 사선이 강해져, 떠다니는 크리처들과 방향이 부딪치기 때문이다.
+       한 화면에 잎 한 장이 겨우 지나가는 크기라 무늬로 읽히지 않고 결로만
+       남는다.
 
-       실 간격은 9px 다. 처음에 4px 로 촘촘하게 짰더니 화면에서 어른거려
-       눈이 아팠다. 화면 밀도에 따라 1px 선이 반 픽셀에 걸치면서 생기는
-       일이라, 간격을 벌려 주기를 낮추는 것으로 푼다.
-
-       혼합 모드는 쓰지 않는다. overlay 는 어두운 바탕에서 거의 아무 변화도
-       만들지 못해, 처음 넣었을 때 결이 아예 보이지 않았다. */
+       그 위에 고운 입자를 얹어 선이 붕 뜨지 않게 한다. 혼합 모드는 쓰지
+       않는다. overlay 는 어두운 바탕에서 거의 아무 변화도 만들지 못한다. */
     body::after {
       content: ''; position: fixed; inset: 0;
       z-index: 3; pointer-events: none;
-      opacity: .7;
+      opacity: .85;
       background-image:
-        repeating-linear-gradient(0deg,
-          rgba(251,247,241,.030) 0 1px, transparent 1px 9px),
-        repeating-linear-gradient(90deg,
-          rgba(251,247,241,.024) 0 1px, transparent 1px 9px),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E");
-      background-size: auto, auto, 200px 200px;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='760'%3E%3Cg fill='none' stroke='%23FBF7F1' stroke-opacity='0.055' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M-60 700 C 190 600 380 430 820 90'/%3E%3Cpath d='M120 780 C 330 660 500 500 860 230'/%3E%3Cpath d='M150 356 L 330 246'/%3E%3Cpath d='M232 442 L 420 330'/%3E%3Cpath d='M316 528 L 508 412'/%3E%3Cpath d='M400 614 L 596 496'/%3E%3Cpath d='M484 700 L 684 580'/%3E%3C/g%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+      background-size: 760px 760px, 200px 200px;
+    }
+    /* 배경은 화면에 고정돼 있어 좁은 화면에서는 무늬의 일부만 걸린다.
+       760px 그대로 두면 잎이 화면 밖으로 밀려 아무 결도 안 보이는 자리가
+       생긴다. 한 화면에 잎 하나가 들어오도록 줄인다. */
+    @media (max-width: 768px) {
+      body::after { background-size: 420px 420px, 200px 200px; }
     }
 
     .lp {
