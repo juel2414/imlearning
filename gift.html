@@ -165,12 +165,11 @@
   .gift-voucher-label { font-size: 11px; }
   .gift-voucher-label::before, .gift-voucher-label::after { width: 44px; }
   .gv-from { font-size: 14.5px; }
-  .gift-ribbon { padding: 24px 24px 44px; gap: 18px; }
-  .gift-ribbon-thumb { width: 84px; height: 84px; border-radius: 12px; }
-  .gift-ribbon-thumb img { width: 84px; height: 84px; border-radius: 12px; }
-  .gift-ribbon-title { font-size: 18px; }
-  .gift-code-row { padding: 26px 24px 46px; }
-  .gift-code-val { font-size: 27px; letter-spacing: 3px; }
+  .gift-ribbon { padding: 20px 20px 42px; }
+  .gift-ribbon-thumb { border-radius: 13px; margin-bottom: 16px; }
+  .gift-ribbon-title { font-size: 23px; }
+  .gift-code-row { padding: 22px 24px 46px; }
+  .gift-code-val { font-size: 15.5px; }
   .gift-expiry { font-size: 12.5px; }
   .gift-action-col { padding: 22px 20px 20px; border-radius: 22px; }
   .gift-pocket-note { font-size: 14px; }
@@ -180,29 +179,32 @@
   .gift-card-outer { max-width: 540px; }
   .gv-seal { width: 64px; height: 64px; }
   .gv-seal svg { width: 30px; height: 30px; }
-  .gift-ribbon-thumb, .gift-ribbon-thumb img { width: 96px; height: 96px; }
-  .gift-ribbon-title { font-size: 19.5px; }
-  .gift-code-val { font-size: 30px; }
+  .gift-ribbon-title { font-size: 26px; }
+  .gift-code-val { font-size: 16px; }
 }
 
-/* 표 본체 */
+/* 표 본체. 받는 사람이 제일 먼저 궁금한 것은 "뭘 받았지" 다.
+   그래서 강좌가 주인공이고 코드는 아래에 작게 둔다. 링크를 눌러 들어온
+   사람은 코드를 볼 일이 없고, 코드가 필요한 쪽은 직접 입력하는 사람이다. */
 .gift-ribbon {
   position: relative; z-index: 1;
   background: #FBF8F3; border-radius: 16px;
-  padding: 18px 18px 34px;          /* 아래는 주머니에 가려질 여백 */
-  display: flex; align-items: center; gap: 14px;
+  padding: 16px 16px 34px;          /* 아래는 주머니에 가려질 여백 */
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  text-align: center;
 }
 .gift-ribbon-thumb {
-  width: 64px; height: 64px; border-radius: 10px;
-  object-fit: cover; flex-shrink: 0; background: #D9E7DE;
+  width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 11px; overflow: hidden;
+  background: #D9E7DE;
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; overflow: hidden;
+  font-size: 30px; margin-bottom: 14px;
 }
-.gift-ribbon-thumb img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; }
+.gift-ribbon-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gift-ribbon-title {
-  font-size: 15px; font-weight: 700; color: #14281D;
-  line-height: 1.4; min-width: 0; word-break: keep-all;
+  font-size: 19px; font-weight: 800; color: #14281D;
+  line-height: 1.38; word-break: keep-all;
+  padding: 0 4px;
 }
 
 /* 뜯는 선과 양옆 구멍 */
@@ -219,11 +221,15 @@
 }
 .gift-code-row::before { left: -11px; }
 .gift-code-row::after  { right: -11px; }
+.gift-code-label {
+  display: block; font-size: 9.5px; letter-spacing: 1.6px; font-weight: 700;
+  color: #A79C8C; text-transform: uppercase; margin-bottom: 5px;
+}
 .gift-code-val {
   display: block;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 21px; font-weight: 700; letter-spacing: 2.5px;
-  color: #14281D; word-break: break-all; line-height: 1.25;
+  font-size: 14px; font-weight: 600; letter-spacing: 1.4px;
+  color: #5C6B60; word-break: break-all; line-height: 1.3;
 }
 .gift-expiry { display: block; margin-top: 8px; font-size: 11.5px; color: #9a9083; }
 
@@ -552,6 +558,7 @@
       '    <div class="gift-ribbon-title">' + esc(gift.course_title) + '</div>',
       '  </div>',
       '  <div class="gift-code-row">',
+      '    <span class="gift-code-label">교환 코드</span>',
       '    <span class="gift-code-val">' + esc(gift.gift_code || giftCode) + '</span>',
       '  </div>',
       '  <div class="gift-action-col">',
