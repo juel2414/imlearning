@@ -774,6 +774,65 @@ function renderSaving(rows, pass) {
   });
 }
 
+
+// ── 모바일 결제 복귀 처리 ────────────────────────────────────
+// 모바일은 결제창이 페이지 이동으로 뜨고 ?paymentId=... 를 달고 돌아온다.
+// requestPayment 의 반환값을 받을 수 없어 여기서 검증을 이어서 한다.
+async function handlePortonePayReturn() {
+  var qs = new URLSearchParams(location.search);
+  var paymentId = qs.get('paymentId');
+  if (!paymentId) return;
+
+  history.replaceState(null, '', location.pathname);   // 새로고침 시 재검증 방지
+
+  var ctx = null;
+  try {
+    ctx = JSON.parse(sessionStorage.getItem('im_pay') || 'null');
+    sessionStorage.removeItem('im_pay');
+  } catch (e) {}
+
+  var code = qs.get('code');
+  if (code) {
+    alert(code === 'FAILURE_TYPE_PG'
+      ? '결제에 실패했습니다: ' + (qs.get('message') || '오류가 발생했습니다.')
+      : '결제가 취소되었습니다.');
+    return;
+  }
+  if (!ctx || ctx.kind !== 'pass' || ctx.paymentId !== paymentId) {
+    alert('결제 정보를 확인하지 못했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
+    return;
+  }
+
+  try {
+    var s = await supabaseClient.auth.getSession();
+    var res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + s.data.session.access_token,
+      },
+      body: JSON.stringify({
+        paymentId: paymentId,
+        isPass:    true,
+        passId:    ctx.passId,
+        amount:    ctx.amount,
+      }),
+    });
+    var out = await res.json();
+    if (!out.success) {
+      alert('결제 검증 실패: ' + (out.error || '오류가 발생했습니다.') + '\n결제번호: ' + paymentId);
+      return;
+    }
+    window.location.href = 'payment-success.html'
+      + '?courseName=' + encodeURIComponent(ctx.passName || '프리패스')
+      + '&amount=' + ctx.amount
+      + '&isPass=true';
+  } catch (e) {
+    console.error('결제 복귀 처리 오류:', e);
+    alert('결제 확인 중 오류가 발생했습니다.\n결제번호: ' + paymentId);
+  }
+}
+
 async function loadPass() {
   try {
     const { data, error } = await supabaseClient.rpc('get_active_pass');
@@ -897,6 +956,18 @@ async function requestPassPayment() {
 
   const paymentId = crypto.randomUUID().replace(/-/g, '');
 
+  // 모바일은 결제창이 페이지 이동으로 뜬다. 돌아왔을 때 이어서 검증하려면
+  // 무엇을 결제하던 중이었는지 남겨 둬야 한다.
+  try {
+    sessionStorage.setItem('im_pay', JSON.stringify({
+      kind: 'pass',
+      paymentId: paymentId,
+      passId: passData.pass_id,
+      passName: passData.name,
+      amount: passData.price,
+    }));
+  } catch (e) {}
+
   try {
     const payment = await PortOne.requestPayment({
       storeId: PORTONE_STORE_ID,
@@ -906,6 +977,8 @@ async function requestPassPayment() {
       totalAmount: passData.price,
       currency: 'KRW',
       payMethod: 'CARD',
+      // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
+      redirectUrl: location.origin + location.pathname,
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile.name) c.fullName = profile.name;
@@ -961,6 +1034,7 @@ async function requestPassPayment() {
 }
 
 loadPass();
+handlePortonePayReturn();   // 모바일 결제창에서 돌아온 경우
 </script>
 </body>
 </html>
