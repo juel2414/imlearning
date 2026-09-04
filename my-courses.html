@@ -397,26 +397,26 @@ body {
 .gm-pay-btn:disabled { background:#C4C4C4; cursor:not-allowed; }
 
 /* Step 3 — 성공 카드 */
-.gm-success-card { background:#12211b; border:0.5px solid #2a4438; border-radius:16px; padding:24px 20px 20px; text-align:center; margin-bottom:1rem; }
-.gm-success-badge { font-size:10px; letter-spacing:2px; color:#8fae9c; text-transform:uppercase; margin-bottom:12px; }
-.gm-success-thumb { width:64px; height:42px; border-radius:8px; background:#1c2f26; margin:0 auto 12px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:22px; }
+/* 강좌 상세의 선물 완료 화면과 같은 톤으로 맞춘다. 교환권처럼 밝은 카드에
+   코드를 크게 놓고, 강좌는 조용히 뒤로 물린다. */
+.gm-success-card { position:relative; background:#FBF8F3; border:none; border-radius:18px; padding:22px 22px 18px; text-align:center; margin-bottom:1rem; box-shadow:0 10px 30px rgba(0,0,0,.10); }
+.gm-success-badge { font-size:10px; letter-spacing:2.5px; color:#9a9083; text-transform:uppercase; margin-bottom:14px; font-weight:700; }
+.gm-success-thumb { width:64px; height:44px; border-radius:9px; background:#D9E7DE; margin:0 auto 10px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:20px; }
 .gm-success-thumb img { width:100%; height:100%; object-fit:cover; }
-.gm-success-title { font-size:15px; font-weight:800; color:#fff; margin-bottom:4px; word-break:keep-all; }
-.gm-success-code { font-size:22px; font-weight:900; color:#c9a252; letter-spacing:3px; margin:14px 0 8px; font-family:monospace; }
-.gm-success-code-label { font-size:10px; color:#8fae9c; letter-spacing:1px; text-transform:uppercase; }
-/* grid 로 3칸을 고정하면 보낼 수 없는 수단을 감췄을 때 남은 버튼이
-   1/3 폭으로 쪼그라든다. flex 로 두면 보이는 것들끼리 나눠 갖는다 */
-.gm-success-btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-.gm-success-btn { flex:1 1 0; min-width:88px; padding:11px 6px; border-radius:9px; border:1px solid #2a4438; background:#1c2f26; color:#c9a252;
-  font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;
-  display:flex; flex-direction:column; align-items:center; gap:5px; line-height:1; transition:background .15s; }
-.gm-success-btn:hover { background:#243d30; }
+.gm-success-title { font-size:13.5px; font-weight:600; color:#1E3A2B; margin-bottom:2px; word-break:keep-all; line-height:1.45; }
+.gm-success-code-label { display:block; font-size:10px; color:#9a9083; letter-spacing:1.5px; text-transform:uppercase; margin-top:16px; padding-top:16px; border-top:1.5px dashed #E0D8CB; }
+.gm-success-code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:23px; font-weight:700; color:#14281D; letter-spacing:2.5px; margin:8px 0 0; word-break:break-all; line-height:1.25; }
+.gm-success-btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.gm-success-btn { flex:1 1 0; min-width:86px; padding:11px 6px; border-radius:11px; border:1px solid #E3DCD0; background:#fff; color:#2E4A3A;
+  font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; line-height:1;
+  display:flex; flex-direction:column; align-items:center; gap:5px; transition:transform .12s, box-shadow .12s; }
+.gm-success-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.07); }
 .gm-success-btn svg { width:19px; height:19px; display:block; }
-.gm-success-btn.kakao { background:#FEE500; border:none; color:#191600; }
+.gm-success-btn.kakao { background:#FEE500; border-color:#FEE500; color:#191600; font-weight:700; }
 .gm-success-btn.kakao:hover { background:#f5dd00; }
 /* 보낼 수 없는 수단은 버튼 자체를 감춘다 */
 .gm-success-btn[hidden] { display:none; }
-.gm-success-email { font-size:11px; color:#8fae9c; margin-top:10px; }
+.gm-success-email { font-size:11.5px; color:#9a9083; margin-top:10px; }
 .gm-footer { padding:.75rem 1.5rem 1.25rem; flex-shrink:0; }
 .gm-back-btn { background:none; border:none; color:#888; font-size:13px; cursor:pointer; padding:0; font-family:inherit; }
 .gm-back-btn:hover { color:#2D9B6F; }
@@ -1807,7 +1807,7 @@ async function loadGifts(userId) {
   function sentCard(g) {
     const title = courseNames[g.course_id] || '강좌';
     const date  = new Date(g.created_at).toLocaleDateString('ko-KR');
-    const link  = `https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/gift-preview?code=${encodeURIComponent(g.gift_code)}`;
+    const link  = `https://juel2414.github.io/imlearning/gift.html?code=${encodeURIComponent(g.gift_code)}`;
     const toStr = g.recipient_email ? ` → ${gEsc(g.recipient_email)}` : '';
     const cancelBtn = `<button class="gift-btn-cancel" data-gift-code="${gEsc(g.gift_code)}" data-gift-title="${gEsc(title)}" onclick="openGiftCancelModal(this.dataset.giftCode, this.dataset.giftTitle)">취소·환불</button>`;
     const refundBtn = `<button class="gift-btn-cancel" data-gift-code="${gEsc(g.gift_code)}" data-gift-title="${gEsc(title)}" onclick="openGiftCancelModal(this.dataset.giftCode, this.dataset.giftTitle)">환불</button>`;
@@ -2984,7 +2984,10 @@ async function gmRequestGift() {
 
 /** 선물 완료 화면. 결제 직후와 모바일 복귀 후가 같은 코드를 쓴다. */
 function gmShowGiftDone(giftCode, courseName, thumbUrl, recipientEmail) {
-  _gmShareLink = GM_SUPABASE + '/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
+  // 엣지 함수는 HTML 을 못 띄운다. Supabase 가 응답을 text/plain 으로 강제해서
+  // 받는 사람에게 소스 코드가 그대로 보였다. 실제 페이지로 바로 보낸다.
+  // 카카오 공유는 제목·이미지를 직접 실어 보내므로 미리보기 태그가 필요 없다.
+  _gmShareLink = 'https://juel2414.github.io/imlearning/gift.html?code=' + encodeURIComponent(giftCode);
 
   var doneThumb = document.getElementById('gm-done-thumb');
   if (doneThumb) {
