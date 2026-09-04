@@ -269,9 +269,19 @@ body {
 .gs-code-row { margin-top:16px; padding-top:14px; border-top:0.5px solid #2a4438; display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
 .gs-code { font-family:monospace; font-size:14px; letter-spacing:1px; color:#e9d18f; }
 .gs-validity { font-size:11px; color:#6d8a78; flex-shrink:0; }
-.gs-btns { display:flex; gap:8px; margin-top:16px; }
-.gs-btn { flex:1; padding:10px; font-size:13px; border-radius:8px; cursor:pointer; font-family:inherit; background:transparent; border:0.5px solid #4a6656; color:#e7ece8; }
-.gs-btn.gold { background:#c9a252; border:none; color:#1c1406; font-weight:600; }
+/* grid 로 3칸을 고정하면 보낼 수 없는 수단을 감췄을 때 남은 버튼이
+   1/3 폭으로 쪼그라든다. flex 로 두면 보이는 것들끼리 나눠 갖는다 */
+.gs-btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.gs-btn { flex:1 1 0; min-width:88px; padding:11px 6px; font-size:12.5px; border-radius:9px; cursor:pointer; font-family:inherit;
+  background:transparent; border:0.5px solid #4a6656; color:#e7ece8; font-weight:600;
+  display:flex; flex-direction:column; align-items:center; gap:5px; line-height:1; transition:background .15s; }
+.gs-btn:hover { background:rgba(255,255,255,.06); }
+.gs-btn svg { width:19px; height:19px; display:block; }
+.gs-btn.gold { background:#c9a252; border:none; color:#1c1406; font-weight:700; }
+.gs-btn.kakao { background:#FEE500; border:none; color:#191600; font-weight:700; }
+.gs-btn.kakao:hover { background:#f5dd00; }
+/* 보낼 수 없는 수단은 버튼 자체를 감춘다. 눌러도 아무 일 없는 버튼이 제일 나쁘다 */
+.gs-btn[hidden] { display:none; }
 .gs-email-notice { margin-top:10px; font-size:12px; color:#8fae9c; text-align:center; }
 .gs-close-btn { display:block; width:100%; margin-top:12px; padding:10px; font-size:13px; border-radius:8px; cursor:pointer; background:transparent; border:0.5px solid #2a4438; color:#6d8a78; font-family:inherit; }
 
@@ -841,8 +851,18 @@ body {
       <span class="gs-validity">발급일로부터 1년간 유효</span>
     </div>
     <div class="gs-btns">
-      <button class="gs-btn" onclick="copyGiftLink()">링크 복사</button>
-      <button class="gs-btn gold" onclick="shareGiftKakao()">공유하기</button>
+      <button class="gs-btn kakao" id="gs-kakao" hidden onclick="shareGiftKakao()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.9 3 2.8 6.2 2.8 10.2c0 2.5 1.7 4.7 4.2 6l-1 3.6c-.1.3.2.6.5.4l4.3-2.8c.4 0 .8.1 1.2.1 5.1 0 9.2-3.2 9.2-7.3S17.1 3 12 3Z"/></svg>
+        카카오톡
+      </button>
+      <button class="gs-btn" id="gs-sms" hidden onclick="shareGiftSms()">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 4H4a1.6 1.6 0 0 0-1.6 1.6v9.3A1.6 1.6 0 0 0 4 16.5h3.2V20l4-3.5H20a1.6 1.6 0 0 0 1.6-1.6V5.6A1.6 1.6 0 0 0 20 4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        문자
+      </button>
+      <button class="gs-btn gold" onclick="copyGiftLink()">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 5.5A2.5 2.5 0 0 0 13 4H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 1.5 2.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        링크 복사
+      </button>
     </div>
     <p class="gs-email-notice" id="gift-email-sent" style="display:none;">입력하신 이메일로도 발송했어요.</p>
     <button class="gs-close-btn" onclick="closeGiftSuccess()">닫기</button>
@@ -1512,6 +1532,7 @@ function showGiftSuccess(giftCode, courseName, thumbUrl, recipientEmail) {
   var sent = document.getElementById('gift-email-sent');
   if (sent) sent.style.display = recipientEmail ? '' : 'none';
 
+  setupGiftShareButtons();
   document.getElementById('gift-modal').classList.remove('open');
   document.getElementById('gift-success').classList.add('open');
 }
@@ -1805,14 +1826,69 @@ function copyGiftLink() {
   }).catch(() => { prompt('아래 링크를 복사해주세요:', link); });
 }
 
+// 카카오 JavaScript 키. developers.kakao.com 에서 앱을 만들고 도메인을 등록한 뒤 넣는다.
+// 비어 있으면 카카오톡 버튼은 아예 뜨지 않는다 — 눌러도 안 되는 버튼을 보여 주지 않으려는 것.
+const KAKAO_JS_KEY = '';
+
+function giftShareText() {
+  const name = (currentCourse && currentCourse.title) || '강의';
+  return '아이엠러닝에서 「' + name + '」 강의를 선물했어요.\n아래 링크에서 받아보세요.\n' + (window._giftShareLink || '');
+}
+
+/** 보낼 수 있는 수단만 버튼으로 남긴다. */
+function setupGiftShareButtons() {
+  const kakaoBtn = document.getElementById('gs-kakao');
+  const smsBtn   = document.getElementById('gs-sms');
+
+  // 문자는 휴대폰에서만 열린다. 데스크톱 브라우저는 sms: 를 처리하지 못한다.
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  if (smsBtn) smsBtn.hidden = !isMobile;
+
+  if (!kakaoBtn || !KAKAO_JS_KEY) return;
+  if (window.Kakao) { kakaoBtn.hidden = false; return; }
+  const s = document.createElement('script');
+  s.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
+  s.integrity = 'sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4';
+  s.crossOrigin = 'anonymous';
+  s.onload = function () {
+    try {
+      if (!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY);
+      kakaoBtn.hidden = false;
+    } catch (e) { console.error('Kakao 초기화 실패:', e); }
+  };
+  document.head.appendChild(s);
+}
+
 function shareGiftKakao() {
   const link = window._giftShareLink || '';
   if (!link) return;
-  if (navigator.share) {
-    navigator.share({ title: '아이엠러닝 강의 선물', url: link }).catch(() => {});
-  } else {
-    copyGiftLink();
+  if (window.Kakao && window.Kakao.Share) {
+    try {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: '아이엠러닝 강의 선물이 도착했어요',
+          description: (currentCourse && currentCourse.title) || '강의 선물',
+          imageUrl: (currentCourse && currentCourse.thumbnail_url) || (location.origin + '/imlearning/images/logo-horizontal.png'),
+          link: { mobileWebUrl: link, webUrl: link },
+        },
+        buttons: [{ title: '선물 받기', link: { mobileWebUrl: link, webUrl: link } }],
+      });
+      return;
+    } catch (e) { console.error('카카오 공유 실패:', e); }
   }
+  // SDK 를 못 쓰면 기기 공유창으로, 그것도 없으면 링크 복사로 물러난다
+  if (navigator.share) navigator.share({ title: '아이엠러닝 강의 선물', url: link }).catch(() => {});
+  else copyGiftLink();
+}
+
+function shareGiftSms() {
+  const link = window._giftShareLink || '';
+  if (!link) return;
+  // iOS 는 sms:&body=, 그 외는 sms:?body= 를 쓴다
+  const sep = /iP(hone|ad|od)/.test(navigator.userAgent) ? '&' : '?';
+  location.href = 'sms:' + sep + 'body=' + encodeURIComponent(giftShareText());
 }
 
 async function requestGift() {
