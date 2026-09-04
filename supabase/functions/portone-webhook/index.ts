@@ -74,19 +74,28 @@ Deno.serve(async (req: Request) => {
   let evt: any = null;
   try { evt = JSON.parse(raw); } catch { return new Response('bad json', { status: 400 }); }
 
-  // 서명을 통과한 요청은 무엇이든 한 줄 남긴다. 나중에 "웹훅이 왔는데
-  // 왜 아무 일도 안 일어났나" 를 볼 때 이 줄이 있고 없고가 크다.
-  const type = String(evt?.type ?? '');
-  console.log('[웹훅] 도착', type, evt?.data?.paymentId ?? '(결제번호 없음)');
+  // ── 결제번호 찾기 ────────────────────────────────────────────────
+  // 웹훅 본문 형식은 포트원 콘솔에서 고른 버전에 따라 다르다. 문서에 적힌
+  // {type, data:{paymentId}} 를 그대로 믿었다가, 실제로는 둘 다 비어 있어
+  // 결제 한 건을 통째로 놓쳤다. 그래서 형식에 기대지 않는다.
+  //
+  // 결제번호만 어떻게든 찾아내고, 결제가 성사됐는지는 포트원에 직접
+  // 물어본다. 이벤트 이름을 못 읽어도, 새 필드가 생겨도 흔들리지 않는다.
+  const raw2: any = evt ?? {};
+  const d: any = raw2.data ?? raw2;
+  const paymentId =
+    d.paymentId ?? d.payment_id ?? d.merchant_uid ?? d.id ??
+    raw2.paymentId ?? raw2.payment_id ?? raw2.merchant_uid ?? null;
 
-  // 승인된 결제만 처리한다. 취소·실패는 별도 흐름이라 여기서 건드리지 않는다.
-  if (type !== 'Transaction.Paid') {
-    console.log('[웹훅] 처리 대상 아님 — 넘김', type);
-    return new Response(JSON.stringify({ skipped: type }), { status: 200 });
+  const type = String(raw2.type ?? raw2.event ?? '');
+  console.log('[웹훅] 도착', type || '(형식 미상)', paymentId ?? '(결제번호 없음)');
+
+  if (!paymentId) {
+    // 무엇이 왔는지 남겨야 다음에 고칠 수 있다. 서명을 통과한 요청이므로
+    // 포트원이 보낸 것이 맞다.
+    console.error('[웹훅] 결제번호를 찾지 못함 — 본문:', raw.slice(0, 600));
+    return new Response(JSON.stringify({ ok: false, reason: 'no_payment_id' }), { status: 200 });
   }
-
-  const paymentId = evt?.data?.paymentId;
-  if (!paymentId) return new Response('no paymentId', { status: 400 });
 
   try {
     // ── 결제 단건 조회 ───────────────────────────────────────────────
@@ -99,7 +108,9 @@ Deno.serve(async (req: Request) => {
       return new Response('lookup failed', { status: 502 });
     }
     const payment = await pr.json();
+    // 성사 여부는 이벤트 이름이 아니라 실제 결제 상태로 판단한다.
     if (payment.status !== 'PAID') {
+      console.log('[웹훅] 승인 상태가 아님 — 넘김', paymentId, payment.status);
       return new Response(JSON.stringify({ skipped: payment.status }), { status: 200 });
     }
 
