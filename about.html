@@ -6,53 +6,51 @@
   <title>About Us — 아이엠러닝</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    /* ── 배경 사진 한 장 ──────────────────────────────────────────────
-       섹션마다 따로 깔면 경계에서 사진이 툭툭 끊긴다. 화면에 고정한
-       레이어 하나를 두고 내용이 그 위로 흐르게 하면 같은 숲을 계속
-       걸어가는 것처럼 보인다. background-attachment:fixed 는 iOS 에서
-       튀기 때문에 고정 요소로 만든다. 스크롤에 따라 아주 조금 밀어
-       움직임을 준다(--bg-shift). */
-    html { background: var(--white); }
-    body { background: transparent; }
-    body::before {
-      content: '';
-      position: fixed;
-      top: -6vh; left: 0; right: 0; bottom: -6vh;
-      z-index: 0;
-      background-image:
-        image-set(url('images/about-bg.webp') type('image/webp'), url('images/about-bg.jpg') type('image/jpeg'));
-      background-size: cover;
-      background-position: center 40%;
-      background-repeat: no-repeat;
-      transform: translate3d(0, var(--bg-shift, 0px), 0);
-      will-change: transform;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      body::before { transform: none; }
-    }
-    /* 배경 사진은 페이지 전체에 한 장만 깔린다(body::before). 각 섹션은
-       그 위에 흰 베일만 덮어, 스크롤해도 같은 숲이 계속 이어져 보인다. */
+    /* ── 히어로 ────────────────────────────────────────────────────
+       메인 히어로와 같은 장치를 쓴다. 사진 위에 같은 다크 네이비를 덮고
+       흰 글씨를 올린다. 두 페이지가 같은 방식으로 열려야 한 사이트로
+       읽힌다. 색값은 index.html 의 .lp-hero / .hero-overlay 와 맞췄다. */
     .about-hero {
       position: relative;
-      padding: 8.5rem 0 7.5rem;
+      display: flex; align-items: center;
+      min-height: 52vh;
+      padding: 7rem 0 6rem;
       text-align: center;
-      background:
-        radial-gradient(100% 78% at 50% 44%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.80) 42%, rgba(255,255,255,.42) 74%, rgba(255,255,255,.16) 100%);
+      background: linear-gradient(160deg,#0b1d2e 0%,#152d45 100%);
+      overflow: hidden;
     }
-    /* 배경(0층) 위에 내용(1층). 층을 적어 두지 않으면 고정 배경이
-       본문을 덮어 버린다. */
-    .about-hero, .about-values, .about-story, .footer { position: relative; z-index: 1; }
+    .about-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background-image:
+        image-set(url('images/about-bg.webp') type('image/webp'), url('images/about-bg.jpg') type('image/jpeg'));
+      background-size: cover; background-position: center 42%;
+    }
+    .about-hero::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        rgba(10,24,44,.88) 0%,
+        rgba(14,30,52,.80) 50%,
+        rgba(10,22,40,.86) 100%);
+    }
+    /* 메인의 .lp-eyebrow 와 같은 표식. 이모지는 뺐다. */
+    .about-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(78,200,140,.15); border: 1px solid rgba(78,200,140,.35);
+      color: #5ecf96; font-size: 12px; font-weight: 700;
+      padding: 7px 16px; border-radius: 30px; margin-bottom: 1.5rem;
+      letter-spacing: .5px;
+    }
     .about-hero > .container { position: relative; z-index: 1; }
-    .about-hero-title { font-size: clamp(36px,5vw,60px); font-weight: 900; color: var(--black); letter-spacing: -2px; line-height: 1.15; margin-bottom: 1.5rem; }
-    .about-hero-title em { color: var(--green); font-style: normal; }
-    .about-hero-desc { font-size: 18px; color: var(--gray-700); line-height: 1.8; max-width: 580px; margin: 0 auto; }
+    .about-hero-title { font-size: clamp(36px,5vw,60px); font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1.15; margin-bottom: 1.5rem; }
+    .about-hero-title em { color: #5ecf96; font-style: normal; }
+    .about-hero-desc { font-size: 18px; color: rgba(255,255,255,.70); line-height: 1.8; max-width: 580px; margin: 0 auto; }
     .about-values { padding: 6rem 0; background: var(--gray-100); }
     .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 3rem; }
     .value-card { background: var(--white); border-radius: var(--radius-lg); padding: 2rem; }
     .value-icon { font-size: 36px; margin-bottom: 1rem; }
     .value-title { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 8px; }
     .value-desc { font-size: 14px; color: var(--gray-500); line-height: 1.7; }
-    .about-story { padding: 6rem 0; background: rgba(255,255,255,.86); }
+    .about-story { padding: 6rem 0; background: #fff; }
     .story-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
     .story-text h2 { font-size: 32px; font-weight: 800; color: var(--black); margin-bottom: 1.5rem; letter-spacing: -0.5px; }
     .story-text p { font-size: 15px; color: var(--gray-500); line-height: 1.85; margin-bottom: 1rem; }
@@ -61,12 +59,7 @@
     .story-visual img { max-width: 240px; width: 70%; height: auto; display: block; }
     @media(max-width:768px){
       .values-grid,.story-inner{grid-template-columns:1fr;}
-      /* 좁은 화면은 글이 배경 위에 더 크게 얹히므로 베일을 조금 더 덮는다. */
-      .about-hero {
-        padding: 5.5rem 0 4.5rem;
-        background:
-          radial-gradient(125% 68% at 50% 38%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.86) 45%, rgba(255,255,255,.52) 78%, rgba(255,255,255,.26) 100%);
-      }
+      .about-hero { min-height: 0; padding: 5rem 0 4rem; }
     }
   </style>
 </head>
@@ -90,7 +83,7 @@
 
 <section class="about-hero">
   <div class="container">
-    <div class="hero-badge reveal" style="justify-content:center;">🏃 I'M Learning, I'M Running!</div>
+    <div class="about-eyebrow reveal">I'M Learning · I'M Running</div>
     <h1 class="about-hero-title reveal">배움이<br><em>삶이 되는</em> 곳</h1>
     <p class="about-hero-desc reveal">아이엠러닝은 신앙과 교육이 하나로 연결되는 온라인 강의 플랫폼입니다. 배운 것이 현장에서 살아있는 변화가 되도록 함께합니다.</p>
   </div>
@@ -159,21 +152,5 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
-<script>
-// 배경을 스크롤 양의 12% 만큼만 민다. 화면에 고정된 레이어라 이 정도만
-// 어긋나도 내용이 사진 위를 지나가는 느낌이 난다. 더 키우면 산만해진다.
-(function () {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  var root = document.documentElement, ticking = false;
-  function apply() {
-    root.style.setProperty('--bg-shift', (window.scrollY * -0.12).toFixed(1) + 'px');
-    ticking = false;
-  }
-  window.addEventListener('scroll', function () {
-    if (!ticking) { ticking = true; requestAnimationFrame(apply); }
-  }, { passive: true });
-  apply();
-})();
-</script>
 </body>
 </html>
