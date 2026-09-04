@@ -93,7 +93,14 @@
       border: 1px solid rgba(255,255,255,0.18);
       border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
+      flex-shrink: 0;
+    }
+    /* 이모지는 기기마다 모양과 색이 달라 나머지 디자인과 따로 논다.
+       같은 굵기의 선 아이콘으로 통일한다. */
+    .contact-icon svg { width: 20px; height: 20px; display: block; }
+    .contact-icon svg path, .contact-icon svg circle, .contact-icon svg rect, .contact-icon svg line {
+      stroke: rgba(255,255,255,.86); stroke-width: 1.6; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
     }
     .contact-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.48); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
     .contact-value { font-size: 14px; color: rgba(255,255,255,0.92); line-height: 1.7; font-weight: 500; }
@@ -142,21 +149,21 @@
         <h1>무엇이든<br>물어보세요</h1>
         <p>강좌 수강 문의, 프리패스 상담, 단체 수강 등<br>어떤 질문이든 환영합니다. 빠르게 답변드리겠습니다.</p>
         <div class="contact-item">
-          <div class="contact-icon">📞</div>
+          <div class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.3 3.5h3l1.5 3.7-1.9 1.2a12.5 12.5 0 0 0 5.7 5.7l1.2-1.9 3.7 1.5v3a1.8 1.8 0 0 1-2 1.8A15.6 15.6 0 0 1 4.5 5.5a1.8 1.8 0 0 1 1.8-2Z"/></svg></div>
           <div>
             <div class="contact-label">전화</div>
             <div class="contact-value">010-5307-6139</div>
           </div>
         </div>
         <div class="contact-item">
-          <div class="contact-icon">📍</div>
+          <div class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6.5-5.4 6.5-10.2A6.5 6.5 0 0 0 5.5 10.8C5.5 15.6 12 21 12 21Z"/><circle cx="12" cy="10.5" r="2.4"/></svg></div>
           <div>
             <div class="contact-label">주소</div>
             <div class="contact-value">충청남도 논산시 해월로144번길 1<br>101-비02호</div>
           </div>
         </div>
         <div class="contact-item">
-          <div class="contact-icon">📱</div>
+          <div class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.1" cy="6.9" r=".9" style="fill:rgba(255,255,255,.86);stroke:none"/></svg></div>
           <div>
             <div class="contact-label">인스타그램</div>
             <div class="contact-value">@im_learning2414</div>
