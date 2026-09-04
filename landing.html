@@ -65,6 +65,10 @@
        세로실·가로실을 각각 한 겹씩 긋고 그 위에 고운 입자를 얹어 실이
        기계로 그은 선처럼 보이지 않게 한다.
 
+       실 간격은 9px 다. 처음에 4px 로 촘촘하게 짰더니 화면에서 어른거려
+       눈이 아팠다. 화면 밀도에 따라 1px 선이 반 픽셀에 걸치면서 생기는
+       일이라, 간격을 벌려 주기를 낮추는 것으로 푼다.
+
        혼합 모드는 쓰지 않는다. overlay 는 어두운 바탕에서 거의 아무 변화도
        만들지 못해, 처음 넣었을 때 결이 아예 보이지 않았다. */
     body::after {
@@ -73,9 +77,9 @@
       opacity: .7;
       background-image:
         repeating-linear-gradient(0deg,
-          rgba(251,247,241,.035) 0 1px, transparent 1px 4px),
+          rgba(251,247,241,.030) 0 1px, transparent 1px 9px),
         repeating-linear-gradient(90deg,
-          rgba(251,247,241,.028) 0 1px, transparent 1px 4px),
+          rgba(251,247,241,.024) 0 1px, transparent 1px 9px),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E");
       background-size: auto, auto, 200px 200px;
     }
