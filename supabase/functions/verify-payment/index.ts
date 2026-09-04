@@ -53,11 +53,24 @@ async function ownsCoupon(sb: any, couponId: string, userId: string): Promise<bo
 // 다시 한 번 문자열로 감싸 돌려준다. 그래서 한 번 파싱하면 객체가 아니라
 // 문자열이 나온다. 이걸 놓쳐서 결제를 통째로 흘렸다. 객체가 될 때까지 푼다.
 function parseCustomData(payment: any): any {
-  var v = payment && payment.customData;
-  for (var i = 0; i < 3; i++) {
+  let v: any = payment && payment.customData;
+  for (let i = 0; i < 4; i++) {
     if (v == null) return null;
     if (typeof v === 'object') return v;
-    try { v = JSON.parse(v); } catch (e) { return null; }
+    const t = String(v).trim();
+    if (!t) return null;
+    // 이니시스가 한글을 막아 base64 로 감싸 보낸다. 순수 base64 글자만
+    // 있으면 먼저 풀어 본다. JSON 문자열은 { " 가 있어 여기 걸리지 않는다.
+    if (/^[A-Za-z0-9+/]+={0,2}$/.test(t) && t.length % 4 === 0) {
+      try {
+        const bin = atob(t);
+        const bytes = new Uint8Array(bin.length);
+        for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+        v = new TextDecoder().decode(bytes);
+        continue;
+      } catch { /* base64 가 아니었다 */ }
+    }
+    try { v = JSON.parse(t); } catch { return null; }
   }
   return typeof v === 'object' ? v : null;
 }

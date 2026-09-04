@@ -2936,7 +2936,7 @@ async function gmRequestGift() {
       payMethod: 'CARD',
       // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
       redirectUrl: location.origin + location.pathname + '?tab=gifts',
-      customData: payCtx,   // 객체로 넘긴다. 문자열로 넣으면 SDK 가 한 번 더 감싼다.
+      customData: imPackCtx(payCtx),
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile.name) c.fullName = profile.name;
@@ -3046,6 +3046,26 @@ async function imWaitForSession(sb, tries) {
     await new Promise(function (r) { setTimeout(r, 300); });
   }
   return null;
+}
+
+// 이니시스는 merchantData(=customData)에 한글을 허용하지 않는다. 강좌명과
+// 메시지가 한글이라 PC 결제가 [V023] 로 막혔다. 서버가 실제로 필요한 값만
+// 추려 base64 로 감싼다. 화면에 쓰는 강좌명·썸네일은 sessionStorage 에만
+// 두면 되고, 서버는 강좌를 번호로 다시 조회한다.
+function imPackCtx(ctx) {
+  var slim = {
+    kind: ctx.kind, paymentId: ctx.paymentId, userId: ctx.userId,
+    courseId: ctx.courseId, amount: ctx.amount,
+    couponCode: ctx.couponCode, couponId: ctx.couponId,
+    recipientEmail: ctx.recipientEmail, message: ctx.message,
+    passId: ctx.passId,
+  };
+  Object.keys(slim).forEach(function (k) { if (slim[k] == null) delete slim[k]; });
+  var json = JSON.stringify(slim);
+  var bytes = new TextEncoder().encode(json);
+  var bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
 }
 
 async function gmHandlePayReturn() {
