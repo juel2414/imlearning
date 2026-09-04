@@ -1921,8 +1921,8 @@ function copyGiftLink() {
 const KAKAO_JS_KEY = '287442d5aeab31a7863cc9e4fcc435f1';
 
 function giftShareText() {
-  const name = window._giftShareTitle || (currentCourse && currentCourse.title) || '강의';
-  return '아이엠러닝에서 「' + name + '」 강의를 선물했어요.\n아래 링크에서 받아보세요.\n' + (window._giftShareLink || '');
+  // 문자도 강좌를 밝히지 않는다.
+  return '딩동~ 아이엠러닝에서 선물이 도착했어요.\n무엇이 들어있을까요? 아래 링크에서 확인해보세요.\n' + (window._giftShareLink || '');
 }
 
 /** 보낼 수 있는 수단만 버튼으로 남긴다. */
@@ -1964,15 +1964,15 @@ function shareGiftKakao() {
     try {
       window.Kakao.Share.sendDefault({
         objectType: 'feed',
+        // 카드에서는 무엇을 받는지 밝히지 않는다. 자세한 이유는
+        // my-courses 의 같은 자리 참고.
         content: {
-          title: window._giftShareTitle
-            ? '「' + window._giftShareTitle + '」 강의를 선물받으셨어요'
-            : '아이엠러닝 강의 선물이 도착했어요',
-          description: '아이엠러닝에서 바로 수강하실 수 있어요',
-          imageUrl: window._giftShareThumb || (location.origin + '/imlearning/images/logo-horizontal.png'),
+          title: '딩동~ 선물이 도착했어요',
+          description: '무엇이 들어있을까요? 눌러서 확인해보세요',
+          imageUrl: 'https://juel2414.github.io/imlearning/images/gift-share-card.png',
           link: { mobileWebUrl: link, webUrl: link },
         },
-        buttons: [{ title: '선물 받기', link: { mobileWebUrl: link, webUrl: link } }],
+        buttons: [{ title: '선물 열어보기', link: { mobileWebUrl: link, webUrl: link } }],
       });
       return;
     } catch (e) { console.error('카카오 공유 실패:', e); }
