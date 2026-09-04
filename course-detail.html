@@ -1697,7 +1697,12 @@ async function requestPayment() {
     const originalBtnText = btn.textContent;
     btn.textContent = '등록 중...';
     try {
-      const { data: { session } } = await supabaseClient.auth.getSession();
+      const session = await imWaitForSession(supabaseClient);
+      if (!session) {
+        alert('로그인 확인에 실패했습니다.\n결제번호: ' + (typeof paymentId !== 'undefined' ? paymentId : '')
+            + '\n\n다시 로그인하시면 이어서 처리됩니다.');
+        return;
+      }
       const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
         method: 'POST',
         headers: {
@@ -1782,7 +1787,12 @@ async function requestPayment() {
 
     // 결제 성공 → Edge Function(verify-payment)으로 서버 검증 및 orders 저장
     btn.textContent = '결제 확인 중...';
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const session = await imWaitForSession(supabaseClient);
+    if (!session) {
+      alert('로그인 확인에 실패했습니다.\n결제번호: ' + (typeof paymentId !== 'undefined' ? paymentId : '')
+          + '\n\n다시 로그인하시면 이어서 처리됩니다.');
+      return;
+    }
 
     const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
       method: 'POST',
@@ -1993,7 +2003,12 @@ async function requestGift() {
     }
 
     btn.textContent = '선물 코드 발급 중...';
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const session = await imWaitForSession(supabaseClient);
+    if (!session) {
+      alert('로그인 확인에 실패했습니다.\n결제번호: ' + (typeof paymentId !== 'undefined' ? paymentId : '')
+          + '\n\n다시 로그인하시면 이어서 처리됩니다.');
+      return;
+    }
 
     const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
       method: 'POST',

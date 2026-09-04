@@ -1021,7 +1021,12 @@ async function requestPassPayment() {
     }
 
     // 서버 검증
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const session = await imWaitForSession(supabaseClient);
+    if (!session) {
+      alert('로그인 확인에 실패했습니다.\n결제번호: ' + (typeof paymentId !== 'undefined' ? paymentId : '')
+          + '\n\n다시 로그인하시면 이어서 처리됩니다.');
+      return;
+    }
     const verifyRes = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
       method: 'POST',
       headers: {
