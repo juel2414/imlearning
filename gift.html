@@ -69,53 +69,84 @@
 .gift-env-btn:hover { opacity: .9; }
 
 /* ── 화면 B: 교환권 카드 ── */
-.gift-voucher {
-  background: #12211b; border: 0.5px solid #2a4438;
-  border-radius: 16px; padding: 24px 20px 20px;
-}
+/* ── 선물 교환권 ────────────────────────────────────────────────────
+   받는 사람이 보는 화면이다. 교환권을 주머니에 꽂아 둔 모양으로 만든다.
+   위쪽 표에는 무엇을 받았는지, 아래 주머니에는 유효기간과 받기 버튼.
+   주머니가 표의 아랫부분을 덮어야 "꽂혀 있다" 는 느낌이 난다. */
+.gift-voucher { position: relative; }
 .gift-voucher-label {
-  text-align: center; font-size: 10px; letter-spacing: 2px;
-  color: #8fae9c; margin-bottom: 16px; text-transform: uppercase;
+  text-align: center; font-size: 10px; letter-spacing: 2.5px; font-weight: 700;
+  color: #8fae9c; margin-bottom: 14px; text-transform: uppercase;
 }
+
+/* 표 본체 */
 .gift-ribbon {
-  background: linear-gradient(180deg, #e9d18f 0%, #c9a252 50%, #e9d18f 100%);
-  border-radius: 10px; padding: 14px;
+  position: relative; z-index: 1;
+  background: #FBF8F3; border-radius: 16px;
+  padding: 18px 18px 34px;          /* 아래는 주머니에 가려질 여백 */
   display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
 }
 .gift-ribbon-thumb {
-  width: 60px; height: 60px; border-radius: 8px;
-  object-fit: cover; flex-shrink: 0;
-  background: #3d5648;
+  width: 64px; height: 64px; border-radius: 10px;
+  object-fit: cover; flex-shrink: 0; background: #D9E7DE;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; overflow: hidden;
+  font-size: 24px; overflow: hidden;
 }
-.gift-ribbon-thumb img {
-  width: 60px; height: 60px; border-radius: 8px; object-fit: cover;
-}
+.gift-ribbon-thumb img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; }
 .gift-ribbon-title {
-  font-size: 14px; font-weight: 500; color: #2c2107;
-  line-height: 1.4; min-width: 0;
+  font-size: 15px; font-weight: 700; color: #14281D;
+  line-height: 1.4; min-width: 0; word-break: keep-all;
 }
+
+/* 뜯는 선과 양옆 구멍 */
 .gift-code-row {
-  margin-top: 16px; padding-top: 14px;
-  border-top: 0.5px solid #2a4438;
-  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  position: relative; z-index: 1;
+  margin: -22px 0 0; padding: 20px 18px 38px;
+  background: #FBF8F3;
+  border-top: 1.5px dashed #E0D8CB;
+  text-align: center;
 }
+.gift-code-row::before, .gift-code-row::after {
+  content: ''; position: absolute; top: -11px; width: 22px; height: 22px;
+  border-radius: 50%; background: #080f0b;
+}
+.gift-code-row::before { left: -11px; }
+.gift-code-row::after  { right: -11px; }
 .gift-code-val {
-  font-family: monospace; font-size: 15px;
-  letter-spacing: 1px; color: #e9d18f;
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 21px; font-weight: 700; letter-spacing: 2.5px;
+  color: #14281D; word-break: break-all; line-height: 1.25;
 }
-.gift-expiry { font-size: 11px; color: #6d8a78; flex-shrink: 0; }
-.gift-action-col { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.gift-expiry { display: block; margin-top: 8px; font-size: 11.5px; color: #9a9083; }
+
+/* 주머니. 표의 아랫부분을 덮어 꽂힌 것처럼 보이게 한다. */
+.gift-action-col {
+  position: relative; z-index: 2;
+  margin-top: -18px;
+  background: linear-gradient(180deg, #2D9B6F 0%, #23815C 100%);
+  border-radius: 18px;
+  padding: 18px 16px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 14px 34px rgba(0,0,0,.4);
+}
+.gift-pocket-note {
+  text-align: center; font-size: 12.5px; font-weight: 600;
+  color: rgba(255,255,255,.9); letter-spacing: .2px;
+}
 .gift-action-btn {
-  width: 100%; padding: 12px; font-size: 14px;
-  border-radius: 8px; cursor: pointer; font-family: inherit;
-  background: transparent; border: 0.5px solid #4a6656; color: #e7ece8;
+  width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
+  border-radius: 12px; cursor: pointer; font-family: inherit;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  color: #fff; transition: background .15s;
 }
+.gift-action-btn:hover { background: rgba(255,255,255,.22); }
 .gift-action-btn.gold {
-  background: #c9a252; border: none;
-  color: #1c1406; font-weight: 700;
+  background: #FBF8F3; border: none;
+  color: #14281D; font-weight: 800;
 }
+.gift-action-btn.gold:hover { background: #fff; }
 
 /* ── 코드 입력 ── */
 .gift-code-input-wrap {
@@ -300,9 +331,9 @@
       '  </div>',
       '  <div class="gift-code-row">',
       '    <span class="gift-code-val">' + esc(gift.gift_code || giftCode) + '</span>',
-      '    <span class="gift-expiry">' + esc(expiryStr) + '</span>',
       '  </div>',
       '  <div class="gift-action-col">',
+      '    <div class="gift-pocket-note">' + esc(expiryStr) + '</div>',
       actionHtml,
       lockNotice,
       '  </div>',
