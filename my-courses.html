@@ -375,6 +375,12 @@ body {
 .gm-search { width:100%; padding:10px 14px; border:1.5px solid rgba(0,0,0,.1); border-radius:10px; font-size:14px; box-sizing:border-box; margin-bottom:12px; font-family:inherit; }
 .gm-search:focus { outline:none; border-color:#2D9B6F; }
 .gm-course-list { display:flex; flex-direction:column; gap:8px; }
+/* 시리즈 구분선. 목록을 끊어 주되 강좌보다 앞서 보이면 안 된다. */
+.gm-series { display:flex; align-items:center; gap:8px; margin:14px 2px 2px; }
+.gm-series:first-child { margin-top:2px; }
+.gm-series span { font-size:12.5px; font-weight:800; color:#2E4A3A; flex:none; }
+.gm-series b { font-size:10.5px; font-weight:700; color:#2D9B6F; background:#E8F5EE; padding:2px 7px; border-radius:20px; flex:none; }
+.gm-series::after { content:''; flex:1; height:1px; background:rgba(0,0,0,.07); }
 .gm-course-item { display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; border:1.5px solid rgba(0,0,0,.08); cursor:pointer; transition:all .15s; }
 .gm-course-item:hover { border-color:#2D9B6F; background:#f0fdf8; }
 .gm-course-thumb { width:56px; height:38px; border-radius:6px; background:linear-gradient(135deg,#e8f5ee,#c8eada); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; overflow:hidden; }
@@ -715,6 +721,7 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js"></script>
+<script src="js/course-series.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 <script src="js/badges.js"></script>
@@ -2841,7 +2848,7 @@ function gmRenderCourses(courses) {
     list.innerHTML = '<div class="gm-empty">검색 결과가 없습니다.</div>';
     return;
   }
-  list.innerHTML = courses.map(c => {
+  function item(c) {
     const { currentPrice } = getCurrentPrice(c);
     const priceStr = currentPrice ? '₩' + Number(currentPrice).toLocaleString() : '';
     const thumb = c.thumbnail_url
@@ -2854,7 +2861,36 @@ function gmRenderCourses(courses) {
         <div class="gm-course-price">${priceStr}</div>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  // 시리즈로 묶는다. 50개를 한 줄로 늘어놓으면 같은 과정의 여러 편이
+  // 흩어져 무엇을 고를지 알기 어렵다. 검색 중일 때는 묶지 않는다 —
+  // 찾으려는 것만 보고 싶을 때 묶음은 방해가 된다.
+  if (_gmSearchQ) {
+    list.innerHTML = courses.map(item).join('');
+    return;
+  }
+
+  const groups = new Map();
+  const loners = [];
+  courses.forEach(c => {
+    const name = (window.courseSeriesOf && window.courseSeriesOf(c.title)) || '';
+    if (!name) { loners.push(c); return; }
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(c);
+  });
+  groups.forEach((arr, name) => { if (arr.length < 2) { loners.push(arr[0]); groups.delete(name); } });
+
+  let html = '';
+  groups.forEach((arr, name) => {
+    html += `<div class="gm-series"><span>${gmEsc(name)}</span><b>${arr.length}편</b></div>`
+         +  arr.map(item).join('');
+  });
+  if (loners.length) {
+    html += `<div class="gm-series"><span>개별 강좌</span><b>${loners.length}편</b></div>`
+         +  loners.map(item).join('');
+  }
+  list.innerHTML = html;
 }
 
 function gmFilterCourses(q) {

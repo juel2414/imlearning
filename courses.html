@@ -56,6 +56,24 @@
       .top10-grid { grid-template-columns: 1fr; }
     }
   </style>
+<style>
+  /* 시리즈 묶음. 제목이 목록을 끊어 주되 카드보다 앞서 보이면 안 된다. */
+  .cs-groups { display: flex; flex-direction: column; gap: 2.75rem; }
+  .cs-group-title {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 17px; font-weight: 800; color: var(--black);
+    margin: 0 0 1rem; letter-spacing: -0.3px;
+  }
+  .cs-group-title::after {
+    content: ''; flex: 1; height: 1px; background: rgba(0,0,0,.08);
+  }
+  .cs-group-count {
+    font-size: 12px; font-weight: 700; color: var(--green);
+    background: var(--green-light); padding: 3px 9px; border-radius: 20px;
+    flex: none; order: 1;
+  }
+  @media (max-width: 768px) { .cs-groups { gap: 2rem; } .cs-group-title { font-size: 15.5px; } }
+</style>
 </head>
 <body>
 
@@ -144,6 +162,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js"></script>
+<script src="js/course-series.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/main.js"></script>
 <script>
@@ -290,7 +309,49 @@ function renderCourseGrid() {
     return;
   }
 
-  grid.innerHTML = sorted.map(course => {
+  // 시리즈로 묶어 보여준다. 강좌가 50개를 넘어가면서 한 줄로 쭉 나열하면
+  // 같은 과정의 여러 편이 흩어져 무엇부터 들어야 할지 알 수 없었다.
+  // 다만 가격순·최신순으로 정렬한 경우에는 묶지 않는다. 정렬해서 보려는
+  // 사람에게 묶음은 방해가 된다.
+  if (currentSort !== 'default') {
+    grid.className = 'courses-grid';
+    grid.innerHTML = sorted.map(courseCard).join('');
+    return;
+  }
+
+  var groups = new Map();
+  var loners = [];
+  sorted.forEach(function (c) {
+    var name = (window.courseSeriesOf && window.courseSeriesOf(c.title)) || '';
+    if (!name) { loners.push(c); return; }
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(c);
+  });
+  // 한 편뿐인 시리즈는 묶을 이유가 없다. 개별 강좌로 내린다.
+  groups.forEach(function (list, name) {
+    if (list.length < 2) { loners.push(list[0]); groups.delete(name); }
+  });
+
+  var html = '';
+  groups.forEach(function (list, name) {
+    html += '<section class="cs-group">'
+         +  '<h3 class="cs-group-title">' + esc(name)
+         +  '<span class="cs-group-count">' + list.length + '편</span></h3>'
+         +  '<div class="courses-grid">' + list.map(courseCard).join('') + '</div>'
+         +  '</section>';
+  });
+  if (loners.length) {
+    html += '<section class="cs-group">'
+         +  '<h3 class="cs-group-title">개별 강좌'
+         +  '<span class="cs-group-count">' + loners.length + '편</span></h3>'
+         +  '<div class="courses-grid">' + loners.map(courseCard).join('') + '</div>'
+         +  '</section>';
+  }
+  grid.className = 'cs-groups';
+  grid.innerHTML = html;
+}
+
+function courseCard(course) {
     const { isDiscounted, currentPrice, originalPrice } = getCurrentPrice(course);
     const catLabel = CATEGORY_LABELS[course.category] || '';
 
@@ -329,7 +390,6 @@ function renderCourseGrid() {
         </div>
       </a>
     `;
-  }).join('');
 }
 
 // ───── Top3 인기 강좌 렌더 ─────
