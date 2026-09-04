@@ -21,8 +21,15 @@
     { name: '토익·문법',       test: /^(LC|RC|왕기초 RC|문법마스터)/ },
   ];
 
+  // 이름만으로는 알 수 없어 손으로 지정하는 강좌. 표기가 시리즈를 따르지
+  // 않지만 내용상 같은 갈래인 것들이 있다.
+  var MANUAL = {
+    '그리스도인의 12가지 질문': '복음스쿨',
+  };
+
   function seriesOf(title) {
     var t = String(title || '').trim();
+    if (MANUAL[t]) return MANUAL[t];
     for (var i = 0; i < SERIES.length; i++) {
       if (SERIES[i].test.test(t)) return SERIES[i].name;
     }
