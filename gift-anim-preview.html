@@ -132,9 +132,59 @@
    위쪽 표에는 무엇을 받았는지, 아래 주머니에는 유효기간과 받기 버튼.
    주머니가 표의 아랫부분을 덮어야 "꽂혀 있다" 는 느낌이 난다. */
 .gift-voucher { position: relative; }
+/* 교환권 위쪽. 라벨만 덩그러니 있어 허전했다. 봉인 도장 같은 엠블럼과
+   양옆 선을 두고, 누가 보냈는지를 적는다. 장식만 늘리는 대신 알아야 할
+   정보를 함께 올린다. */
+.gift-voucher-head { text-align: center; margin-bottom: 16px; }
+.gv-seal {
+  width: 46px; height: 46px; margin: 0 auto 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #3FBF8C 0%, #2D9B6F 55%, #23815C 100%);
+  box-shadow: 0 0 0 4px rgba(45,155,111,.16), 0 6px 16px rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center;
+}
+.gv-seal svg { width: 24px; height: 24px; display: block; }
 .gift-voucher-label {
-  text-align: center; font-size: 10px; letter-spacing: 2.5px; font-weight: 700;
-  color: #8fae9c; margin-bottom: 14px; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 10px; letter-spacing: 2.5px; font-weight: 700;
+  color: #8fae9c; text-transform: uppercase;
+}
+.gift-voucher-label::before, .gift-voucher-label::after {
+  content: ''; height: 1px; width: 34px;
+  background: linear-gradient(90deg, transparent, #3a5a49);
+}
+.gift-voucher-label::after { transform: scaleX(-1); }
+.gv-from {
+  margin-top: 8px; font-size: 13px; color: #cfe0d5; line-height: 1.5;
+}
+.gv-from b { color: #fff; font-weight: 700; }
+
+/* ── PC 에서는 교환권을 크게 ──────────────────────────────────────
+   좁은 화면 기준으로 만든 크기를 그대로 두면 넓은 화면에서 초라해 보인다. */
+@media (min-width: 720px) {
+  .gift-card-outer { max-width: 470px; }
+  .gv-seal { width: 56px; height: 56px; font-size: 25px; }
+  .gift-voucher-label { font-size: 11px; }
+  .gift-voucher-label::before, .gift-voucher-label::after { width: 44px; }
+  .gv-from { font-size: 14.5px; }
+  .gift-ribbon { padding: 24px 24px 44px; gap: 18px; }
+  .gift-ribbon-thumb { width: 84px; height: 84px; border-radius: 12px; }
+  .gift-ribbon-thumb img { width: 84px; height: 84px; border-radius: 12px; }
+  .gift-ribbon-title { font-size: 18px; }
+  .gift-code-row { padding: 26px 24px 46px; }
+  .gift-code-val { font-size: 27px; letter-spacing: 3px; }
+  .gift-expiry { font-size: 12.5px; }
+  .gift-action-col { padding: 22px 20px 20px; border-radius: 22px; }
+  .gift-pocket-note { font-size: 14px; }
+  .gift-action-btn { padding: 16px; font-size: 16px; border-radius: 14px; }
+}
+@media (min-width: 1080px) {
+  .gift-card-outer { max-width: 540px; }
+  .gv-seal { width: 64px; height: 64px; }
+  .gv-seal svg { width: 30px; height: 30px; }
+  .gift-ribbon-thumb, .gift-ribbon-thumb img { width: 96px; height: 96px; }
+  .gift-ribbon-title { font-size: 19.5px; }
+  .gift-code-val { font-size: 30px; }
 }
 
 /* 표 본체 */
@@ -485,7 +535,20 @@
 
     var html = [
       '<div class="gift-voucher' + (fade ? ' gift-rising' : '') + '" id="screen-b">',
-      '  <div class="gift-voucher-label">GIFT VOUCHER</div>',
+      '  <div class="gift-voucher-head">',
+      '    <div class="gv-seal">',
+      '      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">',
+      '        <rect x="2.6" y="7.7" width="18.8" height="4" rx="1.2" stroke="#fff" stroke-width="1.7"/>',
+      '        <path d="M4.2 11.7h15.6v8.1a1.3 1.3 0 0 1-1.3 1.3H5.5a1.3 1.3 0 0 1-1.3-1.3v-8.1Z" stroke="#fff" stroke-width="1.7"/>',
+      '        <path d="M12 7.7V21.1" stroke="#fff" stroke-width="1.7"/>',
+      '        <path d="M12 7.7S10.5 3.2 8.4 3.2a2.25 2.25 0 0 0 0 4.5H12Zm0 0s1.5-4.5 3.6-4.5a2.25 2.25 0 0 1 0 4.5H12Z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/>',
+      '      </svg>',
+      '    </div>',
+      '    <div class="gift-voucher-label">GIFT VOUCHER</div>',
+      (gift.sender_name
+        ? '    <div class="gv-from"><b>' + esc(gift.sender_name) + '</b>님이 보낸 선물이에요</div>'
+        : ''),
+      '  </div>',
       '  <div class="gift-ribbon">',
       '    <div class="gift-ribbon-thumb">' + thumbHtml + '</div>',
       '    <div class="gift-ribbon-title">' + esc(gift.course_title) + '</div>',
