@@ -104,7 +104,14 @@ Deno.serve(async (req: Request) => {
     const pr = await fetch(`https://api.portone.io/payments/${encodeURIComponent(paymentId)}`,
       { headers: { 'Authorization': `PortOne ${API_SECRET}` } });
     if (!pr.ok) {
-      console.error('결제 조회 실패', paymentId, await pr.text());
+      const detail = await pr.text();
+      console.error('결제 조회 실패', paymentId, detail);
+      // 없는 결제번호는 다시 물어봐도 답이 같다. 200 을 주어 재시도를 끊는다.
+      // 콘솔의 호출 테스트가 가짜 번호를 보내는데, 502 로 답하면 포트원이
+      // 5번 재시도하며 로그만 어지럽힌다.
+      if (pr.status === 404 || detail.includes('PAYMENT_NOT_FOUND'))
+        return new Response(JSON.stringify({ ok: false, reason: 'payment_not_found' }), { status: 200 });
+      // 그 밖의 실패는 일시적일 수 있으므로 재시도를 받는다.
       return new Response('lookup failed', { status: 502 });
     }
     const payment = await pr.json();
