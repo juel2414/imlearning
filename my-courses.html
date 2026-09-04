@@ -2877,6 +2877,21 @@ async function gmRequestGift() {
   btn.disabled = true;
   btn.textContent = '결제 진행 중...';
 
+  // 모바일은 결제창이 페이지 이동으로 뜬다. 돌아와서 선물 코드를 발급하려면
+  // 무엇을 누구에게 보내려던 것인지 남겨 둬야 한다.
+  try {
+    sessionStorage.setItem('im_pay', JSON.stringify({
+      kind: 'gift',
+      paymentId: paymentId,
+      courseId: _gmSelected.id,
+      courseName: _gmSelected.title,
+      thumbnail: _gmSelected.thumbnail_url || '',
+      amount: currentPrice,
+      recipientEmail: recipientEmail || null,
+      message: message || null,
+    }));
+  } catch (e) {}
+
   try {
     const payment = await PortOne.requestPayment({
       storeId: GM_STORE_ID,
@@ -2886,6 +2901,8 @@ async function gmRequestGift() {
       totalAmount: currentPrice,
       currency: 'KRW',
       payMethod: 'CARD',
+      // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
+      redirectUrl: location.origin + location.pathname + '?tab=gifts',
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile.name) c.fullName = profile.name;
@@ -2923,25 +2940,7 @@ async function gmRequestGift() {
       return;
     }
 
-    const giftCode = resData.giftCode;
-    _gmShareLink = GM_SUPABASE + '/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
-
-    // 성공 화면 채우기
-    const doneThumb = document.getElementById('gm-done-thumb');
-    doneThumb.innerHTML = _gmSelected.thumbnail_url
-      ? `<img src="${gmEsc(_gmSelected.thumbnail_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
-      : '🎓';
-    document.getElementById('gm-done-title').textContent = _gmSelected.title;
-    document.getElementById('gm-done-code').textContent = giftCode;
-    const emailNotice = document.getElementById('gm-done-email');
-    if (recipientEmail) {
-      emailNotice.textContent = recipientEmail + '으로 선물 링크를 발송했어요.';
-      emailNotice.style.display = '';
-    } else {
-      emailNotice.style.display = 'none';
-    }
-
-    gmShowStep(3);
+    gmShowGiftDone(resData.giftCode, _gmSelected.title, _gmSelected.thumbnail_url, recipientEmail);
     if (typeof loadGifts === 'function') loadGifts(user.id);
 
   } catch(err) {
@@ -2950,6 +2949,91 @@ async function gmRequestGift() {
   } finally {
     btn.disabled = false;
     btn.textContent = '결제하고 선물 보내기';
+  }
+}
+
+
+/** 선물 완료 화면. 결제 직후와 모바일 복귀 후가 같은 코드를 쓴다. */
+function gmShowGiftDone(giftCode, courseName, thumbUrl, recipientEmail) {
+  _gmShareLink = GM_SUPABASE + '/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
+
+  var doneThumb = document.getElementById('gm-done-thumb');
+  if (doneThumb) {
+    doneThumb.innerHTML = thumbUrl
+      ? '<img src="' + gmEsc(thumbUrl) + '" alt="" style="width:100%;height:100%;object-fit:cover;">'
+      : '🎓';
+  }
+  var t = document.getElementById('gm-done-title'); if (t) t.textContent = courseName || '';
+  var c = document.getElementById('gm-done-code');  if (c) c.textContent = giftCode;
+  var emailNotice = document.getElementById('gm-done-email');
+  if (emailNotice) {
+    if (recipientEmail) {
+      emailNotice.textContent = recipientEmail + '으로 선물 링크를 발송했어요.';
+      emailNotice.style.display = '';
+    } else {
+      emailNotice.style.display = 'none';
+    }
+  }
+  if (typeof openGiftSelectModal === 'function' && !document.querySelector('.gm-modal.open')) openGiftSelectModal();
+  gmShowStep(3);
+}
+
+// ── 모바일 결제 복귀 처리 ────────────────────────────────────
+// 모바일은 결제창이 페이지 이동으로 뜨고 ?paymentId=... 를 달고 돌아온다.
+// requestPayment 의 반환값을 받을 수 없어 여기서 선물 발급을 이어서 한다.
+async function gmHandlePayReturn() {
+  var qs = new URLSearchParams(location.search);
+  var paymentId = qs.get('paymentId');
+  if (!paymentId) return;
+
+  history.replaceState(null, '', location.pathname + '?tab=gifts');   // 재검증 방지
+
+  var ctx = null;
+  try {
+    ctx = JSON.parse(sessionStorage.getItem('im_pay') || 'null');
+    sessionStorage.removeItem('im_pay');
+  } catch (e) {}
+
+  var code = qs.get('code');
+  if (code) {
+    alert(code === 'FAILURE_TYPE_PG'
+      ? '결제에 실패했습니다: ' + (qs.get('message') || '오류가 발생했습니다.')
+      : '결제가 취소되었습니다.');
+    return;
+  }
+  if (!ctx || ctx.kind !== 'gift' || ctx.paymentId !== paymentId) {
+    alert('결제 정보를 확인하지 못했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
+    return;
+  }
+
+  try {
+    var s = await supabaseClient.auth.getSession();
+    var res = await fetch(GM_SUPABASE + '/functions/v1/verify-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + s.data.session.access_token,
+      },
+      body: JSON.stringify({
+        paymentId:      paymentId,
+        courseId:       ctx.courseId,
+        amount:         ctx.amount,
+        isGift:         true,
+        recipientEmail: ctx.recipientEmail,
+        message:        ctx.message,
+      }),
+    });
+    var out = await res.json();
+    if (!out.success || !out.gift) {
+      alert('선물 코드 발급에 실패했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
+      console.error('선물 발급 실패:', out.error);
+      return;
+    }
+    gmShowGiftDone(out.giftCode, ctx.courseName, ctx.thumbnail, ctx.recipientEmail);
+    if (s.data.session && typeof loadGifts === 'function') loadGifts(s.data.session.user.id);
+  } catch (e) {
+    console.error('선물 결제 복귀 처리 오류:', e);
+    alert('결제 확인 중 오류가 발생했습니다.\n결제번호: ' + paymentId);
   }
 }
 

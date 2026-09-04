@@ -1494,6 +1494,28 @@ async function loadCourse() {
 
 // ───── 결제 요청 ─────
 
+
+/** 선물 교환권 화면. 결제 직후와 모바일 복귀 후가 같은 코드를 쓴다. */
+function showGiftSuccess(giftCode, courseName, thumbUrl, recipientEmail) {
+  var shareLink = 'https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
+  window._giftShareLink = shareLink;
+
+  document.getElementById('gs-code').textContent = giftCode;
+  document.getElementById('gs-course-name').textContent = courseName || '';
+  var thumbEl = document.getElementById('gs-thumb');
+  if (thumbUrl && thumbEl) {
+    var img = document.createElement('img');
+    img.src = thumbUrl; img.alt = '';
+    thumbEl.innerHTML = '';
+    thumbEl.appendChild(img);
+  }
+  var sent = document.getElementById('gift-email-sent');
+  if (sent) sent.style.display = recipientEmail ? '' : 'none';
+
+  document.getElementById('gift-modal').classList.remove('open');
+  document.getElementById('gift-success').classList.add('open');
+}
+
 // ── 모바일 결제 복귀 처리 ────────────────────────────────────
 // 모바일은 PortOne 결제창이 페이지 이동으로 뜨고, 끝나면 redirectUrl 로
 // ?paymentId=... 를 달고 돌아온다. requestPayment 의 반환값을 받을 수 없으므로
@@ -1520,28 +1542,49 @@ async function handlePortonePayReturn() {
       : '결제가 취소되었습니다.');
     return;
   }
-  if (!ctx || ctx.kind !== 'course' || ctx.paymentId !== paymentId) {
+  if (!ctx || (ctx.kind !== 'course' && ctx.kind !== 'gift') || ctx.paymentId !== paymentId) {
     alert('결제 정보를 확인하지 못했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
     return;
   }
 
+  var isGift = ctx.kind === 'gift';
+
   try {
     var s = await supabaseClient.auth.getSession();
+    var body = {
+      paymentId: paymentId,
+      courseId:  ctx.courseId,
+      amount:    ctx.amount,
+    };
+    if (isGift) {
+      body.isGift         = true;
+      body.recipientEmail = ctx.recipientEmail;
+      body.message        = ctx.message;
+    } else {
+      body.couponCode = ctx.couponCode;
+      body.couponId   = ctx.couponId;
+    }
+
     var res = await fetch(SUPABASE_URL + '/functions/v1/verify-payment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + s.data.session.access_token,
       },
-      body: JSON.stringify({
-        paymentId:  paymentId,
-        courseId:   ctx.courseId,
-        amount:     ctx.amount,
-        couponCode: ctx.couponCode,
-        couponId:   ctx.couponId,
-      }),
+      body: JSON.stringify(body),
     });
     var out = await res.json();
+
+    if (isGift) {
+      if (!out.success || !out.gift) {
+        alert('선물 코드 발급에 실패했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
+        console.error('선물 발급 실패:', out.error);
+        return;
+      }
+      showGiftSuccess(out.giftCode, ctx.courseName, ctx.thumbnail, ctx.recipientEmail);
+      return;
+    }
+
     if (!out.success) {
       alert('결제 검증에 실패했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
       console.error('결제 검증 실패:', out.error);
@@ -1808,6 +1851,22 @@ async function requestGift() {
   const originalText = btn.textContent;
   btn.textContent = '결제 진행 중...';
 
+  // 모바일은 결제창이 페이지 이동으로 뜬다. 돌아와서 선물 코드를 발급하려면
+  // 받는 사람·메시지까지 남겨 둬야 한다. 강좌 이름과 썸네일도 함께 저장하는 것은
+  // 복귀 직후 currentCourse 가 아직 안 실렸을 수 있어서다.
+  try {
+    sessionStorage.setItem('im_pay', JSON.stringify({
+      kind: 'gift',
+      paymentId: paymentId,
+      courseId: currentCourse.id,
+      courseName: currentCourse.title,
+      thumbnail: currentCourse.thumbnail_url || '',
+      amount: currentPrice,
+      recipientEmail: recipientEmail || null,
+      message: message || null,
+    }));
+  } catch (e) {}
+
   try {
     const payment = await PortOne.requestPayment({
       storeId: PORTONE_STORE_ID,
@@ -1817,6 +1876,8 @@ async function requestGift() {
       totalAmount: currentPrice,
       currency: 'KRW',
       payMethod: 'CARD',
+      // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
+      redirectUrl: location.origin + location.pathname + '?id=' + currentCourse.id,
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile?.name) c.fullName = profile.name;
@@ -1854,25 +1915,7 @@ async function requestGift() {
       return;
     }
 
-    const giftCode = verifyData.giftCode;
-    const shareLink = 'https://lvglkxjzraznwnfilxvy.supabase.co/functions/v1/gift-preview?code=' + encodeURIComponent(giftCode);
-    window._giftShareLink = shareLink;
-
-    // 프리미엄 교환권 카드 채우기
-    document.getElementById('gs-code').textContent = giftCode;
-    document.getElementById('gs-course-name').textContent = currentCourse.title || '';
-    const thumbEl = document.getElementById('gs-thumb');
-    if (currentCourse.thumbnail_url) {
-      const img = document.createElement('img');
-      img.src = currentCourse.thumbnail_url;
-      img.alt = '';
-      thumbEl.innerHTML = '';
-      thumbEl.appendChild(img);
-    }
-    document.getElementById('gift-email-sent').style.display = recipientEmail ? '' : 'none';
-
-    document.getElementById('gift-modal').classList.remove('open');
-    document.getElementById('gift-success').classList.add('open');
+    showGiftSuccess(verifyData.giftCode, currentCourse.title, currentCourse.thumbnail_url, recipientEmail);
 
   } catch (error) {
     console.error('선물 결제 오류:', error);
