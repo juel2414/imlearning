@@ -324,6 +324,15 @@ table.gc-grid thead th { background:#f4f6f7; font-size:12px; font-weight:800; co
   .gc-table tr { break-inside: avoid; }
   .gc-table thead { display: table-header-group; } /* 페이지마다 머리글 반복 */
   .gc-lesson-badge, .gc-book-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* 종이에서는 마우스를 올릴 수 없다 */
+  .gc-hover-hint { display: none !important; }
+  /* 범례 색칩이 인쇄에서 하얗게 날아가 글자만 남던 것을 막는다 */
+  .gc-legend i { -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 0.5pt solid rgba(0,0,0,.25); }
+  /* 주차 묶음이 페이지 경계에서 잘리지 않게 */
+  .gc-table tbody tr { break-inside: avoid; page-break-inside: avoid; }
+  .gc-table { page-break-inside: auto; }
+  /* 여백을 줄여 장수를 아낀다 */
+  @page { margin: 10mm 8mm; }
 }
 
 @media (max-width: 640px) {
@@ -657,7 +666,7 @@ html.gc-embed .gc-wrap { padding-top: 0; margin-top: 0; }
       <span><i style="background:#eab308"></i>승인 대기</span>
       <span><i style="background:#ef4444"></i>반려</span>
       <span><i style="background:#e3e6e8"></i>미제출</span>
-      <span style="color:#aaa;">칸에 마우스를 올리면 전체 강의명이 보입니다</span>
+      <span class="gc-hover-hint" style="color:#aaa;">칸에 마우스를 올리면 전체 강의명이 보입니다</span>
     </div>`;
   document.getElementById('gc-detail-toggle').hidden = false;
 
