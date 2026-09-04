@@ -36,14 +36,70 @@
   text-align: center;
 }
 
-/* ── 화면 A: 봉투 ── */
-.gift-env-icon {
-  width: 56px; height: 56px;
-  background: #1c2f26;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
-  font-size: 26px;
+/* ── 화면 A: 봉투 ─────────────────────────────────────────────────
+   이모지 대신 진짜 봉투를 그린다. 뚜껑이 위쪽 모서리를 축으로 젖혀지면서
+   열리고, 그 사이로 티켓 끝이 살짝 보였다가 올라온다. */
+.gift-env-visual {
+  position: relative; width: 108px; height: 74px;
+  margin: 0 auto 18px; perspective: 500px;
+}
+.gev-body {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,#24503A 0%,#1B3D2C 100%);
+  border-radius: 8px;
+}
+/* 봉투 속에서 올라오는 종이 끝 */
+.gev-paper {
+  position: absolute; left: 12px; right: 12px; top: 10px;
+  height: 44px; background: #FBF8F3; border-radius: 4px;
+  transform: translateY(14px); opacity: 0;
+  transition: transform .5s cubic-bezier(.16,1,.3,1) .18s, opacity .25s .18s;
+}
+/* 앞면이 종이를 가려야 "안에서 나온다" 로 보인다 */
+.gev-front {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 46px;
+  background: linear-gradient(180deg,#2A5C43 0%,#1B3D2C 100%);
+  border-radius: 0 0 8px 8px;
+  clip-path: polygon(0 22%, 50% 0, 100% 22%, 100% 100%, 0 100%);
+}
+.gev-flap {
+  position: absolute; left: 0; right: 0; top: 0; height: 42px;
+  background: #2D9B6F;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  transition: transform .55s cubic-bezier(.6,-0.28,.5,1.3);
+  border-radius: 8px 8px 0 0;
+}
+/* 열림 */
+.gift-env-visual.open .gev-flap  { transform: rotateX(-168deg); }
+.gift-env-visual.open .gev-paper { transform: translateY(-26px); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gev-flap, .gev-paper { transition: none; }
+}
+
+/* 봉투 카드가 물러나고 교환권이 올라온다 */
+#screen-a.gift-leaving {
+  animation: gEnvLeave .45s cubic-bezier(.4,0,1,1) .35s both;
+}
+@keyframes gEnvLeave { to { opacity: 0; transform: translateY(-14px) scale(.97); } }
+
+.gift-voucher.gift-rising {
+  animation: gVoucherRise .6s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes gVoucherRise {
+  from { opacity: 0; transform: translateY(46px) scale(.94); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #screen-a.gift-leaving, .gift-voucher.gift-rising { animation: none; }
+  #screen-a.gift-leaving { opacity: 0; }
+}
+
+/* 파티클은 화면 전체에 뿌리되 클릭을 막지 않는다 */
+#gift-confetti {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 60;
 }
 .gift-env-label {
   font-size: 10px; letter-spacing: 2px; color: #8fae9c;
@@ -283,7 +339,12 @@
 
     root.innerHTML = [
       '<div class="g-dark-card" id="screen-a">',
-      '  <div class="gift-env-icon">✉️</div>',
+      '  <div class="gift-env-visual" id="env-visual">',
+      '    <div class="gev-body"></div>',
+      '    <div class="gev-paper"></div>',
+      '    <div class="gev-front"></div>',
+      '    <div class="gev-flap"></div>',
+      '  </div>',
       '  <div class="gift-env-label">IMLEARNING GIFT</div>',
       '  <p class="gift-env-title">' + senderLine + '</p>',
       msgBlock,
@@ -292,8 +353,104 @@
     ].join('');
 
     document.getElementById('open-btn').addEventListener('click', function () {
-      showVoucher(gift, true);
+      var btn = this;
+      btn.disabled = true;
+
+      // 뚜껑이 젖혀지고 → 파티클이 쏟아지고 → 봉투가 물러나며 표가 올라온다.
+      // 순서가 겹쳐야 한 동작으로 보인다.
+      var env = document.getElementById('env-visual');
+      if (env) env.classList.add('open');
+
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var delay = reduce ? 0 : 620;
+
+      setTimeout(giftConfetti, reduce ? 0 : 260);
+
+      var card = document.getElementById('screen-a');
+      if (card && !reduce) card.classList.add('gift-leaving');
+
+      setTimeout(function () { showVoucher(gift, true); }, delay);
     });
+  }
+
+  // ── 파티클 ─────────────────────────────────────────────────────────
+  // 위에서 촤르르 떨어지는 조각들. DOM 을 수백 개 만드는 대신 캔버스에
+  // 그린다. 다 떨어지면 캔버스를 걷어내 화면에 아무것도 남기지 않는다.
+  function giftConfetti() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var cv = document.createElement('canvas');
+    cv.id = 'gift-confetti';
+    document.body.appendChild(cv);
+    var ctx = cv.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function size() {
+      cv.width  = window.innerWidth  * dpr;
+      cv.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    size();
+    window.addEventListener('resize', size);
+
+    var COLORS = ['#2D9B6F', '#5ECF96', '#C9A252', '#E9D18F', '#FBF8F3'];
+    var W = window.innerWidth, H = window.innerHeight;
+    var bits = [];
+    for (var i = 0; i < 90; i++) {
+      bits.push({
+        x: Math.random() * W,
+        y: -20 - Math.random() * H * 0.6,   // 화면 위에서 시작해 흘러내린다
+        w: 6 + Math.random() * 6,
+        h: 8 + Math.random() * 8,
+        vy: 1.6 + Math.random() * 2.6,
+        vx: -0.6 + Math.random() * 1.2,
+        rot: Math.random() * Math.PI,
+        vr: -0.09 + Math.random() * 0.18,
+        color: COLORS[(Math.random() * COLORS.length) | 0],
+      });
+    }
+
+    var start = performance.now();
+    var LIFE = 4200;   // 이 시간이 지나면 서서히 사라진다
+
+    // 탭을 뒤로 보내면 requestAnimationFrame 이 멈춘다. 그러면 정리하는
+    // 코드까지 같이 멈춰 캔버스가 화면에 계속 남는다. 시간으로도 걷어낸다.
+    var done = false;
+    function cleanup() {
+      if (done) return;
+      done = true;
+      window.removeEventListener('resize', size);
+      if (cv.parentNode) cv.parentNode.removeChild(cv);
+    }
+    setTimeout(cleanup, LIFE + 1500);
+
+    function frame(now) {
+      var t = now - start;
+      ctx.clearRect(0, 0, W, H);
+
+      var fade = t > LIFE - 900 ? Math.max(0, (LIFE - t) / 900) : 1;
+      var alive = 0;
+
+      for (var i = 0; i < bits.length; i++) {
+        var b = bits[i];
+        b.y += b.vy;
+        b.x += b.vx + Math.sin((t / 600) + i) * 0.4;   // 좌우로 살랑이게
+        b.rot += b.vr;
+        if (b.y < H + 40) alive++;
+
+        ctx.save();
+        ctx.globalAlpha = fade;
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.rot);
+        ctx.fillStyle = b.color;
+        ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+        ctx.restore();
+      }
+
+      if (t < LIFE && alive > 0 && !done) requestAnimationFrame(frame);
+      else cleanup();
+    }
+    requestAnimationFrame(frame);
   }
 
   // ── 화면 B: 교환권 카드 ──────────────────────────────────────────────────
@@ -323,7 +480,7 @@
     }
 
     var html = [
-      '<div class="gift-voucher" id="screen-b" style="' + (fade ? 'opacity:0;transition:opacity .3s;' : '') + '">',
+      '<div class="gift-voucher' + (fade ? ' gift-rising' : '') + '" id="screen-b">',
       '  <div class="gift-voucher-label">GIFT VOUCHER</div>',
       '  <div class="gift-ribbon">',
       '    <div class="gift-ribbon-thumb">' + thumbHtml + '</div>',
@@ -342,12 +499,7 @@
 
     root.innerHTML = html;
 
-    if (fade) {
-      requestAnimationFrame(function () {
-        var el = document.getElementById('screen-b');
-        if (el) el.style.opacity = '1';
-      });
-    }
+    // 애니메이션은 클래스가 붙는 순간 시작된다. 따로 손댈 것이 없다.
 
     var acceptBtn = document.getElementById('accept-btn');
     if (acceptBtn) acceptBtn.addEventListener('click', doAccept);
