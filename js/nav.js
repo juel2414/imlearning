@@ -795,21 +795,30 @@
     loadNotifications(true);
   };
 
+  function applyAuth(sb, user) {
+    updateAuth(user, false);
+    if (!user) return;
+    sb.from('profiles').select('role').eq('id', user.id).maybeSingle()
+      .then(function (res) {
+        var isAdmin = !!(res.data && ['admin','super_admin'].indexOf(res.data.role) !== -1);
+        updateAuth(user, isAdmin);
+      })
+      .catch(function () {});
+  }
+
   function initAuth() {
     var sb = window.supabaseClient;
     if (!sb) { setTimeout(initAuth, 30); return; }
 
+    // 저장된 세션을 직접 한 번 읽는다. onAuthStateChange 만 믿으면 초기 이벤트가
+    // 늦거나 오지 않는 페이지에서 로그인 상태인데도 로그인·회원가입 버튼이 남고
+    // 종이 아예 안 그려진다. 페이지마다 종이 보였다 안 보였다 하던 이유다.
+    sb.auth.getSession()
+      .then(function (res) { applyAuth(sb, res && res.data && res.data.session ? res.data.session.user : null); })
+      .catch(function () {});
+
     sb.auth.onAuthStateChange(function (event, session) {
-      var user = session ? session.user : null;
-      updateAuth(user, false);
-      if (user) {
-        sb.from('profiles').select('role').eq('id', user.id).maybeSingle()
-          .then(function (res) {
-            var isAdmin = !!(res.data && ['admin','super_admin'].indexOf(res.data.role) !== -1);
-            updateAuth(user, isAdmin);
-          })
-          .catch(function () {});
-      }
+      applyAuth(sb, session ? session.user : null);
     });
   }
 
