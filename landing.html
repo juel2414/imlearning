@@ -58,26 +58,26 @@
     }
 
     /* ── 배경 결 ────────────────────────────────────────────────────
-       색만 깔면 화면이 평평하다. 두 겹을 얹는다.
+       린넨. 이 사이트가 파는 것은 결국 책이고, 양장 성경과 교재의 표지
+       천이 그것과 가장 가깝다. 짜임이 규칙적이라 위에 떠 있는 크리처나
+       카드와 싸우지 않는다.
 
-       1) 고운 입자 — 종이나 천 같은 촘촘한 질감
-       2) 아주 옅은 사선 — 입자만으로는 방향이 없어 밋밋해서, 결이 흐르는
-          느낌을 더한다
+       세로실·가로실을 각각 한 겹씩 긋고 그 위에 고운 입자를 얹어 실이
+       기계로 그은 선처럼 보이지 않게 한다.
 
        혼합 모드는 쓰지 않는다. overlay 는 어두운 바탕에서 거의 아무 변화도
-       만들지 못해 처음에 넣었을 때 보이지 않았다. 그냥 옅게 겹쳐 올린다. */
+       만들지 못해, 처음 넣었을 때 결이 아예 보이지 않았다. */
     body::after {
       content: ''; position: fixed; inset: 0;
       z-index: 3; pointer-events: none;
-      opacity: .65;   /* 입자 폭 14단계. 더 올리면 바탕 초록이 뜬다 */
+      opacity: .7;
       background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.17'/%3E%3C/svg%3E"),
-        repeating-linear-gradient(115deg,
-          rgba(251,247,241,.020) 0px,
-          rgba(251,247,241,.020) 1px,
-          transparent 1px,
-          transparent 7px);
-      background-size: 220px 220px, auto;
+        repeating-linear-gradient(0deg,
+          rgba(251,247,241,.035) 0 1px, transparent 1px 4px),
+        repeating-linear-gradient(90deg,
+          rgba(251,247,241,.028) 0 1px, transparent 1px 4px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E");
+      background-size: auto, auto, 200px 200px;
     }
 
     .lp {
