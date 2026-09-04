@@ -629,9 +629,44 @@ ul, ol { list-style: none; }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
   .navbar-menu { display: none; }
   .courses-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* ── 모바일 읽기 ───────────────────────────────────────────
+     좁은 화면에서는 글자 크기가 12~15px 사이에 다 몰려 있어서
+     제목인지 설명인지 구분이 안 되고, 훑어볼 단서가 없었다.
+     단계를 벌리고(제목 25 / 본문 15 / 보조 12.5) 줄 간격을 늘린다.
+     한글은 라틴 문자보다 줄 간격이 넉넉해야 읽힌다. */
+  body { font-size: 15px; line-height: 1.75; }
+
+  .section    { padding: 3.25rem 0; }
+  .section-sm { padding: 2.25rem 0; }
+  .section-header { margin-bottom: 1.5rem; }
+  .section-eyebrow  { font-size: 11.5px; letter-spacing: .04em; margin-bottom: 6px; }
+  .section-title    { font-size: 25px; line-height: 1.34; letter-spacing: -0.045em; }
+  .section-subtitle { font-size: 14px; line-height: 1.75; margin-top: 8px; }
+
+  /* 강좌 카드 — 제목이 13~15px 이라 가격·라벨과 구분이 안 됐다 */
+  .course-body       { padding: 14px 15px 16px; }
+  .course-cat        { font-size: 11.5px; margin-bottom: 5px; }
+  .course-title      { font-size: 15.5px; font-weight: 700; line-height: 1.5; margin-bottom: 8px; }
+  .course-instructor { font-size: 12.5px; margin-bottom: 8px; }
+  .course-students   { font-size: 12px; }
+  .course-price      { font-size: 16.5px; }
+
+  .stat-num   { font-size: 25px; letter-spacing: -0.04em; }
+  .stat-label { font-size: 11.5px; margin-top: 3px; }
+
+  /* 손가락으로 누르는 것들은 최소 44px 을 준다 */
+  .btn     { padding: 12px 20px; font-size: 14.5px; }
+  .btn-sm  { padding: 10px 16px; font-size: 13px; }
+  .btn-lg  { padding: 15px 26px; font-size: 15.5px; }
+  .cat-tab { padding: 10px 16px; font-size: 13px; }
 }
 @media (max-width: 480px) {
   .container { padding: 0 1rem; }
   .courses-grid { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr; }
+
+  /* 한 줄에 카드 하나가 되면 폭이 넓어지므로 제목을 한 단계 더 키운다 */
+  .course-title { font-size: 16px; -webkit-line-clamp: 3; }
+  .section-title { font-size: 23.5px; }
 }
