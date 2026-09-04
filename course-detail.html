@@ -1534,6 +1534,21 @@ function showGiftSuccess(giftCode, courseName, thumbUrl, recipientEmail) {
 // 모바일은 PortOne 결제창이 페이지 이동으로 뜨고, 끝나면 redirectUrl 로
 // ?paymentId=... 를 달고 돌아온다. requestPayment 의 반환값을 받을 수 없으므로
 // 여기서 결제 전에 저장해 둔 맥락을 꺼내 서버 검증을 이어서 한다.
+// 결제창에서 막 돌아온 직후에는 로그인 세션이 아직 저장소에서 복원되지
+// 않았을 수 있다. 그때 세션을 곧장 읽으면 null 이 나오고, 그대로 쓰면
+// access_token 을 읽다가 터진다. 돈은 나갔는데 아무 기록도 안 남는
+// 경로가 여기였다. 잠깐 기다렸다 다시 본다.
+async function imWaitForSession(sb, tries) {
+  for (var i = 0; i < (tries || 10); i++) {
+    try {
+      var s = await sb.auth.getSession();
+      if (s && s.data && s.data.session) return s.data.session;
+    } catch (e) {}
+    await new Promise(function (r) { setTimeout(r, 300); });
+  }
+  return null;
+}
+
 async function handlePortonePayReturn() {
   var qs = new URLSearchParams(location.search);
   var paymentId = qs.get('paymentId');
@@ -1544,10 +1559,7 @@ async function handlePortonePayReturn() {
   history.replaceState(null, '', clean);
 
   var ctx = null;
-  try {
-    ctx = JSON.parse(sessionStorage.getItem('im_pay') || 'null');
-    sessionStorage.removeItem('im_pay');
-  } catch (e) {}
+  try { ctx = JSON.parse(sessionStorage.getItem('im_pay') || 'null'); } catch (e) {}
 
   var code = qs.get('code');
   if (code) {
@@ -1565,7 +1577,12 @@ async function handlePortonePayReturn() {
   var isGift = ctx.kind === 'gift';
 
   try {
-    var s = await supabaseClient.auth.getSession();
+    var session = await imWaitForSession(supabaseClient);
+    if (!session) {
+      alert('로그인이 풀려서 선물 발급을 마치지 못했습니다.\n결제번호: ' + paymentId
+          + '\n\n다시 로그인하시면 이어서 처리됩니다.');
+      return;   // im_pay 를 남겨 두었으므로 로그인 후 다시 시도할 수 있다
+    }
     var body = {
       paymentId: paymentId,
       courseId:  ctx.courseId,
@@ -1587,7 +1604,7 @@ async function handlePortonePayReturn() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + s.data.session.access_token,
+        'Authorization': 'Bearer ' + session.access_token,
       },
       body: JSON.stringify(body),
     });
@@ -1599,6 +1616,7 @@ async function handlePortonePayReturn() {
         console.error('선물 발급 실패:', out.error);
         return;
       }
+      try { sessionStorage.removeItem('im_pay'); } catch (e) {}
       showGiftSuccess(out.giftCode, ctx.courseName || (currentCourse && currentCourse.title) || '',
                       ctx.thumbnail || '', ctx.recipientEmail || '');
       return;
@@ -1609,6 +1627,7 @@ async function handlePortonePayReturn() {
       console.error('결제 검증 실패:', out.error);
       return;
     }
+    try { sessionStorage.removeItem('im_pay'); } catch (e) {}
     window.location.href = 'payment-success.html?courseId=' + ctx.courseId +
       '&amount=' + ctx.amount +
       '&courseName=' + encodeURIComponent(ctx.courseName || '');

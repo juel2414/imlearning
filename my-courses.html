@@ -3006,6 +3006,19 @@ function gmShowGiftDone(giftCode, courseName, thumbUrl, recipientEmail) {
 // ── 모바일 결제 복귀 처리 ────────────────────────────────────
 // 모바일은 결제창이 페이지 이동으로 뜨고 ?paymentId=... 를 달고 돌아온다.
 // requestPayment 의 반환값을 받을 수 없어 여기서 선물 발급을 이어서 한다.
+// 결제창에서 막 돌아온 직후에는 로그인 세션이 아직 저장소에서 복원되지
+// 않았을 수 있다. 자세한 내용은 course-detail 의 같은 함수 참고.
+async function imWaitForSession(sb, tries) {
+  for (var i = 0; i < (tries || 10); i++) {
+    try {
+      var s = await sb.auth.getSession();
+      if (s && s.data && s.data.session) return s.data.session;
+    } catch (e) {}
+    await new Promise(function (r) { setTimeout(r, 300); });
+  }
+  return null;
+}
+
 async function gmHandlePayReturn() {
   var qs = new URLSearchParams(location.search);
   var paymentId = qs.get('paymentId');
@@ -3014,10 +3027,7 @@ async function gmHandlePayReturn() {
   history.replaceState(null, '', location.pathname + '?tab=gifts');   // 재검증 방지
 
   var ctx = null;
-  try {
-    ctx = JSON.parse(sessionStorage.getItem('im_pay') || 'null');
-    sessionStorage.removeItem('im_pay');
-  } catch (e) {}
+  try { ctx = JSON.parse(sessionStorage.getItem('im_pay') || 'null'); } catch (e) {}
 
   var code = qs.get('code');
   if (code) {
@@ -3033,12 +3043,17 @@ async function gmHandlePayReturn() {
   if (recover) ctx = {};
 
   try {
-    var s = await supabaseClient.auth.getSession();
+    var session = await imWaitForSession(supabaseClient);
+    if (!session) {
+      alert('로그인이 풀려서 선물 발급을 마치지 못했습니다.\n결제번호: ' + paymentId
+          + '\n\n다시 로그인하시면 이어서 처리됩니다.');
+      return;
+    }
     var res = await fetch(GM_SUPABASE + '/functions/v1/verify-payment', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + s.data.session.access_token,
+        'Authorization': 'Bearer ' + session.access_token,
       },
       body: JSON.stringify(recover
         ? { paymentId: paymentId, recover: true }
@@ -3051,8 +3066,9 @@ async function gmHandlePayReturn() {
       console.error('선물 발급 실패:', out.error);
       return;
     }
+    try { sessionStorage.removeItem('im_pay'); } catch (e) {}
     gmShowGiftDone(out.giftCode, ctx.courseName || '', ctx.thumbnail || '', ctx.recipientEmail || '');
-    if (s.data.session && typeof loadGifts === 'function') loadGifts(s.data.session.user.id);
+    if (typeof loadGifts === 'function') loadGifts(session.user.id);
   } catch (e) {
     console.error('선물 결제 복귀 처리 오류:', e);
     alert('결제 확인 중 오류가 발생했습니다.\n결제번호: ' + paymentId);
