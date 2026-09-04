@@ -188,16 +188,20 @@ Deno.serve(async (req: Request) => {
 
       // 4. 각 강좌에 대해 orders 삽입 (개별 구매 영구 주문이 있으면 건너뜀)
       let insertedCount = 0;
+      const failed: number[] = [];
       for (const pc of passCourses) {
-        // 이미 만료 없는 영구 주문이 있으면 스킵
+        // 이미 만료 없는 영구 주문이 있으면 스킵.
+        // 환불된 주문은 수강권이 아니므로 제외한다. 예전에는 이걸 빠뜨려,
+        // 환불한 강좌가 프리패스 목록에서도 통째로 빠졌다.
         const { data: perm } = await sb.from('orders')
-          .select('id, expires_at')
+          .select('id')
           .eq('user_id', user.id)
           .eq('course_id', pc.course_id)
           .eq('status', 'paid')
           .is('expires_at', null)
-          .maybeSingle();
-        if (perm) continue; // 영구 수강권 보유 → 프리패스로 덮어쓰지 않음
+          .or('refund_status.is.null,refund_status.eq.none')
+          .limit(1);
+        if (perm && perm.length > 0) continue; // 영구 수강권 보유 → 덮어쓰지 않음
 
         const courseTitle = (pc as any).courses?.title ?? '강좌';
         const { error: oErr } = await sb.from('orders').insert({
@@ -211,8 +215,13 @@ Deno.serve(async (req: Request) => {
           progress: 0,
           expires_at: expiresAt.toISOString(),
         });
-        if (!oErr) insertedCount++;
+        // 실패를 조용히 삼키면 돈은 받고 강좌 몇 개가 빠진 채로 끝난다.
+        // 접근 자체는 패스 마커로 열리지만 내 강의실에서 사라지므로 남긴다.
+        if (oErr) { failed.push(pc.course_id); console.error('[프리패스] 강좌 주문 실패', pc.course_id, oErr.message); }
+        else insertedCount++;
       }
+      if (failed.length > 0)
+        console.error('[프리패스] 일부 강좌가 목록에 들어가지 못했습니다', paymentId, failed);
 
       // 패스 자체 결제 기록 (course_id = null = 프리패스 식별자)
       // hasPurchased()와 RLS 정책에서 course_id IS NULL로 패스 보유 여부를 확인함
@@ -238,6 +247,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(JSON.stringify({
         success: true, pass: true, courseCount: insertedCount,
+        failedCourseIds: failed,
         expiresAt: expiresAt.toISOString(),
       }), { headers: resHeaders });
     }
