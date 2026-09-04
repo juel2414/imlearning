@@ -346,6 +346,8 @@ body {
 .gift-status-badge.already_owned { background: #FEF3C7; color: #92400E; }
 .gift-card-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .gift-link-chip { background: #f4f5f6; padding: 5px 12px; border-radius: 8px; font-size: 11px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px; }
+.gift-btn-send { padding: 5px 12px; border-radius: 8px; border: none; background: #2D9B6F; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.gift-btn-send:hover { background: #268a62; }
 .gift-btn-copy { padding: 5px 12px; border-radius: 8px; border: 1px solid #c8eada; background: #fff; color: #2D9B6F; font-size: 12px; font-weight: 700; cursor: pointer; }
 .gift-btn-cancel { padding: 5px 12px; border-radius: 8px; border: 1px solid #FCA5A5; background: #fff; color: #EF4444; font-size: 12px; font-weight: 700; cursor: pointer; }
 
@@ -1793,10 +1795,10 @@ async function loadGifts(userId) {
 
   // course ID → title 조회
   const allIds = [...new Set([...sent, ...received].map(g => g.course_id).filter(Boolean))];
-  let courseNames = {};
+  let courseNames = {}, courseThumbs = {};
   if (allIds.length) {
-    const { data: courses } = await supabaseClient.from('courses').select('id, title').in('id', allIds);
-    (courses || []).forEach(c => { courseNames[c.id] = c.title; });
+    const { data: courses } = await supabaseClient.from('courses').select('id, title, thumbnail_url').in('id', allIds);
+    (courses || []).forEach(c => { courseNames[c.id] = c.title; courseThumbs[c.id] = c.thumbnail_url || ''; });
   }
 
   function giftBadge(status) {
@@ -1827,7 +1829,7 @@ async function loadGifts(userId) {
         </div>
         ${g.status === 'pending' ? `
         <div class="gift-card-btns">
-          <span class="gift-link-chip">${gEsc(link)}</span>
+          <button class="gift-btn-send" data-code="${gEsc(g.gift_code)}" data-title="${gEsc(title)}" data-thumb="${gEsc(courseThumbs[g.course_id] || '')}" onclick="gmOpenSendPopup(this.dataset.code, this.dataset.title, this.dataset.thumb)">선물 보내기</button>
           <button class="gift-btn-copy" data-link="${gEsc(link)}" onclick="copyGiftCode(this.dataset.link, this)">링크 복사</button>
           ${cancelBtn}
         </div>` : ''}
@@ -1934,10 +1936,6 @@ async function submitGiftCancel() {
 }
 
 loadMyPage();
-
-// 모바일 선물 결제창에서 돌아온 경우 선물 발급을 이어서 한다.
-// 이 호출을 빠뜨려 결제만 되고 아무것도 기록되지 않는 일이 있었다.
-gmHandlePayReturn();
 
 /* ════════════════════════════════════════════════════════
    환불 신청 모달
@@ -2815,6 +2813,9 @@ async function gmLoadCourses() {
   const { data, error } = await supabaseClient
     .from('courses')
     .select('id, title, price, discount_price, discount_start, discount_end, thumbnail_url, category')
+    // 공개 중인 강좌만 선물할 수 있다. 서버가 status='active' 만 받으므로,
+    // 비공개 강좌를 고르면 결제는 되고 선물은 만들어지지 않는다.
+    .eq('status', 'active')
     .gt('price', 0)
     .order('created_at', { ascending: false });
   if (error || !data) {
@@ -2983,6 +2984,13 @@ async function gmRequestGift() {
 
 
 /** 선물 완료 화면. 결제 직후와 모바일 복귀 후가 같은 코드를 쓴다. */
+// 선물함에서 언제든 다시 보낼 수 있게 한다. 결제 직후 팝업이 뜨지 않는
+// 경우가 있었고(모바일 복귀 처리), 그때 한 번 닫으면 다시 열 방법이 없었다.
+function gmOpenSendPopup(giftCode, courseName, thumbUrl) {
+  if (typeof openGiftSelectModal === 'function') openGiftSelectModal();
+  gmShowGiftDone(giftCode, courseName, thumbUrl, '');
+}
+
 function gmShowGiftDone(giftCode, courseName, thumbUrl, recipientEmail) {
   // 엣지 함수는 HTML 을 못 띄운다. Supabase 가 응답을 text/plain 으로 강제해서
   // 받는 사람에게 소스 코드가 그대로 보였다. 실제 페이지로 바로 보낸다.
@@ -3082,6 +3090,13 @@ async function gmHandlePayReturn() {
     alert('결제 확인 중 오류가 발생했습니다.\n결제번호: ' + paymentId);
   }
 }
+
+// 모바일 선물 결제창에서 돌아온 경우 선물 발급을 이어서 한다.
+//
+// 반드시 정의와 같은 <script> 블록 안에서 불러야 한다. 앞선 블록에 두었더니
+// 그 시점에는 이 함수가 아직 없어 ReferenceError 가 났고, 그 블록의 나머지
+// 코드까지 통째로 죽었다. 결제는 됐는데 아무 일도 일어나지 않던 원인이다.
+gmHandlePayReturn();
 
 function gmCopyLink() {
   if (!_gmShareLink) return;
