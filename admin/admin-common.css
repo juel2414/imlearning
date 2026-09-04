@@ -165,3 +165,58 @@ tr:last-child td { border-bottom: none; }
   .table-card-mobile .m-card-row:last-child { border-bottom: none; }
   .table-card-mobile .m-label { color: #888; font-size: 11px; }
 }
+
+/* ── 후기 별점 ────────────────────────────────────────────────────────
+   글자(★)로 찍으면 기기·브라우저마다 모양이 제각각이고 이모지(⭐)는
+   플랫폼 그림이 그대로 나온다. 그래서 별을 도형으로 직접 그린다.
+   모서리를 둥글린 통통한 별이고, 색은 받은 시안의 #FFCB11 이다.
+
+   .im-stars  는 다섯 개를 한 덩어리로 그리고 --im-star-fill 만큼만
+   노랗게 채운다. 4.5점 같은 소수점도 그대로 표현된다.
+   .im-star   는 한 개짜리. 별점을 고르는 UI 처럼 낱개로 눌러야 할 때 쓴다.
+   ------------------------------------------------------------------ */
+.im-stars, .im-star {
+  --im-star-size: 1em;
+  --im-star-gap: .14em;
+  --im-star-on: #FFCB11;
+  --im-star-off: #E3E6EA;
+  /* 별 하나. 획을 굵게 두르고 이음새를 둥글려 통통한 모양을 만든다. */
+  --im-star-one: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 12 61.2 36.6 88 39.6 68.1 57.9 73.5 84.4 50 71 26.5 84.4 31.9 57.9 12 39.6 38.8 36.6Z' fill='%23000' stroke='%23000' stroke-width='11' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* 같은 별에 오른쪽 여백을 붙인 것. 이걸 가로로 반복해 다섯 개를 만든다. */
+  --im-star-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 114 100'%3E%3Cpath d='M50 12 61.2 36.6 88 39.6 68.1 57.9 73.5 84.4 50 71 26.5 84.4 31.9 57.9 12 39.6 38.8 36.6Z' fill='%23000' stroke='%23000' stroke-width='11' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.im-stars {
+  --im-star-n: 5;
+  --im-star-fill: 100%;
+  display: inline-block;
+  position: relative;
+  vertical-align: -.15em;
+  width: calc(var(--im-star-n) * (var(--im-star-size) + var(--im-star-gap)));
+  height: var(--im-star-size);
+  background: var(--im-star-off);
+  -webkit-mask-image: var(--im-star-tile);
+          mask-image: var(--im-star-tile);
+  -webkit-mask-size: calc(var(--im-star-size) + var(--im-star-gap)) 100%;
+          mask-size: calc(var(--im-star-size) + var(--im-star-gap)) 100%;
+  -webkit-mask-repeat: repeat-x;
+          mask-repeat: repeat-x;
+}
+/* 채워진 만큼만 노랗게. 부모의 마스크가 이 덧칠에도 그대로 걸린다. */
+.im-stars::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: var(--im-star-fill);
+  background: var(--im-star-on);
+}
+
+.im-star {
+  display: inline-block;
+  width: var(--im-star-size);
+  height: var(--im-star-size);
+  background: var(--im-star-off);
+  -webkit-mask: var(--im-star-one) center / contain no-repeat;
+          mask: var(--im-star-one) center / contain no-repeat;
+}
+.im-star.on { background: var(--im-star-on); }
