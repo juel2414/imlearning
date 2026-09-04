@@ -67,18 +67,69 @@ Deno.serve(async (req: Request) => {
     const PORTONE_API_SECRET       = Deno.env.get('PORTONE_API_SECRET') ?? '';
     const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { data: { user }, error: authError } = await sb.auth.getUser(token);
-    if (authError || !user) return err('인증 실패', 401);
-
-    // ── Rate limiting: 10회 / 10분 / 사용자 ───────────────────────────
-    const { data: rlOk } = await sb.rpc('check_rate_limit', {
-      p_key: `pay:${user.id}`, p_max: 10, p_window_secs: 600,
-    });
-    if (!rlOk) return err('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', 429);
-
     const body = await req.json();
-    const { paymentId, courseId, amount, couponCode, couponId, isGift, recipientEmail, message,
-            isPass, passId } = body;
+
+    // ── 누가 부른 것인가 ──────────────────────────────────────────────
+    // 보통은 브라우저가 사용자 토큰을 들고 온다. 그런데 결제창에서 돌아오는
+    // 길에 브라우저가 죽으면(탭을 닫거나, 통신이 끊기거나, 앱이 전환되거나)
+    // 아무도 이 함수를 부르지 않아 돈만 빠져나가고 주문이 남지 않는다.
+    // 그래서 포트원 웹훅이 서버에서 직접 부르는 길을 따로 둔다. 이때는
+    // 서비스 롤 키를 들고 오며, 사용자는 body.userId 로 지정한다.
+    const isInternal = token === SUPABASE_SERVICE_ROLE_KEY;
+
+    let user: { id: string; email?: string } | null = null;
+    if (isInternal) {
+      if (!body.userId) return err('내부 호출에 userId 가 없습니다');
+      const { data: got, error: getErr } = await sb.auth.admin.getUserById(String(body.userId));
+      if (getErr || !got?.user) return err('사용자를 찾을 수 없습니다', 404);
+      user = got.user as any;
+    } else {
+      const { data: { user: u }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !u) return err('인증 실패', 401);
+      user = u as any;
+
+      // ── Rate limiting: 10회 / 10분 / 사용자 ─────────────────────────
+      // 웹훅은 포트원이 재시도할 수 있어야 하므로 이 제한에서 뺀다.
+      const { data: rlOk } = await sb.rpc('check_rate_limit', {
+        p_key: `pay:${user!.id}`, p_max: 10, p_window_secs: 600,
+      });
+      if (!rlOk) return err('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', 429);
+    }
+    if (!user) return err('인증 실패', 401);
+
+    let { paymentId, courseId, amount, couponCode, couponId, isGift, recipientEmail, message,
+          isPass, passId } = body;
+
+    // ── 맥락 복원 ─────────────────────────────────────────────────────
+    // 모바일에서는 결제창이 페이지 이동으로 뜨기 때문에, 돌아왔을 때
+    // sessionStorage 가 비어 있는 일이 드물지 않다(다른 탭으로 돌아오거나,
+    // 브라우저가 저장소를 비웠거나). 그러면 브라우저는 무엇을 결제했는지
+    // 모른다. 포트원이 customData 를 보관하고 있으므로 그걸로 되살린다.
+    if (body.recover && paymentId) {
+      if (!PORTONE_API_SECRET) return err('결제 정보를 복원할 수 없습니다', 500);
+      const pr = await fetch(`https://api.portone.io/payments/${encodeURIComponent(paymentId)}`,
+        { headers: { 'Authorization': `PortOne ${PORTONE_API_SECRET}` } });
+      if (!pr.ok) return err('결제 조회 실패');
+      const payment = await pr.json();
+      if (payment.status !== 'PAID') return err(`결제 미완료: ${payment.status}`);
+
+      let ctx: any = null;
+      try { ctx = JSON.parse(payment.customData || 'null'); } catch {}
+      if (!ctx || !ctx.kind) return err('결제 정보를 복원하지 못했습니다');
+      // 남의 결제번호를 넣어 남의 강좌를 받아가지 못하게 한다.
+      if (ctx.userId && ctx.userId !== user.id) return err('결제자와 로그인 사용자가 다릅니다', 403);
+
+      amount = ctx.amount;
+      if (ctx.kind === 'pass') {
+        isPass = true; passId = ctx.passId;
+      } else if (ctx.kind === 'gift') {
+        isGift = true; courseId = ctx.courseId;
+        recipientEmail = ctx.recipientEmail ?? null; message = ctx.message ?? null;
+      } else {
+        courseId = ctx.courseId;
+        couponCode = ctx.couponCode ?? null; couponId = ctx.couponId ?? null;
+      }
+    }
     const isFree = amount === 0 && !isGift && !isPass;
 
     // ══════════════════════════════════════════════════════════════════

@@ -1563,10 +1563,11 @@ async function handlePortonePayReturn() {
       : '결제가 취소되었습니다.');
     return;
   }
-  if (!ctx || (ctx.kind !== 'course' && ctx.kind !== 'gift') || ctx.paymentId !== paymentId) {
-    alert('결제 정보를 확인하지 못했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
-    return;
-  }
+  // 맥락을 잃어버린 채 돌아오는 일이 모바일에서는 드물지 않다. 예전에는
+  // 여기서 포기했는데, 그러면 돈만 나가고 아무 기록도 남지 않았다.
+  // 이제는 서버가 포트원의 customData 로 되살리게 맡긴다.
+  var recover = !ctx || !ctx.kind || ctx.paymentId !== paymentId;
+  if (recover) ctx = { kind: 'course' };
 
   var isGift = ctx.kind === 'gift';
 
@@ -1577,7 +1578,10 @@ async function handlePortonePayReturn() {
       courseId:  ctx.courseId,
       amount:    ctx.amount,
     };
-    if (isGift) {
+    if (recover) {
+      // 무엇을 결제했는지 서버가 포트원에서 직접 읽는다.
+      body.recover = true;
+    } else if (isGift) {
       body.isGift         = true;
       body.recipientEmail = ctx.recipientEmail;
       body.message        = ctx.message;
@@ -1596,13 +1600,14 @@ async function handlePortonePayReturn() {
     });
     var out = await res.json();
 
-    if (isGift) {
+    if (out.gift || (isGift && !recover)) {
       if (!out.success || !out.gift) {
         alert('선물 코드 발급에 실패했습니다.\n결제번호: ' + paymentId + '\n고객센터로 문의해주세요.');
         console.error('선물 발급 실패:', out.error);
         return;
       }
-      showGiftSuccess(out.giftCode, ctx.courseName, ctx.thumbnail, ctx.recipientEmail);
+      showGiftSuccess(out.giftCode, ctx.courseName || (currentCourse && currentCourse.title) || '',
+                      ctx.thumbnail || '', ctx.recipientEmail || '');
       return;
     }
 
@@ -1718,19 +1723,20 @@ async function requestPayment() {
   const originalBtnText = btn.textContent;
   btn.textContent = '결제 진행 중...';
 
-  // 모바일은 결제창이 새 창이 아니라 페이지 이동으로 뜬다. 돌아왔을 때
-  // 무엇을 결제하던 중이었는지 알아야 검증을 이어갈 수 있으므로 남겨 둔다.
-  try {
-    sessionStorage.setItem('im_pay', JSON.stringify({
-      kind: 'course',
-      paymentId: paymentId,
-      courseId: currentCourse.id,
-      courseName: currentCourse.title,
-      amount: finalPrice,
-      couponCode: appliedCoupon ? appliedCoupon.code : null,
-      couponId: appliedCoupon ? appliedCoupon.id : null,
-    }));
-  } catch (e) {}
+  // 이 맥락은 두 군데에 남긴다. sessionStorage 는 돌아온 브라우저가 쓰고,
+  // customData 는 포트원이 들고 있다가 웹훅으로 서버에 직접 돌려준다.
+  // 브라우저가 죽어도 서버가 혼자 주문을 만들 수 있어야 하기 때문이다.
+  const payCtx = {
+    kind: 'course',
+    paymentId: paymentId,
+    courseId: currentCourse.id,
+    courseName: currentCourse.title,
+    amount: finalPrice,
+    couponCode: appliedCoupon ? appliedCoupon.code : null,
+    couponId: appliedCoupon ? appliedCoupon.id : null,
+    userId: user.id,
+  };
+  try { sessionStorage.setItem('im_pay', JSON.stringify(payCtx)); } catch (e) {}
 
   try {
     const payment = await PortOne.requestPayment({
@@ -1744,6 +1750,7 @@ async function requestPayment() {
       // 모바일 필수. 없으면 결제창 자체가 뜨지 않는다.
       // PC 는 이 값이 있어도 팝업 방식 그대로라 영향이 없다.
       redirectUrl: location.origin + location.pathname + '?id=' + currentCourse.id,
+      customData: JSON.stringify(payCtx),
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile?.name) c.fullName = profile.name;
@@ -1927,21 +1934,21 @@ async function requestGift() {
   const originalText = btn.textContent;
   btn.textContent = '결제 진행 중...';
 
-  // 모바일은 결제창이 페이지 이동으로 뜬다. 돌아와서 선물 코드를 발급하려면
-  // 받는 사람·메시지까지 남겨 둬야 한다. 강좌 이름과 썸네일도 함께 저장하는 것은
-  // 복귀 직후 currentCourse 가 아직 안 실렸을 수 있어서다.
-  try {
-    sessionStorage.setItem('im_pay', JSON.stringify({
-      kind: 'gift',
-      paymentId: paymentId,
-      courseId: currentCourse.id,
-      courseName: currentCourse.title,
-      thumbnail: currentCourse.thumbnail_url || '',
-      amount: currentPrice,
-      recipientEmail: recipientEmail || null,
-      message: message || null,
-    }));
-  } catch (e) {}
+  // 이 맥락은 두 군데에 남긴다. sessionStorage 는 돌아온 브라우저가 쓰고,
+  // customData 는 포트원이 들고 있다가 웹훅으로 서버에 직접 돌려준다.
+  // 브라우저가 죽어도 서버가 혼자 주문을 만들 수 있어야 하기 때문이다.
+  const payCtx = {
+    kind: 'gift',
+    paymentId: paymentId,
+    courseId: currentCourse.id,
+    courseName: currentCourse.title,
+    thumbnail: currentCourse.thumbnail_url || '',
+    amount: currentPrice,
+    recipientEmail: recipientEmail || null,
+    message: message || null,
+    userId: user.id,
+  };
+  try { sessionStorage.setItem('im_pay', JSON.stringify(payCtx)); } catch (e) {}
 
   try {
     const payment = await PortOne.requestPayment({
@@ -1954,6 +1961,7 @@ async function requestGift() {
       payMethod: 'CARD',
       // 모바일 필수. 없으면 결제창이 아예 뜨지 않는다.
       redirectUrl: location.origin + location.pathname + '?id=' + currentCourse.id,
+      customData: JSON.stringify(payCtx),
       customer: (() => {
         const c = { email: user.email || '', phoneNumber: profile.phone };
         if (profile?.name) c.fullName = profile.name;
