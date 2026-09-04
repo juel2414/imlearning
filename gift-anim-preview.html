@@ -630,7 +630,7 @@
     try {
       // 선물 정보와 로그인 상태 동시 조회
       var [giftResult, authResult] = await Promise.all([
-        Promise.resolve({ data: [{ course_title: '[성문제 매뉴얼] 공동체 성문제 발생시 매뉴얼',
+        Promise.resolve({ data: [{ gift_code: 'IMGIFT-B2N6MZFX', course_title: '[성문제 매뉴얼] 공동체 성문제 발생시 매뉴얼',
           sender_name: '관리자 주엘', thumbnail_url: 'thumbnails/course-116.jpg',
           expires_at: '2027-09-04', message: '잘 들으세요!', status: 'pending' }], error: null }),
         supabaseClient.auth.getUser(),
