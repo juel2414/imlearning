@@ -2661,11 +2661,6 @@ async function loadCoupons() {
         <div class="gm-selected-price" id="gm-sel-price"></div>
       </div>
       <div class="gm-field">
-        <label>받으실 분 이메일 <span style="font-weight:400;color:#aaa;">(선택)</span></label>
-        <input type="email" id="gm-recipient-email" placeholder="example@email.com">
-        <div class="gm-hint">입력 시 해당 이메일로 선물 링크를 자동 발송합니다.</div>
-      </div>
-      <div class="gm-field">
         <label>전달 메시지 <span style="font-weight:400;color:#aaa;">(선택)</span></label>
         <textarea id="gm-message" rows="3" placeholder="마음을 담은 한 마디를 전해보세요..."></textarea>
       </div>
@@ -2746,7 +2741,6 @@ function closeGiftSelectModal() {
   _gmSelected = null;
   _gmShareLink = '';
   document.getElementById('gm-search-input').value = '';
-  document.getElementById('gm-recipient-email').value = '';
   document.getElementById('gm-message').value = '';
 }
 
@@ -2808,7 +2802,7 @@ function gmShowStep(n) {
   [1,2,3].forEach(i => {
     document.getElementById('gm-step'+i).classList.toggle('active', i===n);
   });
-  const titles = { 1:'🎁 강좌 선택', 2:'받는 분 정보 입력', 3:'선물 완료!' };
+  const titles = { 1:'🎁 강좌 선택', 2:'결제', 3:'선물 완료!' };
   document.getElementById('gm-title').textContent = titles[n];
   document.getElementById('gm-back-btn').style.display = n === 2 ? '' : 'none';
 }
@@ -2878,7 +2872,8 @@ function gmSelectCourse(courseId) {
 
 async function gmRequestGift() {
   const btn = document.getElementById('gm-pay-btn');
-  const recipientEmail = document.getElementById('gm-recipient-email').value.trim();
+  // 받는 사람은 결제 뒤에 정한다. 자세한 이유는 course-detail 의 같은 자리 참고.
+  const recipientEmail = '';
   const message = document.getElementById('gm-message').value.trim();
 
   const { data: { user } } = await supabaseClient.auth.getUser();

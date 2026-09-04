@@ -825,11 +825,7 @@ body {
   <div id="gift-modal-box">
     <button id="gift-modal-close" onclick="closeGiftModal()">✕</button>
     <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 강의 선물하기</h3>
-    <p class="gift-sub">소중한 분께 강의를 선물해보세요!</p>
-    <div class="gift-field">
-      <label>받는 분 이메일 <span style="color:#888;font-weight:400;">(선택 — 비워두면 링크만 생성)</span></label>
-      <input type="email" id="gift-email" placeholder="example@email.com">
-    </div>
+    <p class="gift-sub">결제하시면 선물 코드가 나옵니다. 카카오톡·문자·링크 중 편한 방법으로 전해주세요.</p>
     <div class="gift-field">
       <label>메시지 <span style="color:#888;font-weight:400;">(선택)</span></label>
       <textarea id="gift-message" rows="3" placeholder="마음을 담은 한 마디를 전해보세요..."></textarea>
@@ -864,7 +860,6 @@ body {
         링크 복사
       </button>
     </div>
-    <p class="gs-email-notice" id="gift-email-sent" style="display:none;">입력하신 이메일로도 발송했어요.</p>
     <button class="gs-close-btn" onclick="closeGiftSuccess()">닫기</button>
   </div>
 </div>
@@ -1529,8 +1524,6 @@ function showGiftSuccess(giftCode, courseName, thumbUrl, recipientEmail) {
     thumbEl.innerHTML = '';
     thumbEl.appendChild(img);
   }
-  var sent = document.getElementById('gift-email-sent');
-  if (sent) sent.style.display = recipientEmail ? '' : 'none';
 
   setupGiftShareButtons();
   document.getElementById('gift-modal').classList.remove('open');
@@ -1900,7 +1893,10 @@ function shareGiftSms() {
 
 async function requestGift() {
   const btn = document.getElementById('gift-confirm-btn');
-  const recipientEmail = document.getElementById('gift-email').value.trim();
+  // 받는 사람은 결제 뒤에 정한다. 결제 전에 상대 이메일을 알아야 하는 것이
+  // 걸림돌이었고, 이메일로 잠가 두면 그 주소로 가입해야만 열려 오히려
+  // 선물을 못 받는 일이 생겼다. 이제 코드를 먼저 만들고 전달 방법을 고른다.
+  const recipientEmail = '';
   const message = document.getElementById('gift-message').value.trim();
 
   const { data: { user } } = await supabaseClient.auth.getUser();
