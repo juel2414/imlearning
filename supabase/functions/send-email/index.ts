@@ -356,9 +356,19 @@ Deno.serve(async (req: Request) => {
         user_id: contactUserId,
       })
 
+      // 알림 메일이 실패해도 문의 접수는 성공이다.
+      // 예전에는 여기서 throw 되면 500 이 나가, 이미 저장된 문의를 두고
+      // 사용자에게 '전송 실패' 를 보여 줬다. 그래서 같은 문의가 여러 번 쌓였다.
+      // 관리자에게는 contacts_notify_new 트리거로 사이트 알림도 함께 간다.
       const ADMIN_EMAIL = 'imkorea.mission@gmail.com'
-      await resendSend(ADMIN_EMAIL, `[아이엠러닝] 새 문의: ${name} (${inquiryType})`, contactInquiryHtml(name, phone, inquiryType, message))
-      return ok({ sent: 1 })
+      let emailSent = true
+      try {
+        await resendSend(ADMIN_EMAIL, `[아이엠러닝] 새 문의: ${name} (${inquiryType})`, contactInquiryHtml(name, phone, inquiryType, message))
+      } catch (mailErr) {
+        emailSent = false
+        console.error('contact_inquiry 알림 메일 실패(문의는 저장됨):', mailErr)
+      }
+      return ok({ sent: emailSent ? 1 : 0, saved: true, emailSent })
     }
 
     const authHeader = req.headers.get('Authorization')
