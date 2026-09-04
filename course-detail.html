@@ -667,7 +667,7 @@ body {
                 <div class="enrolled-bar-fill" id="enrolled-bar" style="width:0%"></div>
               </div>
             </div>
-            <button class="btn-resume" id="resume-btn" onclick="resumeCourse()">▶ 이어보기</button>
+            <button class="btn-resume" id="resume-btn" onclick="resumeCourse()">▶ 수강하기</button>
           </div>
 
           <!-- 할인 배지 + 월 환산 -->
@@ -960,6 +960,7 @@ let progressMap = {};    // lessonId → true/false
 let watchPctMap = {};    // lessonNum → 0~100
 let isEnrolled = false;
 let lastWatchedLesson = null;
+let hasWatched = false;   // 이 강좌를 한 번이라도 본 적이 있는가
 let _prevCoursePct = -1; // 수료 이메일 중복 방지
 let curriculumLessons = []; // 사이드바용 강의 목록
 let sidebarRendered = false;
@@ -974,7 +975,7 @@ async function loadProgress(userId, courseId) {
       .order('watched_at', { ascending: false }),
     supabaseClient
       .from('video_progress')
-      .select('lesson_number, watch_percentage')
+      .select('lesson_number, watch_percentage, actual_watched_seconds')
       .eq('user_id', userId)
       .eq('course_id', courseId),
   ]);
@@ -982,9 +983,13 @@ async function loadProgress(userId, courseId) {
   if (progressRes.data && progressRes.data.length) {
     progressRes.data.forEach(r => { progressMap[r.lesson_id] = r.completed; });
     lastWatchedLesson = progressRes.data[0];
+    hasWatched = true;
   }
   if (vpRes.data) {
     vpRes.data.forEach(r => { watchPctMap[r.lesson_number] = r.watch_percentage || 0; });
+    // 한 번이라도 실제로 재생한 적이 있는지. progress 행은 관리자 승인만으로도
+    // 생길 수 있어, 시청 초가 쌓인 기록을 함께 본다.
+    if (vpRes.data.some(r => (r.actual_watched_seconds || 0) > 0)) hasWatched = true;
   }
   applyProgressUI();
 }
@@ -1052,9 +1057,17 @@ function applyProgressUI() {
     document.getElementById('enrolled-section').style.display = '';
     document.getElementById('enrolled-pct').textContent = pct + '%';
     document.getElementById('enrolled-bar').style.width = pct + '%';
-    // 이어보기 버튼 텍스트
-    if (lastWatchedLesson) {
-      document.getElementById('resume-btn').textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
+    // 버튼 문구 — 처음 여는 사람에게 '이어보기'는 말이 안 된다.
+    // 한 번이라도 본 뒤에야 이어볼 자리가 생긴다.
+    var rb = document.getElementById('resume-btn');
+    if (rb) {
+      if (hasWatched && lastWatchedLesson) {
+        rb.textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
+      } else if (hasWatched) {
+        rb.textContent = '▶ 이어보기';
+      } else {
+        rb.textContent = '▶ 수강하기';
+      }
     }
     // 마지막 시청 강의 행 강조 + 이어보기 태그
     document.querySelectorAll('#curriculum-content .last-watched-item')
@@ -1138,15 +1151,25 @@ async function toggleLesson(lessonId, lessonTitle, completed) {
 function resumeCourse() {
   const tab = document.querySelector('.detail-tab[onclick*="curriculum"]');
   if (tab && !tab.classList.contains('active')) tab.click();
-  if (lastWatchedLesson) {
-    const el = document.querySelector(`[data-lesson="${lastWatchedLesson.lesson_id}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const n = parseInt(lastWatchedLesson.lesson_id.replace(/[^0-9]/g, '')) || 1;
-      const videoUrl = el.dataset.videoUrl; // 대표 영상 폴백 금지 (위 주석 참고)
-      if (videoUrl) openLesson(n, lastWatchedLesson.lesson_title || '', videoUrl);
-    }
+
+  // 이어볼 자리가 있으면 거기서, 없으면 첫 강의부터.
+  // 예전에는 본 적 없는 사람이 누르면 아무 일도 일어나지 않았다.
+  let el = lastWatchedLesson
+    ? document.querySelector(`[data-lesson="${lastWatchedLesson.lesson_id}"]`)
+    : null;
+  let title = lastWatchedLesson ? (lastWatchedLesson.lesson_title || '') : '';
+
+  if (!el) {
+    el = document.querySelector('#curriculum-content [data-lesson][data-video-url]');
+    if (el) title = (el.querySelector('.curriculum-item-title') || {}).textContent || '';
   }
+  if (!el) return;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const n = parseInt(el.getAttribute('data-lesson').replace(/[^0-9]/g, '')) || 1;
+  const videoUrl = el.dataset.videoUrl; // 대표 영상 폴백 금지 (위 주석 참고)
+  if (videoUrl) openLesson(n, (title || '').trim(), videoUrl);
+  else alert('이 강의의 영상 링크가 없어요.');
 }
 
 // ───── 쿠폰 ─────

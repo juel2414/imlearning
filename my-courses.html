@@ -534,13 +534,10 @@ body {
     </div>
 
     <!-- 선물함 탭 -->
-    <!-- 결제 내역 + 선물함 + 쿠폰함 (한 탭에 세 구역) -->
+    <!-- 선물함 + 쿠폰함 + 결제 내역 (한 탭에 세 구역).
+         선물함이 맨 위다 — 받을 선물이 있는지가 가장 먼저 궁금한 정보이고,
+         결제 내역은 필요할 때 찾아보는 기록이라 아래에 둔다. -->
     <div class="tab-panel" id="panel-gifts">
-      <div class="mc-subsec">
-        <div class="mc-subsec-hdr"><h3>🧾 결제 내역</h3></div>
-        <div id="orders-content" class="loading-msg">불러오는 중...</div>
-      </div>
-
       <div class="mc-subsec">
         <div class="mc-subsec-hdr">
           <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 선물함</h3>
@@ -553,6 +550,11 @@ body {
       <div class="mc-subsec">
         <div class="mc-subsec-hdr"><h3>🎟 내 쿠폰함</h3></div>
         <div id="coupons-content" class="loading-msg">불러오는 중...</div>
+      </div>
+
+      <div class="mc-subsec">
+        <div class="mc-subsec-hdr"><h3>🧾 결제 내역</h3></div>
+        <div id="orders-content" class="loading-msg">불러오는 중...</div>
       </div>
     </div>
 
