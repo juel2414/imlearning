@@ -1317,6 +1317,15 @@ async function loadCourse() {
 
   currentCourse = course;
 
+  // 최근 본 강좌 기록. 홈에서 이 값을 읽어 보여 준다.
+  // 예전에는 홈에 읽는 코드만 있고 쓰는 곳이 없어 늘 비어 있었다.
+  try {
+    var _r = JSON.parse(localStorage.getItem('im_recent') || '[]');
+    _r = _r.filter(function (x) { return String(x.id) !== String(course.id); });
+    _r.unshift({ id: course.id, title: course.title, thumbnail_url: course.thumbnail_url || '' });
+    localStorage.setItem('im_recent', JSON.stringify(_r.slice(0, 5)));
+  } catch (e) {}
+
   // 기본 정보
   const catLabel = CATEGORY_LABELS[course.category] || course.category || '';
   document.getElementById('course-category').textContent = catLabel;

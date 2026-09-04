@@ -1243,15 +1243,7 @@ async function init() {
   await Promise.all([loadInstructors(), loadCourses(), loadFaqs(), initFeaturedSlider(), loadRealReviews()]);
 }
 
-// ── 최근 본 강좌 (localStorage) ──
-function trackRecentCourse(course) {
-  try {
-    let recent = JSON.parse(localStorage.getItem('im_recent') || '[]');
-    recent = recent.filter(r => r.id !== course.id);
-    recent.unshift({ id: course.id, title: course.title, thumbnail_url: course.thumbnail_url || '' });
-    localStorage.setItem('im_recent', JSON.stringify(recent.slice(0, 5)));
-  } catch(e) {}
-}
+// 최근 본 강좌는 course-detail.html 에서 im_recent 로 쌓고 여기서 읽기만 한다.
 
 function miniCourseCard(c, progress) {
   const thumb = c.thumbnail_url
@@ -1290,7 +1282,12 @@ async function initPersonal() {
     // 수강 중인 강좌 (환불 제외)
     const { data: allOrders } = await sb.from('orders').select('course_id, progress, refund_status')
       .eq('user_id', user.id).eq('status', 'paid').order('created_at', { ascending: false });
-    const orders = (allOrders || []).filter(o => o.refund_status !== 'refunded' && o.refund_status !== 'partial').slice(0, 3);
+    // course_id 가 null 인 행은 프리패스 영수증이라 보여 줄 강좌가 없다.
+    // 이걸 안 거르면 최근 3건이 전부 영수증일 때 '수강 중인 강좌가 없어요'가 뜬다.
+    const orders = (allOrders || [])
+      .filter(o => o.course_id != null)
+      .filter(o => o.refund_status !== 'refunded' && o.refund_status !== 'partial')
+      .slice(0, 3);
     if (orders.length > 0) {
       const ids = orders.map(o => o.course_id);
       const { data: cList } = await sb.from('courses').select('id,title,thumbnail_url').in('id', ids);
