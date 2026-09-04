@@ -166,6 +166,28 @@ Deno.serve(async (req: Request) => {
           .eq('course_id', gift.course_id)
           .eq('payment_id', gift.payment_id)
 
+        // ── 받은 분에게 알린다 ──────────────────────────────────────
+        // 이미 내 강의실에 들어와 있던 강좌가 말없이 사라지면 고장으로
+        // 오해한다. 누가 왜 회수했는지 알려 준다. 알림 실패가 환불을
+        // 되돌리면 안 되므로 오류는 삼킨다.
+        if (gift.recipient_id) {
+          try {
+            const { data: gc } = await supabase.from('courses')
+              .select('title').eq('id', gift.course_id).maybeSingle()
+            const senderName = gift.sender_name || '보내신 분'
+            await supabase.from('notifications').insert({
+              user_id: gift.recipient_id,
+              type: 'gift_refunded',
+              title: '선물이 취소되었어요',
+              body: `${senderName}님이 「${gc?.title ?? '강좌'}」 선물을 취소했습니다. `
+                  + '해당 강좌는 더 이상 수강할 수 없습니다.',
+              link: 'my-courses.html?tab=gifts',
+            })
+          } catch (e) {
+            console.error('선물 환불 알림 실패(무시):', e)
+          }
+        }
+
         return new Response(JSON.stringify({ success: true, refund_amount: refundAmount, status: 'refunded' }), {
           headers: { ...cors, 'Content-Type': 'application/json' },
         })
