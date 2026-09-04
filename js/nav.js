@@ -665,6 +665,12 @@
   }
 
   // ── 네비 인증 상태 갱신 ─────────────────────────────────────────
+  // updateAuth 는 한 번의 로그인 확인에 두 번 불린다 — 세션을 받은 즉시 한 번,
+  // 관리자 여부를 조회한 뒤 또 한 번. 매번 innerHTML 을 새로 쓰면 그 사이에
+  // 종 아이콘이 사라졌다 다시 생긴다. 실제로 바뀐 곳만 다시 그린다.
+  var _navRightKey = null;
+  var _navMobKey   = null;
+
   function updateAuth(user, isAdmin) {
     var right   = document.getElementById('nb-right');
     var mobAuth = document.getElementById('nb-mob-auth');
@@ -675,22 +681,33 @@
     if (isAdmin) buildAdminBar();
     else destroyAdminBar();
 
-    if (user) {
-      if (right) right.innerHTML =
-        bellHtml() +
-        '<a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>' +
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
-      loadNotifications();
-      if (mobAuth) mobAuth.innerHTML =
-        '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>' +
-        (isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '') +
-        '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
-    } else {
-      var out =
-        '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>' +
-        '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>';
-      if (right)   right.innerHTML   = out;
-      if (mobAuth) mobAuth.innerHTML = out;
+    // 오른쪽 묶음은 관리자 여부와 무관하다. 로그인한 사람이 바뀔 때만 다시 그린다.
+    var rightKey = user ? 'in:' + user.id : 'out';
+    if (right && _navRightKey !== rightKey) {
+      _navRightKey = rightKey;
+      if (user) {
+        right.innerHTML =
+          bellHtml() +
+          '<a href="my-courses.html" class="btn btn-outline btn-sm" style="color:var(--green);border-color:var(--green);">나의 강의실</a>' +
+          '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>';
+        loadNotifications();   // 종을 새로 만들 때만 부른다 (예전엔 두 번 돌았다)
+      } else {
+        right.innerHTML =
+          '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>' +
+          '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>';
+      }
+    }
+
+    // 모바일 서랍의 버튼은 '어드민' 링크 때문에 관리자 여부를 탄다.
+    var mobKey = rightKey + '|' + (isAdmin ? 1 : 0);
+    if (mobAuth && _navMobKey !== mobKey) {
+      _navMobKey = mobKey;
+      mobAuth.innerHTML = user
+        ? '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>' +
+          (isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '') +
+          '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>'
+        : '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>' +
+          '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>';
     }
   }
 
