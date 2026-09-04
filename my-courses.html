@@ -411,6 +411,43 @@ body {
 .gm-footer { padding:.75rem 1.5rem 1.25rem; flex-shrink:0; }
 .gm-back-btn { background:none; border:none; color:#888; font-size:13px; cursor:pointer; padding:0; font-family:inherit; }
 .gm-back-btn:hover { color:#2D9B6F; }
+/* ── 우리 팝업 ─────────────────────────────────────────────
+   브라우저 기본 alert 는 주소창 밑에 붙어 뜨고 생김새도 우리 것이 아니다.
+   화면 한가운데에 우리 톤으로 띄우고, 확인을 누르거나 잠시 뒤 사라진다. */
+#im-toast-back {
+  position: fixed; inset: 0; z-index: 12000; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(17,17,17,.34); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  opacity: 0; transition: opacity .18s ease;
+}
+#im-toast-back.on { display: flex; opacity: 1; }
+#im-toast {
+  background: #fff; border-radius: 16px; padding: 26px 26px 20px;
+  width: min(360px, 100%); text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.24);
+  transform: translateY(10px) scale(.97); transition: transform .2s cubic-bezier(.2,.9,.3,1);
+}
+#im-toast-back.on #im-toast { transform: none; }
+#im-toast .t-ico {
+  width: 46px; height: 46px; border-radius: 14px; margin: 0 auto 14px;
+  display: grid; place-items: center; font-size: 22px;
+  background: var(--green-light, #E8F5EE);
+}
+#im-toast.err .t-ico { background: #FEE2E2; }
+#im-toast .t-msg {
+  font-size: 15px; line-height: 1.65; color: var(--gray-900, #1A1A1A);
+  font-weight: 600; word-break: keep-all; white-space: pre-line;
+}
+#im-toast .t-msg b { color: var(--green-dark, #1A7A4A); }
+#im-toast .t-ok {
+  margin-top: 20px; width: 100%; padding: 12px 0; border: none; border-radius: 10px;
+  background: var(--green, #2D9B6F); color: #fff; font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+}
+#im-toast .t-ok:hover { background: var(--green-dark, #1A7A4A); }
+@media (prefers-reduced-motion: reduce) {
+  #im-toast-back, #im-toast { transition: none; }
+}
 </style>
 </head>
 <body>
@@ -764,16 +801,56 @@ function togglePlanInline(courseId) {
   if (el) el.classList.toggle('open');
 }
 
+
+// ── 우리 팝업 ──────────────────────────────────────────────
+// alert() 대신 쓴다. 화면 한가운데 우리 톤으로 뜨고, 확인을 누르거나
+// 4초가 지나면 닫힌다. 값을 돌려주지 않으므로 confirm 대체용은 아니다.
+function imAlert(msg, opt) {
+  opt = opt || {};
+  var back = document.getElementById('im-toast-back');
+  if (!back) {
+    back = document.createElement('div');
+    back.id = 'im-toast-back';
+    back.innerHTML =
+      '<div id="im-toast" role="alertdialog" aria-live="assertive">' +
+        '<div class="t-ico"></div>' +
+        '<div class="t-msg"></div>' +
+        '<button type="button" class="t-ok">확인</button>' +
+      '</div>';
+    document.body.appendChild(back);
+    back.addEventListener('click', function (e) { if (e.target === back) imAlertClose(); });
+    back.querySelector('.t-ok').addEventListener('click', imAlertClose);
+  }
+  var box = back.querySelector('#im-toast');
+  box.classList.toggle('err', opt.type === 'error');
+  box.querySelector('.t-ico').textContent = opt.type === 'error' ? '⚠️' : (opt.icon || '🎯');
+  box.querySelector('.t-msg').innerHTML = msg;   // 호출부에서만 넘기는 문구다
+  back.classList.add('on');
+
+  clearTimeout(imAlert._t);
+  if (opt.sticky !== true) imAlert._t = setTimeout(imAlertClose, 4000);
+  var ok = box.querySelector('.t-ok');
+  if (ok) setTimeout(function () { ok.focus(); }, 40);
+}
+function imAlertClose() {
+  clearTimeout(imAlert._t);
+  var back = document.getElementById('im-toast-back');
+  if (back) back.classList.remove('on');
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') imAlertClose();
+});
+
 async function savePlan(courseId) {
   const dateInput = document.getElementById('plan-date-' + courseId);
-  if (!dateInput || !dateInput.value) { alert('목표일을 선택해주세요.'); return; }
+  if (!dateInput || !dateInput.value) { imAlert('목표일을 선택해주세요.', { type:'error' }); return; }
 
   const targetDate = dateInput.value;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const target = new Date(targetDate);
   const daysUntil = Math.ceil((target - today) / 86400000);
 
-  if (daysUntil <= 0) { alert('오늘 이후의 날짜를 선택해주세요.'); return; }
+  if (daysUntil <= 0) { imAlert('오늘 이후의 날짜를 선택해주세요.', { type:'error' }); return; }
 
   const prog         = gProgressByCourse[courseId];
   const course       = gCoursesMap[courseId];
@@ -796,7 +873,7 @@ async function savePlan(courseId) {
 
   if (error) {
     console.error('계획 저장 실패:', error);
-    alert('저장에 실패했습니다. 다시 시도해주세요.');
+    imAlert('저장에 실패했습니다.\n다시 시도해주세요.', { type:'error' });
     return;
   }
 
@@ -820,7 +897,7 @@ async function savePlan(courseId) {
   document.getElementById('plan-inline-' + courseId)?.classList.remove('open');
   renderTodayGoalWidget();
 
-  alert(`목표 달성하려면 하루 ${dailyGoal}강씩 들으세요!`);
+  imAlert('목표를 세웠어요.\n하루 <b>' + dailyGoal + '강</b>씩 들으면 기한 안에 끝납니다.');
 }
 
 /* ════════════════════════════════════════════════════════
