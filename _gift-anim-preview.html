@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>선물 받기 — 아이엠러닝</title>
+<title>선물 열기 애니메이션 미리보기</title>
+<!-- 임시 미리보기 페이지. 선물 데이터를 가짜로 넣어 애니메이션만 보여준다.
+     확인이 끝나면 지운다. 실제 페이지는 gift.html 이다. -->
 <link rel="stylesheet" href="css/style.css">
 <style>
 .gift-page-wrap {
@@ -565,7 +567,9 @@
     try {
       // 선물 정보와 로그인 상태 동시 조회
       var [giftResult, authResult] = await Promise.all([
-        supabaseClient.rpc('get_gift_by_code', { p_code: code }),
+        Promise.resolve({ data: [{ course_title: '[성문제 매뉴얼] 공동체 성문제 발생시 매뉴얼',
+          sender_name: '관리자 주엘', thumbnail_url: 'thumbnails/course-116.jpg',
+          expires_at: '2027-09-04', message: '잘 들으세요!', status: 'pending' }], error: null }),
         supabaseClient.auth.getUser(),
       ]);
 
