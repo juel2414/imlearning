@@ -91,9 +91,17 @@
   from { opacity: 0; transform: translateY(46px) scale(.94); }
   to   { opacity: 1; transform: none; }
 }
+/* 동작 줄이기: 자리를 옮기는 움직임은 빼고 밝기만 바꾼다. 화면이 흔들려
+   어지러운 것을 막자는 설정이지 전환 자체를 없애자는 뜻은 아니다. */
+#screen-a.gift-leaving-soft { animation: gEnvFade .3s ease .12s both; }
+@keyframes gEnvFade { to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  #screen-a.gift-leaving, .gift-voucher.gift-rising { animation: none; }
-  #screen-a.gift-leaving { opacity: 0; }
+  #screen-a.gift-leaving { animation: gEnvFade .3s ease .12s both; }
+  .gift-voucher.gift-rising { animation: gVoucherFade .35s ease both; }
+  @keyframes gVoucherFade { from { opacity: 0; } to { opacity: 1; } }
+  /* 뚜껑은 열리는 것을 보여준다. 위치가 아니라 각도만 바뀌어 어지럽지 않다. */
+  .gev-flap { transition: transform .35s ease !important; }
+  .gev-paper { transition: opacity .3s ease .15s !important; }
 }
 
 /* 파티클은 화면 전체에 뿌리되 클릭을 막지 않는다 */
@@ -417,13 +425,16 @@
       var env = document.getElementById('env-visual');
       if (env) env.classList.add('open');
 
+      // 기기에서 동작 줄이기를 켠 사람에게는 움직임을 뺀다. 다만 예전처럼
+      // 즉시 교환권으로 튀면 뚜껑이 열린 것을 볼 새도 없이 화면이 바뀐다.
+      // 흔들리는 움직임과 파티클만 빼고, 뚜껑은 보여준 뒤 부드럽게 넘긴다.
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var delay = reduce ? 0 : 620;
+      var delay = reduce ? 420 : 620;
 
-      setTimeout(giftConfetti, reduce ? 0 : 260);
+      if (!reduce) setTimeout(giftConfetti, 260);
 
       var card = document.getElementById('screen-a');
-      if (card && !reduce) card.classList.add('gift-leaving');
+      if (card) card.classList.add(reduce ? 'gift-leaving-soft' : 'gift-leaving');
 
       setTimeout(function () { showVoucher(gift, true); }, delay);
     });
