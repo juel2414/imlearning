@@ -256,9 +256,12 @@
     'cursor:pointer!important;text-decoration:none!important;box-sizing:border-box!important;}',
     '#nb-search-drop{top:0;position:sticky;}',
     /* 모바일 메가메뉴: 세로 아코디언 */
+    /* 데스크톱에서 width:min(94vw,1080px) 을 쓰는데, 모바일에서 94vw 는
+       352px 이라 300px 서랍을 넘어 오른쪽으로 삐져나왔다. 폭을 서랍에 맞춘다. */
     '.nb-mega-menu{display:block!important;position:static!important;',
     'transform:none!important;box-shadow:none!important;border:none!important;',
     'background:transparent!important;padding:0!important;',
+    'width:100%!important;max-width:100%!important;box-sizing:border-box!important;',
     'border-radius:0!important;min-width:auto!important;animation:none!important;}',
     '.mega-col-thumb{display:none!important;}',
     '.mega-col{border-bottom:1px solid rgba(0,0,0,.05)!important;',
@@ -285,6 +288,12 @@
     'border-bottom:1px solid rgba(0,0,0,.04)!important;}',
     '.mega-col a:not(.mega-col-title):not(.mega-col-thumb):not(.mega-more):last-child{border-bottom:none!important;}',
     '.mega-col-sublabel{padding:6px 0 2px!important;font-size:10px!important;color:#ccc!important;}',
+    /* '전체 N개 보기' — 접혀 있을 때는 감추고, 펼쳤을 때만 목록 끝에 붙인다.
+       데스크톱의 margin-top:auto 가 남아 있으면 열 밖으로 밀려 떠 보인다. */
+    '.mega-col .mega-more{display:none!important;}',
+    '.mega-col.open .mega-more{display:block!important;margin-top:0!important;',
+    'padding:11px 24px 13px!important;font-size:12.5px!important;',
+    'white-space:normal!important;}',
     '}',
   ].join('');
   document.head.appendChild(style);
