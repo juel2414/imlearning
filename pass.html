@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>아이엠러닝 프리패스 — 전강좌 365일 무제한 수강</title>
+<title>아이엠러닝 프리패스 — 포함 강좌 365일 무제한 수강</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js"></script>
 <link rel="stylesheet" href="css/style.css">
@@ -572,19 +572,19 @@
         <span class="pass-eyebrow-text">아이엠러닝 프리패스</span>
       </div>
       <h1 class="pass-hero-title">
-        모든 강좌를<br>
+        패스에 담긴 강좌를<br>
         <span class="gold-text">무제한으로.</span>
       </h1>
       <p class="pass-hero-sub">
         신앙 · 학교교과 · 검정고시 · 부모·교사 · 영어<br>
-        하나의 이용권으로 전 강좌를 365일 자유롭게 수강하세요.
+        하나의 이용권으로 <b id="hero-course-count">28</b>개 강좌를 365일 자유롭게 수강하세요.
       </p>
       <div class="pass-feature-list">
         <div class="pass-feature-row">
           <div class="pass-feature-icon-wrap">📚</div>
           <div>
-            <div class="pass-feature-row-label">전 강좌 무제한 수강</div>
-            <div class="pass-feature-row-desc">현재 운영 중인 모든 강좌 포함</div>
+            <div class="pass-feature-row-label">포함 강좌 무제한 수강</div>
+            <div class="pass-feature-row-desc">패스에 담긴 강좌를 횟수 제한 없이</div>
           </div>
         </div>
         <div class="pass-feature-row">
@@ -707,7 +707,7 @@
 <div class="buy-section" id="buy-section" style="display:none;">
   <div>
     <div class="buy-section-price" id="footer-price">₩450,000</div>
-    <div class="buy-section-sub">365일 전강좌 무제한</div>
+    <div class="buy-section-sub">365일 포함 강좌 무제한</div>
   </div>
   <button class="buy-btn" id="buy-btn-footer" onclick="requestPassPayment()">프리패스 구매하기</button>
 </div>
@@ -859,6 +859,10 @@ async function loadPass() {
     document.getElementById('footer-price').textContent = priceStr;
     document.getElementById('course-count-title').textContent =
       '포함된 강좌 ' + data.length + '개';
+    // 히어로 문구의 숫자도 실제 목록에서 채운다. 손으로 적어 두면
+    // 강좌가 늘거나 줄었을 때 판매 문구가 사실과 어긋난다.
+    const heroCnt = document.getElementById('hero-course-count');
+    if (heroCnt) heroCnt.textContent = data.length;
 
     // 강좌 그리드 렌더
     document.getElementById('course-grid').innerHTML = data.map(row => `

@@ -98,7 +98,7 @@ const CATEGORY_LABELS = {
   exam: '수능/검정고시',
   edu: '부모·교사',
   english: '영어',
-  freepass: '전강좌 무제한',
+  freepass: '프리패스 강좌',
 };
 
 // ───── 주문(수강 신청) 생성 ─────
@@ -142,14 +142,26 @@ async function hasPurchased(userId, courseId) {
     if (hasOrder) return true;
   }
   if (!giftRes.error && (giftRes.data || []).length > 0) return true;
-  // 유효한 프리패스가 있으면 모든 강좌 접근 허용
+  // 프리패스는 패스에 포함된 강좌만 열어준다. 예전에는 강좌를 가리지 않고
+  // 통과시켜, 패스에 없는 강좌까지 "수강 가능"으로 보였다. 실제로는 lessons
+  // 정책이 막고 있어서 눌러도 강의가 안 나오는 어긋남이 생겼다.
+  //
+  // 만료일이 없는 표식은 인정하지 않는다. lessons 정책이 expires_at > now()
+  // 를 요구하므로, 여기서만 통과시키면 화면과 서버가 또 어긋난다.
   if (!passRes.error) {
     const hasPass = (passRes.data || []).some(function(o) {
       if (o.refund_status === 'refunded' || o.refund_status === 'partial') return false;
-      if (o.expires_at && new Date(o.expires_at) < now) return false;
-      return true;
+      if (!o.expires_at) return false;
+      return new Date(o.expires_at) > now;
     });
-    if (hasPass) return true;
+    if (hasPass) {
+      const { data: inPass } = await supabaseClient
+        .from('pass_courses')
+        .select('course_id')
+        .eq('course_id', courseId)
+        .limit(1);
+      if ((inPass || []).length > 0) return true;
+    }
   }
   return false;
 }

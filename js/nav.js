@@ -314,7 +314,7 @@
     '      <div class="nb-mega-menu" id="nb-mega-body">',
     '      </div>',
     '    </li>',
-    '    <li><a href="pass.html" class="nb-pass">전강좌 무제한</a></li>',
+    '    <li><a href="pass.html" class="nb-pass">프리패스 강좌</a></li>',
     '    <li><a href="notices.html">공지사항</a></li>',
     '    <li><a href="reviews.html">후기</a></li>',
     '    <li class="nb-books-mob"><a href="https://imbooks.kr" target="_blank" rel="noopener">아이엠북스 ↗</a></li>',
