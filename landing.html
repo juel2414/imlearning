@@ -625,10 +625,10 @@
         <p class="lp-shout">온라인으로 배우자!</p>
 
         <div class="lp-stats">
-          <div><b>50</b><span>강좌</span></div>
-          <div><b>1,332</b><span>강의</span></div>
-          <div><b>557</b><span>시간</span></div>
-          <div><b>1,313</b><span>함께한 사람</span></div>
+          <div><b data-stat="courses">50</b><span>강좌</span></div>
+          <div><b data-stat="lessons">1,332</b><span>강의</span></div>
+          <div><b data-stat="hours">557</b><span>시간</span></div>
+          <div><b data-stat="members">1,315</b><span>함께한 사람</span></div>
         </div>
       </div>
 
@@ -683,7 +683,7 @@
     <div class="lp-bot">
       <a href="courses.html" class="lp-cta">전체 강좌 둘러보기 →</a>
       <p class="lp-trust">
-        카드 등록 없이 <b>30초</b> 가입 · <b>26개 강의</b> 미리보기 · 무료 강좌 <b>5개</b>
+        카드 등록 없이 <b>30초</b> 가입 · <b><span data-stat="preview">26</span>개 강의</b> 미리보기 · 무료 강좌 <b><span data-stat="free">5</span>개</b>
       </p>
     </div>
 
@@ -725,14 +725,14 @@
 
       <div class="rise rise-d2 grid g4">
         <div class="card cure"><span class="pair-no">1</span>
-          <h3>성경적 가치관 위에 세운 50강좌</h3>
-          <p>말씀·신앙부터 영어·수능까지, 모든 과목을 같은 관점 위에서 만들었습니다. 강사 15명이 직접 가르칩니다.</p></div>
+          <h3>성경적 가치관 위에 세운 <span data-stat="courses">50</span>강좌</h3>
+          <p>말씀·신앙부터 영어·수능까지, 모든 과목을 같은 관점 위에서 만들었습니다. 강사 <span data-stat="instructors">15</span>명이 직접 가르칩니다.</p></div>
         <div class="card cure"><span class="pair-no">2</span>
           <h3>한 곳에서 둘 다</h3>
-          <p>신앙 323강과 영어 495강이 같은 계정 안에 있습니다. 아이도 부모도 같은 곳에서 배웁니다.</p></div>
+          <p>신앙 <span data-stat="cats.faith.lessons">323</span>강과 영어 <span data-stat="cats.english.lessons">495</span>강이 같은 계정 안에 있습니다. 아이도 부모도 같은 곳에서 배웁니다.</p></div>
         <div class="card cure"><span class="pair-no">3</span>
           <h3>끝이 있는 과정</h3>
-          <p>CBUP 수료과정은 12주 155강. 강의마다 노트를 제출하고 검토받고, 다 마치면 수료증이 나옵니다.</p></div>
+          <p>CBUP 수료과정은 12주 <span data-stat="cbup">155</span>강. 강의마다 노트를 제출하고 검토받고, 다 마치면 수료증이 나옵니다.</p></div>
         <div class="card cure"><span class="pair-no">4</span>
           <h3>새벽이든 지방이든</h3>
           <p>온라인이라 시간과 장소를 가리지 않습니다. 보던 지점부터 이어보기가 되고, 진도는 자동으로 기록됩니다.</p></div>
@@ -745,33 +745,33 @@
     <div class="wrap">
       <div class="sec-center">
         <div class="sec-eyebrow rise">What You Learn</div>
-        <h2 class="sec-h rise rise-d1">네 갈래, <em>1,332개</em> 강의</h2>
+        <h2 class="sec-h rise rise-d1">네 갈래, <em><span data-stat="lessons">1,332</span>개</em> 강의</h2>
         <p class="sec-p rise rise-d2">골라 듣는 특강이 아니라, 갈래마다 끝까지 이어지는 과정입니다.</p>
       </div>
 
       <div class="rise rise-d2 grid g4">
         <a class="card track" href="courses.html?cat=faith">
           <span class="t-name">말씀 · 신앙</span>
-          <span class="t-num">323<small style="font-size:.5em;font-weight:800;">강</small></span>
-          <span class="t-sub">15강좌 · 139시간</span>
+          <span class="t-num"><span data-stat="cats.faith.lessons">323</span><small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub"><span data-stat="cats.faith.courses">15</span>강좌 · <span data-stat="cats.faith.hours">139</span>시간</span>
           <span class="t-go">신앙 강좌 보기 →</span>
         </a>
         <a class="card track" href="courses.html?cat=edu">
           <span class="t-name">부모 · 교사</span>
-          <span class="t-num">378<small style="font-size:.5em;font-weight:800;">강</small></span>
-          <span class="t-sub">18강좌 · 200시간</span>
+          <span class="t-num"><span data-stat="cats.edu.lessons">378</span><small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub"><span data-stat="cats.edu.courses">18</span>강좌 · <span data-stat="cats.edu.hours">200</span>시간</span>
           <span class="t-go">부모·교사 과정 →</span>
         </a>
         <a class="card track" href="courses.html?cat=english">
           <span class="t-name">영어</span>
-          <span class="t-num">495<small style="font-size:.5em;font-weight:800;">강</small></span>
-          <span class="t-sub">13강좌 · 166시간</span>
+          <span class="t-num"><span data-stat="cats.english.lessons">495</span><small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub"><span data-stat="cats.english.courses">13</span>강좌 · <span data-stat="cats.english.hours">166</span>시간</span>
           <span class="t-go">영어 강좌 보기 →</span>
         </a>
         <a class="card track" href="courses.html?cat=exam">
           <span class="t-name">수능 · 검정고시</span>
-          <span class="t-num">136<small style="font-size:.5em;font-weight:800;">강</small></span>
-          <span class="t-sub">4강좌 · 52시간</span>
+          <span class="t-num"><span data-stat="cats.exam.lessons">136</span><small style="font-size:.5em;font-weight:800;">강</small></span>
+          <span class="t-sub"><span data-stat="cats.exam.courses">4</span>강좌 · <span data-stat="cats.exam.hours">52</span>시간</span>
           <span class="t-go">수능·검정고시 →</span>
         </a>
       </div>
@@ -830,7 +830,7 @@
             <!-- 3. 수료 -->
             <div class="panel" data-panel="2">
               <div class="p-head">CBUP 수료과정</div>
-              <div class="p-num">19<span>/ 155강</span></div>
+              <div class="p-num">19<span>/ <span data-stat="cbup">155</span>강</span></div>
               <div class="p-bar"><i style="width:12%"></i></div>
               <div class="p-foot"><span class="p-chip ok">수료증 발급 대상</span> 12주 과정</div>
             </div>
@@ -849,10 +849,10 @@
 
       <div class="rise rise-d2 grid g3">
         <div class="card"><span class="ico">🎬</span>
-          <h3>미리보기 26개 강의</h3>
+          <h3>미리보기 <span data-stat="preview">26</span>개 강의</h3>
           <p>로그인 없이 지금 바로 재생됩니다. 강사와 강의 방식이 맞는지 직접 보세요.</p></div>
         <div class="card"><span class="ico">🎁</span>
-          <h3>무료 강좌 5개</h3>
+          <h3>무료 강좌 <span data-stat="free">5</span>개</h3>
           <p>가입만 하면 처음부터 끝까지 무료로 수강할 수 있는 강좌가 다섯 개 있습니다.</p></div>
         <div class="card"><span class="ico">⏱</span>
           <h3>가입 30초 · 카드 등록 없음</h3>
@@ -904,7 +904,7 @@
       <div class="rise rise-d2 faq" style="margin-top:44px;">
         <details>
           <summary>정말 무료로 볼 수 있나요?</summary>
-          <div class="a">네. 로그인 없이 볼 수 있는 미리보기 강의가 26개 있고, 가입만 하면 끝까지 무료로 들을 수 있는 강좌가 5개 있습니다. 카드 등록은 필요 없습니다.</div>
+          <div class="a">네. 로그인 없이 볼 수 있는 미리보기 강의가 <span data-stat="preview">26</span>개 있고, 가입만 하면 끝까지 무료로 들을 수 있는 강좌가 <span data-stat="free">5</span>개 있습니다. 카드 등록은 필요 없습니다.</div>
         </details>
         <details>
           <summary>모바일에서도 볼 수 있나요?</summary>
@@ -926,7 +926,7 @@
   <section class="sec sec-alt cta-band">
     <div class="wrap">
       <h2 class="sec-h rise rise-d1">배움을 미루지 마세요</h2>
-      <p class="sec-p sec-center rise rise-d2">지금 26개 강의를 결제 없이 볼 수 있습니다.</p>
+      <p class="sec-p sec-center rise rise-d2">지금 <span data-stat="preview">26</span>개 강의를 결제 없이 볼 수 있습니다.</p>
       <a href="courses.html" class="lp-cta rise rise-d3">전체 강좌 둘러보기 →</a>
       <p class="cta-note rise rise-d3">카드 등록 없이 · 30초 가입</p>
     </div>
@@ -1004,6 +1004,35 @@
       }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });   // 화면 한가운데를 지날 때
       steps.forEach(function (s) { io.observe(s); });
     })();
+
+  /* ── 숫자 자동 갱신 ─────────────────────────────────────────
+     이 페이지의 숫자는 손으로 관리하면 반드시 낡는다. 강좌를 공개하거나
+     회원이 늘 때마다 어긋나기 때문에, 열릴 때 DB에서 받아 덮어쓴다.
+     마크업에 적힌 값은 그대로 두었다. 조회가 실패하면 그 값이 남는다. */
+  (function () {
+    var NODES = document.querySelectorAll('[data-stat]');
+    if (!NODES.length) return;
+
+    var ENDPOINT = 'https://lvglkxjzraznwnfilxvy.supabase.co/rest/v1/rpc/landing_stats';
+    var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+      body: '{}'
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (stats) {
+        if (!stats) return;
+        NODES.forEach(function (el) {
+          var v = el.getAttribute('data-stat').split('.').reduce(function (o, k) {
+            return (o === null || o === undefined) ? null : o[k];
+          }, stats);
+          if (typeof v === 'number') el.textContent = v.toLocaleString('ko-KR');
+        });
+      })
+      .catch(function () { /* 적혀 있는 값을 그대로 둔다 */ });
+  })();
 </script>
 </body>
 </html>
