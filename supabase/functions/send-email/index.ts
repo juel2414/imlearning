@@ -1,7 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const ALLOWED_ORIGINS = new Set<string>(
-  ['https://juel2414.github.io', Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
+  ['https://juel2414.github.io', 'https://imlearning.co.kr', 'https://www.imlearning.co.kr',
+   Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
 );
 
 function corsHeaders(req: Request) {
@@ -22,11 +23,11 @@ function esc(s: string): string {
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const SITE_ORIGIN = Deno.env.get('SITE_ORIGIN') || 'https://juel2414.github.io'
-const SITE_URL = `${SITE_ORIGIN}/imlearning`
+// 도메인을 옮길 때는 SITE_URL 시크릿 하나만 바꾸면 된다.
+const SITE_URL = (Deno.env.get('SITE_URL') || 'https://juel2414.github.io/imlearning').replace(/\/+$/, '')
 const FROM = '아이엠러닝 <noreply@imlearning.co.kr>'
 const BRAND = '#2D9B6F'
-const LOGO_URL = `${SITE_ORIGIN}/imlearning/images/logo-horizontal.png`
+const LOGO_URL = `${SITE_URL}/images/logo-horizontal.png`
 
 function base(body: string, heroHtml = '') {
   return `<!DOCTYPE html>

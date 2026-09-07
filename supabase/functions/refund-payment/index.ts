@@ -1,7 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const ALLOWED_ORIGINS = new Set<string>(
-  ['https://juel2414.github.io', Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
+  ['https://juel2414.github.io', 'https://imlearning.co.kr', 'https://www.imlearning.co.kr',
+   Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
 );
 
 function corsHeaders(req: Request) {

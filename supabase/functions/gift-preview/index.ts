@@ -4,6 +4,13 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const SITE_URL = Deno.env.get('SITE_URL') || "https://juel2414.github.io/imlearning";
 const DEFAULT_IMAGE = `${SITE_URL}/images/logo-horizontal.png`;
 
+// OG 태그는 절대 주소만 받는다. DB 값이 상대경로면 사이트 주소를 붙여 준다.
+function absUrl(u: string): string {
+  if (!u) return "";
+  if (/^https?:\/\//.test(u)) return u;
+  return `${SITE_URL}/` + String(u).replace(/^\//, "");
+}
+
 function esc(s: string): string {
   return String(s)
     .replace(/&/g, "&amp;")
@@ -32,7 +39,7 @@ Deno.serve(async (req: Request) => {
         const who = g.sender_name ? `${g.sender_name}님이` : "누군가";
         title = `${who} 강의를 선물했어요 🎁`;
         desc = g.title ? `${g.title} · 아이엠러닝` : desc;
-        if (g.thumbnail_url) image = g.thumbnail_url;
+        if (g.thumbnail_url) image = absUrl(g.thumbnail_url);
       }
     } catch (_e) {
       // 조회 실패해도 기본값으로 카드는 뜨게 둠

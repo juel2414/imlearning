@@ -2,8 +2,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ALLOWED_ORIGINS = new Set<string>(
-  ['https://juel2414.github.io', Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
+  ['https://juel2414.github.io', 'https://imlearning.co.kr', 'https://www.imlearning.co.kr',
+   Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
 );
+
+// 메일에 실리는 썸네일은 절대 주소여야 한다. DB 값이 상대경로면 사이트 주소를 붙여 준다.
+// 도메인을 옮길 때는 SITE_URL 시크릿 하나만 바꾸면 된다.
+const SITE_URL = (Deno.env.get('SITE_URL') || 'https://juel2414.github.io/imlearning').replace(/\/+$/, '');
+function absUrl(u: string): string {
+  if (!u) return '';
+  if (/^https?:\/\//.test(u)) return u;
+  return `${SITE_URL}/` + String(u).replace(/^\//, '');
+}
 
 function corsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
@@ -408,7 +418,7 @@ Deno.serve(async (req: Request) => {
             body: JSON.stringify({ type: 'gift', data: {
               recipientEmail, courseName: course.title ?? '강좌',
               senderName: prof?.name ?? '', message: message || '', giftCode: code,
-              thumbnailUrl: (course as any).thumbnail_url ?? '',
+              thumbnailUrl: absUrl((course as any).thumbnail_url ?? ''),
             }}),
           });
         } catch (e) { console.error('선물 메일 실패(무시):', e); }

@@ -8,7 +8,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // 실패할 수도 있으므로 마지막 그물을 하나 더 둔다.
 
 const ALLOWED_ORIGINS = new Set<string>(
-  ['https://juel2414.github.io', Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
+  ['https://juel2414.github.io', 'https://imlearning.co.kr', 'https://www.imlearning.co.kr',
+   Deno.env.get('SITE_ORIGIN') || ''].filter(Boolean)
 );
 
 function corsHeaders(req: Request) {

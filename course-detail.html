@@ -1554,7 +1554,7 @@ function showGiftSuccess(giftCode, courseName, thumbUrl, recipientEmail) {
   // 엣지 함수는 HTML 을 못 띄운다. Supabase 가 응답을 text/plain 으로 강제해서
   // 받는 사람에게 소스 코드가 그대로 보였다. 실제 페이지로 바로 보낸다.
   // 카카오 공유는 제목·이미지를 직접 실어 보내므로 미리보기 태그가 필요 없다.
-  var shareLink = 'https://juel2414.github.io/imlearning/gift.html?code=' + encodeURIComponent(giftCode);
+  var shareLink = location.origin + location.pathname.replace(/[^\/]*$/, '') + 'gift.html?code=' + encodeURIComponent(giftCode);
   window._giftShareLink = shareLink;
   // 공유 카드에 쓸 강좌 정보를 함께 붙잡아 둔다. currentCourse 에 기대면
   // 복귀 직후처럼 아직 안 실린 상황에서 로고가 대신 나간다.
@@ -1956,10 +1956,11 @@ function setupGiftShareButtons() {
 }
 
 // 카카오는 절대 주소만 받는다. 상대 경로면 사이트 주소를 붙여 준다.
+// 주소를 박아 두지 않고 현재 페이지에서 뽑는다. 도메인이 바뀌어도 따라간다.
 function gsAbsUrl(u) {
   if (!u) return '';
   if (/^https?:\/\//.test(u)) return u;
-  return 'https://juel2414.github.io/imlearning/' + String(u).replace(/^\//, '');
+  return location.origin + location.pathname.replace(/[^\/]*$/, '') + String(u).replace(/^\//, '');
 }
 
 function shareGiftKakao() {
@@ -1974,7 +1975,7 @@ function shareGiftKakao() {
         content: {
           title: '딩동~ 선물이 도착했어요',
           description: '무엇이 들어있을까요? 눌러서 확인해보세요',
-          imageUrl: 'https://juel2414.github.io/imlearning/images/gift-share-card.png',
+          imageUrl: location.origin + location.pathname.replace(/[^\/]*$/, '') + 'images/gift-share-card.png',
           link: { mobileWebUrl: link, webUrl: link },
         },
         buttons: [{ title: '선물 열어보기', link: { mobileWebUrl: link, webUrl: link } }],
