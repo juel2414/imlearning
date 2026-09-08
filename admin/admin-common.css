@@ -1,26 +1,11 @@
 /* admin-common.css — 어드민 공통 반응형 스타일 v1 */
 /* 모든 어드민 페이지에서 로드. admin-nav.js와 함께 사용. */
 
-/* ── 폰트 ── */
-@font-face {
-  font-family: 'S-CoreDream';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'S-CoreDream';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff');
-  font-weight: 700; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'S-CoreDream';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-8Heavy.woff') format('woff');
-  font-weight: 900; font-style: normal; font-display: swap;
-}
+/* ── 폰트 ── 대시보드와 같은 시스템 고딕을 쓴다 ── */
 
 /* ── 기본 리셋 ── */
 * { box-sizing: border-box; word-break: keep-all; }
-body { margin: 0; font-family: 'S-CoreDream','Noto Sans KR',-apple-system,sans-serif; background:#F4F6F8; }
+body { margin: 0; font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; }
 
 /* ── 기존 정적 사이드바/레이아웃 무효화 ── */
 /* admin-nav.js가 aside.admin-sidebar를 숨기므로, admin-layout 그리드도 block으로 전환 */
@@ -81,7 +66,7 @@ body { margin: 0; font-family: 'S-CoreDream','Noto Sans KR',-apple-system,sans-s
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 18px; border-radius: 10px; font-size: 13px;
   font-weight: 700; cursor: pointer; border: none;
-  font-family: 'S-CoreDream','Noto Sans KR',-apple-system,sans-serif;
+  font-family: -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   white-space: nowrap;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
