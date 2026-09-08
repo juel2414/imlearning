@@ -3224,10 +3224,33 @@ async function loadCourseFiles() {
         <div class="file-title">${esc(f.title)}</div>
         <div class="file-meta">${esc(f.file_name)}${sizeText ? ' · ' + sizeText : ''} · ${date}</div>
       </div>
-      ${url ? `<a href="${esc(url)}" download="${esc(f.file_name)}" class="file-download-btn">다운로드</a>` : '<span style="color:var(--gray-400);font-size:12px;">준비 중</span>'}
+      ${url ? `<a href="#" data-dl="${esc(url)}" data-name="${esc(f.file_name)}" class="file-download-btn">다운로드</a>` : '<span style="color:var(--gray-400);font-size:12px;">준비 중</span>'}
     </div>`;
   }));
   listEl.innerHTML = fileCards.join('');
+
+  // 다른 출처 주소에는 download 속성이 무시되고, 서명주소에 한글 이름을 실으면
+  // %EC%84%B1... 으로 저장된다. 받아 온 뒤 같은 출처의 blob 으로 바꿔 이름을 붙인다.
+  listEl.onclick = async (ev) => {
+    const a = ev.target.closest('[data-dl]');
+    if (!a) return;
+    ev.preventDefault();
+    const label = a.textContent;
+    a.textContent = '받는 중';
+    try {
+      const res  = await fetch(a.getAttribute('data-dl'));
+      if (!res.ok) throw new Error(res.status);
+      const blob = await res.blob();
+      const u    = URL.createObjectURL(blob);
+      const tmp  = document.createElement('a');
+      tmp.href = u; tmp.download = a.getAttribute('data-name') || 'file';
+      document.body.appendChild(tmp); tmp.click(); tmp.remove();
+      setTimeout(() => URL.revokeObjectURL(u), 10000);
+    } catch (e) {
+      alert('파일을 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+    a.textContent = label;
+  };
 }
 
 // ───── 초기 실행 ─────

@@ -136,6 +136,20 @@
     return n > 1048576 ? (n/1048576).toFixed(1) + 'MB' : Math.round(n/1024) + 'KB';
   }
 
+  // Supabase 서명주소에 한글 이름을 넘기면 %EC%84%B1... 처럼 인코딩된 채로 저장된다.
+  // 파일을 받아 온 뒤 같은 출처의 blob 으로 바꿔 이름을 직접 붙인다.
+  // (다른 출처 주소에는 download 속성이 무시되므로 blob 을 거쳐야 한다)
+  async function saveAs(signedUrl, fileName) {
+    var res = await fetch(signedUrl);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var blob = await res.blob();
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = fileName || 'file';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+  }
+
   async function guard() {
     var { data: { session } } = await sb.auth.getSession();
     if (!session) { location.href = 'login.html'; return false; }
@@ -242,9 +256,12 @@
       });
       if (!file) return;
       var { data, error } = await sb.storage.from('resource-files')
-        .createSignedUrl(file.file_path, 300, { download: file.file_name });
+        .createSignedUrl(file.file_path, 300);
       if (error || !data) { alert('파일을 여는 데 실패했습니다.'); return; }
-      window.location.href = data.signedUrl;
+      dl.textContent = '받는 중';
+      try { await saveAs(data.signedUrl, file.file_name); }
+      catch (err) { alert('파일을 받지 못했습니다.'); }
+      dl.textContent = '받기';
       return;
     }
 

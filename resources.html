@@ -168,6 +168,20 @@
       '<a href="$1" target="_blank" rel="noopener">$1</a>');
   }
 
+  // Supabase 서명주소에 한글 이름을 넘기면 %EC%84%B1... 처럼 인코딩된 채로 저장된다.
+  // 파일을 받아 온 뒤 같은 출처의 blob 으로 바꿔 이름을 직접 붙인다.
+  // (다른 출처 주소에는 download 속성이 무시되므로 blob 을 거쳐야 한다)
+  async function saveAs(signedUrl, fileName) {
+    var res = await fetch(signedUrl);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var blob = await res.blob();
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = fileName || 'file';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+  }
+
   function state(ico, title, desc, link) {
     listEl.innerHTML =
       '<div class="res-state">' +
@@ -248,18 +262,18 @@
     });
     if (!file) return;
 
-    dl.classList.add('busy'); dl.textContent = '준비 중';
+    dl.classList.add('busy'); dl.textContent = '받는 중';
     supabaseClient.storage.from('resource-files')
-      .createSignedUrl(file.file_path, 300, { download: file.file_name })
+      .createSignedUrl(file.file_path, 300)
       .then(function (res) {
-        dl.classList.remove('busy'); dl.textContent = '받기';
         var url = res && res.data && res.data.signedUrl;
-        if (!url) { alert('파일을 여는 데 실패했습니다. 잠시 후 다시 시도해 주세요.'); return; }
-        window.location.href = url;
+        if (!url) throw new Error('no url');
+        return saveAs(url, file.file_name);
       })
+      .then(function () { dl.classList.remove('busy'); dl.textContent = '받기'; })
       .catch(function () {
         dl.classList.remove('busy'); dl.textContent = '받기';
-        alert('파일을 여는 데 실패했습니다.');
+        alert('파일을 여는 데 실패했습니다. 잠시 후 다시 시도해 주세요.');
       });
   });
 
