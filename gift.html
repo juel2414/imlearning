@@ -44,31 +44,39 @@
    이모지 대신 진짜 봉투를 그린다. 뚜껑이 위쪽 모서리를 축으로 젖혀지면서
    열리고, 그 사이로 티켓 끝이 살짝 보였다가 올라온다. */
 .gift-env-visual {
-  position: relative; width: 108px; height: 74px;
-  margin: 0 auto 18px; perspective: 500px;
+  position: relative; width: 132px; height: 90px;
+  margin: 0 auto 20px; perspective: 560px;
 }
 .gev-body {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg,#24503A 0%,#1B3D2C 100%);
-  border-radius: 8px;
+  /* 안쪽. 덮개가 열리면 이 밝은 초록이 드러난다 */
+  background: linear-gradient(180deg,#2D9B6F 0%,#268B62 100%);
+  border-radius: 9px;
 }
 /* 봉투 속에서 올라오는 종이 끝 */
 .gev-paper {
-  position: absolute; left: 12px; right: 12px; top: 10px;
-  height: 44px; background: #FBF8F3; border-radius: 4px;
-  transform: translateY(14px); opacity: 0;
+  position: absolute; left: 15px; right: 15px; top: 11px;
+  height: 56px; border-radius: 4px;
+  /* 종이 위의 글줄. 카톡 선물 카드의 일러스트와 같은 인상을 준다 */
+  background:
+    linear-gradient(#E2DED6,#E2DED6) 12px 13px / 54px 4px no-repeat,
+    linear-gradient(#E2DED6,#E2DED6) 12px 23px / 54px 4px no-repeat,
+    linear-gradient(#E2DED6,#E2DED6) 12px 33px / 54px 4px no-repeat,
+    linear-gradient(#EAE6DE,#EAE6DE) 12px 43px / 34px 4px no-repeat,
+    #FFFDFA;
+  transform: translateY(16px); opacity: 0;
   transition: transform .5s cubic-bezier(.16,1,.3,1) .18s, opacity .25s .18s;
 }
 /* 앞면이 종이를 가려야 "안에서 나온다" 로 보인다 */
 .gev-front {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 46px;
-  background: linear-gradient(180deg,#2A5C43 0%,#1B3D2C 100%);
-  border-radius: 0 0 8px 8px;
-  clip-path: polygon(0 22%, 50% 0, 100% 22%, 100% 100%, 0 100%);
+  position: absolute; left: 0; right: 0; bottom: 0; height: 58px;
+  background: linear-gradient(180deg,#2C5F46 0%,#1D422F 100%);
+  border-radius: 0 0 9px 9px;
+  clip-path: polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%);
 }
 .gev-flap {
-  position: absolute; left: 0; right: 0; top: 0; height: 42px;
-  background: #2D9B6F;
+  position: absolute; left: 0; right: 0; top: 0; height: 50px;
+  background: #2C5F46;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   transition: transform .55s cubic-bezier(.6,-0.28,.5,1.3);
@@ -76,7 +84,7 @@
 }
 /* 열림 */
 .gift-env-visual.open .gev-flap  { transform: rotateX(-168deg); }
-.gift-env-visual.open .gev-paper { transform: translateY(-26px); opacity: 1; }
+.gift-env-visual.open .gev-paper { transform: translateY(-30px); opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .gev-flap, .gev-paper { transition: none; }
@@ -409,9 +417,11 @@
       '<div class="g-dark-card" id="screen-a">',
       '  <div class="gift-env-visual" id="env-visual">',
       '    <div class="gev-body"></div>',
+      // 덮개가 편지 뒤에 있어야 열렸을 때 편지가 앞으로 나온다.
+      // 순서가 바뀌면 편지 모서리가 덮개 옆으로 삐져나온다.
+      '    <div class="gev-flap"></div>',
       '    <div class="gev-paper"></div>',
       '    <div class="gev-front"></div>',
-      '    <div class="gev-flap"></div>',
       '  </div>',
       '  <div class="gift-env-label">IMLEARNING GIFT</div>',
       '  <p class="gift-env-title">' + senderLine + '</p>',
