@@ -317,6 +317,7 @@
     '    <li><a href="pass.html" class="nb-pass">프리패스 강좌</a></li>',
     '    <li><a href="notices.html">공지사항</a></li>',
     '    <li><a href="reviews.html">후기</a></li>',
+    '    <li id="nb-res-li" style="display:none"><a href="resources.html">자료실</a></li>',
     '    <li class="nb-books-mob"><a href="https://imbooks.kr" target="_blank" rel="noopener">아이엠북스 ↗</a></li>',
     '    <li id="nb-admin-li" style="display:none"><a href="admin/index.html" style="color:#2D9B6F!important;font-weight:600!important;">어드민</a></li>',
     '    <li id="nb-mob-auth-li"><div id="nb-mob-auth">',
@@ -671,12 +672,15 @@
   var _navRightKey = null;
   var _navMobKey   = null;
 
-  function updateAuth(user, isAdmin) {
+  function updateAuth(user, isAdmin, isStaff) {
     var right   = document.getElementById('nb-right');
     var mobAuth = document.getElementById('nb-mob-auth');
     var adminLi = document.getElementById('nb-admin-li');
 
     if (adminLi) adminLi.style.display = isAdmin ? '' : 'none';
+    // 자료실은 사역자 이상에게만 보인다. 관리자도 사역자에 포함된다.
+    var resLi = document.getElementById('nb-res-li');
+    if (resLi) resLi.style.display = (isStaff || isAdmin) ? '' : 'none';
 
     if (isAdmin) buildAdminBar();
     else destroyAdminBar();
@@ -800,8 +804,10 @@
     if (!user) return;
     sb.from('profiles').select('role').eq('id', user.id).maybeSingle()
       .then(function (res) {
-        var isAdmin = !!(res.data && ['admin','super_admin'].indexOf(res.data.role) !== -1);
-        updateAuth(user, isAdmin);
+        var role    = res.data && res.data.role;
+        var isAdmin = ['admin','super_admin'].indexOf(role) !== -1;
+        var isStaff = ['staff','admin','super_admin'].indexOf(role) !== -1;
+        updateAuth(user, isAdmin, isStaff);
       })
       .catch(function () {});
   }
