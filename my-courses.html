@@ -618,6 +618,20 @@ body {
 
       <div class="mc-subsec">
         <div class="mc-subsec-hdr"><h3>🎟 내 쿠폰함</h3></div>
+
+        <!-- 받은 쿠폰 코드를 여기서 담는다. 전에는 담을 곳이 없어
+             코드를 받아도 결제 화면에서 직접 쳐야 했다. -->
+        <form id="coupon-redeem" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <input id="coupon-code-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="쿠폰 코드를 입력하세요"
+                 style="flex:1;min-width:180px;padding:11px 14px;font-size:14px;font-family:inherit;
+                        border:1px solid var(--gray-300);border-radius:8px;text-transform:uppercase;">
+          <button type="submit" id="coupon-redeem-btn"
+                  style="padding:11px 22px;background:var(--green);color:#fff;border:none;border-radius:8px;
+                         font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">등록</button>
+        </form>
+        <div id="coupon-redeem-msg" style="display:none;font-size:13px;margin:-6px 0 14px;line-height:1.6;"></div>
+
         <div id="coupons-content" class="loading-msg">불러오는 중...</div>
       </div>
 
@@ -2607,6 +2621,39 @@ async function linkProvider(provider) {
   });
   if (error) alert('연결 실패: ' + error.message);
 }
+
+// ───── 쿠폰 코드 등록 ─────
+(function () {
+  var form = document.getElementById('coupon-redeem');
+  if (!form) return;
+  var input = document.getElementById('coupon-code-input');
+  var btn   = document.getElementById('coupon-redeem-btn');
+  var msgEl = document.getElementById('coupon-redeem-msg');
+
+  function say(text, ok) {
+    msgEl.style.display = 'block';
+    msgEl.style.color = ok ? 'var(--green-dark)' : '#C0392B';
+    msgEl.textContent = (ok ? '\u2705 ' : '\u26A0\uFE0F ') + text;
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var code = input.value.trim();
+    if (!code) { say('쿠폰 코드를 입력해 주세요.', false); input.focus(); return; }
+
+    btn.disabled = true; btn.textContent = '확인 중';
+    try {
+      var res = await supabaseClient.rpc('redeem_coupon', { p_code: code });
+      if (res.error) throw res.error;
+      var r = res.data || {};
+      say(r.message || (r.ok ? '쿠폰이 담겼습니다.' : '등록하지 못했습니다.'), !!r.ok);
+      if (r.ok) { input.value = ''; loadCoupons(); }
+    } catch (err) {
+      say('등록하지 못했습니다. 잠시 후 다시 시도해 주세요.', false);
+    }
+    btn.disabled = false; btn.textContent = '등록';
+  });
+})();
 
 // ───── 내 쿠폰함 ─────
 async function loadCoupons() {
