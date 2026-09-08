@@ -27,7 +27,31 @@ body { background:#F8F9FA; }
 .empty-state { text-align:center; padding:3rem; color:#888; font-size:14px; }
 .hint { font-size:11px; color:#aaa; margin-top:4px; }
 .cat-options { font-size:12px; color:#666; margin-top:6px; background:#f8f9fa; padding:10px; border-radius:8px; line-height:2; }
-</style>
+
+    /* 그룹에 실제로 담기는 강좌 */
+    .grp-count {
+      display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px;
+      font-size:11px; font-weight:700; background:#EEF5F1; color:#2D9B6F; cursor:pointer;
+    }
+    .grp-count.zero { background:#FEE2E2; color:#B91C1C; }
+    .grp-courses {
+      display:none; margin-top:10px; padding:10px 12px; background:#FAFBFA;
+      border:1px solid #EEE; border-radius:8px; max-height:260px; overflow:auto;
+    }
+    .group-row.open .grp-courses { display:block; }
+    .grp-courses li { font-size:12.5px; color:#444; line-height:1.9; list-style:none; }
+    .grp-courses li span { color:#AAA; font-size:11px; margin-left:6px; }
+    .grp-empty { font-size:12.5px; color:#B91C1C; line-height:1.7; }
+
+    /* 수정 중 미리보기 */
+    #f-preview {
+      margin-top:6px; padding:10px 12px; background:#F7F9F8; border:1px solid #E6EAE7;
+      border-radius:8px; font-size:12.5px; color:#555; max-height:200px; overflow:auto;
+    }
+    #f-preview b { color:#2D9B6F; }
+    #f-preview.zero { background:#FEF2F2; border-color:#FCA5A5; }
+    #f-preview.zero b { color:#B91C1C; }
+  </style>
 </head>
 <body>
 <main class="admin-main">
@@ -111,6 +135,47 @@ const CAT_LABELS = {
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// 선물 화면과 똑같은 기준으로 강좌를 불러온다. 공개 중이고 값이 있는 것만 선물할 수 있다.
+let _courses = [];
+function toggleCourses(e) {
+  e.stopPropagation();
+  e.target.closest('.group-row').classList.toggle('open');
+}
+
+// 분류·키워드를 고칠 때마다 어떤 강좌가 담기는지 바로 보여 준다.
+function updatePreview() {
+  const box = document.getElementById('f-preview');
+  if (!box) return;
+  const cat = document.getElementById('f-category').value;
+  const kw  = document.getElementById('f-keywords').value;
+  const hit = matchCourses(cat, kw);
+  box.classList.toggle('zero', hit.length === 0);
+  box.innerHTML = hit.length
+    ? `<b>${hit.length}개</b>가 담깁니다.<br>` +
+      hit.slice(0, 40).map(c => '· ' + esc(c.title)).join('<br>') +
+      (hit.length > 40 ? `<br>… 외 ${hit.length - 40}개` : '')
+    : '<b>담기는 강좌가 없습니다.</b><br>이대로 저장하면 선물 화면에서 빈 목록이 나옵니다.';
+}
+
+async function loadCourses() {
+  const { data } = await sb.from('courses')
+    .select('id,title,category')
+    .eq('status', 'active').gt('price', 0)
+    .order('title');
+  _courses = data || [];
+}
+
+// my-courses.html 의 gmApplyFilter 와 같은 규칙이어야 한다.
+// 규칙이 갈리면 관리자가 보는 것과 실제 선물 화면이 달라진다.
+function matchCourses(cat, keywords) {
+  const kws = (keywords || '').split(',').map(k => k.trim()).filter(Boolean);
+  return _courses.filter(c => {
+    if (cat === 'all') return true;
+    if (cat === 'any') return kws.length ? kws.some(k => c.title.includes(k)) : true;
+    return c.category === cat || (kws.length && kws.some(k => c.title.includes(k)));
+  });
+}
+
 async function loadGroups() {
   const { data, error } = await sb.from('gift_groups').select('*').order('sort_order').order('id');
   const list = document.getElementById('group-list');
@@ -143,6 +208,7 @@ function openForm() {
   document.getElementById('f-sort').value = '';
   document.getElementById('group-form').style.display = 'block';
   document.getElementById('group-form').scrollIntoView({ behavior:'smooth' });
+  updatePreview();
 }
 
 async function editGroup(id) {
@@ -157,6 +223,7 @@ async function editGroup(id) {
   document.getElementById('f-sort').value = data.sort_order ?? '';
   document.getElementById('group-form').style.display = 'block';
   document.getElementById('group-form').scrollIntoView({ behavior:'smooth' });
+  updatePreview();
 }
 
 async function saveGroup() {
@@ -198,7 +265,11 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-loadGroups();
+document.getElementById('f-category').addEventListener('change', updatePreview);
+document.getElementById('f-keywords').addEventListener('input', updatePreview);
+
+// 강좌를 먼저 받아야 그룹마다 몇 개가 담기는지 셀 수 있다.
+loadCourses().then(loadGroups);
 </script>
 <script src="../js/admin-nav.js"></script>
 </body>
