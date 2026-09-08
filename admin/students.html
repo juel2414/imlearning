@@ -490,6 +490,7 @@ function renderTable() {
     var BADGE = {
       super_admin: '<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#ede9fe;color:#6d28d9;font-size:11px;font-weight:700;">슈퍼관리자</span>',
       admin:       '<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#fef3c7;color:#b45309;font-size:11px;font-weight:700;">관리자</span>',
+      staff:       '<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700;">사역자</span>',
       user:        '<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#f0f0f0;color:#888;font-size:11px;">일반</span>'
     };
     var roleBadge = BADGE[role] || BADGE.user;
@@ -501,8 +502,8 @@ function renderTable() {
       roleBtn = '<button style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #e0e0e0;background:#f8f8f8;color:#bbb;cursor:not-allowed;margin-top:4px;" disabled title="본인 권한은 변경할 수 없습니다">본인</button>';
     } else {
       roleBtn = '<select onclick="event.stopPropagation()" onchange="setRole(\'' + r.uid + '\', this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid #ddd;margin-top:4px;">' +
-        ['user','admin','super_admin'].map(function(v){
-          var label = v === 'user' ? '일반' : v === 'admin' ? '관리자' : '슈퍼관리자';
+        ['user','staff','admin','super_admin'].map(function(v){
+          var label = v === 'user' ? '일반' : v === 'staff' ? '사역자' : v === 'admin' ? '관리자' : '슈퍼관리자';
           return '<option value="' + v + '"' + (v === role ? ' selected' : '') + '>' + label + '</option>';
         }).join('') + '</select>';
     }
@@ -694,7 +695,7 @@ function encourage(uid, name) {
 async function setRole(uid, newRole) {
   var profile = allProfiles.find(function(p){ return p.id === uid; }) || {};
   var name  = profile.name || profile.email || uid.slice(0,8);
-  var LABEL = { user: '일반 회원', admin: '관리자', super_admin: '슈퍼관리자' };
+  var LABEL = { user: '일반 회원', staff: '사역자', admin: '관리자', super_admin: '슈퍼관리자' };
   if (newRole === (profile.role || 'user')) return;
   if (!confirm(name + ' 님을 ' + LABEL[newRole] + '(으)로 변경합니다.')) { renderTable(); return; }
   try {

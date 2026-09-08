@@ -25,6 +25,7 @@
     { href: 'gift-groups.html', icon: '🎁', label: '선물 그룹 관리' },
     { type: 'section', label: '콘텐츠' },
     { href: 'notices.html',     icon: '📢', label: '공지사항' },
+    { href: 'resources.html',   icon: '📂', label: '자료실' },
     { href: 'banners.html',     icon: '🖼️', label: '배너 관리' },
     { href: 'featured.html',    icon: '🎠', label: '히어로 슬라이더' },
     { super: true, href: 'landing.html',     icon: '🏠', label: '랜딩 빌더' },

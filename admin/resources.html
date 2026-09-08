@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자료실 관리 — 아이엠러닝 관리자</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-client.js"></script>
+  <link rel="stylesheet" href="admin-common.css">
+  <style>
+    body { background: #F8F9FA; }
+
+    .rs-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .rs-tools input[type=search] {
+      flex: 1; min-width: 200px; padding: 9px 12px; font-size: 13px; font-family: inherit;
+      border: 1px solid #E0E0E0; border-radius: 8px;
+    }
+    .rs-tools select {
+      padding: 9px 10px; font-size: 13px; font-family: inherit;
+      border: 1px solid #E0E0E0; border-radius: 8px; background: #fff;
+    }
+
+    /* 등급별 현황 */
+    .rs-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .rs-stat {
+      padding: 9px 14px; background: #fff; border: 1px solid rgba(0,0,0,.07);
+      border-radius: 10px; font-size: 12.5px; color: #6B6B6B;
+    }
+    .rs-stat b { font-size: 15px; color: #1A1A1A; margin-right: 5px; font-variant-numeric: tabular-nums; }
+
+    .rs-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .rs-row:last-child { border-bottom: none; }
+    .rs-row:hover { background: #FAFBFA; }
+    .rs-main { flex: 1; min-width: 0; }
+    .rs-title { font-size: 14px; font-weight: 700; color: #1A1A1A; line-height: 1.5; word-break: keep-all; }
+    .rs-meta  { font-size: 11.5px; color: #999; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .rs-cat   { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #F1F5F3; color: #4B6B58; font-size: 11px; font-weight: 600; }
+
+    .rs-files { margin-top: 8px; display: none; flex-direction: column; gap: 5px; }
+    .rs-row.open .rs-files { display: flex; }
+    .rs-file {
+      display: flex; align-items: center; gap: 8px; font-size: 12px; color: #555;
+      background: #F7F8F7; padding: 6px 10px; border-radius: 6px;
+    }
+    .rs-file span.n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rs-file a { color: #2D9B6F; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .rs-file button {
+      border: none; background: none; color: #D14343; cursor: pointer;
+      font-size: 11px; font-family: inherit; padding: 0;
+    }
+
+    .rs-side { flex: none; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .rs-access {
+      font-size: 12px; padding: 5px 8px; border-radius: 7px;
+      border: 1px solid #DDD; background: #fff; font-family: inherit; cursor: pointer;
+    }
+    .rs-access[data-v="public"] { border-color: #16A34A; color: #16A34A; font-weight: 700; }
+    .rs-access[data-v="member"] { border-color: #4B6FD4; color: #4B6FD4; font-weight: 700; }
+    .rs-access[data-v="staff"]  { border-color: #B45309; color: #B45309; font-weight: 700; }
+    .rs-acts { display: flex; gap: 6px; }
+    .rs-acts button {
+      font-size: 11px; padding: 4px 9px; border-radius: 6px; border: 1px solid #E0E0E0;
+      background: #fff; color: #666; cursor: pointer; font-family: inherit;
+    }
+    .rs-acts button:hover { background: #F5F5F5; }
+    .rs-acts button.del:hover { background: #FEF2F2; color: #D14343; border-color: #FCA5A5; }
+
+    .rs-note {
+      background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E;
+      padding: 12px 15px; border-radius: 10px; font-size: 12.5px; line-height: 1.7; margin-bottom: 16px;
+    }
+    .rs-note b { color: #78350F; }
+
+    @media (max-width: 700px) {
+      .rs-row { flex-direction: column; gap: 10px; }
+      .rs-side { align-items: flex-start; width: 100%; flex-direction: row; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="admin-main">
+  <div class="admin-header">
+    <h1>📂 자료실 관리</h1>
+  </div>
+
+  <div class="rs-note">
+    <b>등급을 바꾸면 파일 접근도 함께 바뀝니다.</b><br>
+    공개 = 누구나 · 회원 = 로그인한 사람 · 사역자 = <code>사역자</code> 등급 이상.
+    사역자 지정은 <a href="students.html">수강생 관리</a>에서 합니다.
+  </div>
+
+  <div class="rs-stats" id="rs-stats"></div>
+
+  <div class="rs-tools">
+    <input type="search" id="rs-q" placeholder="제목·내용 검색">
+    <select id="rs-cat"><option value="">분류 전체</option></select>
+    <select id="rs-acc">
+      <option value="">등급 전체</option>
+      <option value="public">공개</option>
+      <option value="member">회원</option>
+      <option value="staff">사역자</option>
+    </select>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-body" style="padding:0;">
+      <div id="rs-list"><div class="loading-state">불러오는 중...</div></div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/admin-nav.js"></script>
+<script>
+(function () {
+  var sb = window.supabaseClient;
+  var listEl = document.getElementById('rs-list');
+  var statsEl = document.getElementById('rs-stats');
+  var qEl = document.getElementById('rs-q');
+  var catEl = document.getElementById('rs-cat');
+  var accEl = document.getElementById('rs-acc');
+
+  var rows = [], filesBy = {}, isSuper = false;
+  var ACC = { public: '공개', member: '회원', staff: '사역자' };
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function kb(n) {
+    if (!n) return '';
+    return n > 1048576 ? (n/1048576).toFixed(1) + 'MB' : Math.round(n/1024) + 'KB';
+  }
+
+  async function guard() {
+    var { data: { session } } = await sb.auth.getSession();
+    if (!session) { location.href = 'login.html'; return false; }
+    var { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+    var role = p && p.role;
+    if (['admin','super_admin'].indexOf(role) === -1) {
+      alert('관리자 권한이 없는 계정입니다.');
+      location.href = '../index.html';
+      return false;
+    }
+    isSuper = role === 'super_admin';
+    return true;
+  }
+
+  function stats() {
+    var c = { public: 0, member: 0, staff: 0 };
+    rows.forEach(function (r) { c[r.access] = (c[r.access] || 0) + 1; });
+    var files = Object.keys(filesBy).reduce(function (a, k) { return a + filesBy[k].length; }, 0);
+    statsEl.innerHTML =
+      '<div class="rs-stat"><b>' + rows.length + '</b>자료</div>' +
+      '<div class="rs-stat"><b>' + files + '</b>첨부</div>' +
+      '<div class="rs-stat" style="color:#16A34A;"><b>' + c.public + '</b>공개</div>' +
+      '<div class="rs-stat" style="color:#4B6FD4;"><b>' + c.member + '</b>회원</div>' +
+      '<div class="rs-stat" style="color:#B45309;"><b>' + c.staff + '</b>사역자</div>';
+  }
+
+  function render() {
+    var q = qEl.value.trim().toLowerCase();
+    var cat = catEl.value, acc = accEl.value;
+    var view = rows.filter(function (r) {
+      if (cat && r.category !== cat) return false;
+      if (acc && r.access !== acc) return false;
+      if (!q) return true;
+      return (r.title + ' ' + (r.body || '')).toLowerCase().indexOf(q) !== -1;
+    });
+
+    if (!view.length) {
+      listEl.innerHTML = '<div class="empty-state" style="padding:40px;text-align:center;color:#999;">해당하는 자료가 없습니다.</div>';
+      return;
+    }
+
+    listEl.innerHTML = view.map(function (r) {
+      var fs = filesBy[r.id] || [];
+      return '<div class="rs-row" data-id="' + r.id + '">' +
+        '<div class="rs-main">' +
+          '<div class="rs-title">' + esc(r.title) + '</div>' +
+          '<div class="rs-meta">' +
+            (r.category ? '<span class="rs-cat">' + esc(r.category) + '</span>' : '') +
+            (r.published_at ? '<span>' + esc(r.published_at) + '</span>' : '') +
+            (r.author_name ? '<span>' + esc(r.author_name) + '</span>' : '') +
+            (fs.length ? '<span style="cursor:pointer;color:#2D9B6F;" data-toggle="1">📎 ' + fs.length + '개 보기</span>'
+                       : '<span style="color:#CCC;">첨부 없음</span>') +
+          '</div>' +
+          '<div class="rs-files">' + fs.map(function (f) {
+            return '<div class="rs-file">' +
+              '<span class="n">' + esc(f.file_name) + '</span>' +
+              '<span style="color:#AAA;">' + kb(f.file_size) + '</span>' +
+              '<a href="#" data-dl="' + f.id + '">받기</a>' +
+              '<button data-delfile="' + f.id + '">삭제</button>' +
+            '</div>';
+          }).join('') + '</div>' +
+        '</div>' +
+        '<div class="rs-side">' +
+          '<select class="rs-access" data-v="' + r.access + '" data-acc="' + r.id + '">' +
+            Object.keys(ACC).map(function (k) {
+              return '<option value="' + k + '"' + (k === r.access ? ' selected' : '') + '>' + ACC[k] + '</option>';
+            }).join('') +
+          '</select>' +
+          '<div class="rs-acts">' +
+            '<button data-edit="' + r.id + '">수정</button>' +
+            (isSuper ? '<button class="del" data-del="' + r.id + '">삭제</button>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  listEl.addEventListener('change', async function (e) {
+    var sel = e.target.closest('[data-acc]');
+    if (!sel) return;
+    var id = +sel.getAttribute('data-acc'), val = sel.value;
+    var { error } = await sb.from('resources').update({ access: val }).eq('id', id);
+    if (error) { alert('등급 변경 실패: ' + error.message); return; }
+    var r = rows.find(function (x) { return x.id === id; });
+    if (r) r.access = val;
+    sel.setAttribute('data-v', val);
+    stats();
+  });
+
+  listEl.addEventListener('click', async function (e) {
+    // 첨부 펼치기
+    if (e.target.closest('[data-toggle]')) {
+      e.target.closest('.rs-row').classList.toggle('open');
+      return;
+    }
+
+    // 내려받기
+    var dl = e.target.closest('[data-dl]');
+    if (dl) {
+      e.preventDefault();
+      var fid = +dl.getAttribute('data-dl'), file = null;
+      Object.keys(filesBy).some(function (k) {
+        return filesBy[k].some(function (f) { if (f.id === fid) { file = f; return true; } });
+      });
+      if (!file) return;
+      var { data, error } = await sb.storage.from('resource-files')
+        .createSignedUrl(file.file_path, 300, { download: file.file_name });
+      if (error || !data) { alert('파일을 여는 데 실패했습니다.'); return; }
+      window.location.href = data.signedUrl;
+      return;
+    }
+
+    // 첨부 삭제
+    var df = e.target.closest('[data-delfile]');
+    if (df) {
+      var fid2 = +df.getAttribute('data-delfile'), f2 = null;
+      Object.keys(filesBy).some(function (k) {
+        return filesBy[k].some(function (f) { if (f.id === fid2) { f2 = f; return true; } });
+      });
+      if (!f2) return;
+      if (!confirm('「' + f2.file_name + '」을(를) 삭제할까요?\n되돌릴 수 없습니다.')) return;
+      await sb.storage.from('resource-files').remove([f2.file_path]);
+      var { error: e2 } = await sb.from('resource_files').delete().eq('id', fid2);
+      if (e2) { alert('삭제 실패: ' + e2.message); return; }
+      await load();
+      return;
+    }
+
+    // 자료 수정
+    var ed = e.target.closest('[data-edit]');
+    if (ed) {
+      var id3 = +ed.getAttribute('data-edit');
+      var r3 = rows.find(function (x) { return x.id === id3; });
+      if (!r3) return;
+      var t = prompt('제목', r3.title);
+      if (t === null) return;
+      var c = prompt('분류', r3.category || '');
+      if (c === null) return;
+      var { error: e3 } = await sb.from('resources')
+        .update({ title: t.trim(), category: (c || '').trim() || null }).eq('id', id3);
+      if (e3) { alert('수정 실패: ' + e3.message); return; }
+      await load();
+      return;
+    }
+
+    // 자료 삭제 (슈퍼관리자만)
+    var dr = e.target.closest('[data-del]');
+    if (dr) {
+      var id4 = +dr.getAttribute('data-del');
+      var r4 = rows.find(function (x) { return x.id === id4; });
+      if (!r4) return;
+      var fs4 = filesBy[id4] || [];
+      if (!confirm('「' + r4.title + '」을(를) 첨부 ' + fs4.length + '개와 함께 삭제할까요?\n되돌릴 수 없습니다.')) return;
+      if (fs4.length) await sb.storage.from('resource-files').remove(fs4.map(function (f) { return f.file_path; }));
+      var { error: e4 } = await sb.from('resources').delete().eq('id', id4);
+      if (e4) { alert('삭제 실패: ' + e4.message); return; }
+      await load();
+    }
+  });
+
+  [qEl, catEl, accEl].forEach(function (el) { el.addEventListener('input', render); });
+
+  async function load() {
+    var { data: rs, error } = await sb.from('resources')
+      .select('id,title,body,category,access,author_name,published_at')
+      .order('published_at', { ascending: false }).order('id', { ascending: false });
+    if (error) { listEl.innerHTML = '<div class="empty-state" style="padding:40px;text-align:center;">불러오지 못했습니다: ' + esc(error.message) + '</div>'; return; }
+    rows = rs || [];
+
+    var { data: fs } = await sb.from('resource_files')
+      .select('id,resource_id,file_name,file_path,file_size,sort_order').order('sort_order');
+    filesBy = {};
+    (fs || []).forEach(function (f) { (filesBy[f.resource_id] = filesBy[f.resource_id] || []).push(f); });
+
+    var cats = [];
+    rows.forEach(function (r) { if (r.category && cats.indexOf(r.category) === -1) cats.push(r.category); });
+    var cur = catEl.value;
+    catEl.innerHTML = '<option value="">분류 전체</option>' +
+      cats.sort().map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+    catEl.value = cur;
+
+    stats();
+    render();
+  }
+
+  (async function () { if (await guard()) load(); })();
+})();
+</script>
+
+</body>
+</html>
