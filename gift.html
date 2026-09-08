@@ -49,9 +49,11 @@
 }
 .gev-body {
   position: absolute; inset: 0;
-  /* 안쪽. 덮개가 열리면 이 밝은 초록이 드러난다 */
-  background: linear-gradient(180deg,#2D9B6F 0%,#268B62 100%);
+  /* 안쪽. 덮개가 열리면 이 밝은 초록이 드러난다.
+     위가 밝고 아래로 갈수록 그늘이 져야 속이 깊어 보인다 */
+  background: linear-gradient(180deg,#35AC7D 0%,#2D9B6F 45%,#1F7350 100%);
   border-radius: 9px;
+  box-shadow: inset 0 -10px 14px -8px rgba(11,42,29,.55);
 }
 /* 봉투 속에서 올라오는 종이 끝 */
 .gev-paper {
@@ -61,6 +63,7 @@
   /* 줄무늬 없이 하트만. 카톡 선물 카드와 같은 모습이다 */
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'><path d='M50 88 C12 56 0 34 14 17 C25 4 42 8 50 23 C58 8 75 4 86 17 C100 34 88 56 50 88 Z' fill='%23D8A33F'/></svg>") center 15px / 26px 24px no-repeat,
+    linear-gradient(180deg, rgba(32,64,47,0) 62%, rgba(32,64,47,.18) 100%),
     #FFFDFA;
   transform: translateY(16px); opacity: 0;
   transition: transform .5s cubic-bezier(.16,1,.3,1) .18s, opacity .25s .18s;
@@ -68,13 +71,17 @@
 /* 앞면이 종이를 가려야 "안에서 나온다" 로 보인다 */
 .gev-front {
   position: absolute; left: 0; right: 0; bottom: 0; height: 58px;
-  background: linear-gradient(180deg,#2C5F46 0%,#1D422F 100%);
+  background:
+    /* 좌우로 접히며 지는 그늘 */
+    linear-gradient(90deg, rgba(0,0,0,.16) 0%, rgba(0,0,0,0) 42%,
+                           rgba(0,0,0,0) 58%, rgba(0,0,0,.10) 100%),
+    linear-gradient(180deg,#2C5F46 0%,#1D422F 100%);
   border-radius: 0 0 9px 9px;
   clip-path: polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%);
 }
 .gev-flap {
   position: absolute; left: 0; right: 0; top: 0; height: 50px;
-  background: #2C5F46;
+  background: linear-gradient(180deg,#2A8F66 0%,#33A578 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   transition: transform .55s cubic-bezier(.6,-0.28,.5,1.3);
