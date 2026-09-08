@@ -57,12 +57,14 @@
 }
 /* 봉투 속에서 올라오는 종이 끝 */
 .gev-paper {
-  position: absolute; left: 15px; right: 15px; top: 11px;
-  height: 56px; border-radius: 4px;
+  /* 크기는 카톡 카드의 편지와 같은 비율로 맞춘다.
+     봉투 폭의 79%, 높이는 봉투와 같다 */
+  position: absolute; left: 14px; right: 14px; top: 11px;
+  height: 90px; border-radius: 5px;
   /* 종이 위의 글줄. 카톡 선물 카드의 일러스트와 같은 인상을 준다 */
   /* 줄무늬 없이 하트만. 카톡 선물 카드와 같은 모습이다 */
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'><path d='M50 88 C12 56 0 34 14 17 C25 4 42 8 50 23 C58 8 75 4 86 17 C100 34 88 56 50 88 Z' fill='%23D8A33F'/></svg>") center 15px / 26px 24px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'><path d='M50 88 C12 56 0 34 14 17 C25 4 42 8 50 23 C58 8 75 4 86 17 C100 34 88 56 50 88 Z' fill='%23D8A33F'/></svg>") center 14px / 58px 53px no-repeat,
     linear-gradient(180deg, rgba(32,64,47,0) 62%, rgba(32,64,47,.18) 100%),
     #FFFDFA;
   transform: translateY(16px); opacity: 0;
@@ -70,17 +72,17 @@
 }
 /* 앞면이 종이를 가려야 "안에서 나온다" 로 보인다 */
 .gev-front {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 58px;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 71px;
   background:
     /* 좌우로 접히며 지는 그늘 */
     linear-gradient(90deg, rgba(0,0,0,.16) 0%, rgba(0,0,0,0) 42%,
                            rgba(0,0,0,0) 58%, rgba(0,0,0,.10) 100%),
     linear-gradient(180deg,#2C5F46 0%,#1D422F 100%);
   border-radius: 0 0 9px 9px;
-  clip-path: polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, 50% 70%, 100% 0, 100% 100%, 0 100%);
 }
 .gev-flap {
-  position: absolute; left: 0; right: 0; top: 0; height: 50px;
+  position: absolute; left: 0; right: 0; top: 0; height: 44px;
   background: linear-gradient(180deg,#2A8F66 0%,#33A578 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
