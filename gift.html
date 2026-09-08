@@ -59,12 +59,14 @@
 .gev-paper {
   /* 크기는 카톡 카드의 편지와 같은 비율로 맞춘다.
      봉투 폭의 79%, 높이는 봉투와 같다 */
-  position: absolute; left: 14px; right: 14px; top: 11px;
-  height: 90px; border-radius: 5px;
+  /* 봉투(90px) 밖으로 나가지 않아야 한다. 내려가 있는 상태(+16px)에서도
+     아래끝이 봉투를 넘으면 편지가 봉투 밑으로 삐져나온다 */
+  position: absolute; left: 14px; right: 14px; top: 6px;
+  height: 72px; border-radius: 5px;
   /* 종이 위의 글줄. 카톡 선물 카드의 일러스트와 같은 인상을 준다 */
   /* 줄무늬 없이 하트만. 카톡 선물 카드와 같은 모습이다 */
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'><path d='M50 88 C12 56 0 34 14 17 C25 4 42 8 50 23 C58 8 75 4 86 17 C100 34 88 56 50 88 Z' fill='%23D8A33F'/></svg>") center 14px / 58px 53px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 92'><path d='M50 88 C12 56 0 34 14 17 C25 4 42 8 50 23 C58 8 75 4 86 17 C100 34 88 56 50 88 Z' fill='%23D8A33F'/></svg>") center 12px / 58px 53px no-repeat,
     linear-gradient(180deg, rgba(32,64,47,0) 62%, rgba(32,64,47,.18) 100%),
     #FFFDFA;
   transform: translateY(16px); opacity: 0;
