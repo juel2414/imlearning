@@ -73,10 +73,10 @@
 </head>
 <body>
 
-<div class="admin-wrap">
+<main class="admin-main">
   <div class="admin-header">
-    <h1 class="admin-title">강의 점검</h1>
-    <p class="admin-desc">강좌별 강의 등록 상태를 한눈에 확인합니다. 행을 클릭하면 강의 목록과 영상 썸네일이 열립니다.</p>
+    <h1>🔍 강의 점검</h1>
+    <p style="margin:6px 0 0;font-size:13px;color:#888;">강좌별 강의 등록 상태를 한눈에 확인합니다. 행을 클릭하면 강의 목록과 영상 썸네일이 열립니다.</p>
   </div>
 
   <div id="js-stats" class="stat-row"></div>
@@ -94,7 +94,7 @@
   </div>
 
   <div id="js-body"><div class="loading">불러오는 중…</div></div>
-</div>
+</main>
 
 <script>
 (async function checkAdminAccess() {
