@@ -69,6 +69,7 @@
     #FFFDFA;
   transform: translateY(16px); opacity: 0;
   transition: transform .5s cubic-bezier(.16,1,.3,1) .18s, opacity .25s .18s;
+  will-change: transform, opacity;
 }
 /* 앞면이 종이를 가려야 "안에서 나온다" 로 보인다 */
 .gev-front {
@@ -88,26 +89,27 @@
   transform-origin: top center;
   transition: transform .55s cubic-bezier(.6,-0.28,.5,1.3);
   border-radius: 8px 8px 0 0;
+  will-change: transform;
 }
 /* ── 봉투에서 터져 나오는 빛 ──────────────────────────────────
    빛살(뒤)과 번짐(앞) 두 겹이다. 한 겹만으로는 밝기만 오르고
-   무엇이 빛나는지 읽히지 않는다. 어두운 카드 위라 screen 으로 겹친다. */
+   무엇이 빛나는지 읽히지 않는다.
+
+   휴대폰에서 끊기지 않게 하는 것이 여기서는 모양만큼 중요하다.
+   mix-blend-mode 는 층을 합성기에서 내려 프레임마다 본체에서 그리게 만든다.
+   빛이 거의 흰색이라 어두운 배경 위에서는 screen 과 보통 겹침의 결과가
+   사실상 같으므로, 값이 아니라 비용만 버린 셈이다. */
 .gev-rays, .gev-bloom {
   position: absolute; left: 50%; top: 26px;
   width: 300px; height: 300px; margin: -150px 0 0 -150px;
   opacity: 0; pointer-events: none;
-  mix-blend-mode: screen;
+  /* 미리 층으로 올려 둔다. 누른 순간 그리기가 시작되면 첫 프레임이 튄다 */
+  will-change: transform, opacity;
 }
 .gev-rays {
-  /* 가는 빛살 위에 굵은 빛살을 겹쳐야 균일한 부채꼴로 안 보인다 */
-  background:
-    repeating-conic-gradient(from 0deg,
-      rgba(255,247,220,.50) 0deg 1.6deg, rgba(255,247,220,0) 1.6deg 12deg),
-    repeating-conic-gradient(from 7deg,
-      rgba(255,236,172,.72) 0deg 3.4deg, rgba(255,236,172,0) 3.4deg 45deg);
-  /* 가운데는 뭉치고 바깥으로 갈수록 사라져야 빛줄기로 보인다 */
-  -webkit-mask-image: radial-gradient(circle, #000 4%, rgba(0,0,0,.9) 22%, transparent 60%);
-          mask-image: radial-gradient(circle, #000 4%, rgba(0,0,0,.9) 22%, transparent 60%);
+  /* conic-gradient 두 겹과 mask 는 크기가 바뀔 때마다 다시 그려진다.
+     한 장으로 구워 두면 GPU 가 크기와 각도만 바꾼다 */
+  background: url("images/gift-rays.png") center / contain no-repeat;
 }
 .gev-bloom {
   background: radial-gradient(circle,
@@ -122,6 +124,7 @@
   transform-origin: 50% 30%;
   transition: transform .3s cubic-bezier(.4,0,1,1), opacity .18s ease;
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 /* 열림 */
@@ -506,6 +509,8 @@
       '</div>',
     ].join('');
 
+    giftConfettiPrepare();
+
     document.getElementById('open-btn').addEventListener('click', function () {
       var btn = this;
       btn.disabled = true;
@@ -533,21 +538,42 @@
   // ── 파티클 ─────────────────────────────────────────────────────────
   // 위에서 촤르르 떨어지는 조각들. DOM 을 수백 개 만드는 대신 캔버스에
   // 그린다. 다 떨어지면 캔버스를 걷어내 화면에 아무것도 남기지 않는다.
-  function giftConfetti() {
+  // 화면 전체 캔버스를 만드는 비용은 작지 않다. 빛이 터지는 도중에 만들면
+  // 그 프레임이 통째로 밀린다. 봉투를 그릴 때 미리 만들어 둔다.
+  var _confettiCv = null;
+  function giftConfettiPrepare() {
+    if (_confettiCv) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
     var cv = document.createElement('canvas');
     cv.id = 'gift-confetti';
     document.body.appendChild(cv);
-    var ctx = cv.getContext('2d');
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // 크기까지 여기서 정해야 한다. width 를 나중에 넣으면 그때 버퍼를
+    // 다시 잡느라, 미리 만들어 둔 뜻이 사라진다.
+    giftConfettiSize(cv);
+    cv.getContext('2d');
+    _confettiCv = cv;
+  }
 
-    function size() {
-      cv.width  = window.innerWidth  * dpr;
-      cv.height = window.innerHeight * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    size();
+  // 화면 전체를 매 프레임 지우고 그린다. 배율이 높을수록 픽셀이 제곱으로
+  // 늘어난다. 조각은 작은 사각형이라 1.5 배면 충분하다.
+  function giftConfettiDpr() { return Math.min(window.devicePixelRatio || 1, 1.5); }
+  function giftConfettiSize(cv) {
+    var dpr = giftConfettiDpr();
+    cv.width  = window.innerWidth  * dpr;
+    cv.height = window.innerHeight * dpr;
+    var c = cv.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function giftConfetti() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    giftConfettiPrepare();
+    var cv = _confettiCv;
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+
+    function size() { giftConfettiSize(cv); }
     window.addEventListener('resize', size);
 
     var COLORS = ['#2D9B6F', '#5ECF96', '#C9A252', '#E9D18F', '#FBF8F3'];
@@ -580,6 +606,7 @@
       done = true;
       window.removeEventListener('resize', size);
       if (cv.parentNode) cv.parentNode.removeChild(cv);
+      _confettiCv = null;
     }
     setTimeout(cleanup, LIFE + 1500);
 
