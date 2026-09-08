@@ -396,7 +396,9 @@ Deno.serve(async (req: Request) => {
       if (amount !== serverBasePrice)
         return err(`결제금액 불일치 (예상: ${serverBasePrice}원)`);
 
-      const { data: dupe } = await sb.from('gifts').select('gift_code').eq('payment_id', paymentId).maybeSingle();
+      // 취소된 선물은 재발행 대상이므로 제외한다. 포함하면 여러 줄이 잡혀 조회가 실패한다.
+      const { data: dupe } = await sb.from('gifts').select('gift_code')
+        .eq('payment_id', paymentId).neq('status', 'cancelled').maybeSingle();
       if (dupe) return new Response(JSON.stringify({ success: true, gift: true, giftCode: dupe.gift_code, duplicate: true }), { headers: resHeaders });
 
       const { data: prof } = await sb.from('profiles').select('name').eq('id', user.id).maybeSingle();
@@ -408,7 +410,19 @@ Deno.serve(async (req: Request) => {
         recipient_email: recipientEmail || null, message: message || null,
         amount, payment_id: paymentId, status: 'pending',
       });
-      if (gErr) return err(`선물 저장 실패: ${gErr.message}`, 500);
+      if (gErr) {
+        // 위의 조회는 브라우저와 웹훅이 동시에 들어오면 둘 다 '없음'을 본다.
+        // 실제로 결제 하나에 선물이 두 개 만들어진 적이 있어 DB 에 제약을 걸었고,
+        // 여기서는 그 제약에 걸린 경우를 이미 만들어진 선물로 돌려준다.
+        const { data: made } = await sb.from('gifts')
+          .select('gift_code').eq('payment_id', paymentId).neq('status', 'cancelled').maybeSingle();
+        if (made) {
+          return new Response(
+            JSON.stringify({ success: true, gift: true, giftCode: made.gift_code, duplicate: true }),
+            { headers: resHeaders });
+        }
+        return err(`선물 저장 실패: ${gErr.message}`, 500);
+      }
 
       if (recipientEmail) {
         try {
