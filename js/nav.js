@@ -678,9 +678,10 @@
     var adminLi = document.getElementById('nb-admin-li');
 
     if (adminLi) adminLi.style.display = isAdmin ? '' : 'none';
-    // 자료실은 사역자 이상에게만 보인다. 관리자도 사역자에 포함된다.
+    // 자료실은 로그인한 회원에게 보인다. 자료마다 등급이 따로 있어
+    // 권한이 없는 자료는 목록에 나오지 않는다.
     var resLi = document.getElementById('nb-res-li');
-    if (resLi) resLi.style.display = (isStaff || isAdmin) ? '' : 'none';
+    if (resLi) resLi.style.display = user ? '' : 'none';
 
     if (isAdmin) buildAdminBar();
     else destroyAdminBar();
