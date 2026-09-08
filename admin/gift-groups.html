@@ -186,11 +186,20 @@ async function loadGroups() {
   if (!data.length) { list.innerHTML = '<div class="empty-state">그룹이 없습니다. 추가해보세요!</div>'; return; }
   list.innerHTML = data.map(g => {
     const kw = g.keywords ? '<br>키워드: ' + esc(g.keywords) : '';
+    const hit = matchCourses(g.category, g.keywords);
+    const badge = `<span class="grp-count${hit.length ? '' : ' zero'}" onclick="toggleCourses(event)">`
+      + `강좌 ${hit.length}개${hit.length ? ' 보기' : ' — 비어 있음'}</span>`;
+    const inner = hit.length
+      ? '<ul style="margin:0;padding:0;">' + hit.map(c =>
+          `<li>· ${esc(c.title)}<span>${esc(CAT_LABELS[c.category] || c.category || '')}</span></li>`).join('') + '</ul>'
+      : '<div class="grp-empty">조건에 맞는 강좌가 없습니다.<br>'
+        + '선물 화면에서 이 그룹을 누르면 빈 목록이 나옵니다. 분류나 키워드를 고쳐 주세요.</div>';
     return `<div class="group-row">
       <div class="group-icon-preview">${esc(g.icon)}</div>
       <div class="group-info">
-        <div class="group-label">${esc(g.label)}</div>
+        <div class="group-label">${esc(g.label)} ${badge}</div>
         <div class="group-meta"><span class="badge-cat">${esc(CAT_LABELS[g.category]||g.category)}</span>${kw}</div>
+        <div class="grp-courses">${inner}</div>
       </div>
       <div class="group-btns">
         <button class="btn-edit" onclick="editGroup(${g.id})">수정</button>
