@@ -87,15 +87,16 @@ body { background:#F8F9FA; }
             <option value="all">전체 (카테고리 무관)</option>
             <option value="faith">신앙 (faith)</option>
             <option value="edu">교사·부모 (edu)</option>
-            <option value="mission">캠프·사역 (mission)</option>
-            <option value="english">영어·시험 (english)</option>
+            <option value="english">영어 (english)</option>
+            <option value="exam">수능·검정고시 (exam)</option>
             <option value="any">키워드만 사용 (카테고리 무시)</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">키워드 필터 <span style="font-weight:400;color:#aaa;">(선택)</span></label>
           <input class="form-input" type="text" id="f-keywords" placeholder="초신자,입문,기초,처음">
-          <div class="hint">쉼표(,)로 구분. 강좌 제목에 키워드가 포함되면 이 그룹에 표시됩니다.</div>
+          <div class="hint">쉼표(,)로 구분. 강좌 제목에 키워드가 포함되면 이 그룹에 표시됩니다.<br>
+            분류로 잡히지 않는 묶음은 <b>키워드만 사용</b>을 고르고, 제목에 실제로 들어 있는 낱말을 적으세요.</div>
         </div>
         <div class="form-actions">
           <button class="btn-cancel" onclick="cancelForm()">취소</button>
@@ -130,7 +131,8 @@ var editingId = null;
 })();
 
 const CAT_LABELS = {
-  all: '전체', faith: '신앙', edu: '교사·부모', mission: '캠프·사역', english: '영어·시험', any: '키워드만'
+  all: '전체', faith: '신앙', edu: '교사·부모', english: '영어', exam: '수능·검정고시',
+  any: '키워드만', mission: '캠프·사역(없는 분류)'
 };
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
