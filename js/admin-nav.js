@@ -49,23 +49,24 @@
 
     /* ── 사이드바 본체 ── */
     '#an-sb{position:fixed;top:0;left:0;width:220px;height:100vh;',
+    'font-size:13px;line-height:1.4;letter-spacing:normal;',
     'background:#111318;color:#fff;overflow-y:auto;z-index:300;',
     'display:flex;flex-direction:column;',
     'transform:translateX(0);transition:transform .25s;}',
 
     /* 로고 */
     '#an-logo{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}',
-    '#an-logo-txt{font-size:16px;font-weight:800;white-space:nowrap;}',
+    '#an-logo-txt{font-size:16px;line-height:1.3;font-weight:800;white-space:nowrap;}',
     '#an-logo-txt span{color:#2D9B6F;}',
     '#an-logo-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:4px;}',
 
     /* 섹션 제목 */
-    '.an-sec{padding:16px 20px 6px;font-size:10px;font-weight:700;',
+    '.an-sec{padding:16px 20px 6px;font-size:10px;font-weight:700;line-height:1.4;',
     'color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}',
 
     /* 메뉴 아이템 */
     '.an-item{display:flex;align-items:center;gap:10px;padding:10px 20px;',
-    'font-size:13px;color:rgba(255,255,255,.65);white-space:nowrap;',
+    'font-size:13px;line-height:1.4;color:rgba(255,255,255,.65);white-space:nowrap;',
     'text-decoration:none;cursor:pointer;border:none;background:none;',
     'width:100%;text-align:left;box-sizing:border-box;font-family:inherit;}',
     '.an-item:hover{background:rgba(255,255,255,.06);color:#fff;}',
