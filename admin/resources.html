@@ -200,11 +200,15 @@
             (r.category ? '<span class="rs-cat">' + esc(r.category) + '</span>' : '') +
             (r.published_at ? '<span>' + esc(r.published_at) + '</span>' : '') +
             (r.author_name ? '<span>' + esc(r.author_name) + '</span>' : '') +
-            (fs.length ? '<span style="cursor:pointer;color:#2D9B6F;" data-toggle="1">📎 ' + fs.length + '개 보기</span>'
+            (fs.length ? '<span style="cursor:pointer;color:#2D9B6F;" data-toggle="1">📎 ' +
+                fs.filter(function(f){return !f.is_body_image;}).length + ' · 🖼 ' +
+                fs.filter(function(f){return f.is_body_image;}).length + ' 보기</span>'
                        : '<span style="color:#CCC;">첨부 없음</span>') +
           '</div>' +
           '<div class="rs-files">' + fs.map(function (f) {
             return '<div class="rs-file">' +
+              '<span title="' + (f.is_body_image ? '본문에 그려지는 그림' : '내려받는 첨부파일') + '">' +
+                (f.is_body_image ? '🖼' : '📎') + '</span>' +
               '<span class="n">' + esc(f.file_name) + '</span>' +
               '<span style="color:#AAA;">' + kb(f.file_size) + '</span>' +
               '<a href="#" data-dl="' + f.id + '">받기</a>' +
@@ -323,7 +327,7 @@
     rows = rs || [];
 
     var { data: fs } = await sb.from('resource_files')
-      .select('id,resource_id,file_name,file_path,file_size,sort_order').order('sort_order');
+      .select('id,resource_id,file_name,file_path,file_size,sort_order,is_body_image').order('sort_order');
     filesBy = {};
     (fs || []).forEach(function (f) { (filesBy[f.resource_id] = filesBy[f.resource_id] || []).push(f); });
 

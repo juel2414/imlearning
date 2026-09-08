@@ -66,6 +66,12 @@
     }
     .res-text a { color: var(--green-dark); word-break: break-all; }
 
+    .res-imgs { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .res-imgs img {
+      width: 100%; height: auto; display: block; border-radius: var(--radius-sm);
+      background: var(--gray-100); border: 1px solid #ECECEC;
+    }
+
     .res-files { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
     .res-file {
       display: flex; align-items: center; gap: 11px;
@@ -211,9 +217,17 @@
     }
 
     listEl.innerHTML = rows.map(function (r) {
-      var fs = filesBy[r.id] || [];
+      var fs   = (filesBy[r.id] || []).filter(function (f) { return !f.is_body_image; });
+      var imgs = (filesBy[r.id] || []).filter(function (f) { return f.is_body_image; });
       var body =
         (r.body ? '<div class="res-text">' + linkify(r.body) + '</div>' : '') +
+        // 워드프레스에서 본문에 박혀 있던 그림은 그림 그대로 보여 준다.
+        // 내려받기 줄로 늘어놓으면 뜻 없는 이름만 잔뜩 쌓인다.
+        (imgs.length
+          ? '<div class="res-imgs">' + imgs.map(function (f) {
+              return '<img loading="lazy" alt="" data-img="' + f.id + '">';
+            }).join('') + '</div>'
+          : '') +
         (fs.length
           ? '<div class="res-files">' + fs.map(function (f) {
               return '<div class="res-file">' +
@@ -225,7 +239,7 @@
                 '<a class="res-dl" href="#" data-file="' + f.id + '">받기</a>' +
               '</div>';
             }).join('') + '</div>'
-          : (r.body ? '' : '<div class="res-text" style="color:var(--gray-500);">첨부된 파일이 없습니다.</div>'));
+          : ((r.body || imgs.length) ? '' : '<div class="res-text" style="color:var(--gray-500);">첨부된 파일이 없습니다.</div>'));
 
       return '<div class="res-item" data-id="' + r.id + '">' +
         '<div class="res-head">' +
@@ -236,6 +250,7 @@
               (r.published_at ? '<span>' + esc(r.published_at) + '</span>' : '') +
               (r.author_name ? '<span>' + esc(r.author_name) + '</span>' : '') +
               (fs.length ? '<span class="res-clip">📎 ' + fs.length + '</span>' : '') +
+              (imgs.length ? '<span class="res-clip">🖼 ' + imgs.length + '</span>' : '') +
             '</div>' +
           '</div>' +
           '<span class="res-arrow">▶</span>' +
@@ -245,10 +260,31 @@
     }).join('');
   }
 
+  // 펼칠 때 본문 그림의 주소를 받아 채운다. 비공개 저장소라 서명주소가 필요하다.
+  function fillImages(item) {
+    [].forEach.call(item.querySelectorAll('img[data-img]'), function (el) {
+      if (el.dataset.done) return;
+      el.dataset.done = '1';
+      var fid = +el.getAttribute('data-img'), file = null;
+      Object.keys(filesBy).some(function (k) {
+        return filesBy[k].some(function (f) { if (f.id === fid) { file = f; return true; } });
+      });
+      if (!file) return;
+      supabaseClient.storage.from('resource-files').createSignedUrl(file.file_path, 3600)
+        .then(function (res) { if (res && res.data) el.src = res.data.signedUrl; })
+        .catch(function () {});
+    });
+  }
+
   // 펼치기 / 접기
   listEl.addEventListener('click', function (e) {
     var head = e.target.closest('.res-head');
-    if (head) { head.parentElement.classList.toggle('open'); return; }
+    if (head) {
+      var item = head.parentElement;
+      item.classList.toggle('open');
+      if (item.classList.contains('open')) fillImages(item);
+      return;
+    }
 
     var dl = e.target.closest('.res-dl');
     if (!dl) return;
@@ -323,7 +359,7 @@
 
     var { data: files } = await supabaseClient
       .from('resource_files')
-      .select('id,resource_id,file_name,file_path,file_size,sort_order')
+      .select('id,resource_id,file_name,file_path,file_size,sort_order,is_body_image')
       .order('sort_order');
     (files || []).forEach(function (f) {
       (filesBy[f.resource_id] = filesBy[f.resource_id] || []).push(f);
