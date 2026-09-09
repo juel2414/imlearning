@@ -911,3 +911,22 @@
 
   initNoticeBanner();
 })();
+
+/* ── 공지 본문 꾸미기 ────────────────────────────────────────────────────
+   공지는 DB 에 그냥 글로 들어 있다. 관리자가 굵게·형광펜을 쓸 수 있도록
+   몇 가지 표시만 알아본다. 반드시 이스케이프한 뒤에 바꾼다. 그래야 본문에
+   태그가 들어와도 글자로 남는다.
+
+     [소제목]      줄 전체가 대괄호면 소제목
+     **굵게**      굵은 초록
+     !!형광펜!!    노란 배경으로 강조
+*/
+window.formatNoticeText = function (raw) {
+  var s = String(raw == null ? '' : raw)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return s
+    .replace(/^\[([^\]\n]+)\]$/gm, '<span class="nc-h">[$1]</span>')
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong class="nc-b">$1</strong>')
+    .replace(/!!([^!\n]+)!!/g, '<mark class="nc-m">$1</mark>');
+};

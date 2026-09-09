@@ -124,15 +124,6 @@
       white-space: pre-line;
       word-break: keep-all;
     }
-    /* [방법] 처럼 대괄호로 묶은 줄은 소제목이다. 굵게 해서 단락을 갈라 준다 */
-    .notice-content .nc-h {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 15px;
-      font-weight: 800;
-      color: #1F5C43;
-      letter-spacing: -0.01em;
-    }
     .notice-content a { color: var(--green); font-weight: 700; }
     .notice-item.open .notice-content { display: block; }
     /* 빈/로딩 */
@@ -193,12 +184,10 @@
     list.innerHTML = notices.map(function(n, i) {
       var badge = TYPE_BADGES[n.type] || 'badge-notice';
       var label = TYPE_LABELS[n.type] || '공지';
-      // 대괄호로 묶은 줄을 소제목으로 굵게. 이스케이프한 뒤에 바꾸므로
-      // 본문에 태그가 들어와도 그대로 글자로 남는다.
+      // 꾸미기는 nav.js 의 formatNoticeText 한 곳에서 한다. 첫 화면 팝업과
+      // 같은 규칙을 써야 관리자가 한 번만 익히면 된다.
       var contentHtml = n.content
-        ? '<div class="notice-content">' +
-            escHtml(n.content).replace(/^\[([^\]\n]+)\]$/gm, '<span class="nc-h">[$1]</span>') +
-          '</div>'
+        ? '<div class="notice-content">' + window.formatNoticeText(n.content) + '</div>'
         : '';
       return '<div class="notice-item" data-idx="' + i + '">' +
         '<div class="notice-item-header">' +

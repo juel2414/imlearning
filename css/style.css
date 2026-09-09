@@ -725,3 +725,14 @@ ul, ol { list-style: none; }
           mask: var(--im-star-one) center / contain no-repeat;
 }
 .im-star.on { background: var(--im-star-on); }
+
+
+/* ── 공지 본문 강조 ──
+   [소제목] · **굵게** · !!형광펜!! 세 가지만 알아본다.
+   관리자가 외울 것이 적어야 실제로 쓰인다. */
+.nc-h { display:inline-block; margin-top:4px; font-size:1.02em; font-weight:800;
+        color:#1F5C43; letter-spacing:-0.01em; }
+.nc-b { font-weight:800; color:#14603F; }
+.nc-m { background:#FFF3C4; color:#5C4708; font-weight:700;
+        padding:1px 4px; border-radius:4px; box-decoration-break:clone;
+        -webkit-box-decoration-break:clone; }

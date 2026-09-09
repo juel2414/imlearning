@@ -1565,7 +1565,9 @@ function initHeroCanvas() {
     if (!overlay || !notice) return;
 
     titleEl.textContent  = notice.title;
-    contentEl.textContent = notice.content;
+    // 공지 목록과 같은 규칙으로 꾸민다. 함수가 없으면 글자 그대로 둔다.
+    if (window.formatNoticeText) contentEl.innerHTML = window.formatNoticeText(notice.content);
+    else contentEl.textContent = notice.content;
     overlay.classList.add('open');
 
     document.getElementById('np-close').addEventListener('click', closePopup);
