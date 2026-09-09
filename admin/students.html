@@ -105,6 +105,20 @@ tr.detail-row:hover > td { background:#FAFBFC; }
 .wd-note { font-size:11px; color:#9aa2a8; line-height:1.6; margin-top:10px; }
 
 /* 강좌 태그 */
+/* 회원 상세: 수강 목록 */
+.sd-head { display:flex; align-items:baseline; gap:8px; margin:22px 0 10px;
+  font-size:14px; font-weight:800; color:#111; border-bottom:1px solid rgba(0,0,0,.07); padding-bottom:8px; }
+.sd-head span { font-size:12px; font-weight:700; color:#4338CA; background:#EEF2FF;
+  padding:2px 8px; border-radius:10px; }
+.sd-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px; }
+.sd-chip { display:inline-block; max-width:100%; padding:5px 10px; border-radius:8px;
+  background:#F7F8FA; border:1px solid rgba(0,0,0,.07); color:#444; font-size:12px;
+  text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sd-chip:hover { background:#EEF2FF; border-color:#c7d2fe; color:#4338CA; }
+.sd-pass { margin:16px 0 4px; padding:12px 14px; border-radius:10px;
+  background:#FAFAFF; border:1px solid #E0E4F8; font-size:14px; font-weight:700; color:#3730A3; }
+.sd-pass-sub { display:block; margin-top:3px; font-size:11.5px; font-weight:500; color:#8A8FB0; }
+
 .course-tag { display:inline-block; background:#F0FAF5; color:#2D9B6F; border:1px solid #d1f0e0;
   border-radius:6px; font-size:11px; font-weight:600; padding:2px 7px; margin:2px 2px 0 0; white-space:nowrap; }
 
@@ -768,43 +782,67 @@ function renderModalBody(uid) {
     return;
   }
 
+  // 시청 기록이 있는 강좌를 먼저 펼쳐 보여주고, 아직 안 연 강좌는 접어 둔다.
+  // 30개를 전부 펼치면 "기록 없어요" 만 예순 줄이 되어 읽을 수가 없다.
+  var started = [], notStarted = [], passBuys = [];
   userOrders.forEach(function(order) {
-    var course = allCourses.find(function(c){ return String(c.id) === String(order.course_id); });
-    var courseName = course ? course.title : ('강좌 ID: ' + order.course_id);
+    if (order.course_id == null) { passBuys.push(order); return; }
+    var vp = userVP.filter(function(v){ return String(v.course_id) === String(order.course_id); });
+    (vp.length ? started : notStarted).push({ order: order, vp: vp });
+  });
 
-    var grantBadge = order.grant_type === 'admin_grant'
+  function courseTitleOf(order) {
+    var c = allCourses.find(function(x){ return String(x.id) === String(order.course_id); });
+    return c ? c.title : (order.course_name || ('강좌 ' + order.course_id));
+  }
+  function grantBadgeOf(order) {
+    return order.grant_type === 'admin_grant'
       ? ' <span class="badge badge-grant" style="font-size:10px;vertical-align:middle;">관리자부여</span>'
       : order.grant_type === 'gift'
         ? ' <span class="badge" style="background:#FDF4FF;color:#7E22CE;font-size:10px;vertical-align:middle;">선물</span>'
-        : '';
-    html += '<div class="modal-course-title">📚 ' + esc(courseName) + grantBadge + '</div>';
+        : order.grant_type === 'freepass'
+          ? ' <span class="badge" style="background:#EEF2FF;color:#4338CA;font-size:10px;vertical-align:middle;">프리패스</span>'
+          : '';
+  }
 
-    // 이 강좌의 video_progress
-    var courseVP = userVP.filter(function(vp){ return String(vp.course_id) === String(order.course_id); });
-    courseVP.sort(function(a,b){ return a.lesson_number - b.lesson_number; });
-
-    if (!courseVP.length) {
-      html += '<div style="color:#aaa;font-size:13px;padding:8px 0 12px;">아직 시청 기록이 없어요</div>';
-      return;
-    }
-
-    courseVP.forEach(function(vp) {
-      var pct       = vp.watch_percentage || 0;
-      var barColor  = pct >= 80 ? '#2D9B6F' : pct >= 50 ? '#F59E0B' : '#aaa';
-      var doneText  = vp.completed ? '<span class="lesson-done-badge">✅ 완료</span>' : '';
-      var totalTxt  = vp.total_seconds ? ' (전체 ' + fmtSecs(vp.total_seconds) + ')' : '';
-
-      html += '<div class="lesson-card">' +
-        '<div class="lesson-card-top">' +
-          '<span class="lesson-num">' + vp.lesson_number + '강</span>' +
-          '<span class="lesson-title">' + esc(vp.lesson_title || '') + totalTxt + '</span>' +
-          '<span class="lesson-pct" style="color:' + barColor + ';">' + pct + '%' + doneText + '</span>' +
-        '</div>' +
-        '<div class="lesson-detail">실제 시청: ' + esc(vp.actual_watched_text || fmtSecs(vp.actual_watched_seconds)) + '</div>' +
-        '<div class="lesson-bar-wrap"><div class="lesson-bar-fill" style="background:' + barColor + ';width:' + pct + '%;"></div></div>' +
-        '</div>';
-    });
+  // 프리패스 구매 기록. 강좌가 아니라서 course_id 가 비어 있다.
+  passBuys.forEach(function(order) {
+    html += '<div class="sd-pass">🎫 ' + esc(order.course_name || '프리패스 구매') +
+      '<span class="sd-pass-sub">강좌가 아니라 이용권 구매 기록입니다' +
+      (order.amount ? ' · ₩' + Number(order.amount).toLocaleString() : '') + '</span></div>';
   });
+
+  if (started.length) {
+    html += '<div class="sd-head">수강 중 <span>' + started.length + '개</span></div>';
+    started.forEach(function(it) {
+      html += '<div class="modal-course-title">📚 ' + esc(courseTitleOf(it.order)) + grantBadgeOf(it.order) + '</div>';
+      it.vp.sort(function(a,b){ return a.lesson_number - b.lesson_number; });
+      it.vp.forEach(function(vp) {
+        var pct      = vp.watch_percentage || 0;
+        var barColor = pct >= 80 ? '#2D9B6F' : pct >= 50 ? '#F59E0B' : '#aaa';
+        var doneText = vp.completed ? '<span class="lesson-done-badge">✅ 완료</span>' : '';
+        var totalTxt = vp.total_seconds ? ' (전체 ' + fmtSecs(vp.total_seconds) + ')' : '';
+        html += '<div class="lesson-card">' +
+          '<div class="lesson-card-top">' +
+            '<span class="lesson-num">' + vp.lesson_number + '강</span>' +
+            '<span class="lesson-title">' + esc(vp.lesson_title || '') + totalTxt + '</span>' +
+            '<span class="lesson-pct" style="color:' + barColor + ';">' + pct + '%' + doneText + '</span>' +
+          '</div>' +
+          '<div class="lesson-detail">실제 시청: ' + esc(vp.actual_watched_text || fmtSecs(vp.actual_watched_seconds)) + '</div>' +
+          '<div class="lesson-bar-wrap"><div class="lesson-bar-fill" style="background:' + barColor + ';width:' + pct + '%;"></div></div>' +
+          '</div>';
+      });
+    });
+  }
+
+  if (notStarted.length) {
+    html += '<div class="sd-head">아직 시작 안 함 <span>' + notStarted.length + '개</span></div>' +
+      '<div class="sd-chips">' +
+      notStarted.map(function(it) {
+        return '<a class="sd-chip" href="../course-detail.html?id=' + it.order.course_id + '" target="_blank" title="' +
+          esc(courseTitleOf(it.order)) + '">' + esc(courseTitleOf(it.order)) + '</a>';
+      }).join('') + '</div>';
+  }
 
   body.innerHTML = html || '<div class="empty">시청 데이터가 없어요</div>';
 }
