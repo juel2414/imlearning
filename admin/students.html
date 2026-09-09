@@ -828,8 +828,17 @@ async function fetchAll(query) {
 // ── 데이터 로드 ──
 async function loadAll() {
   try {
-    var [ordersRes, vpRes, logsRes, opensRes, coursesRes, passesRes] = await Promise.all([
-      sb.from('orders').select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, grant_type, grant_reason, created_at').in('status',['paid','completed']),
+    // 주문이 2,800건이 넘는다. 나눠 읽지 않으면 1,000건에서 잘려
+    // 뒤쪽 주문을 가진 회원은 강의가 없는 것처럼 보인다.
+    var ordersPromise = fetchAll(
+      sb.from('orders')
+        .select('id, user_id, course_id, progress, status, amount, payment_id, refund_status, grant_type, grant_reason, created_at')
+        .in('status',['paid','completed'])
+        .order('id')
+    );
+
+    var [allOrdersData, vpRes, logsRes, opensRes, coursesRes, passesRes] = await Promise.all([
+      ordersPromise,
       sb.from('video_progress').select('user_id, course_id, lesson_number, lesson_title, actual_watched_seconds, actual_watched_text, total_seconds, watch_percentage, completed, updated_at'),
       sb.from('study_logs').select('user_id, course_id, lesson_number, studied_at'),
       sb.from('lesson_opens').select('user_id, opened_at'),
@@ -838,7 +847,7 @@ async function loadAll() {
     ]);
 
     allProfiles      = await fetchAll(sb.from('profiles').select('id, name, email, role, phone, created_at').order('created_at', { ascending:false }));
-    allOrders        = ordersRes.data    || [];
+    allOrders        = allOrdersData     || [];
     allVideoProgress = vpRes.data        || [];
     allStudyLogs     = logsRes.data      || [];
     allLessonOpens   = opensRes.data     || [];
