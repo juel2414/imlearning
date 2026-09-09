@@ -1264,6 +1264,15 @@ async function applyCoupon() {
       msgEl.className = 'coupon-msg err';
       return;
     }
+    // 특정 강의 전용 쿠폰이면 그 강의에서만 쓴다. 서버도 같은 검사를 하지만
+    // 여기서 막아야 왜 안 되는지 알려줄 수 있다.
+    if (data.course_id != null && String(data.course_id) !== String(currentCourse.id)) {
+      msgEl.textContent = data.course_title
+        ? `「${data.course_title}」 전용 쿠폰이에요.`
+        : '이 강의에는 쓸 수 없는 쿠폰이에요.';
+      msgEl.className = 'coupon-msg err';
+      return;
+    }
 
     const { isDiscounted, currentPrice } = getCurrentPrice(currentCourse);
     const basePrice = currentPrice || 0;

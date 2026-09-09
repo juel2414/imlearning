@@ -324,7 +324,7 @@ Deno.serve(async (req: Request) => {
 
       if (!allowFree && couponId) {
         const { data: coupon } = await sb.from('coupons')
-          .select('code, discount_type, discount_value, expires_at, max_uses, used_count, min_amount')
+          .select('code, discount_type, discount_value, expires_at, max_uses, used_count, min_amount, course_id')
           .eq('id', couponId).eq('status', 'active').single();
         if (!coupon) return err('유효하지 않은 쿠폰입니다');
 
@@ -336,6 +336,10 @@ Deno.serve(async (req: Request) => {
         // 쿠폰을 0원 경로로 우회해서 쓸 수 있었다.
         if (coupon.min_amount != null && serverBasePrice < coupon.min_amount)
           return err(`최소 결제금액 ${Number(coupon.min_amount).toLocaleString('ko-KR')}원 이상 사용 가능한 쿠폰입니다`);
+        // 강의가 지정된 쿠폰은 그 강의에만 쓴다. 화면에서 막아도 요청은
+        // 직접 만들 수 있으므로 여기서 다시 본다.
+        if (coupon.course_id != null && String(coupon.course_id) !== String(courseId))
+          return err('이 강의에는 쓸 수 없는 쿠폰입니다');
         if (!(await ownsCoupon(sb, couponId, user.id)))
           return err('본인에게 발급된 쿠폰이 아닙니다', 403);
 
@@ -445,7 +449,7 @@ Deno.serve(async (req: Request) => {
     let paidCoupon: any = null;
     if (couponId) {
       const { data: coupon } = await sb.from('coupons')
-        .select('code, discount_type, discount_value, expires_at, max_uses, used_count, min_amount')
+        .select('code, discount_type, discount_value, expires_at, max_uses, used_count, min_amount, course_id')
         .eq('id', couponId).eq('status', 'active').single();
 
       if (!coupon)
@@ -456,6 +460,10 @@ Deno.serve(async (req: Request) => {
         return err('쿠폰 사용 한도를 초과했습니다');
       if (coupon.min_amount != null && serverBasePrice < coupon.min_amount)
         return err(`최소 결제금액 ${Number(coupon.min_amount).toLocaleString('ko-KR')}원 이상 사용 가능한 쿠폰입니다`);
+      // 특정 강의용 쿠폰은 패스에 쓸 수 없다. 패스는 여러 강의를 한꺼번에
+      // 여는 상품이라 어느 강의에 쓴 것인지 정할 수 없다.
+      if (coupon.course_id != null)
+        return err('특정 강의 전용 쿠폰이라 패스에는 쓸 수 없습니다');
 
       if (!(await ownsCoupon(sb, couponId, user.id)))
         return err('본인에게 발급된 쿠폰이 아닙니다', 403);
