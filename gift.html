@@ -559,10 +559,15 @@
   function giftConfettiDpr() { return Math.min(window.devicePixelRatio || 1, 1.5); }
   function giftConfettiSize(cv) {
     var dpr = giftConfettiDpr();
-    cv.width  = window.innerWidth  * dpr;
-    cv.height = window.innerHeight * dpr;
-    var c = cv.getContext('2d');
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var w = Math.round(window.innerWidth * dpr);
+    var h = Math.round(window.innerHeight * dpr);
+    // 배치가 끝나기 전에는 화면 크기를 엉뚱하게 보고하는 기기가 있다.
+    // 그 값으로 잡으면 캔버스가 늘어나 조각이 커진다. 그냥 넘긴다.
+    if (w < 2 || h < 2) return;
+    // 크기가 같으면 건드리지 않는다. width 를 다시 넣는 순간 버퍼를 새로 잡아
+    // 미리 만들어 둔 뜻이 사라진다.
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   function giftConfetti() {
@@ -573,11 +578,18 @@
     if (!cv) return;
     var ctx = cv.getContext('2d');
 
-    function size() { giftConfettiSize(cv); }
+    // 휴대폰은 주소창이 접히면서 화면 높이가 바뀐다. 미리 잡아 둔 크기와
+    // 어긋난 채로 그리면 캔버스가 늘어나 조각이 커 보인다. 시작할 때 한 번
+    // 맞춰 준다. 그대로면 위에서 아무것도 다시 잡지 않는다.
+    var W, H;
+    function size() {
+      giftConfettiSize(cv);
+      W = window.innerWidth; H = window.innerHeight;
+    }
+    size();
     window.addEventListener('resize', size);
 
     var COLORS = ['#2D9B6F', '#5ECF96', '#C9A252', '#E9D18F', '#FBF8F3'];
-    var W = window.innerWidth, H = window.innerHeight;
     var bits = [];
     for (var i = 0; i < 90; i++) {
       bits.push({
