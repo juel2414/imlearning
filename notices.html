@@ -113,15 +113,27 @@
     /* 본문 */
     .notice-content {
       display: none;
-      padding: 16px 24px 22px;
+      padding: 18px 24px 24px;
       margin: 0 24px;
       border-top: 1px solid rgba(0,0,0,0.06);
-      font-size: 14px;
-      line-height: 1.85;
-      color: #444;
+      /* 14px #444 은 본문으로 읽기에 얇고 흐렸다 */
+      font-size: 15.5px;
+      font-weight: 450;
+      line-height: 1.9;
+      color: #2E3A33;
       white-space: pre-line;
       word-break: keep-all;
     }
+    /* [방법] 처럼 대괄호로 묶은 줄은 소제목이다. 굵게 해서 단락을 갈라 준다 */
+    .notice-content .nc-h {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #1F5C43;
+      letter-spacing: -0.01em;
+    }
+    .notice-content a { color: var(--green); font-weight: 700; }
     .notice-item.open .notice-content { display: block; }
     /* 빈/로딩 */
     .empty-state, .loading-state {
@@ -133,7 +145,7 @@
     @media (max-width: 600px) {
       .notice-item-header { padding: 14px 16px; gap: 10px; }
       .notice-title { font-size: 14px; }
-      .notice-content { margin: 0 16px; padding: 14px 0 18px; }
+      .notice-content { margin: 0 16px; padding: 15px 0 20px; font-size: 15px; }
     }
   </style>
 </head>
@@ -181,8 +193,12 @@
     list.innerHTML = notices.map(function(n, i) {
       var badge = TYPE_BADGES[n.type] || 'badge-notice';
       var label = TYPE_LABELS[n.type] || '공지';
+      // 대괄호로 묶은 줄을 소제목으로 굵게. 이스케이프한 뒤에 바꾸므로
+      // 본문에 태그가 들어와도 그대로 글자로 남는다.
       var contentHtml = n.content
-        ? '<div class="notice-content">' + escHtml(n.content) + '</div>'
+        ? '<div class="notice-content">' +
+            escHtml(n.content).replace(/^\[([^\]\n]+)\]$/gm, '<span class="nc-h">[$1]</span>') +
+          '</div>'
         : '';
       return '<div class="notice-item" data-idx="' + i + '">' +
         '<div class="notice-item-header">' +
