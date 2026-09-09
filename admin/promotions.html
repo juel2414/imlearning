@@ -448,6 +448,7 @@ async function loadCoupons() {
         </div>
         <div>${statusBadge}</div>
         <div class="coupon-actions">
+          <button class="btn-secondary" onclick="giftCoupon('${esc(c.code)}')">선물 링크</button>
           <button class="btn-secondary" onclick="toggleUsage('${c.id}', '${esc(c.code)}')">사용 내역</button>
           <button class="btn-edit" onclick="editCoupon(${JSON.stringify(c).replace(/"/g, '&quot;')})">수정</button>
           <button class="btn-danger" onclick="deleteCoupon('${c.id}')">삭제</button>
@@ -455,6 +456,25 @@ async function loadCoupons() {
       </div>
       <div id="usage-${c.id}" class="coupon-usage" style="display:none;"></div>`;
   }).join('') + '</div>';
+}
+
+// ── 선물 링크 ──
+// 쿠폰도 선물 봉투로 보낸다. 받는 사람은 gift.html 에서 봉투를 열고
+// 쿠폰함에 담는다. 별도 페이지를 만들지 않고 같은 화면을 쓴다.
+function couponGiftUrl(code) {
+  var base = location.origin + location.pathname.replace(/admin\/[^\/]*$/, '');
+  return base + 'gift.html?coupon=' + encodeURIComponent(code);
+}
+
+async function giftCoupon(code) {
+  var url = couponGiftUrl(code);
+  try {
+    await navigator.clipboard.writeText(url);
+    alert('링크를 복사했어요.\n\n' + url);
+  } catch (e) {
+    // 클립보드가 막힌 환경에서는 직접 복사하도록 보여준다
+    prompt('아래 링크를 복사해서 보내세요.', url);
+  }
 }
 
 // ── 사용 내역 ──

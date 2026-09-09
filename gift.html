@@ -279,6 +279,13 @@
 /* 표 본체. 받는 사람이 제일 먼저 궁금한 것은 "뭘 받았지" 다.
    그래서 강좌가 주인공이고 코드는 아래에 작게 둔다. 링크를 눌러 들어온
    사람은 코드를 볼 일이 없고, 코드가 필요한 쪽은 직접 입력하는 사람이다. */
+/* 쿠폰이 어디에 쓰이는지. 밝은 카드 위라 어두운 글자여야 읽힌다 */
+.gift-coupon-scope {
+  margin-top: 6px; font-size: 13px; font-weight: 600;
+  color: #5C7566; letter-spacing: -0.01em;
+}
+@media (min-width: 480px) { .gift-coupon-scope { font-size: 14px; } }
+
 .gift-ribbon {
   position: relative; z-index: 1;
   background: #FBF8F3; border-radius: 16px;
@@ -426,6 +433,10 @@
 (function () {
   var params = new URLSearchParams(window.location.search);
   var giftCode = (params.get('code') || '').trim().toUpperCase();
+  // 쿠폰도 같은 봉투로 보낸다. 열면 강의 대신 쿠폰이 나온다.
+  var couponCodeParam = (params.get('coupon') || '').trim().toUpperCase();
+  var couponMode = false;
+  var couponData = null;
   var root = document.getElementById('gift-root');
   var _gift = null; // 로드된 선물 데이터 저장
 
@@ -479,9 +490,11 @@
 
   // ── 화면 A: 봉투 ─────────────────────────────────────────────────────────
   function showEnvelope(gift) {
-    var senderLine = gift.sender_name
-      ? esc(gift.sender_name) + '님이 마음을 담아 선물을 보냈어요'
-      : '누군가 마음을 담아 선물을 보냈어요';
+    var senderLine = couponMode
+      ? '쿠폰 선물이 도착했어요'
+      : (gift.sender_name
+          ? esc(gift.sender_name) + '님이 마음을 담아 선물을 보냈어요'
+          : '누군가 마음을 담아 선물을 보냈어요');
     var msgBlock = gift.message
       ? '<div class="gift-env-msg">' + esc(gift.message).replace(/\n/g, '<br>') + '</div>'
       : '';
@@ -531,7 +544,10 @@
       var card = document.getElementById('screen-a');
       if (card) card.classList.add(reduce ? 'gift-leaving-soft' : 'gift-leaving');
 
-      setTimeout(function () { showVoucher(gift, true); }, delay);
+      setTimeout(function () {
+        if (couponMode) showCouponVoucher(couponData, true);
+        else showVoucher(gift, true);
+      }, delay);
     });
   }
 
@@ -823,8 +839,128 @@
     }
   }
 
+  // ── 쿠폰 선물 ─────────────────────────────────────────────────────────────
+  async function loadCoupon(code) {
+    try {
+      // 로그인 여부를 먼저 알아야 "로그인하고 받기" 와 "쿠폰함에 담기" 를 가른다
+      var authResult = await supabaseClient.auth.getUser();
+      window._giftUser = authResult.data ? authResult.data.user : null;
+
+      var res = await supabaseClient.rpc('lookup_coupon', { p_code: code });
+      var c = (res.data && res.data.length) ? res.data[0] : null;
+      if (res.error || !c) {
+        showStatus('🎟️', '쿠폰을 찾지 못했어요', '코드가 맞는지 확인해 주세요.');
+        return;
+      }
+      if (c.expires_at && new Date(c.expires_at) < new Date()) {
+        showStatus('⌛', '사용 기간이 지난 쿠폰이에요', '보내신 분에게 문의해 주세요.');
+        return;
+      }
+      if (c.max_uses != null && c.used_count >= c.max_uses) {
+        showStatus('🎟️', '모두 사용된 쿠폰이에요', '아쉽지만 남은 수량이 없어요.');
+        return;
+      }
+      // 강의 전용 쿠폰이면 그 강의 그림을 함께 보여준다
+      if (c.course_id != null) {
+        var cr = await supabaseClient.from('courses')
+          .select('thumbnail_url').eq('id', c.course_id).maybeSingle();
+        if (cr.data) c.thumbnail_url = cr.data.thumbnail_url;
+      }
+      couponMode = true;
+      couponData = c;
+      showEnvelope({ sender_name: null, message: null });
+    } catch (e) {
+      console.error('loadCoupon 오류:', e);
+      showStatus('⚠️', '쿠폰 정보를 불러오지 못했어요', '잠시 후 다시 시도해주세요.');
+    }
+  }
+
+  function couponDiscountText(c) {
+    return c.discount_type === 'rate'
+      ? Math.round(Number(c.discount_value)) + '% 할인'
+      : '₩' + Number(c.discount_value).toLocaleString('ko-KR') + ' 할인';
+  }
+
+  function showCouponVoucher(c, fade) {
+    var thumbHtml = c.thumbnail_url ? '<img src="' + esc(c.thumbnail_url) + '" alt="">' : '🎟️';
+    var expiryStr = c.expires_at
+      ? '~' + new Date(c.expires_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' }) + '까지'
+      : '사용 기한 없음';
+    var scope = c.course_id != null && c.course_title
+      ? esc(c.course_title) + ' 전용'
+      : '모든 강의에 사용 가능';
+
+    var actionHtml;
+    if (!window._giftUser) {
+      var nextUrl = 'gift.html?coupon=' + encodeURIComponent(c.code);
+      actionHtml = '<a href="login.html?next=' + encodeURIComponent(nextUrl) + '" class="gift-action-btn gold" style="display:block;text-decoration:none;text-align:center;">로그인하고 받기</a>';
+    } else {
+      actionHtml = '<button class="gift-action-btn gold" id="redeem-btn">내 쿠폰함에 담기</button>';
+    }
+
+    root.innerHTML = [
+      '<div class="gift-voucher' + (fade ? ' gift-rising' : '') + '" id="screen-b">',
+      '  <div class="gift-voucher-head">',
+      '    <div class="gv-seal">',
+      '      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">',
+      '        <path d="M3 8.2a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.4a2.4 2.4 0 0 0 0 4.8v1.4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1.4a2.4 2.4 0 0 0 0-4.8V8.2Z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/>',
+      '        <path d="M14.5 6.2v11.6" stroke="#fff" stroke-width="1.7" stroke-dasharray="2 2.4"/>',
+      '      </svg>',
+      '    </div>',
+      '    <div class="gift-voucher-label">COUPON</div>',
+      '    <div class="gv-from">쿠폰이 도착했어요</div>',
+      '  </div>',
+      '  <div class="gift-ribbon">',
+      '    <div class="gift-ribbon-thumb">' + thumbHtml + '</div>',
+      '    <div class="gift-ribbon-title">' + esc(couponDiscountText(c)) + '</div>',
+      '    <div class="gift-coupon-scope">' + scope + '</div>',
+      '  </div>',
+      '  <div class="gift-code-row">',
+      '    <span class="gift-code-label">쿠폰 코드</span>',
+      '    <span class="gift-code-val">' + esc(c.code) + '</span>',
+      '  </div>',
+      '  <div class="gift-action-col">',
+      '    <div class="gift-pocket-note">' + esc(expiryStr) + '</div>',
+      actionHtml,
+      '  </div>',
+      '</div>',
+    ].join('');
+
+    var btn = document.getElementById('redeem-btn');
+    if (btn) btn.addEventListener('click', doRedeem);
+  }
+
+  async function doRedeem() {
+    var btn = document.getElementById('redeem-btn');
+    btn.disabled = true;
+    btn.textContent = '담는 중...';
+    try {
+      var res = await supabaseClient.rpc('redeem_coupon', { p_code: couponData.code });
+      var r = res.data || {};
+      if (res.error || !r.ok) {
+        // 이미 갖고 있는 경우는 실패가 아니다. 쿠폰함으로 보내 준다.
+        var already = r.reason === 'already_have';
+        showAlert(esc(r.message || '쿠폰을 담지 못했어요.'), already ? 'ok' : 'err');
+        btn.textContent = already ? '내 쿠폰함 열기' : '다시 시도';
+        btn.disabled = false;
+        if (already) btn.onclick = function () { location.href = 'my-courses.html#coupons'; };
+        return;
+      }
+      showAlert('쿠폰이 쿠폰함에 담겼어요.', 'ok');
+      btn.textContent = '내 쿠폰함 열기';
+      btn.disabled = false;
+      btn.onclick = function () { location.href = 'my-courses.html#coupons'; };
+    } catch (e) {
+      showAlert('쿠폰을 담지 못했어요. 잠시 후 다시 시도해 주세요.', 'err');
+      btn.disabled = false;
+      btn.textContent = '다시 시도';
+    }
+  }
+
   // ── 진입점 ───────────────────────────────────────────────────────────────
-  if (giftCode) {
+  if (couponCodeParam) {
+    loadCoupon(couponCodeParam);
+  } else if (giftCode) {
     loadGift(giftCode);
   } else {
     showCodeInput();
