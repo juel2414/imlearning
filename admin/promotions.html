@@ -268,6 +268,50 @@
   </div>
 </div>
 
+<!-- 쿠폰 공유 -->
+<div class="cs-back" id="cs-back" hidden onclick="if(event.target===this)closeCouponShare()">
+  <div class="cs-box" role="dialog" aria-modal="true" aria-labelledby="cs-title">
+    <button class="cs-x" onclick="closeCouponShare()" aria-label="닫기">✕</button>
+    <div class="cs-badge">Coupon · 아이엠러닝</div>
+    <div class="cs-disc" id="cs-disc"></div>
+    <div class="cs-scope" id="cs-scope"></div>
+    <div class="cs-code-label">쿠폰 코드</div>
+    <div class="cs-code" id="cs-title"></div>
+    <div class="cs-link" id="cs-link"></div>
+    <div class="cs-btns">
+      <button class="cs-btn kakao" id="cs-kakao" hidden onclick="csKakao()">카카오톡</button>
+      <button class="cs-btn" id="cs-sms" hidden onclick="csSms()">문자</button>
+      <button class="cs-btn" onclick="csCopy()">링크 복사</button>
+    </div>
+    <div class="cs-note">받는 분이 링크를 열면 선물 봉투가 뜨고, 열면 쿠폰이 쿠폰함에 담깁니다.</div>
+  </div>
+</div>
+
+<style>
+  .cs-back { position:fixed; inset:0; background:rgba(12,26,19,.55); display:flex;
+    align-items:center; justify-content:center; padding:20px; z-index:200; }
+  .cs-back[hidden] { display:none; }
+  .cs-box { position:relative; width:100%; max-width:380px; background:#FBF8F3;
+    border-radius:18px; padding:26px 24px 22px; text-align:center;
+    box-shadow:0 18px 50px rgba(0,0,0,.3); }
+  .cs-x { position:absolute; top:10px; right:12px; border:0; background:none;
+    font-size:16px; color:#8b9a91; cursor:pointer; padding:6px; }
+  .cs-badge { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#2D9B6F; font-weight:700; }
+  .cs-disc { font-size:26px; font-weight:800; color:#223B2E; margin-top:10px; }
+  .cs-scope { font-size:13px; font-weight:600; color:#5C7566; margin-top:5px; }
+  .cs-code-label { font-size:11px; color:#8b9a91; margin-top:18px; letter-spacing:1px; }
+  .cs-code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:19px;
+    font-weight:700; color:#223B2E; letter-spacing:2px; margin-top:3px; }
+  .cs-link { margin-top:14px; padding:9px 10px; background:#fff; border:1px solid #E3DCD0;
+    border-radius:9px; font-size:11.5px; color:#5C7566; word-break:break-all; }
+  .cs-btns { display:flex; gap:8px; margin-top:16px; }
+  .cs-btn { flex:1 1 0; padding:11px 6px; border-radius:11px; border:1px solid #E3DCD0;
+    background:#fff; color:#2E4A3A; font-size:13px; font-weight:700; cursor:pointer; }
+  .cs-btn:hover { box-shadow:0 4px 12px rgba(0,0,0,.07); }
+  .cs-btn.kakao { background:#FEE500; border-color:#FEE500; color:#3A2B00; }
+  .cs-note { font-size:11.5px; color:#8b9a91; margin-top:14px; line-height:1.5; }
+</style>
+
 <script>
 const sb = window.supabaseClient;
 function esc(s) {
@@ -448,7 +492,7 @@ async function loadCoupons() {
         </div>
         <div>${statusBadge}</div>
         <div class="coupon-actions">
-          <button class="btn-secondary" onclick="giftCoupon('${esc(c.code)}')">선물 링크</button>
+          <button class="btn-secondary" onclick="openCouponShare(${JSON.stringify(c).replace(/"/g, '&quot;')})">선물하기</button>
           <button class="btn-secondary" onclick="toggleUsage('${c.id}', '${esc(c.code)}')">사용 내역</button>
           <button class="btn-edit" onclick="editCoupon(${JSON.stringify(c).replace(/"/g, '&quot;')})">수정</button>
           <button class="btn-danger" onclick="deleteCoupon('${c.id}')">삭제</button>
@@ -461,20 +505,95 @@ async function loadCoupons() {
 // ── 선물 링크 ──
 // 쿠폰도 선물 봉투로 보낸다. 받는 사람은 gift.html 에서 봉투를 열고
 // 쿠폰함에 담는다. 별도 페이지를 만들지 않고 같은 화면을 쓴다.
+function siteBase() {
+  return location.origin + location.pathname.replace(/admin\/[^\/]*$/, '');
+}
 function couponGiftUrl(code) {
-  var base = location.origin + location.pathname.replace(/admin\/[^\/]*$/, '');
-  return base + 'gift.html?coupon=' + encodeURIComponent(code);
+  return siteBase() + 'gift.html?coupon=' + encodeURIComponent(code);
 }
 
-async function giftCoupon(code) {
-  var url = couponGiftUrl(code);
-  try {
-    await navigator.clipboard.writeText(url);
-    alert('링크를 복사했어요.\n\n' + url);
-  } catch (e) {
-    // 클립보드가 막힌 환경에서는 직접 복사하도록 보여준다
-    prompt('아래 링크를 복사해서 보내세요.', url);
+// 강의 선물과 같은 방식으로 보낸다. 카톡 카드도 같은 그림을 쓴다.
+const CS_KAKAO_JS_KEY = '287442d5aeab31a7863cc9e4fcc435f1';
+let _csLink = '', _csCode = '';
+
+function csDiscountText(c) {
+  return c.discount_type === 'rate'
+    ? Math.round(Number(c.discount_value)) + '% 할인'
+    : '₩' + Number(c.discount_value).toLocaleString('ko-KR') + ' 할인';
+}
+
+function openCouponShare(c) {
+  _csCode = c.code;
+  _csLink = couponGiftUrl(c.code);
+  document.getElementById('cs-disc').textContent  = csDiscountText(c);
+  document.getElementById('cs-scope').textContent = c.course_id
+    ? (_courseMap[String(c.course_id)] || ('강의 #' + c.course_id)) + ' 전용'
+    : '모든 강의에 사용 가능';
+  document.getElementById('cs-title').textContent = c.code;
+  document.getElementById('cs-link').textContent  = _csLink;
+  document.getElementById('cs-back').hidden = false;
+  csPrepareButtons();
+}
+
+function closeCouponShare() { document.getElementById('cs-back').hidden = true; }
+
+// 문자는 휴대폰에서만 열린다. 카카오는 SDK 가 올라온 뒤에 보여준다.
+function csPrepareButtons() {
+  var sms = document.getElementById('cs-sms');
+  var kakao = document.getElementById('cs-kakao');
+  var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  if (sms) sms.hidden = !isMobile;
+  if (!kakao) return;
+  if (window.Kakao) { kakao.hidden = false; return; }
+  var el = document.createElement('script');
+  el.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
+  el.integrity = 'sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4';
+  el.crossOrigin = 'anonymous';
+  el.onload = function () {
+    try {
+      if (!window.Kakao.isInitialized()) window.Kakao.init(CS_KAKAO_JS_KEY);
+      kakao.hidden = false;
+    } catch (e) { console.error('Kakao 초기화 실패:', e); }
+  };
+  document.head.appendChild(el);
+}
+
+function csCopy() {
+  navigator.clipboard.writeText(_csLink)
+    .then(function () { alert('링크를 복사했어요.'); })
+    .catch(function () { prompt('아래 링크를 복사해주세요:', _csLink); });
+}
+
+function csShareText() {
+  return '딩동~ 아이엠러닝에서 쿠폰 선물이 도착했어요.\n어떤 쿠폰일까요? 아래 링크에서 확인해보세요.\n' + _csLink;
+}
+
+function csSms() {
+  var sep = /iP(hone|ad|od)/.test(navigator.userAgent) ? '&' : '?';
+  location.href = 'sms:' + sep + 'body=' + encodeURIComponent(csShareText());
+}
+
+function csKakao() {
+  if (!_csLink) return;
+  if (window.Kakao && window.Kakao.Share) {
+    try {
+      // 카드에서는 어떤 쿠폰인지 밝히지 않는다. 열어보는 재미를 남긴다.
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: '딩동~ 쿠폰 선물이 도착했어요',
+          description: '어떤 쿠폰일까요? 눌러서 확인해보세요',
+          imageUrl: siteBase() + 'images/gift-share-card-v8.png',
+          link: { mobileWebUrl: _csLink, webUrl: _csLink },
+        },
+        buttons: [{ title: '쿠폰 받기', link: { mobileWebUrl: _csLink, webUrl: _csLink } }],
+      });
+      return;
+    } catch (e) { console.error('카카오 공유 실패:', e); }
   }
+  if (navigator.share) navigator.share({ title: '아이엠러닝 쿠폰 선물', url: _csLink }).catch(function () {});
+  else csCopy();
 }
 
 // ── 사용 내역 ──
