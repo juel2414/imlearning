@@ -162,7 +162,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js"></script>
-<script src="js/nav.js"></script>
+<script src="js/nav.js?v=2"></script>
 <script src="js/main.js"></script>
 <script>
 (function () {
@@ -186,8 +186,11 @@
       var label = TYPE_LABELS[n.type] || '공지';
       // 꾸미기는 nav.js 의 formatNoticeText 한 곳에서 한다. 첫 화면 팝업과
       // 같은 규칙을 써야 관리자가 한 번만 익히면 된다.
+      // nav.js 가 예전 것으로 캐시돼 있으면 이 함수가 없다. 그때 목록 전체가
+      // 안 그려지면 안 되므로, 없으면 글자 그대로라도 보여준다.
+      var fmt = window.formatNoticeText || escHtml;
       var contentHtml = n.content
-        ? '<div class="notice-content">' + window.formatNoticeText(n.content) + '</div>'
+        ? '<div class="notice-content">' + fmt(n.content) + '</div>'
         : '';
       return '<div class="notice-item" data-idx="' + i + '">' +
         '<div class="notice-item-header">' +
