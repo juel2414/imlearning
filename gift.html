@@ -892,7 +892,8 @@
   }
 
   function showCouponVoucher(c, fade) {
-    var thumbHtml = c.thumbnail_url ? '<img src="' + esc(c.thumbnail_url) + '" alt="">' : '🎟️';
+    // 강좌가 안 정해진 쿠폰은 썸네일이 없다. 빈 칸을 두는 대신 전용 그림을 넣는다.
+    var thumbHtml = '<img src="' + (c.thumbnail_url ? esc(c.thumbnail_url) : 'images/coupon-all-courses.png') + '" alt="">';
     var expiryStr = c.expires_at
       ? new Date(c.expires_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' }) + '까지 쓸 수 있어요'
       : '기한 없이 언제든 쓸 수 있어요';
