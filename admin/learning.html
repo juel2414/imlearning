@@ -88,6 +88,25 @@ select.f { padding:6px 10px; font-size:12px; border-radius:8px; border:1px solid
 
 <script>
 const sb = window.supabaseClient;
+
+// ── 슈퍼관리자만 ──────────────────────────────────────────────
+// 사이드바(admin-nav.js)는 admin 까지 통과시킨다. 이 화면은 회원 개인정보를
+// 다루므로 여기서 한 번 더 슈퍼관리자인지 본다. 진짜 방어막은 RLS 다.
+(async function checkAdminAccess() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '../login.html?next=' + encodeURIComponent('admin/' + location.pathname.split('/admin/')[1]);
+    return;
+  }
+  const { data: profile } = await sb
+    .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!profile || profile.role !== 'super_admin') {
+    alert('관리자 권한이 없는 계정입니다.');
+    window.location.href = '../index.html';
+    return;
+  }
+})();
+
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function hms(sec){
   sec = Number(sec||0);
