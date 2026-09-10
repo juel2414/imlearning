@@ -45,6 +45,18 @@ tr:last-child td { border-bottom:0; }
 .bar i { display:block; height:100%; background:#2D9B6F; }
 .note { font-size:12px; color:#8a9a90; padding:10px 18px 14px; line-height:1.7; }
 select.f { padding:6px 10px; font-size:12px; border-radius:8px; border:1px solid #ddd; background:#fff; }
+
+/* 펼쳐 보기 */
+.sum-row { cursor:pointer; }
+.sum-row:hover { background:#FAFBFA; }
+.caret { color:#b6c0bb; font-size:11px; padding-left:18px; padding-right:0; user-select:none; }
+.detail-row > td { background:#F7F9F8; padding:0; border-bottom:1px solid rgba(0,0,0,.045); }
+.detail-cell { padding:12px 18px 14px !important; }
+.detail-loading { color:#aaa; font-size:12.5px; padding:10px 0; }
+table.sub { background:#fff; border:1px solid rgba(0,0,0,.07); border-radius:10px; overflow:hidden; }
+table.sub th { font-size:11.5px; padding:8px 12px; background:#FBFCFB; }
+table.sub td { font-size:12.5px; padding:9px 12px; }
+.detail-note { font-size:11.5px; color:#9aa8a1; margin-top:8px; line-height:1.7; }
 </style>
 </head>
 <body>
@@ -123,6 +135,7 @@ let _today = [];
 
 async function loadToday() {
   const el = document.getElementById('today-area');
+  Object.keys(_lessonCache).forEach(k => delete _lessonCache[k]);
   // 오늘치는 아직 기준선이 없으므로 서버에서 그때그때 계산해 준다
   const { data, error } = await sb.rpc('admin_learning_today');
   if (error) { el.innerHTML = '<div class="empty">불러오지 못했어요: ' + esc(error.message) + '</div>'; return; }
@@ -136,11 +149,12 @@ async function loadToday() {
   }
   const max = Math.max.apply(null, _today.map(r => Number(r.watched_seconds||0))) || 1;
   el.innerHTML = '<table><thead><tr>' +
-    '<th>수강생</th><th>강좌</th><th class="num">시청</th><th style="width:110px"></th>' +
+    '<th style="width:26px"></th><th>수강생</th><th>강좌</th><th class="num">시청</th><th style="width:110px"></th>' +
     '<th class="num">오늘 본 강의</th><th class="num">완료</th></tr></thead><tbody>' +
-    _today.map(r => {
+    _today.map((r, i) => {
       const s = Number(r.watched_seconds||0);
-      return '<tr>' +
+      return '<tr class="sum-row" onclick="toggleLessons(' + i + ')">' +
+        '<td class="caret" id="caret-' + i + '">▸</td>' +
         '<td class="who"><b>' + esc(r.name || '이름 없음') + '</b><span>' + esc(r.email||'') + '</span></td>' +
         '<td>' + esc(r.course_title || ('강좌 ' + r.course_id)) + '</td>' +
         '<td class="num">' + (s ? hms(s) : '-') + '</td>' +
@@ -149,9 +163,50 @@ async function loadToday() {
         '<td class="num">' + (r.completed_delta
             ? '<span class="pill pill-done">+' + r.completed_delta + '</span>'
             : '<span class="pill pill-zero">0</span>') + '</td>' +
-        '</tr>';
+        '</tr>' +
+        '<tr class="detail-row" id="detail-' + i + '" hidden><td></td>' +
+        '<td colspan="6" class="detail-cell" id="detail-cell-' + i + '"></td></tr>';
     }).join('') + '</tbody></table>';
   renderKpi();
+}
+
+// ── 한 줄 펼쳐서 오늘 어느 강의를 봤는지 ──────────────────────────────────
+const _lessonCache = {};
+async function toggleLessons(i) {
+  const row  = document.getElementById('detail-' + i);
+  const cell = document.getElementById('detail-cell-' + i);
+  const car  = document.getElementById('caret-' + i);
+  if (!row.hidden) { row.hidden = true; car.textContent = '▸'; return; }
+  row.hidden = false; car.textContent = '▾';
+
+  if (_lessonCache[i]) { cell.innerHTML = _lessonCache[i]; return; }
+  cell.innerHTML = '<div class="detail-loading">불러오는 중...</div>';
+
+  const r = _today[i];
+  const { data, error } = await sb.rpc('admin_learning_today_lessons',
+    { p_user: r.user_id, p_course: r.course_id });
+  if (error) { cell.innerHTML = '<div class="detail-loading">불러오지 못했어요: ' + esc(error.message) + '</div>'; return; }
+  const rows = data || [];
+  if (!rows.length) { cell.innerHTML = '<div class="detail-loading">오늘 본 강의를 찾지 못했어요.</div>'; return; }
+
+  const html = '<table class="sub"><thead><tr>' +
+    '<th style="width:52px">강의</th><th>제목</th><th class="num">마지막 본 때</th>' +
+    '<th class="num">멈춘 지점</th><th class="num">누적 시청</th><th class="num">진행률</th>' +
+    '</tr></thead><tbody>' +
+    rows.map(function (x) {
+      const pct = Math.round(Number(x.watch_percentage || 0));
+      return '<tr><td class="num">' + x.lesson_number + '강</td>' +
+        '<td>' + esc(x.lesson_title || '') +
+          (x.completed ? ' <span class="pill pill-done">완료</span>' : '') + '</td>' +
+        '<td class="num">' + new Date(x.last_seen).toLocaleTimeString('ko-KR',
+            { hour:'2-digit', minute:'2-digit' }) + '</td>' +
+        '<td class="num">' + hms(x.last_position || 0) + '</td>' +
+        '<td class="num">' + hms(x.watched_seconds || 0) + '</td>' +
+        '<td class="num">' + pct + '%</td></tr>';
+    }).join('') + '</tbody></table>' +
+    '<div class="detail-note">누적 시청과 진행률은 그 강의를 지금까지 본 전체 값입니다. 오늘 늘어난 만큼만 따로 세지는 않습니다.</div>';
+  _lessonCache[i] = html;
+  cell.innerHTML = html;
 }
 
 function renderKpi() {
