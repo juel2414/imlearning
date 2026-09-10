@@ -1161,9 +1161,9 @@ function applyProgressUI() {
         if (meta && !meta.querySelector('.curriculum-resume-tag')) {
           const tag = document.createElement('span');
           tag.className = 'curriculum-resume-tag';
-          tag.textContent = lastWatchedLesson.resume_at
-            ? VimeoTracker.fmt(lastWatchedLesson.resume_at) + '부터'
-            : '이어보기';
+          // 시간은 이어보기 버튼에서 보여준다. 강의 줄의 작은 배지에는
+          // '26분 25초부터' 가 길어 자리를 차지한다.
+          tag.textContent = '이어보기';
           meta.prepend(tag);
         }
       }
