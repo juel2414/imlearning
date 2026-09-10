@@ -322,26 +322,20 @@ body {
 .cpn.off .cpn-stub--code, .cpn.off .cpn-stub--bar { border-color:rgba(0,0,0,.14); }
 
 /* ── 코드 넣는 자리 ──
-   아직 아무것도 안 든 빈 상품권이라 점선으로 그린다.
-   코드를 넣기 시작하면 선이 실선 초록으로 차오른다 */
+   여기는 표가 아니라 입력칸이다. 귀와 이중 테두리까지 두르니
+   아래 쿠폰들과 구별이 안 되고 시끄러웠다. 점선 상자 하나로 둔다 */
 .cpn-add {
-  --cpn-ink:#2C7A5A; --cpn-line:rgba(45,155,111,.4); --cpn-stub:#F2FAF6;
-  max-width:400px; margin-bottom:20px; min-height:150px;
-  background:#FBFDFC; border:1.5px dashed #BFD9CC; box-shadow:none;
+  max-width:400px; margin-bottom:20px; padding:16px 18px 15px;
+  border:1.5px dashed #C4DCD0; border-radius:12px; background:#FBFDFC;
+  display:flex; flex-direction:column; gap:10px;
+  transition:border-color var(--transition), background var(--transition);
 }
-.cpn-add:hover { transform:none; box-shadow:none; }
-.cpn-add::before, .cpn-add::after { background:#FBFDFC; box-shadow:inset 0 0 0 1px rgba(45,155,111,.2); }
-.cpn-add:focus-within { border-style:solid; border-color:var(--green); background:#fff; box-shadow:0 4px 18px rgba(45,155,111,.14); }
-.cpn-add:focus-within::before, .cpn-add:focus-within::after { background:#fff; }
-.cpn-add .cpn-main { justify-content:center; background:none; }
-.cpn-add .cpn-frame { border-style:dashed; }
-.cpn-add:focus-within .cpn-frame { border-style:solid; }
-.cpn-add-plus { font-size:22px; font-weight:400; line-height:1; }
-.cpn-add-title { font-size:14px; font-weight:800; color:var(--gray-700); margin-bottom:10px; }
-.cpn-add-row { display:flex; gap:8px; width:100%; }
+.cpn-add:focus-within { border-style:solid; border-color:var(--green); background:#fff; }
+.cpn-add-title { font-size:13.5px; font-weight:800; color:var(--gray-700); }
+.cpn-add-row { display:flex; gap:8px; }
 #coupon-code-input {
   flex:1; min-width:0; padding:10px 13px; font-size:14px; font-weight:700; font-family:inherit;
-  letter-spacing:1.2px; text-transform:uppercase; text-align:center; background:#fff;
+  letter-spacing:1.2px; text-transform:uppercase; background:#fff;
   border:1px solid #DCE5E0; border-radius:9px; outline:none;
   transition:border-color var(--transition), box-shadow var(--transition);
 }
@@ -353,7 +347,7 @@ body {
 }
 #coupon-redeem-btn:hover:not(:disabled) { background:var(--green-dark); }
 #coupon-redeem-btn:disabled { opacity:.55; cursor:default; }
-#coupon-redeem-msg { display:none; margin-top:9px; font-size:12.5px; font-weight:700; line-height:1.6; }
+#coupon-redeem-msg { display:none; font-size:12.5px; font-weight:700; line-height:1.6; }
 
 @media (max-width:400px) {
   .cpn { min-height:146px; }
@@ -795,23 +789,14 @@ body {
         <!-- 받은 쿠폰 코드를 여기서 담는다. 강의가 지정된 전액 쿠폰이면
              담는 게 아니라 그 자리에서 강의가 열린다.
              모양은 아래 쿠폰과 같은 표(票)로 두되, 아직 비어 있다는 뜻으로 점선을 쓴다. -->
-        <form id="coupon-redeem" class="cpn cpn-add">
-          <div class="cpn-stub cpn-stub--code" aria-hidden="true">
-            <span class="cpn-add-plus">＋</span>
+        <form id="coupon-redeem" class="cpn-add">
+          <label class="cpn-add-title" for="coupon-code-input">🎟 코드 하나면 바로 열립니다</label>
+          <div class="cpn-add-row">
+            <input id="coupon-code-input" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="코드 입력">
+            <button type="submit" id="coupon-redeem-btn">등록</button>
           </div>
-          <div class="cpn-main">
-            <div class="cpn-frame"></div>
-            <label class="cpn-add-title" for="coupon-code-input">코드 하나면 바로 열립니다</label>
-            <div class="cpn-add-row">
-              <input id="coupon-code-input" type="text" autocomplete="off" spellcheck="false"
-                     placeholder="코드 입력">
-              <button type="submit" id="coupon-redeem-btn">등록</button>
-            </div>
-            <div id="coupon-redeem-msg"></div>
-          </div>
-          <div class="cpn-stub cpn-stub--bar" aria-hidden="true">
-            <span class="cpn-barcode is-ghost"></span>
-          </div>
+          <div id="coupon-redeem-msg"></div>
         </form>
 
         <div id="coupons-content" class="loading-msg">불러오는 중...</div>
