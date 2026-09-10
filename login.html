@@ -129,12 +129,43 @@ var _nextUrl = (_nextParam && !_nextParam.startsWith('//') && !_nextParam.starts
   }
 })();
 
-function showError(msg) {
+function showError(msg, extraHtml) {
   var el = document.getElementById('error-msg');
-  el.textContent = '❌ ' + msg;
+  el.innerHTML = '❌ ' + escHtml(msg) + (extraHtml || '');
   el.classList.add('show');
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
+
+// 확인 메일을 못 받았을 때 다시 보낼 길이 없으면 갇힌다.
+window.resendConfirmEmail = async function (btn) {
+  var email = (document.getElementById('email') || {}).value || '';
+  email = email.trim();
+  if (!email) return;
+  btn.disabled = true;
+  btn.textContent = '보내는 중...';
+  try {
+    var res = await supabaseClient.auth.resend({
+      type: 'signup',
+      email: email,
+      options: { emailRedirectTo: location.origin + location.pathname.replace(/[^\/]*$/, '') + 'login.html' },
+    });
+    if (res.error) {
+      btn.textContent = '다시 시도';
+      btn.disabled = false;
+      return;
+    }
+    btn.outerHTML = '<span style="display:block;margin-top:8px;font-size:12.5px;font-weight:700;">' +
+      '확인 메일을 다시 보냈어요. 메일함(스팸함도)을 확인해 주세요.</span>';
+  } catch (e) {
+    btn.textContent = '다시 시도';
+    btn.disabled = false;
+  }
+};
 
 function setSocialBtn(btn, loading) {
   if (loading) {
@@ -186,8 +217,14 @@ document.getElementById('login-form').addEventListener('submit', async function 
       var msg = result.error.message;
       showError(
         msg === 'Invalid login credentials' ? '이메일 또는 비밀번호가 올바르지 않습니다' :
-        (msg === 'Email not confirmed' || msg.includes('not confirmed')) ? '이메일 인증이 필요합니다. 가입 시 발송된 확인 메일을 클릭해주세요.' :
-        msg
+        (msg === 'Email not confirmed' || msg.includes('not confirmed')) ? '이메일 인증이 필요합니다. 가입 시 보내드린 확인 메일의 링크를 눌러주세요.' :
+        msg,
+        (msg === 'Email not confirmed' || msg.includes('not confirmed'))
+          ? '<button type="button" onclick="resendConfirmEmail(this)" ' +
+            'style="display:block;margin-top:10px;padding:8px 14px;border-radius:8px;border:1px solid currentColor;' +
+            'background:transparent;color:inherit;font-size:12.5px;font-weight:700;cursor:pointer;">' +
+            '확인 메일 다시 보내기</button>'
+          : ''
       );
       btn.disabled = false;
       btn.textContent = '로그인하기';

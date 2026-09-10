@@ -63,8 +63,9 @@
 
     <div class="error-msg" id="error-msg"></div>
     <div class="success-msg" id="success-msg">
-      ✅ 회원가입이 완료되었습니다!<br>
-      <span style="font-size:12px;">잠시 후 로그인 페이지로 이동합니다.</span>
+      ✅ 가입 신청이 접수되었습니다<br>
+      <b>메일함을 확인해 주세요.</b> 보내드린 확인 메일의 링크를 눌러야 로그인할 수 있습니다.<br>
+      <span style="font-size:12px;">메일이 안 보이면 스팸함도 봐주세요. 잠시 후 로그인 화면으로 이동합니다.</span>
     </div>
 
     <form id="signup-form">
@@ -216,7 +217,8 @@ document.getElementById('signup-form').addEventListener('submit', async function
     document.getElementById('kakao-btn').style.display = 'none';
     document.getElementById('success-msg').classList.add('show');
 
-    setTimeout(function () { window.location.href = 'login.html'; }, 2500);
+    // 메일함을 확인하러 가야 하므로 읽을 시간을 준다
+    setTimeout(function () { window.location.href = 'login.html'; }, 6000);
 
   } catch (err) {
     showError('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
