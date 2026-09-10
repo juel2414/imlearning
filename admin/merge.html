@@ -36,9 +36,6 @@ tr:last-child td { border-bottom:0; }
 .empty { text-align:center; padding:36px 20px; color:#aaa; font-size:13px; }
 
 .tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
-.tag-strong { background:#FFF1E6; color:#B45309; }
-.tag-weak   { background:#f1f3f5; color:#868e96; }
-.tag-done   { background:#e8f8f0; color:#2D9B6F; }
 .tag-undone { background:#f1f3f5; color:#868e96; }
 
 .btn { padding:7px 14px; border-radius:8px; font-size:12.5px; font-weight:700;
@@ -88,29 +85,13 @@ tr:last-child td { border-bottom:0; }
       <h1 class="page-title">🔗 계정 합치기</h1>
       <div class="page-desc">
         옛 계정에 있던 강의와 진도를 회원이 지금 로그인하는 계정으로 옮깁니다.<br>
-        이름이 같다고 같은 사람은 아닙니다. 반드시 확인하고 합쳐 주세요.
+        회원이 「내 강의가 안 보인다」고 알려 오면 두 계정을 찾아 합치세요.
       </div>
     </div>
     <button class="btn btn-ghost" onclick="loadAll()">새로고침</button>
   </div>
 
-  <!-- 1. 합칠 후보 -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">합칠 후보</span>
-      <label style="font-size:12.5px;color:#7a8a80;display:flex;align-items:center;gap:6px;cursor:pointer;">
-        <input type="checkbox" id="show-weak" onchange="renderCandidates()"> 이름만 같은 쌍도 보기
-      </label>
-    </div>
-    <div class="card-body" id="cand-area"><div class="empty">불러오는 중...</div></div>
-    <div class="card-note">
-      이름이 같은데 한쪽에만 결제 내역이 있는 쌍입니다.
-      <b>로그인함</b> 표시는 새 계정으로 실제 로그인한 적이 있다는 뜻이라, 소셜 로그인 이메일이 달라 생긴 진짜 중복일 가능성이 높습니다.
-      표시가 없는 쌍은 워드프레스에서 한꺼번에 옮겨 온 동명이인이 대부분입니다.
-    </div>
-  </div>
-
-  <!-- 2. 직접 찾기 -->
+  <!-- 1. 직접 찾기 -->
   <div class="card">
     <div class="card-header"><span class="card-title">직접 찾기</span></div>
     <div class="search-row">
@@ -131,10 +112,13 @@ tr:last-child td { border-bottom:0; }
       <button class="btn btn-main" id="manual-btn" disabled onclick="openConfirm(_pickFrom, _pickTo)">이 두 계정 합치기</button>
     </div>
     <div class="card-body" id="search-area"></div>
-    <div class="card-note">이름 표기가 다르거나 양쪽 모두 결제 내역이 있어 후보에 안 잡히는 경우에 씁니다.</div>
+    <div class="card-note">
+      이름이나 이메일로 두 계정을 찾아 고릅니다. 이름이 같다고 같은 사람은 아니니
+      이메일과 가입일을 보고 한 사람이 맞는지 직접 확인해 주세요.
+    </div>
   </div>
 
-  <!-- 3. 합친 기록 -->
+  <!-- 2. 합친 기록 -->
   <div class="card">
     <div class="card-header"><span class="card-title">합친 기록</span></div>
     <div class="card-body" id="log-area"><div class="empty">불러오는 중...</div></div>
@@ -181,64 +165,9 @@ const sb = window.supabaseClient;
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function dt(s){ return s ? new Date(s).toLocaleDateString('ko-KR', { year:'2-digit', month:'numeric', day:'numeric' }) : '-'; }
 
-let _cands = [], _search = [], _pickFrom = null, _pickTo = null, _confirm = null;
+let _search = [], _pickFrom = null, _pickTo = null, _confirm = null;
 
-// ── 1. 합칠 후보 ────────────────────────────────────────────────────────────
-async function loadCandidates() {
-  const { data, error } = await sb.rpc('admin_merge_candidates');
-  if (error) {
-    document.getElementById('cand-area').innerHTML =
-      '<div class="empty">불러오지 못했어요: ' + esc(error.message) + '</div>';
-    return;
-  }
-  _cands = data || [];
-  renderCandidates();
-}
-
-function renderCandidates() {
-  const el = document.getElementById('cand-area');
-  const showWeak = document.getElementById('show-weak').checked;
-  const rows = _cands.filter(c => showWeak || c.confidence === 'strong');
-
-  if (!rows.length) {
-    el.innerHTML = '<div class="empty">' + (_cands.length
-      ? '지금은 합칠 만한 쌍이 없어요. 이름만 같은 쌍 ' + _cands.length + '건은 위 체크로 볼 수 있습니다.'
-      : '합칠 후보가 없어요.') + '</div>';
-    return;
-  }
-
-  el.innerHTML = '<table><thead><tr>' +
-    '<th>이름</th><th>옮길 계정 (옛 계정)</th><th class="num">강의</th><th></th>' +
-    '<th>남길 계정 (새 계정)</th><th class="num">가입</th><th></th>' +
-    '</tr></thead><tbody>' +
-    rows.map((c, i) => {
-      const tag = c.confidence === 'strong'
-        ? '<span class="tag tag-strong">로그인함</span>'
-        : '<span class="tag tag-weak">이름만 같음</span>';
-      return '<tr>' +
-        '<td><b>' + esc(c.name) + '</b><div style="margin-top:4px;">' + tag + '</div></td>' +
-        '<td class="who"><b>' + esc(c.old_email) + '</b><span>가입 ' + dt(c.old_created) + '</span></td>' +
-        '<td class="num">' + c.old_orders + '개</td>' +
-        '<td class="arrow">→</td>' +
-        '<td class="who"><b>' + esc(c.new_email) + '</b><span>' +
-          (c.new_last_sign_in ? '마지막 로그인 ' + dt(c.new_last_sign_in) : '로그인한 적 없음') + '</span></td>' +
-        '<td class="num">' + dt(c.new_created) + '</td>' +
-        '<td class="num"><button class="btn btn-main" onclick="openConfirmFromCandidate(' + i + ')">합치기</button></td>' +
-        '</tr>';
-    }).join('') + '</tbody></table>';
-
-  // 필터가 바뀌면 인덱스가 달라지므로 실제 목록을 따로 들고 있는다
-  _visible = rows;
-}
-let _visible = [];
-function openConfirmFromCandidate(i) {
-  const c = _visible[i];
-  openConfirm(
-    { id:c.old_user, email:c.old_email, name:c.name },
-    { id:c.new_user, email:c.new_email, name:c.name });
-}
-
-// ── 2. 직접 찾기 ────────────────────────────────────────────────────────────
+// ── 1. 직접 찾기 ────────────────────────────────────────────────────────────
 async function doSearch() {
   const q = document.getElementById('q').value.trim();
   const el = document.getElementById('search-area');
@@ -341,7 +270,7 @@ async function doMerge() {
   loadAll();
 }
 
-// ── 3. 합친 기록 ────────────────────────────────────────────────────────────
+// ── 2. 합친 기록 ────────────────────────────────────────────────────────────
 async function loadLog() {
   const el = document.getElementById('log-area');
   const { data, error } = await sb.rpc('admin_merge_log_list');
@@ -373,7 +302,7 @@ async function undoMerge(id) {
   loadAll();
 }
 
-async function loadAll() { await loadCandidates(); await loadLog(); }
+async function loadAll() { await loadLog(); }
 loadAll();
 </script>
 <script src="../js/admin-nav.js?v=2"></script>
