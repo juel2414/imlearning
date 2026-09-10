@@ -189,6 +189,20 @@ body {
 .order-amount { font-size: 18px; font-weight: 800; color: var(--black); }
 .order-amount.discounted { color: #EF4444; }
 
+/* ── 목록 접기 ── */
+/* .order-list·.gift-list 가 display 를 지정하고 있어 [hidden] 의 기본 규칙을
+   이긴다. 접힌 부분은 여기서 확실히 감춘다. */
+.fold-rest[hidden] { display:none !important; }
+.fold-rest { margin-top:12px; }
+.fold-btn {
+  display:block; width:100%; margin-top:12px; padding:11px;
+  background:#fff; border:1px solid rgba(0,0,0,.09); border-radius:10px;
+  font-size:13px; font-weight:700; font-family:inherit; color:var(--gray-500);
+  cursor:pointer; transition:border-color var(--transition), color var(--transition);
+}
+.fold-btn:hover { border-color:var(--green); color:var(--green-dark); }
+.fold-caret { font-size:10px; margin-left:2px; }
+
 /* ── 쿠폰함 ──
    진짜 상품권처럼 그린다. 양옆이 반달로 파이고, 안쪽에 두 겹 테두리가 돌고,
    왼쪽 귀에 코드가 세로로, 오른쪽 귀에 바코드가 선다.
@@ -1516,6 +1530,38 @@ function openTabFromUrl() {
 }
 
 /* ════════════════════════════════════════════════════════
+   목록 접기 — 다섯 개까지만 펴 놓는다.
+   선물 내역과 결제 내역은 오래 쓴 회원일수록 길어져서,
+   그 아래 있는 것들이 화면 밖으로 밀려난다.
+   ════════════════════════════════════════════════════════ */
+let _foldSeq = 0;
+function foldList(cards, opts) {
+  const limit = (opts && opts.limit) || 5;
+  const wrapClass = (opts && opts.wrapClass) || '';
+  const noun = (opts && opts.noun) || '건';
+  if (cards.length <= limit) {
+    return `<div class="${wrapClass}">${cards.join('')}</div>`;
+  }
+  const id = 'fold-' + (++_foldSeq);
+  const more = (cards.length - limit) + noun + ' 더 보기';
+  return `
+    <div class="${wrapClass}">${cards.slice(0, limit).join('')}</div>
+    <div class="${wrapClass} fold-rest" id="${id}" hidden>${cards.slice(limit).join('')}</div>
+    <button type="button" class="fold-btn" id="${id}-btn" data-more="${more}"
+            onclick="toggleFold('${id}')">${more} <span class="fold-caret">▾</span></button>`;
+}
+function toggleFold(id) {
+  const box = document.getElementById(id);
+  const btn = document.getElementById(id + '-btn');
+  if (!box || !btn) return;
+  const opening = box.hidden;
+  box.hidden = !opening;
+  btn.innerHTML = opening
+    ? '접기 <span class="fold-caret">▴</span>'
+    : btn.dataset.more + ' <span class="fold-caret">▾</span>';
+}
+
+/* ════════════════════════════════════════════════════════
    기존 렌더 함수
    ════════════════════════════════════════════════════════ */
 function renderOrders(orders, coursesMap, gifts) {
@@ -1602,7 +1648,7 @@ function renderOrders(orders, coursesMap, gifts) {
   });
 
   const combined = [...orderItems, ...giftCards].sort((a, b) => new Date(b.date) - new Date(a.date));
-  el.innerHTML = `<div class="order-list">${combined.map(x => x.html).join('')}</div>`;
+  el.innerHTML = foldList(combined.map(x => x.html), { wrapClass: 'order-list', noun: '건' });
 }
 
 function renderCerts(orders, coursesMap) {
@@ -2065,11 +2111,11 @@ async function loadGifts(userId) {
   let html = '';
   if (sent.length) {
     html += `<div class="gift-section-title">📤 보낸 선물 (${sent.length})</div>`;
-    html += `<div class="gift-list">${sent.map(sentCard).join('')}</div>`;
+    html += foldList(sent.map(sentCard), { wrapClass: 'gift-list', noun: '개' });
   }
   if (received.length) {
     html += `<div class="gift-section-title">📥 받은 선물 (${received.length})</div>`;
-    html += `<div class="gift-list">${received.map(receivedCard).join('')}</div>`;
+    html += foldList(received.map(receivedCard), { wrapClass: 'gift-list', noun: '개' });
   }
   el.innerHTML = html;
 }
