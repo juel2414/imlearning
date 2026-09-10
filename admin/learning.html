@@ -82,7 +82,10 @@ select.f { padding:6px 10px; font-size:12px; border-radius:8px; border:1px solid
   <div class="card">
     <div class="card-header"><span class="card-title">강좌별 누적</span></div>
     <div class="card-body" id="course-area"><div class="empty">불러오는 중...</div></div>
-    <div class="note">기록은 매일 밤 11시 50분에 자동으로 남습니다. 오늘치는 이 화면을 열 때마다 다시 계산됩니다.</div>
+    <div class="note">
+      기록은 매일 밤 11시 50분에 자동으로 남습니다. 오늘치는 이 화면을 열 때마다 다시 계산됩니다.<br>
+      관리자 계정이 내용 확인차 돌려 본 것은 집계에서 뺍니다.
+    </div>
   </div>
 </main>
 
@@ -134,7 +137,7 @@ async function loadToday() {
   const max = Math.max.apply(null, _today.map(r => Number(r.watched_seconds||0))) || 1;
   el.innerHTML = '<table><thead><tr>' +
     '<th>수강생</th><th>강좌</th><th class="num">시청</th><th style="width:110px"></th>' +
-    '<th class="num">연 강의</th><th class="num">완료</th></tr></thead><tbody>' +
+    '<th class="num">오늘 본 강의</th><th class="num">완료</th></tr></thead><tbody>' +
     _today.map(r => {
       const s = Number(r.watched_seconds||0);
       return '<tr>' +
