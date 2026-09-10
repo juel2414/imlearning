@@ -8,7 +8,7 @@ const ALLOWED_ORIGINS = new Set<string>(
 function corsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
   return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://juel2414.github.io',
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://imlearning.co.kr',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
 }
@@ -24,7 +24,7 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 // 도메인을 옮길 때는 SITE_URL 시크릿 하나만 바꾸면 된다.
-const SITE_URL = (Deno.env.get('SITE_URL') || 'https://juel2414.github.io/imlearning').replace(/\/+$/, '')
+const SITE_URL = (Deno.env.get('SITE_URL') || 'https://imlearning.co.kr').replace(/\/+$/, '')
 const FROM = '아이엠러닝 <noreply@imlearning.co.kr>'
 const BRAND = '#2D9B6F'
 const LOGO_URL = `${SITE_URL}/images/logo-horizontal.png`

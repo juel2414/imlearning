@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const SITE_URL = Deno.env.get('SITE_URL') || "https://juel2414.github.io/imlearning";
+const SITE_URL = Deno.env.get('SITE_URL') || "https://imlearning.co.kr";
 const DEFAULT_IMAGE = `${SITE_URL}/images/logo-horizontal.png`;
 
 // OG 태그는 절대 주소만 받는다. DB 값이 상대경로면 사이트 주소를 붙여 준다.

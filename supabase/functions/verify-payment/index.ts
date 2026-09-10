@@ -8,7 +8,7 @@ const ALLOWED_ORIGINS = new Set<string>(
 
 // 메일에 실리는 썸네일은 절대 주소여야 한다. DB 값이 상대경로면 사이트 주소를 붙여 준다.
 // 도메인을 옮길 때는 SITE_URL 시크릿 하나만 바꾸면 된다.
-const SITE_URL = (Deno.env.get('SITE_URL') || 'https://juel2414.github.io/imlearning').replace(/\/+$/, '');
+const SITE_URL = (Deno.env.get('SITE_URL') || 'https://imlearning.co.kr').replace(/\/+$/, '');
 function absUrl(u: string): string {
   if (!u) return '';
   if (/^https?:\/\//.test(u)) return u;
@@ -18,7 +18,7 @@ function absUrl(u: string): string {
 function corsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
   return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://juel2414.github.io',
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://imlearning.co.kr',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };

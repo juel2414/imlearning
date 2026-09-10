@@ -15,7 +15,7 @@ const ALLOWED_ORIGINS = new Set<string>(
 function corsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
   return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://juel2414.github.io',
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.has(origin) ? origin : 'https://imlearning.co.kr',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
