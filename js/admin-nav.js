@@ -15,6 +15,7 @@
     { href: 'instructors.html', icon: '👨‍🏫', label: '강사 관리' },
     { type: 'section', label: '수강생' },
     { super: true, href: 'students.html',    icon: '👥', label: '수강생 관리' },
+    { super: true, href: 'merge.html',       icon: '🔗', label: '계정 합치기' },
     { super: true, href: 'learning.html',    icon: '📈', label: '학습 현황' },
     { super: true, href: 'refunds.html',     icon: '💰', label: '환불 관리' },
     { super: true, href: 'payment-audit.html', icon: '🧾', label: '결제 대사' },

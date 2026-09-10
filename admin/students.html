@@ -819,7 +819,9 @@ function renderModalBody(uid) {
         ? ' <span class="badge" style="background:#FDF4FF;color:#7E22CE;font-size:10px;vertical-align:middle;">선물</span>'
         : order.grant_type === 'freepass'
           ? ' <span class="badge" style="background:#EEF2FF;color:#4338CA;font-size:10px;vertical-align:middle;">프리패스</span>'
-          : '';
+          : order.grant_type === 'coupon'
+            ? ' <span class="badge" style="background:#FFF7E6;color:#B45309;font-size:10px;vertical-align:middle;">쿠폰</span>'
+            : '';
   }
   function chipsOf(items) {
     return '<div class="sd-chips">' + items.map(function(it) {
@@ -1191,6 +1193,6 @@ async function doGrantCourse() {
 
 loadAll();
 </script>
-<script src="../js/admin-nav.js"></script>
+<script src="../js/admin-nav.js?v=2"></script>
 </body>
 </html>

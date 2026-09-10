@@ -130,6 +130,13 @@ body {
 .coupon-input:focus { border-color:var(--green); }
 .coupon-apply-btn { padding:9px 14px; background:var(--green); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
 .coupon-apply-btn:disabled { opacity:.5; cursor:not-allowed; }
+.coupon-picker { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.coupon-chip { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; background:#fff;
+  border:1.5px solid rgba(45,155,111,.4); border-radius:999px; font-size:12px; font-weight:700;
+  color:var(--green-dark); font-family:inherit; cursor:pointer; transition:border-color .15s, background .15s; }
+.coupon-chip:hover { border-color:var(--green); background:#f0faf5; }
+.coupon-chip.is-on { background:var(--green); border-color:var(--green); color:#fff; }
+.coupon-chip small { font-weight:600; opacity:.75; font-size:11px; }
 .coupon-msg { font-size:12px; margin-top:6px; font-weight:600; }
 .coupon-msg.ok { color:var(--green); }
 .coupon-msg.err { color:#EF4444; }
@@ -747,6 +754,8 @@ body {
           <!-- 쿠폰 입력 (미수강 시에만 표시) -->
           <div class="coupon-wrap" id="coupon-section" style="display:none;">
             <div class="coupon-label">쿠폰 코드</div>
+            <!-- 가진 쿠폰은 눌러서 고른다. 코드를 외워 옮겨 적을 이유가 없다. -->
+            <div class="coupon-picker" id="coupon-picker" style="display:none;"></div>
             <div class="coupon-row">
               <input class="coupon-input" id="coupon-input" type="text" placeholder="쿠폰 코드 입력" maxlength="30">
               <button class="coupon-apply-btn" id="coupon-apply-btn" onclick="applyCoupon()">적용</button>
@@ -1304,33 +1313,57 @@ async function applyCoupon() {
   }
 }
 
-// ───── 쿠폰 보유 배너 ─────
-async function checkUserCoupons(userId) {
+// ───── 쿠폰 보유 배너 + 고르기 ─────
+// 이 강좌에 쓸 수 있는 쿠폰만 추려서 눌러 고르게 한다.
+// 예전에는 쿠폰함에서 코드를 복사해 여기에 붙여넣어야 했다.
+async function checkUserCoupons(courseId) {
   try {
-    const { data } = await supabaseClient
-      .from('user_coupons')
-      .select('id, coupon_id, coupons(code, description, status, expires_at)')
-      .eq('user_id', userId)
-      .limit(10);
-    if (!data || !data.length) return;
-    const valid = data.filter(uc => {
-      const c = uc.coupons;
-      if (!c || c.status !== 'active') return false;
-      if (c.expires_at && new Date(c.expires_at) < new Date()) return false;
-      return true;
-    });
-    if (!valid.length) return;
+    const { data, error } = await supabaseClient.rpc('get_my_coupons');
+    if (error || !data || !data.length) return;
+
+    const usable = data.filter(c =>
+      c.status === '사용가능' &&
+      (c.course_id == null || String(c.course_id) === String(courseId))
+    );
+    if (!usable.length) return;
+
     const banner = document.getElementById('coupon-avail-banner');
     const text   = document.getElementById('coupon-avail-text');
-    if (!banner) return;
-    text.textContent = `사용 가능한 쿠폰이 ${valid.length}개 있어요!`;
-    banner.style.display = 'flex';
-    document.getElementById('coupon-section').style.display = '';
-    if (valid[0].coupons?.code) {
-      const inp = document.getElementById('coupon-input');
-      if (inp && !inp.value) inp.placeholder = valid[0].coupons.code + ' (쿠폰 코드 자동 입력 가능)';
+    if (banner && text) {
+      text.textContent = `이 강좌에 쓸 수 있는 쿠폰이 ${usable.length}장 있어요!`;
+      banner.style.display = 'flex';
     }
+    document.getElementById('coupon-section').style.display = '';
+    renderCouponPicker(usable);
   } catch(e) {}
+}
+
+function couponDiscountLabel(c) {
+  return c.discount_type === 'rate'
+    ? Number(c.discount_value) + '% 할인'
+    : '₩' + Number(c.discount_value).toLocaleString() + ' 할인';
+}
+
+function renderCouponPicker(list) {
+  const box = document.getElementById('coupon-picker');
+  if (!box) return;
+  box.innerHTML = list.map(c => {
+    const exp = c.expires_at
+      ? '<small>~' + new Date(c.expires_at).toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }) + '</small>'
+      : '';
+    return `<button type="button" class="coupon-chip" data-code="${esc(c.code)}"
+              onclick="pickCoupon(this)">🎟 ${esc(couponDiscountLabel(c))}${exp}</button>`;
+  }).join('');
+  box.style.display = 'flex';
+}
+
+function pickCoupon(btn) {
+  const inp = document.getElementById('coupon-input');
+  if (!inp) return;
+  document.querySelectorAll('#coupon-picker .coupon-chip').forEach(b => b.classList.remove('is-on'));
+  btn.classList.add('is-on');
+  inp.value = btn.dataset.code;
+  applyCoupon();
 }
 
 function scrollToCoupon() {
@@ -1529,7 +1562,7 @@ async function loadCourse() {
         document.body.appendChild(badge);
       }
     }
-    if (!isEnrolled) checkUserCoupons(user.id);
+    if (!isEnrolled) checkUserCoupons(course.id);
     if (isEnrolled) await fillLessonVideoUrls(course.id);
     await loadProgress(user.id, course.id);
     await loadWishState(user.id, course.id);
@@ -1995,7 +2028,7 @@ function shareGiftKakao() {
         content: {
           title: '딩동~ 선물이 도착했어요',
           description: '무엇이 들어있을까요? 눌러서 확인해보세요',
-          imageUrl: location.origin + location.pathname.replace(/[^\/]*$/, '') + 'images/gift-share-card-v8.png',
+          imageUrl: location.origin + location.pathname.replace(/[^\/]*$/, '') + 'images/gift-share-card-v9.png',
           link: { mobileWebUrl: link, webUrl: link },
         },
         buttons: [{ title: '선물 열어보기', link: { mobileWebUrl: link, webUrl: link } }],

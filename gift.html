@@ -905,7 +905,10 @@
       var nextUrl = 'gift.html?coupon=' + encodeURIComponent(c.code) + '&claim=1';
       actionHtml = '<a href="login.html?next=' + encodeURIComponent(nextUrl) + '" class="gift-action-btn gold" style="display:block;text-decoration:none;text-align:center;">로그인하고 받기</a>';
     } else {
-      actionHtml = '<button class="gift-action-btn gold" id="redeem-btn">내 쿠폰함에 담기</button>';
+      // 강의가 정해진 100% 쿠폰은 담는 게 아니라 그 자리에서 강의가 열린다.
+      var opensCourse = c.course_id != null && c.discount_type === 'rate' && Number(c.discount_value) >= 100;
+      actionHtml = '<button class="gift-action-btn gold" id="redeem-btn">' +
+        (opensCourse ? '강의 바로 받기' : '내 쿠폰함에 담기') + '</button>';
     }
 
     root.innerHTML = [
@@ -949,11 +952,27 @@
       var r = res.data || {};
       if (res.error || !r.ok) {
         // 이미 갖고 있는 경우는 실패가 아니다. 쿠폰함으로 보내 준다.
+        if (r.reason === 'already_enrolled' && r.course_id) {
+          showAlert(esc(r.message || '이미 수강 중인 강좌예요.'), 'ok');
+          btn.textContent = '강의 보러가기';
+          btn.disabled = false;
+          btn.onclick = function () { location.href = 'course-detail.html?id=' + encodeURIComponent(r.course_id); };
+          return;
+        }
         var already = r.reason === 'already_have';
         showAlert(esc(r.message || '쿠폰을 담지 못했어요.'), already ? 'ok' : 'err');
         btn.textContent = already ? '내 쿠폰함 열기' : '다시 시도';
         btn.disabled = false;
         if (already) btn.onclick = function () { location.href = 'my-courses.html#coupons'; };
+        return;
+      }
+      // 강의가 지정된 전액 쿠폰이면 서버가 그 자리에서 강의를 열어준다.
+      // 그때는 쿠폰함이 아니라 강의로 바로 데려간다.
+      if (r.enrolled && r.course_id) {
+        showAlert(esc(r.course_title || '강좌') + ' 강좌가 열렸어요.', 'ok');
+        btn.textContent = '지금 강의 보러가기';
+        btn.disabled = false;
+        btn.onclick = function () { location.href = 'course-detail.html?id=' + encodeURIComponent(r.course_id); };
         return;
       }
       showAlert('쿠폰이 쿠폰함에 담겼어요.', 'ok');

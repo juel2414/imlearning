@@ -127,14 +127,19 @@
           </div>
           <div class="form-group">
             <label class="form-label" id="f-value-label">할인율 (%) *</label>
-            <input class="form-input" id="f-value" type="number" min="1" placeholder="10">
+            <input class="form-input" id="f-value" type="number" min="1" placeholder="10" oninput="updateFreepassHint()">
           </div>
           <div class="form-group full">
             <label class="form-label">적용 강의</label>
-            <select class="form-select" id="f-course">
+            <select class="form-select" id="f-course" onchange="updateFreepassHint()">
               <option value="">전체 강의</option>
             </select>
             <div class="form-hint">하나를 고르면 그 강의에서만 쓸 수 있습니다. 패스에는 쓸 수 없습니다</div>
+            <!-- 강의 + 100% 조합은 사실상 무료 수강권이다. 만들 때 알고 만들도록 알린다. -->
+            <div class="form-hint" id="f-freepass-hint"
+                 style="display:none;margin-top:6px;color:#B45309;font-weight:700;">
+              🎫 강의를 정하고 100% 할인이면 무료 수강권이 됩니다. 코드를 넣는 즉시 결제 없이 그 강의가 열립니다.
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">최소 결제 금액 (원)</label>
@@ -347,6 +352,17 @@ function switchTab(id, btn) {
 function updateDiscountLabel() {
   const type = document.getElementById('f-type').value;
   document.getElementById('f-value-label').textContent = type === 'rate' ? '할인율 (%) *' : '할인 금액 (원) *';
+  updateFreepassHint();
+}
+
+// 강의 + 100% = 무료 수강권. 만드는 사람이 알아야 한다.
+function updateFreepassHint() {
+  const hint = document.getElementById('f-freepass-hint');
+  if (!hint) return;
+  const type = document.getElementById('f-type').value;
+  const val  = Number(document.getElementById('f-value').value || 0);
+  const crs  = document.getElementById('f-course').value;
+  hint.style.display = (crs && type === 'rate' && val >= 100) ? '' : 'none';
 }
 
 // ── 폼 접기/펼치기 ──
@@ -584,7 +600,7 @@ function csKakao() {
         content: {
           title: '딩동~ 쿠폰 선물이 도착했어요',
           description: '어떤 쿠폰일까요? 눌러서 확인해보세요',
-          imageUrl: siteBase() + 'images/gift-share-card-v8.png',
+          imageUrl: siteBase() + 'images/gift-share-card-v9.png',
           link: { mobileWebUrl: _csLink, webUrl: _csLink },
         },
         buttons: [{ title: '쿠폰 받기', link: { mobileWebUrl: _csLink, webUrl: _csLink } }],
@@ -748,6 +764,6 @@ async function exportCouponStats() {
   .usage-table td { padding: 7px 8px; border-bottom: 1px solid rgba(0,0,0,.045); color: #33413a; }
   .usage-table tr:last-child td { border-bottom: 0; }
 </style>
-<script src="../js/admin-nav.js"></script>
+<script src="../js/admin-nav.js?v=2"></script>
 </body>
 </html>
