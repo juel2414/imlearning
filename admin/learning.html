@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학습 현황 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js"></script>
+<link rel="stylesheet" href="admin-common.css?v=2">
+<style>
+* { box-sizing:border-box; word-break:keep-all; }
+body { margin:0; font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:#F4F6F8; color:#111; }
+a { text-decoration:none; color:inherit; }
+.admin-main { padding:2rem; }
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:1.5rem; flex-wrap:wrap; }
+.page-title { font-size:24px; font-weight:800; margin:0; }
+.page-desc  { font-size:13px; color:#888; margin-top:4px; }
+
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:1.5rem; }
+.kpi { background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.kpi-label { font-size:12px; color:#888; font-weight:600; }
+.kpi-value { font-size:24px; font-weight:800; margin-top:4px; letter-spacing:-0.02em; }
+.kpi-sub { font-size:11.5px; color:#aaa; margin-top:2px; }
+
+.card { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-bottom:1.5rem; overflow:hidden; }
+.card-header { display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 18px; border-bottom:1px solid rgba(0,0,0,.06); flex-wrap:wrap; }
+.card-title { font-size:15px; font-weight:800; }
+.card-body { padding:4px 0 8px; }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; color:#7a8a80; font-weight:700; font-size:12px;
+     padding:10px 18px; border-bottom:1px solid rgba(0,0,0,.07); white-space:nowrap; }
+td { padding:11px 18px; border-bottom:1px solid rgba(0,0,0,.045); vertical-align:middle; }
+tr:last-child td { border-bottom:0; }
+.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.who b { display:block; }
+.who span { font-size:11.5px; color:#999; }
+.pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+.pill-done { background:#e8f8f0; color:#2D9B6F; }
+.pill-zero { background:#f2f2f2; color:#999; }
+.empty { text-align:center; padding:36px 20px; color:#aaa; font-size:13px; }
+.bar { height:6px; border-radius:4px; background:#eef1ef; overflow:hidden; min-width:70px; }
+.bar i { display:block; height:100%; background:#2D9B6F; }
+.note { font-size:12px; color:#8a9a90; padding:10px 18px 14px; line-height:1.7; }
+select.f { padding:6px 10px; font-size:12px; border-radius:8px; border:1px solid #ddd; background:#fff; }
+</style>
+</head>
+<body>
+<main class="admin-main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">📈 학습 현황</h1>
+      <div class="page-desc">누가 어떤 강의를 얼마나 들었는지 하루 단위로 남습니다.</div>
+    </div>
+    <button class="btn-secondary" onclick="loadAll()">새로고침</button>
+  </div>
+
+  <div class="kpi-row" id="kpi"></div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">오늘 학습</span>
+      <span class="page-desc" id="today-date"></span>
+    </div>
+    <div class="card-body" id="today-area"><div class="empty">불러오는 중...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">날짜별 기록</span>
+      <select class="f" id="days" onchange="loadHistory()">
+        <option value="14">최근 14일</option>
+        <option value="30" selected>최근 30일</option>
+        <option value="90">최근 90일</option>
+      </select>
+    </div>
+    <div class="card-body" id="hist-area"><div class="empty">불러오는 중...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">강좌별 누적</span></div>
+    <div class="card-body" id="course-area"><div class="empty">불러오는 중...</div></div>
+    <div class="note">기록은 매일 밤 11시 50분에 자동으로 남습니다. 오늘치는 이 화면을 열 때마다 다시 계산됩니다.</div>
+  </div>
+</main>
+
+<script>
+const sb = window.supabaseClient;
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hms(sec){
+  sec = Number(sec||0);
+  if (sec < 60) return sec + '초';
+  const h = Math.floor(sec/3600), m = Math.round((sec%3600)/60);
+  return h ? (h + '시간 ' + (m?m+'분':'')) : (m + '분');
+}
+function dstr(d){ return new Date(d).toLocaleDateString('ko-KR', { month:'long', day:'numeric', weekday:'short' }); }
+
+let _today = [];
+
+async function loadToday() {
+  const el = document.getElementById('today-area');
+  // 오늘치는 아직 기준선이 없으므로 서버에서 그때그때 계산해 준다
+  const { data, error } = await sb.rpc('admin_learning_today');
+  if (error) { el.innerHTML = '<div class="empty">불러오지 못했어요: ' + esc(error.message) + '</div>'; return; }
+  _today = data || [];
+  document.getElementById('today-date').textContent =
+    new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+
+  if (!_today.length) {
+    el.innerHTML = '<div class="empty">오늘은 아직 학습 기록이 없어요.</div>';
+    renderKpi(); return;
+  }
+  const max = Math.max.apply(null, _today.map(r => Number(r.watched_seconds||0))) || 1;
+  el.innerHTML = '<table><thead><tr>' +
+    '<th>수강생</th><th>강좌</th><th class="num">시청</th><th style="width:110px"></th>' +
+    '<th class="num">연 강의</th><th class="num">완료</th></tr></thead><tbody>' +
+    _today.map(r => {
+      const s = Number(r.watched_seconds||0);
+      return '<tr>' +
+        '<td class="who"><b>' + esc(r.name || '이름 없음') + '</b><span>' + esc(r.email||'') + '</span></td>' +
+        '<td>' + esc(r.course_title || ('강좌 ' + r.course_id)) + '</td>' +
+        '<td class="num">' + (s ? hms(s) : '-') + '</td>' +
+        '<td><div class="bar"><i style="width:' + Math.round(s/max*100) + '%"></i></div></td>' +
+        '<td class="num">' + (r.lessons_touched || 0) + '</td>' +
+        '<td class="num">' + (r.completed_delta
+            ? '<span class="pill pill-done">+' + r.completed_delta + '</span>'
+            : '<span class="pill pill-zero">0</span>') + '</td>' +
+        '</tr>';
+    }).join('') + '</tbody></table>';
+  renderKpi();
+}
+
+function renderKpi() {
+  const people = new Set(_today.map(r => r.user_id)).size;
+  const secs   = _today.reduce((a,r) => a + Number(r.watched_seconds||0), 0);
+  const done   = _today.reduce((a,r) => a + Number(r.completed_delta||0), 0);
+  const courses= new Set(_today.map(r => r.course_id)).size;
+  document.getElementById('kpi').innerHTML =
+    kpi('오늘 학습한 사람', people + '명') +
+    kpi('오늘 총 시청', hms(secs)) +
+    kpi('오늘 완료한 강의', done + '개') +
+    kpi('오늘 들은 강좌', courses + '개');
+}
+function kpi(label, value, sub) {
+  return '<div class="kpi"><div class="kpi-label">' + label + '</div>' +
+    '<div class="kpi-value">' + value + '</div>' +
+    (sub ? '<div class="kpi-sub">' + sub + '</div>' : '') + '</div>';
+}
+
+async function loadHistory() {
+  const days = Number(document.getElementById('days').value);
+  const from = new Date(Date.now() - days*86400000).toISOString().slice(0,10);
+  const el = document.getElementById('hist-area');
+  const { data, error } = await sb.from('learning_daily')
+    .select('stat_date, user_id, course_id, watched_seconds, lessons_touched, completed_delta')
+    .gte('stat_date', from).order('stat_date', { ascending:false });
+  if (error) { el.innerHTML = '<div class="empty">불러오지 못했어요: ' + esc(error.message) + '</div>'; return; }
+  const rows = data || [];
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty">아직 쌓인 기록이 없어요. 오늘부터 매일 밤 남습니다.</div>'; return;
+  }
+  const byDate = {};
+  rows.forEach(r => {
+    const d = byDate[r.stat_date] || (byDate[r.stat_date] = { sec:0, ppl:new Set(), cr:new Set(), done:0 });
+    d.sec += Number(r.watched_seconds||0); d.ppl.add(r.user_id);
+    d.cr.add(r.course_id); d.done += Number(r.completed_delta||0);
+  });
+  const dates = Object.keys(byDate).sort().reverse();
+  const max = Math.max.apply(null, dates.map(d => byDate[d].sec)) || 1;
+  el.innerHTML = '<table><thead><tr><th>날짜</th><th class="num">학습자</th>' +
+    '<th class="num">총 시청</th><th style="width:140px"></th>' +
+    '<th class="num">강좌</th><th class="num">완료</th></tr></thead><tbody>' +
+    dates.map(d => {
+      const v = byDate[d];
+      return '<tr><td>' + dstr(d) + '</td>' +
+        '<td class="num">' + v.ppl.size + '명</td>' +
+        '<td class="num">' + hms(v.sec) + '</td>' +
+        '<td><div class="bar"><i style="width:' + Math.round(v.sec/max*100) + '%"></i></div></td>' +
+        '<td class="num">' + v.cr.size + '</td>' +
+        '<td class="num">' + v.done + '</td></tr>';
+    }).join('') + '</tbody></table>';
+}
+
+async function loadCourses() {
+  const el = document.getElementById('course-area');
+  const [{ data: rows, error }, { data: courses }] = await Promise.all([
+    sb.from('learning_daily').select('course_id, user_id, watched_seconds, completed_delta'),
+    sb.from('courses').select('id, title'),
+  ]);
+  if (error) { el.innerHTML = '<div class="empty">불러오지 못했어요: ' + esc(error.message) + '</div>'; return; }
+  const title = {}; (courses||[]).forEach(c => title[String(c.id)] = c.title);
+  const agg = {};
+  (rows||[]).forEach(r => {
+    const k = String(r.course_id);
+    const a = agg[k] || (agg[k] = { sec:0, ppl:new Set(), done:0 });
+    a.sec += Number(r.watched_seconds||0); a.ppl.add(r.user_id); a.done += Number(r.completed_delta||0);
+  });
+  const keys = Object.keys(agg).sort((a,b) => agg[b].sec - agg[a].sec);
+  if (!keys.length) { el.innerHTML = '<div class="empty">아직 쌓인 기록이 없어요.</div>'; return; }
+  const max = agg[keys[0]].sec || 1;
+  el.innerHTML = '<table><thead><tr><th>강좌</th><th class="num">학습자</th>' +
+    '<th class="num">총 시청</th><th style="width:140px"></th><th class="num">완료</th></tr></thead><tbody>' +
+    keys.map(k => {
+      const a = agg[k];
+      return '<tr><td>' + esc(title[k] || ('강좌 ' + k)) + '</td>' +
+        '<td class="num">' + a.ppl.size + '명</td>' +
+        '<td class="num">' + hms(a.sec) + '</td>' +
+        '<td><div class="bar"><i style="width:' + Math.round(a.sec/max*100) + '%"></i></div></td>' +
+        '<td class="num">' + a.done + '</td></tr>';
+    }).join('') + '</tbody></table>';
+}
+
+async function loadAll() { await loadToday(); await loadHistory(); await loadCourses(); }
+loadAll();
+</script>
+<script src="../js/admin-nav.js"></script>
+</body>
+</html>
