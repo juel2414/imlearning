@@ -97,8 +97,8 @@
           <select class="form-select" id="notice-display-mode" onchange="updateDisplayHint()">
             <option value="hidden">비공개 (초안)</option>
             <option value="none">일반 게시 (공지 목록에만)</option>
-            <option value="popup">팝업으로 표시</option>
-            <option value="banner">상단 배너로 표시</option>
+            <option value="popup">팝업 + 상단 배너 (가장 눈에 띔)</option>
+            <option value="banner">상단 배너만</option>
           </select>
           <div class="display-hint" id="display-hint">공지사항 목록 페이지(notices.html)에 일반 게시됩니다.</div>
         </div>
@@ -143,12 +143,12 @@
 
   var TYPE_LABELS = { notice:'공지', event:'이벤트', info:'안내' };
   var TYPE_BADGES = { notice:'badge-notice', event:'badge-event', info:'badge-info' };
-  var DISPLAY_LABELS = { hidden:'비공개', none:'일반 게시', popup:'팝업', banner:'배너' };
+  var DISPLAY_LABELS = { hidden:'비공개', none:'일반 게시', popup:'팝업+배너', banner:'배너' };
   var DISPLAY_BADGES = { hidden:'badge-hidden', none:'badge-list', popup:'badge-popup', banner:'badge-banner' };
   var DISPLAY_HINTS = {
     hidden: '비공개 상태입니다. 어드민에서만 보이며 수강생·방문자에게는 노출되지 않습니다.',
     none:   '공지사항 목록 페이지(notices.html)에 일반 게시됩니다.',
-    popup:  '메인 페이지(index.html) 접속 시 팝업으로 표시됩니다. 가장 최근 공지 1개만 표시되며, 방문자가 오늘 하루 보지 않기 선택 시 하루 동안 나타나지 않습니다.',
+    popup:  '첫 화면 접속 시 팝업으로 뜨고, 모든 페이지 상단 배너에도 함께 표시됩니다. 팝업은 오늘 하루 보지 않기를 누르면 그날은 안 뜨지만 배너는 남습니다. 꼭 봐야 하는 안내에 쓰세요.',
     banner: '사이트 모든 페이지 상단에 배너 형태로 표시됩니다. 가장 최근 배너 공지 1개가 자동으로 노출됩니다.'
   };
   var editingId = null;

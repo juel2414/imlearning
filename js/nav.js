@@ -901,7 +901,9 @@
     if (!sb) { setTimeout(initNoticeBanner, 80); return; }
     sb.from('notices')
       .select('id,title,content,type')
-      .eq('display_mode', 'banner')
+      // 팝업 공지도 배너에 함께 띄운다. 팝업은 닫으면 그날은 안 뜨는데,
+      // 꼭 봐야 하는 안내가 그렇게 사라지면 곤란하다.
+      .in('display_mode', ['banner', 'popup'])
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
