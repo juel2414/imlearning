@@ -190,46 +190,157 @@ body {
 .order-amount.discounted { color: #EF4444; }
 
 /* ── 쿠폰함 ──
-   쿠폰은 표가 아니라 표(票)다. 실물 티켓처럼 왼쪽에 반쪽이 떨어져 나가고
-   가운데가 뚫린 모양이라야 무엇인지 한눈에 읽힌다. */
-.cpn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+   진짜 상품권처럼 그린다. 양옆이 반달로 파이고, 안쪽에 두 겹 테두리가 돌고,
+   왼쪽 귀에 코드가 세로로, 오른쪽 귀에 바코드가 선다.
+   숫자가 주인공이고 나머지는 다 그 숫자를 받쳐 주는 장식이다. */
+.cpn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
 
-/* 코드 입력칸도 같은 표 모양으로 둔다. 아직 아무것도 안 든 빈 표라
-   점선으로 그리고, 코드를 넣기 시작하면 선이 차오르듯 실선 초록이 된다 */
+.cpn {
+  --cpn-ink:#14563C; --cpn-line:rgba(45,155,111,.34); --cpn-stub:#E9F5EF;
+  position:relative; display:flex; min-height:154px; border-radius:10px; overflow:hidden;
+  background:#fff; box-shadow:0 3px 16px rgba(17,17,17,.10);
+  text-decoration:none; color:inherit;
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.cpn:hover { transform:translateY(-2px); box-shadow:0 10px 26px rgba(17,17,17,.15); }
+
+/* 양옆 반달. overflow:hidden 으로 잘려 카드 안쪽에서만 파인다 */
+.cpn::before, .cpn::after {
+  content:''; position:absolute; top:50%; width:26px; height:26px;
+  background:#fff; border-radius:50%; transform:translate(-50%,-50%); z-index:3;
+  box-shadow:inset 0 0 0 1px rgba(45,155,111,.16);
+}
+.cpn::before { left:0; }
+.cpn::after  { left:100%; }
+
+/* 좌우 귀 */
+.cpn-stub {
+  flex:0 0 40px; position:relative; z-index:1;
+  background:var(--cpn-stub); color:var(--cpn-ink);
+  display:flex; align-items:center; justify-content:center;
+}
+.cpn-stub--code { border-right:2px dashed rgba(45,155,111,.45); }
+.cpn-stub--bar  { border-left:2px dashed rgba(45,155,111,.45); }
+.cpn-serial {
+  writing-mode:vertical-rl; transform:rotate(180deg);
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size:10.5px; font-weight:700; letter-spacing:2.2px; opacity:.75; white-space:nowrap;
+}
+.cpn-barcode {
+  width:20px; height:86px; opacity:.5;
+  background:repeating-linear-gradient(90deg,
+    var(--cpn-ink) 0 1px, transparent 1px 3px,
+    var(--cpn-ink) 3px 5px, transparent 5px 6px,
+    var(--cpn-ink) 6px 7px, transparent 7px 10px);
+}
+.cpn-barcode.is-ghost { opacity:.22; }
+
+/* 가운데 판 */
+.cpn-main {
+  flex:1; min-width:0; position:relative; padding:16px 18px 14px;
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  background:repeating-linear-gradient(122deg,
+    rgba(45,155,111,.028) 0 34px, rgba(45,155,111,0) 34px 104px);
+}
+/* 두 겹 테두리 */
+.cpn-frame { position:absolute; inset:8px; border:1px solid var(--cpn-line); border-radius:5px; pointer-events:none; }
+.cpn-frame::after { content:''; position:absolute; inset:3px; border:1px solid var(--cpn-line); border-radius:3px; opacity:.55; }
+
+/* 점선 · 전구 · 점선 */
+.cpn-rule { display:flex; align-items:center; gap:9px; width:100%; max-width:210px; margin-bottom:9px; }
+.cpn-rule i {
+  flex:1; height:3px;
+  background:radial-gradient(circle, var(--cpn-line) 0 1.4px, transparent 1.6px) 0 0 / 7px 3px repeat-x;
+}
+.cpn-mark { flex:0 0 auto; width:20px; height:20px; color:var(--green); }
+
+.cpn-value {
+  font-size:34px; font-weight:900; line-height:1; letter-spacing:-.035em; color:var(--cpn-ink);
+}
+.cpn-value.is-won { font-size:27px; }
+.cpn-value sup { font-size:19px; font-weight:800; vertical-align:top; line-height:1; margin-left:1px; }
+.cpn-value small { font-size:15px; font-weight:800; letter-spacing:-.01em; margin-left:5px; }
+
+.cpn-course {
+  margin-top:7px; font-size:12.5px; font-weight:700; color:var(--gray-500); line-height:1.4;
+  max-width:100%; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.cpn-min { margin-top:3px; font-size:11px; color:var(--gray-400); }
+
+.cpn-foot {
+  margin-top:auto; padding-top:11px; width:100%;
+  display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+}
+.cpn-exp { font-size:11.5px; color:var(--gray-400); }
+.cpn-go {
+  padding:7px 16px; border-radius:999px; background:var(--green); color:#fff;
+  font-size:12px; font-weight:800; border:none; font-family:inherit; cursor:pointer;
+  text-decoration:none; white-space:nowrap;
+}
+.cpn-go:hover { background:var(--green-dark); }
+.cpn-tag {
+  position:absolute; top:12px; right:12px; z-index:2;
+  padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800;
+  background:#EFF1F0; color:#98A0A2;
+}
+
+/* 무료 수강권은 통째로 초록으로 채운다. 강좌 한 편을 그냥 받은 것이니
+   다른 할인 쿠폰과 같은 무게로 놓이면 안 된다 */
+.cpn--free {
+  --cpn-ink:#fff; --cpn-line:rgba(255,255,255,.5); --cpn-stub:rgba(255,255,255,.1);
+  color:#fff; box-shadow:0 6px 20px rgba(26,122,74,.28);
+  background:linear-gradient(140deg,#34AA7C 0%, var(--green) 48%, #1B7351 100%);
+}
+.cpn--free:hover { box-shadow:0 12px 30px rgba(26,122,74,.36); }
+.cpn--free::before, .cpn--free::after { box-shadow:none; }
+.cpn--free .cpn-main {
+  background:repeating-linear-gradient(122deg,
+    rgba(255,255,255,.07) 0 34px, rgba(255,255,255,0) 34px 104px);
+}
+.cpn--free .cpn-stub--code, .cpn--free .cpn-stub--bar { border-color:rgba(255,255,255,.5); }
+.cpn--free .cpn-rule i {
+  background:radial-gradient(circle, rgba(255,255,255,.65) 0 1.4px, transparent 1.6px) 0 0 / 7px 3px repeat-x;
+}
+.cpn--free .cpn-mark  { color:#FFE08A; }
+.cpn--free .cpn-course{ color:rgba(255,255,255,.92); }
+.cpn--free .cpn-min   { color:rgba(255,255,255,.72); }
+.cpn--free .cpn-exp   { color:rgba(255,255,255,.78); }
+.cpn--free .cpn-go    { background:#fff; color:var(--green-dark); }
+.cpn--free .cpn-go:hover { background:#FFF6DF; }
+
+/* 다 쓴 쿠폰과 지난 쿠폰. 지우지 않는 건 언제 무엇을 썼는지가 기록이기 때문이다 */
+.cpn.off {
+  --cpn-ink:#939C98; --cpn-line:rgba(0,0,0,.13); --cpn-stub:#F2F4F3;
+  box-shadow:none; border:1px solid #ECEFED;
+}
+.cpn.off:hover { transform:none; box-shadow:none; }
+.cpn.off::before, .cpn.off::after { box-shadow:inset 0 0 0 1px rgba(0,0,0,.07); }
+.cpn.off .cpn-main { background:none; }
+.cpn.off .cpn-mark { color:#B6BEBA; }
+.cpn.off .cpn-course { color:#A9B1AE; }
+.cpn.off .cpn-stub--code, .cpn.off .cpn-stub--bar { border-color:rgba(0,0,0,.14); }
+
+/* ── 코드 넣는 자리 ──
+   아직 아무것도 안 든 빈 상품권이라 점선으로 그린다.
+   코드를 넣기 시작하면 선이 실선 초록으로 차오른다 */
 .cpn-add {
-  position:relative; display:flex; min-height:118px; margin-bottom:18px; max-width:560px;
-  border-radius:14px; overflow:hidden;
-  background:#FBFDFC; border:1.5px dashed #BFD9CC;
-  transition:border-color var(--transition), background var(--transition);
+  --cpn-ink:#2C7A5A; --cpn-line:rgba(45,155,111,.4); --cpn-stub:#F2FAF6;
+  max-width:560px; margin-bottom:20px; min-height:150px;
+  background:#FBFDFC; border:1.5px dashed #BFD9CC; box-shadow:none;
 }
-.cpn-add:focus-within { border-style:solid; border-color:var(--green); background:#fff; }
-.cpn-add::before, .cpn-add::after {
-  content:''; position:absolute; left:104px; width:15px; height:15px;
-  background:#FBFDFC; border-radius:50%; transform:translate(-50%,-50%); z-index:2;
-  transition:background var(--transition);
-}
+.cpn-add:hover { transform:none; box-shadow:none; }
+.cpn-add::before, .cpn-add::after { background:#FBFDFC; box-shadow:inset 0 0 0 1px rgba(45,155,111,.2); }
+.cpn-add:focus-within { border-style:solid; border-color:var(--green); background:#fff; box-shadow:0 4px 18px rgba(45,155,111,.14); }
 .cpn-add:focus-within::before, .cpn-add:focus-within::after { background:#fff; }
-.cpn-add::before { top:0; }
-.cpn-add::after  { top:100%; }
-
-.cpn-add-stub {
-  flex:0 0 104px; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  border-right:2px dashed #CFE3D8; color:#8FBBA6;
-  transition:color var(--transition), border-color var(--transition);
-}
-.cpn-add:focus-within .cpn-add-stub { color:var(--green); border-color:#A8D3BF; }
-.cpn-add-plus { font-size:26px; font-weight:400; line-height:1; }
-.cpn-add-lab  { font-size:11px; font-weight:800; letter-spacing:.08em; margin-top:2px; }
-
-.cpn-add-body {
-  flex:1; min-width:0; padding:16px; display:flex; flex-direction:column;
-  justify-content:center; gap:9px;
-}
-.cpn-add-title { font-size:13px; font-weight:800; color:var(--gray-700); }
-.cpn-add-row { display:flex; gap:8px; }
+.cpn-add .cpn-main { justify-content:center; background:none; }
+.cpn-add .cpn-frame { border-style:dashed; }
+.cpn-add:focus-within .cpn-frame { border-style:solid; }
+.cpn-add-plus { font-size:22px; font-weight:400; line-height:1; }
+.cpn-add-title { font-size:14px; font-weight:800; color:var(--gray-700); margin-bottom:10px; }
+.cpn-add-row { display:flex; gap:8px; width:100%; }
 #coupon-code-input {
   flex:1; min-width:0; padding:10px 13px; font-size:14px; font-weight:700; font-family:inherit;
-  letter-spacing:1.2px; text-transform:uppercase; background:#fff;
+  letter-spacing:1.2px; text-transform:uppercase; text-align:center; background:#fff;
   border:1px solid #DCE5E0; border-radius:9px; outline:none;
   transition:border-color var(--transition), box-shadow var(--transition);
 }
@@ -241,75 +352,13 @@ body {
 }
 #coupon-redeem-btn:hover:not(:disabled) { background:var(--green-dark); }
 #coupon-redeem-btn:disabled { opacity:.55; cursor:default; }
-#coupon-redeem-msg { display:none; font-size:12.5px; font-weight:700; line-height:1.6; }
-
-.cpn {
-  position:relative; display:flex; min-height:118px; border-radius:14px; overflow:hidden;
-  background:#fff; box-shadow:0 3px 14px rgba(17,17,17,.09);
-  transition:transform var(--transition), box-shadow var(--transition);
-}
-.cpn:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(17,17,17,.13); }
-/* 절취선 위아래 구멍. overflow:hidden 으로 잘라 내 카드 안쪽에서만 반달로 파인다.
-   카드 밖까지 나가면 흰 덩어리가 튀어나온 것처럼 보인다 */
-.cpn::before, .cpn::after {
-  content:''; position:absolute; left:104px; width:15px; height:15px;
-  background:#fff; border-radius:50%; transform:translate(-50%,-50%); z-index:2;
-}
-.cpn::before { top:0; }
-.cpn::after  { top:100%; }
-
-.cpn-stub {
-  flex:0 0 104px; border-radius:14px 0 0 14px; padding:14px 8px;
-  background:linear-gradient(152deg, #38B181 0%, var(--green) 45%, var(--green-dark) 100%);
-  color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  border-right:2px dashed rgba(255,255,255,.5);
-}
-.cpn-val { font-size:27px; font-weight:900; line-height:1.05; letter-spacing:-.03em; }
-.cpn-val.small { font-size:19px; }
-.cpn-val sup { font-size:15px; font-weight:800; vertical-align:top; line-height:1; }
-.cpn-unit { font-size:11px; font-weight:800; letter-spacing:.08em; opacity:.85; margin-top:3px; }
-
-.cpn-body { flex:1; min-width:0; padding:14px 16px 13px; display:flex; flex-direction:column; }
-.cpn-top { display:flex; align-items:flex-start; gap:8px; }
-.cpn-course {
-  flex:1; min-width:0;
-  font-size:14px; font-weight:800; color:var(--black); line-height:1.4;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-.cpn-scope { font-size:12px; font-weight:700; color:var(--gray-500); }
-.cpn-min { font-size:11.5px; color:var(--gray-400); margin-top:3px; }
-.cpn-code {
-  align-self:flex-start; margin-top:8px; padding:4px 9px; border-radius:6px;
-  background:#F4F7F5; color:#4A5A52; font-size:11.5px; font-weight:700; letter-spacing:1.4px;
-  font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-.cpn-foot { margin-top:auto; padding-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.cpn-exp { font-size:11.5px; color:var(--gray-400); white-space:nowrap; }
-.cpn-go {
-  padding:6px 14px; border-radius:999px; background:var(--green); color:#fff;
-  font-size:12px; font-weight:800; border:none; font-family:inherit; cursor:pointer;
-  text-decoration:none; white-space:nowrap;
-}
-.cpn-go:hover { background:var(--green-dark); }
-/* 배지는 쓸 수 없는 쿠폰에만 붙인다. 쓸 수 있는 쿠폰은 초록 반쪽과 버튼이
-   이미 그 말을 하고 있어서 배지를 또 달면 시끄럽다 */
-.cpn-tag {
-  flex:0 0 auto; margin-top:1px;
-  padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800;
-  background:#F1F3F2; color:#98A0A2; white-space:nowrap;
-}
-
-/* 다 쓴 쿠폰과 지난 쿠폰은 색을 뺀다. 지우지 않는 건 언제 무엇을 썼는지가 기록이기 때문이다 */
-.cpn.off { box-shadow:none; border:1px solid #ECEFED; }
-.cpn.off:hover { transform:none; box-shadow:none; }
-.cpn.off .cpn-stub { background:linear-gradient(152deg,#CBD2CE 0%,#AAB3AE 100%); }
-.cpn.off .cpn-course { color:#9AA2A0; }
-.cpn.off .cpn-scope, .cpn.off .cpn-code { color:#AAB3AE; }
+#coupon-redeem-msg { display:none; margin-top:9px; font-size:12.5px; font-weight:700; line-height:1.6; }
 
 @media (max-width:400px) {
-  .cpn-stub, .cpn-add-stub { flex-basis:88px; }
-  .cpn::before, .cpn::after, .cpn-add::before, .cpn-add::after { left:88px; }
-  .cpn-val { font-size:23px; }
+  .cpn { min-height:146px; }
+  .cpn-stub { flex-basis:32px; }
+  .cpn-value { font-size:30px; }
+  .cpn-main { padding:14px 12px 12px; }
 }
 
 /* ── 빈 상태 ── */
@@ -745,19 +794,22 @@ body {
         <!-- 받은 쿠폰 코드를 여기서 담는다. 강의가 지정된 전액 쿠폰이면
              담는 게 아니라 그 자리에서 강의가 열린다.
              모양은 아래 쿠폰과 같은 표(票)로 두되, 아직 비어 있다는 뜻으로 점선을 쓴다. -->
-        <form id="coupon-redeem" class="cpn-add">
-          <div class="cpn-add-stub" aria-hidden="true">
+        <form id="coupon-redeem" class="cpn cpn-add">
+          <div class="cpn-stub cpn-stub--code" aria-hidden="true">
             <span class="cpn-add-plus">＋</span>
-            <span class="cpn-add-lab">쿠폰</span>
           </div>
-          <div class="cpn-add-body">
-            <label class="cpn-add-title" for="coupon-code-input">받은 쿠폰 코드가 있나요?</label>
+          <div class="cpn-main">
+            <div class="cpn-frame"></div>
+            <label class="cpn-add-title" for="coupon-code-input">코드 하나면 바로 열립니다</label>
             <div class="cpn-add-row">
               <input id="coupon-code-input" type="text" autocomplete="off" spellcheck="false"
                      placeholder="코드 입력">
               <button type="submit" id="coupon-redeem-btn">등록</button>
             </div>
             <div id="coupon-redeem-msg"></div>
+          </div>
+          <div class="cpn-stub cpn-stub--bar" aria-hidden="true">
+            <span class="cpn-barcode is-ghost"></span>
           </div>
         </form>
 
@@ -2796,48 +2848,58 @@ async function linkProvider(provider) {
 })();
 
 // ───── 내 쿠폰함 ─────
-// 쿠폰 한 장. 왼쪽 반쪽에 할인값, 오른쪽에 어디에 쓰는지가 온다.
+// 상품권 한 장. 가운데 큰 숫자가 주인공이고, 양쪽 귀에 코드와 바코드가 선다.
+const CPN_MARK = '<svg class="cpn-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+  + '<circle cx="12" cy="9.6" r="5.6" fill="currentColor"/>'
+  + '<path d="M8.9 15.4h6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  + '<path d="M9.6 18.1h4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  + '<path d="M10.7 20.7h2.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  + '<path d="M12 1.6v1.8M4.6 4.4l1.3 1.3M19.4 4.4l-1.3 1.3M1.8 11.2h1.8M20.4 11.2h1.8"'
+  + ' stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".55"/>'
+  + '</svg>';
+
 function renderCouponCard(c) {
-  const usable  = c.status === '사용가능';
-  const rate    = c.discount_type === 'rate';
-  const value   = Number(c.discount_value);
-  const free    = rate && value >= 100;
+  const usable = c.status === '사용가능';
+  const rate   = c.discount_type === 'rate';
+  const value  = Number(c.discount_value);
+  const free   = rate && value >= 100;
 
-  // 100% 는 "100% 할인" 보다 "무료" 가 짧고 정확하다
-  const stub = free
-    ? `<div class="cpn-val">무료</div><div class="cpn-unit">수강권</div>`
+  // 100% 는 "100% 할인" 보다 "무료" 가 짧고, 받는 사람 기분에도 맞다
+  const big = free
+    ? `<div class="cpn-value">무료<small>수강권</small></div>`
     : rate
-      ? `<div class="cpn-val">${value}<sup>%</sup></div><div class="cpn-unit">할인</div>`
-      : `<div class="cpn-val small">₩${value.toLocaleString()}</div><div class="cpn-unit">할인</div>`;
+      ? `<div class="cpn-value">${value}<sup>%</sup><small>할인</small></div>`
+      : `<div class="cpn-value is-won">₩${value.toLocaleString()}<small>할인</small></div>`;
 
-  const expDate = c.expires_at
+  const day = c.expires_at
     ? new Date(c.expires_at).toLocaleDateString('ko-KR', { year:'2-digit', month:'numeric', day:'numeric' })
     : null;
-  const exp = !expDate ? '기간 제한 없음'
-    : (c.status === '만료' ? expDate + ' 만료' : expDate + '까지');
+  const exp = !usable
+    ? (c.status === '만료' ? day + ' 지났어요' : '잘 쓰셨어요')
+    : day ? day + '까지 쓸 수 있어요' : '기한 없이 언제든';
 
+  const go = free ? '지금 바로 듣기' : '이 강좌에 쓰기';
   const action = !usable ? ''
     : c.course_id
-      ? `<a class="cpn-go" href="course-detail.html?id=${encodeURIComponent(c.course_id)}">${free ? '지금 듣기' : '이 강좌에 쓰기'}</a>`
+      ? `<a class="cpn-go" href="course-detail.html?id=${encodeURIComponent(c.course_id)}">${go}</a>`
       : `<button class="cpn-go" data-code="${esc(c.code)}" onclick="copyCouponCode(this)">코드 복사</button>`;
 
-  return `<div class="cpn${usable ? '' : ' off'}">
-    <div class="cpn-stub">${stub}</div>
-    <div class="cpn-body">
-      <div class="cpn-top">
-        ${c.course_title
-          ? `<div class="cpn-course">${esc(c.course_title)}</div>`
-          : `<div class="cpn-course cpn-scope">모든 강좌에 사용</div>`}
-        ${usable ? '' : `<span class="cpn-tag">${esc(c.status)}</span>`}
-      </div>
+  return `<article class="cpn${free && usable ? ' cpn--free' : ''}${usable ? '' : ' off'}">
+    ${usable ? '' : `<span class="cpn-tag">${esc(c.status)}</span>`}
+    <div class="cpn-stub cpn-stub--code"><span class="cpn-serial">${esc(c.code)}</span></div>
+    <div class="cpn-main">
+      <div class="cpn-frame"></div>
+      <div class="cpn-rule"><i></i>${CPN_MARK}<i></i></div>
+      ${big}
+      <div class="cpn-course">${c.course_title ? esc(c.course_title) : '어느 강좌에나 쓸 수 있어요'}</div>
       ${c.min_amount ? `<div class="cpn-min">₩${Number(c.min_amount).toLocaleString()} 이상 결제 시</div>` : ''}
-      <div class="cpn-code">${esc(c.code)}</div>
       <div class="cpn-foot">
         <span class="cpn-exp">${exp}</span>
         ${action}
       </div>
     </div>
-  </div>`;
+    <div class="cpn-stub cpn-stub--bar" aria-hidden="true"><span class="cpn-barcode"></span></div>
+  </article>`;
 }
 
 function copyCouponCode(btn) {
@@ -2855,9 +2917,9 @@ async function loadCoupons() {
     const { data, error } = await supabaseClient.rpc('get_my_coupons');
     if (error) throw error;
     if (!data || data.length === 0) {
-      el.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--gray-400);font-size:14px;">
-        보유한 쿠폰이 없어요.<br>
-        <span style="font-size:12px;color:var(--gray-300);">강좌 후기 작성 시 3,000원 쿠폰을 받을 수 있어요!</span>
+      el.innerHTML = `<div style="padding:2.5rem 1rem;text-align:center;color:var(--gray-400);font-size:14px;line-height:1.8;">
+        아직 받은 쿠폰이 없어요.<br>
+        <span style="font-size:12.5px;color:var(--gray-400);">들으신 강좌에 후기를 남기시면 3,000원 쿠폰이 도착합니다.</span>
       </div>`;
       return;
     }
@@ -2868,8 +2930,10 @@ async function loadCoupons() {
     const usable = list.filter(c => c.status === '사용가능').length;
 
     el.innerHTML = `
-      <div style="margin-bottom:16px;font-size:13px;color:var(--gray-500);">
-        ${usable ? `쓸 수 있는 쿠폰이 <strong style="color:var(--green-dark);">${usable}장</strong> 있어요. ` : ''}강좌 화면에서 눌러 고르면 바로 할인이 붙습니다.
+      <div style="margin-bottom:18px;font-size:13.5px;color:var(--gray-500);line-height:1.7;">
+        ${usable
+          ? `지금 쓸 수 있는 쿠폰이 <strong style="color:var(--green-dark);">${usable}장</strong> 있어요. 마음에 드는 강좌에 얹기만 하면 됩니다.`
+          : `쓸 수 있는 쿠폰은 다 쓰셨어요. 아래는 지나온 기록입니다.`}
       </div>
       <div class="cpn-grid">
         ${list.map(c => renderCouponCard(c)).join('')}

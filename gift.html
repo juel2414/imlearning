@@ -894,11 +894,11 @@
   function showCouponVoucher(c, fade) {
     var thumbHtml = c.thumbnail_url ? '<img src="' + esc(c.thumbnail_url) + '" alt="">' : '🎟️';
     var expiryStr = c.expires_at
-      ? '~' + new Date(c.expires_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' }) + '까지'
-      : '사용 기한 없음';
+      ? new Date(c.expires_at).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' }) + '까지 쓸 수 있어요'
+      : '기한 없이 언제든 쓸 수 있어요';
     var scope = c.course_id != null && c.course_title
-      ? esc(c.course_title) + ' 전용'
-      : '모든 강의에 사용 가능';
+      ? esc(c.course_title)
+      : '어느 강좌에나 쓸 수 있어요';
 
     var actionHtml;
     if (!window._giftUser) {
@@ -908,7 +908,7 @@
       // 강의가 정해진 100% 쿠폰은 담는 게 아니라 그 자리에서 강의가 열린다.
       var opensCourse = c.course_id != null && c.discount_type === 'rate' && Number(c.discount_value) >= 100;
       actionHtml = '<button class="gift-action-btn gold" id="redeem-btn">' +
-        (opensCourse ? '강의 바로 받기' : '내 쿠폰함에 담기') + '</button>';
+        (opensCourse ? '지금 바로 듣기' : '내 쿠폰함에 담기') + '</button>';
     }
 
     root.innerHTML = [
@@ -969,13 +969,13 @@
       // 강의가 지정된 전액 쿠폰이면 서버가 그 자리에서 강의를 열어준다.
       // 그때는 쿠폰함이 아니라 강의로 바로 데려간다.
       if (r.enrolled && r.course_id) {
-        showAlert(esc(r.course_title || '강좌') + ' 강좌가 열렸어요.', 'ok');
-        btn.textContent = '지금 강의 보러가기';
+        showAlert(esc(r.course_title || '강좌') + ' 강좌가 열렸어요. 지금 바로 시작해 보세요.', 'ok');
+        btn.textContent = '지금 바로 듣기';
         btn.disabled = false;
         btn.onclick = function () { location.href = 'course-detail.html?id=' + encodeURIComponent(r.course_id); };
         return;
       }
-      showAlert('쿠폰이 쿠폰함에 담겼어요.', 'ok');
+      showAlert('쿠폰이 쿠폰함에 담겼어요. 언제든 꺼내 쓰세요.', 'ok');
       btn.textContent = '내 쿠폰함 열기';
       btn.disabled = false;
       btn.onclick = function () { location.href = 'my-courses.html#coupons'; };
