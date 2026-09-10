@@ -435,6 +435,8 @@
   var giftCode = (params.get('code') || '').trim().toUpperCase();
   // 쿠폰도 같은 봉투로 보낸다. 열면 강의 대신 쿠폰이 나온다.
   var couponCodeParam = (params.get('coupon') || '').trim().toUpperCase();
+  // 로그인하러 갔다가 돌아온 경우. 봉투를 다시 열게 하지 않고 바로 담아 준다.
+  var autoClaim = params.get('claim') === '1';
   var couponMode = false;
   var couponData = null;
   var root = document.getElementById('gift-root');
@@ -868,6 +870,14 @@
       }
       couponMode = true;
       couponData = c;
+
+      // 로그인하고 돌아온 길이면 봉투를 다시 열게 하지 않는다.
+      // 이미 한 번 열어 본 사람이라 두 번 여는 것은 군더더기다.
+      if (autoClaim && window._giftUser) {
+        showCouponVoucher(c, false);
+        doRedeem();
+        return;
+      }
       showEnvelope({ sender_name: null, message: null });
     } catch (e) {
       console.error('loadCoupon 오류:', e);
@@ -892,7 +902,7 @@
 
     var actionHtml;
     if (!window._giftUser) {
-      var nextUrl = 'gift.html?coupon=' + encodeURIComponent(c.code);
+      var nextUrl = 'gift.html?coupon=' + encodeURIComponent(c.code) + '&claim=1';
       actionHtml = '<a href="login.html?next=' + encodeURIComponent(nextUrl) + '" class="gift-action-btn gold" style="display:block;text-decoration:none;text-align:center;">로그인하고 받기</a>';
     } else {
       actionHtml = '<button class="gift-action-btn gold" id="redeem-btn">내 쿠폰함에 담기</button>';
