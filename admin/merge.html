@@ -49,9 +49,20 @@ tr:last-child td { border-bottom:0; }
 .search-row input { flex:1; min-width:200px; padding:9px 12px; font-size:13px; font-family:inherit;
   border:1px solid #ddd; border-radius:8px; }
 .pick { display:flex; gap:12px; padding:0 18px 14px; flex-wrap:wrap; }
-.pick-slot { flex:1; min-width:240px; border:1.5px dashed #d8dee3; border-radius:10px; padding:12px 14px; }
+.pick-slot { position:relative; flex:1; min-width:240px; border:1.5px dashed #d8dee3;
+  border-radius:10px; padding:12px 14px; }
+/* 잘못 골랐을 때 되돌릴 길. 고른 칸에만 나타난다 */
+.pick-clear {
+  position:absolute; top:8px; right:8px; display:none;
+  width:24px; height:24px; padding:0; line-height:1;
+  border:1px solid #d8e3db; border-radius:50%; background:#fff;
+  color:#7a8a80; font-size:12px; font-family:inherit; cursor:pointer;
+}
+.pick-slot.filled .pick-clear { display:block; }
+.pick-clear:hover { border-color:#C0392B; color:#C0392B; }
 .pick-slot.filled { border-style:solid; border-color:#2D9B6F; background:#f7fdfa; }
-.pick-label { font-size:11px; font-weight:800; color:#7a8a80; letter-spacing:.3px; margin-bottom:6px; }
+.pick-label { font-size:11px; font-weight:800; color:#7a8a80; letter-spacing:.3px;
+  margin-bottom:6px; padding-right:28px; }
 .pick-empty { font-size:12.5px; color:#aaa; }
 
 /* 확인 창 */
@@ -100,10 +111,14 @@ tr:last-child td { border-bottom:0; }
     </div>
     <div class="pick">
       <div class="pick-slot" id="slot-from">
+        <button type="button" class="pick-clear" id="slot-from-clear"
+                onclick="clearPick('from')" title="옮길 계정 비우기" aria-label="옮길 계정 비우기">✕</button>
         <div class="pick-label">옮길 계정 (없어지는 쪽)</div>
         <div id="slot-from-body" class="pick-empty">아래 목록에서 고르세요</div>
       </div>
       <div class="pick-slot" id="slot-to">
+        <button type="button" class="pick-clear" id="slot-to-clear"
+                onclick="clearPick('to')" title="남길 계정 비우기" aria-label="남길 계정 비우기">✕</button>
         <div class="pick-label">남길 계정 (회원이 로그인하는 쪽)</div>
         <div id="slot-to-body" class="pick-empty">아래 목록에서 고르세요</div>
       </div>
@@ -202,6 +217,13 @@ function pick(i, side) {
   document.getElementById('manual-btn').disabled =
     !(_pickFrom && _pickTo && _pickFrom.id !== _pickTo.id);
 }
+function clearPick(side) {
+  if (side === 'from') _pickFrom = null; else _pickTo = null;
+  drawSlot(side, null);
+  document.getElementById('manual-btn').disabled =
+    !(_pickFrom && _pickTo && _pickFrom.id !== _pickTo.id);
+}
+
 function drawSlot(side, u) {
   const box  = document.getElementById('slot-' + side);
   const body = document.getElementById('slot-' + side + '-body');
