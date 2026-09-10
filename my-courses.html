@@ -189,6 +189,80 @@ body {
 .order-amount { font-size: 18px; font-weight: 800; color: var(--black); }
 .order-amount.discounted { color: #EF4444; }
 
+/* ── 쿠폰함 ──
+   쿠폰은 표가 아니라 표(票)다. 실물 티켓처럼 왼쪽에 반쪽이 떨어져 나가고
+   가운데가 뚫린 모양이라야 무엇인지 한눈에 읽힌다. */
+.cpn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+
+.cpn {
+  position:relative; display:flex; min-height:118px; border-radius:14px; overflow:hidden;
+  background:#fff; box-shadow:0 3px 14px rgba(17,17,17,.09);
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.cpn:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(17,17,17,.13); }
+/* 절취선 위아래 구멍. overflow:hidden 으로 잘라 내 카드 안쪽에서만 반달로 파인다.
+   카드 밖까지 나가면 흰 덩어리가 튀어나온 것처럼 보인다 */
+.cpn::before, .cpn::after {
+  content:''; position:absolute; left:104px; width:15px; height:15px;
+  background:#fff; border-radius:50%; transform:translate(-50%,-50%); z-index:2;
+}
+.cpn::before { top:0; }
+.cpn::after  { top:100%; }
+
+.cpn-stub {
+  flex:0 0 104px; border-radius:14px 0 0 14px; padding:14px 8px;
+  background:linear-gradient(152deg, #38B181 0%, var(--green) 45%, var(--green-dark) 100%);
+  color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-right:2px dashed rgba(255,255,255,.5);
+}
+.cpn-val { font-size:27px; font-weight:900; line-height:1.05; letter-spacing:-.03em; }
+.cpn-val.small { font-size:19px; }
+.cpn-val sup { font-size:15px; font-weight:800; vertical-align:top; line-height:1; }
+.cpn-unit { font-size:11px; font-weight:800; letter-spacing:.08em; opacity:.85; margin-top:3px; }
+
+.cpn-body { flex:1; min-width:0; padding:14px 16px 13px; display:flex; flex-direction:column; }
+.cpn-top { display:flex; align-items:flex-start; gap:8px; }
+.cpn-course {
+  flex:1; min-width:0;
+  font-size:14px; font-weight:800; color:var(--black); line-height:1.4;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.cpn-scope { font-size:12px; font-weight:700; color:var(--gray-500); }
+.cpn-min { font-size:11.5px; color:var(--gray-400); margin-top:3px; }
+.cpn-code {
+  align-self:flex-start; margin-top:8px; padding:4px 9px; border-radius:6px;
+  background:#F4F7F5; color:#4A5A52; font-size:11.5px; font-weight:700; letter-spacing:1.4px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.cpn-foot { margin-top:auto; padding-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.cpn-exp { font-size:11.5px; color:var(--gray-400); white-space:nowrap; }
+.cpn-go {
+  padding:6px 14px; border-radius:999px; background:var(--green); color:#fff;
+  font-size:12px; font-weight:800; border:none; font-family:inherit; cursor:pointer;
+  text-decoration:none; white-space:nowrap;
+}
+.cpn-go:hover { background:var(--green-dark); }
+/* 배지는 쓸 수 없는 쿠폰에만 붙인다. 쓸 수 있는 쿠폰은 초록 반쪽과 버튼이
+   이미 그 말을 하고 있어서 배지를 또 달면 시끄럽다 */
+.cpn-tag {
+  flex:0 0 auto; margin-top:1px;
+  padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800;
+  background:#F1F3F2; color:#98A0A2; white-space:nowrap;
+}
+
+/* 다 쓴 쿠폰과 지난 쿠폰은 색을 뺀다. 지우지 않는 건 언제 무엇을 썼는지가 기록이기 때문이다 */
+.cpn.off { box-shadow:none; border:1px solid #ECEFED; }
+.cpn.off:hover { transform:none; box-shadow:none; }
+.cpn.off .cpn-stub { background:linear-gradient(152deg,#CBD2CE 0%,#AAB3AE 100%); }
+.cpn.off .cpn-course { color:#9AA2A0; }
+.cpn.off .cpn-scope, .cpn.off .cpn-code { color:#AAB3AE; }
+
+@media (max-width:400px) {
+  .cpn-stub { flex-basis:88px; }
+  .cpn::before, .cpn::after { left:88px; }
+  .cpn-val { font-size:23px; }
+}
+
 /* ── 빈 상태 ── */
 /* 비어 있는 상태도 하나의 카드로 묶는다. 예전에는 배지와 글이 허공에
    떠 있어 섹션에 속하지 않은 것처럼 보였다. */
@@ -2667,6 +2741,57 @@ async function linkProvider(provider) {
 })();
 
 // ───── 내 쿠폰함 ─────
+// 쿠폰 한 장. 왼쪽 반쪽에 할인값, 오른쪽에 어디에 쓰는지가 온다.
+function renderCouponCard(c) {
+  const usable  = c.status === '사용가능';
+  const rate    = c.discount_type === 'rate';
+  const value   = Number(c.discount_value);
+  const free    = rate && value >= 100;
+
+  // 100% 는 "100% 할인" 보다 "무료" 가 짧고 정확하다
+  const stub = free
+    ? `<div class="cpn-val">무료</div><div class="cpn-unit">수강권</div>`
+    : rate
+      ? `<div class="cpn-val">${value}<sup>%</sup></div><div class="cpn-unit">할인</div>`
+      : `<div class="cpn-val small">₩${value.toLocaleString()}</div><div class="cpn-unit">할인</div>`;
+
+  const expDate = c.expires_at
+    ? new Date(c.expires_at).toLocaleDateString('ko-KR', { year:'2-digit', month:'numeric', day:'numeric' })
+    : null;
+  const exp = !expDate ? '기간 제한 없음'
+    : (c.status === '만료' ? expDate + ' 만료' : expDate + '까지');
+
+  const action = !usable ? ''
+    : c.course_id
+      ? `<a class="cpn-go" href="course-detail.html?id=${encodeURIComponent(c.course_id)}">${free ? '지금 듣기' : '이 강좌에 쓰기'}</a>`
+      : `<button class="cpn-go" data-code="${esc(c.code)}" onclick="copyCouponCode(this)">코드 복사</button>`;
+
+  return `<div class="cpn${usable ? '' : ' off'}">
+    <div class="cpn-stub">${stub}</div>
+    <div class="cpn-body">
+      <div class="cpn-top">
+        ${c.course_title
+          ? `<div class="cpn-course">${esc(c.course_title)}</div>`
+          : `<div class="cpn-course cpn-scope">모든 강좌에 사용</div>`}
+        ${usable ? '' : `<span class="cpn-tag">${esc(c.status)}</span>`}
+      </div>
+      ${c.min_amount ? `<div class="cpn-min">₩${Number(c.min_amount).toLocaleString()} 이상 결제 시</div>` : ''}
+      <div class="cpn-code">${esc(c.code)}</div>
+      <div class="cpn-foot">
+        <span class="cpn-exp">${exp}</span>
+        ${action}
+      </div>
+    </div>
+  </div>`;
+}
+
+function copyCouponCode(btn) {
+  navigator.clipboard.writeText(btn.dataset.code).then(() => {
+    btn.textContent = '복사됨!';
+    setTimeout(() => { btn.textContent = '코드 복사'; }, 2000);
+  });
+}
+
 async function loadCoupons() {
   const el = document.getElementById('coupons-content');
   if (!el) return;
@@ -2681,36 +2806,18 @@ async function loadCoupons() {
       </div>`;
       return;
     }
+
+    // 쓸 수 있는 쿠폰이 먼저 온다. 다 쓴 쿠폰은 기록이라 지우지 않고 아래로 내린다.
+    const list = data.slice().sort((a, b) =>
+      (a.status === '사용가능' ? 0 : 1) - (b.status === '사용가능' ? 0 : 1));
+    const usable = list.filter(c => c.status === '사용가능').length;
+
     el.innerHTML = `
       <div style="margin-bottom:16px;font-size:13px;color:var(--gray-500);">
-        강좌 결제 화면에서 가진 쿠폰을 눌러 고르면 됩니다. 코드를 옮겨 적지 않아도 돼요.
+        ${usable ? `쓸 수 있는 쿠폰이 <strong style="color:var(--green-dark);">${usable}장</strong> 있어요. ` : ''}강좌 화면에서 눌러 고르면 바로 할인이 붙습니다.
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
-        ${data.map(c => {
-          const isUsable = c.status === '사용가능';
-          const expStr = c.expires_at ? new Date(c.expires_at).toLocaleDateString('ko-KR') + ' 까지' : '기간 무제한';
-          const discStr = c.discount_type === 'rate' ? `${c.discount_value}% 할인` : `₩${Number(c.discount_value).toLocaleString()} 할인`;
-          return `<div style="background:#fff;border:1.5px solid ${isUsable ? 'var(--green)' : 'rgba(0,0,0,.08)'};border-radius:12px;padding:16px 18px;opacity:${isUsable ? 1 : 0.55};">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-              <div style="font-size:16px;font-weight:800;color:${isUsable ? 'var(--green)' : 'var(--gray-500)'};">${discStr}</div>
-              <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${isUsable ? 'var(--green-light)' : '#f0f0f0'};color:${isUsable ? 'var(--green-dark)' : 'var(--gray-500)'};">${c.status}</span>
-            </div>
-            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#333;background:#f8f8f8;padding:6px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:8px;">${esc(c.code)}</div>
-            ${c.course_title ? `<div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;">적용 강좌 · <strong style="color:#333;">${esc(c.course_title)}</strong></div>` : ''}
-            ${c.min_amount ? `<div style="font-size:11px;color:var(--gray-400);">₩${Number(c.min_amount).toLocaleString()} 이상 구매 시 사용</div>` : ''}
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;">
-              <div style="font-size:11px;color:var(--gray-400);">${expStr}</div>
-              ${isUsable && c.course_id
-                ? `<a href="course-detail.html?id=${encodeURIComponent(c.course_id)}" style="padding:5px 14px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">이 강좌에 쓰기</a>`
-                : isUsable
-                  ? `<button data-coupon-code="${esc(c.code)}" onclick="(function(btn){navigator.clipboard.writeText(btn.dataset.couponCode).then(()=>{btn.textContent='복사됨!';setTimeout(()=>{btn.textContent='코드 복사';},2000)})})(this)" style="padding:5px 14px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">코드 복사</button>`
-                  : ''}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-      <div style="margin-top:20px;padding:12px 16px;background:#f8fdf9;border:1px solid #d4ede2;border-radius:10px;font-size:12px;color:var(--gray-500);line-height:1.8;">
-        💡 쿠폰 사용 방법: 강좌 상세 페이지로 가면 가진 쿠폰이 버튼으로 뜹니다. 눌러서 고르면 바로 할인이 적용돼요.
+      <div class="cpn-grid">
+        ${list.map(c => renderCouponCard(c)).join('')}
       </div>`;
   } catch(e) {
     el.innerHTML = `<div class="loading-msg">쿠폰 정보를 불러오지 못했습니다: ${e.message}</div>`;
