@@ -319,7 +319,7 @@
     '    <li><a href="reviews.html">후기</a></li>',
     '    <li id="nb-res-li" style="display:none"><a href="resources.html">자료실</a></li>',
     '    <li class="nb-books-mob"><a href="https://imbooks.kr" target="_blank" rel="noopener">아이엠북스 ↗</a></li>',
-    '    <li id="nb-admin-li" style="display:none"><a href="admin/index.html" style="color:#2D9B6F!important;font-weight:600!important;">어드민</a></li>',
+    '    <li id="nb-admin-li" style="display:none"><a href="admin/index.html" target="_blank" rel="noopener" style="color:#2D9B6F!important;font-weight:600!important;">어드민</a></li>',
     '    <li id="nb-mob-auth-li"><div id="nb-mob-auth">',
     '      <a href="login.html" class="btn btn-outline btn-sm">로그인</a>',
     '      <a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>',
@@ -709,7 +709,7 @@
       _navMobKey = mobKey;
       mobAuth.innerHTML = user
         ? '<a href="my-courses.html" class="btn btn-outline btn-sm">나의 강의실</a>' +
-          (isAdmin ? '<a href="admin/index.html" class="btn btn-outline btn-sm">어드민</a>' : '') +
+          (isAdmin ? '<a href="admin/index.html" target="_blank" rel="noopener" class="btn btn-outline btn-sm">어드민</a>' : '') +
           '<button class="btn btn-primary btn-sm" onclick="navLogout()">로그아웃</button>'
         : '<a href="login.html" class="btn btn-outline btn-sm">로그인</a>' +
           '<a href="signup.html" class="btn btn-primary btn-sm">회원가입</a>';
