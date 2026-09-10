@@ -1038,9 +1038,10 @@ async function loadProgress(userId, courseId) {
       .order('watched_at', { ascending: false }),
     supabaseClient
       .from('video_progress')
-      .select('lesson_number, watch_percentage, actual_watched_seconds')
+      .select('lesson_number, lesson_title, watch_percentage, actual_watched_seconds, last_position, completed, updated_at')
       .eq('user_id', userId)
-      .eq('course_id', courseId),
+      .eq('course_id', courseId)
+      .order('updated_at', { ascending: false }),
   ]);
 
   if (progressRes.data && progressRes.data.length) {
@@ -1053,6 +1054,18 @@ async function loadProgress(userId, courseId) {
     // 한 번이라도 실제로 재생한 적이 있는지. progress 행은 관리자 승인만으로도
     // 생길 수 있어, 시청 초가 쌓인 기록을 함께 본다.
     if (vpRes.data.some(r => (r.actual_watched_seconds || 0) > 0)) hasWatched = true;
+
+    // '이어보기' 는 돌아갈 지점이 있는 강의를 가리켜야 한다.
+    // 이어볼 위치는 video_progress 에만 있는데 대상은 progress 에서 골라서,
+    // 위치가 없는 강의를 가리키고 늘 0초부터 시작하는 일이 있었다.
+    const resumable = vpRes.data.find(r => (r.last_position || 0) > 5 && !r.completed);
+    if (resumable) {
+      lastWatchedLesson = {
+        lesson_id:    'lesson-' + resumable.lesson_number,
+        lesson_title: resumable.lesson_title,
+        resume_at:    resumable.last_position,
+      };
+    }
   }
   applyProgressUI();
 }
@@ -1125,7 +1138,8 @@ function applyProgressUI() {
     var rb = document.getElementById('resume-btn');
     if (rb) {
       if (hasWatched && lastWatchedLesson) {
-        rb.textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의');
+        rb.textContent = '▶ 이어보기: ' + (lastWatchedLesson.lesson_title || '마지막 강의')
+          + (lastWatchedLesson.resume_at ? ' (' + VimeoTracker.fmt(lastWatchedLesson.resume_at) + '부터)' : '');
       } else if (hasWatched) {
         rb.textContent = '▶ 이어보기';
       } else {
@@ -1147,7 +1161,9 @@ function applyProgressUI() {
         if (meta && !meta.querySelector('.curriculum-resume-tag')) {
           const tag = document.createElement('span');
           tag.className = 'curriculum-resume-tag';
-          tag.textContent = '이어보기';
+          tag.textContent = lastWatchedLesson.resume_at
+            ? VimeoTracker.fmt(lastWatchedLesson.resume_at) + '부터'
+            : '이어보기';
           meta.prepend(tag);
         }
       }
