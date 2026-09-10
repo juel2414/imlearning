@@ -778,7 +778,8 @@
     list.innerHTML = rows.map(function (r) {
       var icon = r.type === 'note_rejected' ? '↩' : r.type === 'note_resubmitted' ? '📝' : '🔔';
       return '<a class="nb-bell-item' + (r.read_at ? '' : ' unread') + '" ' +
-        'href="' + esc(r.link || '#') + '" onclick="navReadNotification(' + r.id + ')">' +
+'href="' + esc(r.link || '#') + '" data-nid="' + r.id + '" ' +
+        'onclick="return navReadNotification(event, ' + r.id + ')">' +
         '<span class="nb-bell-icon">' + icon + '</span>' +
         '<span class="nb-bell-body">' +
           '<b>' + esc(r.title) + '</b>' +
@@ -788,14 +789,52 @@
     }).join('');
   }
 
-  window.navReadNotification = function (id) {
+  // 종에 붙은 숫자를 화면에서 바로 줄인다. 서버 응답을 기다리면 눌렀는데
+  // 아무 일도 안 일어난 것처럼 보인다.
+  function markReadInUI(id) {
+    var item = document.querySelector('.nb-bell-item[data-nid="' + id + '"]');
+    if (item && item.classList.contains('unread')) item.classList.remove('unread');
+    var dot = document.getElementById('nb-bell-dot');
+    if (!dot) return;
+    var left = document.querySelectorAll('.nb-bell-item.unread').length;
+    dot.textContent = left > 9 ? '9+' : String(left);
+    dot.style.display = left ? '' : 'none';
+  }
+
+  window.navReadNotification = function (ev, id) {
+    markReadInUI(id);
+
     var sb = window.supabaseClient;
-    if (sb) sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id).then(function () {});
+    if (!sb) return true;
+    var req = sb.from('notifications')
+      .update({ read_at: new Date().toISOString() }).eq('id', id);
+
+    var a = ev && ev.currentTarget;
+    var href = a && a.getAttribute('href');
+    // 다른 창으로 열거나 갈 곳이 없으면 그냥 보내고 끝낸다
+    if (!href || href === '#' || (ev && (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button === 1))) {
+      req.then(function () {}, function () {});
+      return true;
+    }
+
+    // 그냥 두면 요청을 보내자마자 페이지가 닫혀 읽음 표시가 저장되지 않는다.
+    // 저장이 끝나면 옮겨 간다. 느릴 때를 대비해 오래 붙잡지는 않는다.
+    ev.preventDefault();
+    var moved = false;
+    function go() { if (moved) return; moved = true; location.href = href; }
+    req.then(go, go);
+    setTimeout(go, 900);
+    return false;
   };
 
   window.navReadAllNotifications = async function () {
     var sb = window.supabaseClient;
     if (!sb) return;
+    document.querySelectorAll('.nb-bell-item.unread').forEach(function (el) {
+      el.classList.remove('unread');
+    });
+    var dot = document.getElementById('nb-bell-dot');
+    if (dot) dot.style.display = 'none';
     await sb.from('notifications').update({ read_at: new Date().toISOString() }).is('read_at', null);
     loadNotifications(true);
   };
