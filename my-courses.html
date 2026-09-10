@@ -189,6 +189,29 @@ body {
 .order-amount { font-size: 18px; font-weight: 800; color: var(--black); }
 .order-amount.discounted { color: #EF4444; }
 
+/* ── 선물이 아직 없을 때 ──
+   비어 있다는 말 대신 무엇을 할 수 있는지만 남긴다 */
+.gift-empty {
+  text-align:center; padding:3.5rem 2rem 3rem;
+  background:#FAFBFA; border-radius:16px;
+}
+.gift-empty-icon {
+  width:104px; height:104px; margin:0 auto 1.5rem; border-radius:50%;
+  background:#E7EAE8; color:#fff;
+  display:flex; align-items:center; justify-content:center;
+}
+.gift-empty-icon svg { width:52px; height:52px; display:block; }
+.gift-empty-desc { font-size:16px; font-weight:600; color:var(--gray-500); margin-bottom:1.75rem; }
+.gift-empty-btn {
+  font-size:15px; font-weight:800; padding:13px 30px; border-radius:10px;
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:none;
+}
+@media (max-width:480px) {
+  .gift-empty { padding:2.75rem 1.25rem 2.5rem; }
+  .gift-empty-icon { width:88px; height:88px; }
+  .gift-empty-icon svg { width:44px; height:44px; }
+}
+
 /* ── 목록 접기 ── */
 /* .order-list·.gift-list 가 display 를 지정하고 있어 [hidden] 의 기본 규칙을
    이긴다. 접힌 부분은 여기서 확실히 감춘다. */
@@ -790,8 +813,9 @@ body {
     <div class="tab-panel" id="panel-gifts">
       <div class="mc-subsec">
         <div class="mc-subsec-hdr">
-          <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 선물함</h3>
-          <button onclick="openGiftSelectModal()" class="btn btn-primary btn-sm" style="gap:6px;display:inline-flex;align-items:center;cursor:pointer;">🎁 선물하기</button>
+          <h3><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.12em;display:inline-block;"> 선물하기</h3>
+          <button onclick="openGiftSelectModal()" id="gift-send-btn"
+                  class="btn btn-primary btn-sm" style="gap:6px;display:inline-flex;align-items:center;cursor:pointer;">🎁 선물 보내기</button>
         </div>
         <div class="mc-subsec-desc">강좌를 선택해 소중한 분께 강의를 선물해보세요.</div>
         <div id="gifts-content" class="loading-msg">불러오는 중...</div>
@@ -2030,12 +2054,23 @@ async function loadGifts(userId) {
   const received = receivedRes.data || [];
 
   if (sent.length === 0 && received.length === 0) {
+    // '없어요' 는 굳이 말하지 않는다. 비어 있는 건 화면이 이미 말하고 있고,
+    // 여기서 할 말은 무엇을 할 수 있는지다.
     el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;"></div>
-        <div class="empty-state-title">선물 내역이 없어요</div>
-        <div class="empty-state-desc">강좌 상세 페이지에서 소중한 분께 강의를 선물해보세요!</div>
-        <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>
+      <div class="gift-empty">
+        <div class="gift-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3.5 10.5h17v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-9Z" fill="currentColor" opacity=".55"/>
+            <path d="M2.6 7.2h18.8v3.3H2.6z" fill="currentColor" opacity=".8"/>
+            <path d="M10.6 7.2h2.8V21h-2.8z" fill="#fff" opacity=".9"/>
+            <path d="M12 7.2S9.9 3.4 7.9 3.4a2.2 2.2 0 0 0 0 4.4M12 7.2s2.1-3.8 4.1-3.8a2.2 2.2 0 0 1 0 4.4"
+                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="gift-empty-desc">소중한 분께 강의를 선물해 보세요.</div>
+        <button type="button" class="btn btn-primary gift-empty-btn" onclick="openGiftSelectModal()">
+          선물하기 <span aria-hidden="true">›</span>
+        </button>
       </div>`;
     return;
   }
