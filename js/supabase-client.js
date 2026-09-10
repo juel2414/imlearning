@@ -196,7 +196,6 @@ function renderCourseCard(course) {
       <div class="course-body">
         <div class="course-cat">${CATEGORY_LABELS[course.category] || ''}</div>
         <div class="course-title">${_esc(course.title)}</div>
-        <div class="course-instructor">강사: ${_esc(course.instructor || '미정')}</div>
         <div class="course-footer">
           <span class="course-students">👥 ${course.students || 0}명</span>
           ${priceHtml}

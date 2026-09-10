@@ -749,7 +749,7 @@ body {
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-client.js"></script>
+<script src="js/supabase-client.js?v=2"></script>
 <script src="js/course-series.js"></script>
 <script src="js/nav.js?v=5"></script>
 <script src="js/main.js"></script>
@@ -1024,7 +1024,6 @@ function renderCourses(orders, coursesMap) {
         <div class="my-course-info">
           <div class="my-course-cat">${catLabel}</div>
           <div class="my-course-title">${esc(course.title)}</div>
-          <div class="my-course-instructor">강사: ${esc(course.instructor || '미정')}</div>
           <div class="progress-bar-wrap">
             <div class="progress-bar" style="width:${progress}%"></div>
           </div>
@@ -1545,7 +1544,6 @@ function renderWishlist(wishCourses) {
         <div class="wish-body">
           <div class="wish-cat">${catLabel}</div>
           <div class="wish-title">${c.title}</div>
-          <div class="wish-instructor">강사: ${c.instructor || '미정'}</div>
           <div class="wish-footer">
             <button class="btn-wish-go" onclick="location.href='course-detail.html?id=${c.id}'">강좌 보기</button>
             <button class="btn-wish-remove" onclick="removeWish(${item.course_id})" title="찜 취소">🗑️</button>

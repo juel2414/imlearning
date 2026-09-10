@@ -609,7 +609,7 @@ body {
       <div class="detail-tabs-wrap">
         <div class="detail-tabs">
           <div class="detail-tab active" onclick="switchTab('curriculum', this)">커리큘럼</div>
-          <div class="detail-tab" onclick="switchTab('instructor', this)">강사 소개</div>
+          <div class="detail-tab" id="tab-instructor-btn" onclick="switchTab('instructor', this)">강사 소개</div>
           <div class="detail-tab" onclick="switchTab('review', this)">수강 후기</div>
           <div class="detail-tab" id="tab-files-btn" style="display:none;" onclick="switchTab('files', this)">📁 자료실</div>
           <div class="detail-tab" id="tab-textbooks-btn" style="display:none;" onclick="switchTab('textbooks', this)">📚 관련 교재</div>
@@ -907,7 +907,7 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 포트원 SDK -->
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
-<script src="js/supabase-client.js"></script>
+<script src="js/supabase-client.js?v=2"></script>
 <script src="js/nav.js?v=5"></script>
 <script src="js/main.js"></script>
 
@@ -1397,8 +1397,14 @@ async function loadCourse() {
   document.getElementById('breadcrumb-cat').textContent = catLabel;
   document.getElementById('course-desc').textContent = course.description || '';
   // course-students 요소는 meta strip 교체로 제거됨 (students는 태그칩에서 표시)
-  document.getElementById('instructor-name').textContent = course.instructor || '미정';
-  fillInstructorProfile(course);
+  // 강사명이 없으면 소개 탭에 보여줄 것이 없다. 탭 자체를 감춘다.
+  var hasInstructor = !!(course.instructor && course.instructor.trim());
+  var insBtn = document.getElementById('tab-instructor-btn');
+  if (insBtn) insBtn.style.display = hasInstructor ? '' : 'none';
+  if (hasInstructor) {
+    document.getElementById('instructor-name').textContent = course.instructor;
+    fillInstructorProfile(course);
+  }
   document.title = course.title + ' — 아이엠러닝';
 
   // 히어로 배너 썸네일
@@ -1449,12 +1455,17 @@ async function loadCourse() {
   // 강의 정보 카드
   const infoItems = [
     { icon:'icons/book.svg',    label:'강의 형태', value:'온라인 영상' },
-    { icon:'icons/profile.svg', label:'강사',      value: esc(course.instructor || '미정') },
+  ];
+  // 강사명이 없는 강좌가 많다. "미정" 은 알려 주는 것이 없으므로 줄을 뺀다.
+  if (course.instructor && course.instructor.trim()) {
+    infoItems.push({ icon:'icons/profile.svg', label:'강사', value: esc(course.instructor) });
+  }
+  infoItems.push(
     { icon:'icons/faith.svg',   label:'강의 수',   value: lessonCount ? lessonCount + '강' : '-' },
     { icon:'icons/star.svg',    label:'난이도',    value: LEVEL_MAP[course.level] || '입문·중급' },
     { icon:'icons/completion.svg', label:'수료증', value: '발급 가능' },
     { icon:'icons/sprout.svg',  label:'수강 기간', value: '무제한' },
-  ];
+  );
   if (course.preview_url) infoItems.push({ icon:'icons/lock-open.svg', label:'미리보기', value:'제공' });
   document.getElementById('course-info-grid').innerHTML = infoItems.map(it =>
     `<div class="course-info-item">

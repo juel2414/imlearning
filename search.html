@@ -167,7 +167,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-client.js"></script>
+<script src="js/supabase-client.js?v=2"></script>
 <script src="js/nav.js?v=5"></script>
 <script src="js/main.js"></script>
 <script>
@@ -232,7 +232,7 @@ function courseCard(c) {
       <div class="course-body">
         <div class="course-cat">${esc(CAT_LABELS[c.category]||'')}</div>
         <div class="course-title">${esc(c.title)}</div>
-        <div class="course-instructor">강사: ${esc(c.instructor||'미정')}${c.level ? ' · '+esc(LEVEL_LABELS[c.level]) : ''}</div>
+        ${c.level ? `<div class="course-instructor">${esc(LEVEL_LABELS[c.level])}</div>` : ''}
         <div class="course-footer">
           <span class="course-students">👥 ${c.students||0}명</span>
           ${priceHtml}
