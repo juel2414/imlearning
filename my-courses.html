@@ -194,6 +194,55 @@ body {
    가운데가 뚫린 모양이라야 무엇인지 한눈에 읽힌다. */
 .cpn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
 
+/* 코드 입력칸도 같은 표 모양으로 둔다. 아직 아무것도 안 든 빈 표라
+   점선으로 그리고, 코드를 넣기 시작하면 선이 차오르듯 실선 초록이 된다 */
+.cpn-add {
+  position:relative; display:flex; min-height:118px; margin-bottom:18px; max-width:560px;
+  border-radius:14px; overflow:hidden;
+  background:#FBFDFC; border:1.5px dashed #BFD9CC;
+  transition:border-color var(--transition), background var(--transition);
+}
+.cpn-add:focus-within { border-style:solid; border-color:var(--green); background:#fff; }
+.cpn-add::before, .cpn-add::after {
+  content:''; position:absolute; left:104px; width:15px; height:15px;
+  background:#FBFDFC; border-radius:50%; transform:translate(-50%,-50%); z-index:2;
+  transition:background var(--transition);
+}
+.cpn-add:focus-within::before, .cpn-add:focus-within::after { background:#fff; }
+.cpn-add::before { top:0; }
+.cpn-add::after  { top:100%; }
+
+.cpn-add-stub {
+  flex:0 0 104px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-right:2px dashed #CFE3D8; color:#8FBBA6;
+  transition:color var(--transition), border-color var(--transition);
+}
+.cpn-add:focus-within .cpn-add-stub { color:var(--green); border-color:#A8D3BF; }
+.cpn-add-plus { font-size:26px; font-weight:400; line-height:1; }
+.cpn-add-lab  { font-size:11px; font-weight:800; letter-spacing:.08em; margin-top:2px; }
+
+.cpn-add-body {
+  flex:1; min-width:0; padding:16px; display:flex; flex-direction:column;
+  justify-content:center; gap:9px;
+}
+.cpn-add-title { font-size:13px; font-weight:800; color:var(--gray-700); }
+.cpn-add-row { display:flex; gap:8px; }
+#coupon-code-input {
+  flex:1; min-width:0; padding:10px 13px; font-size:14px; font-weight:700; font-family:inherit;
+  letter-spacing:1.2px; text-transform:uppercase; background:#fff;
+  border:1px solid #DCE5E0; border-radius:9px; outline:none;
+  transition:border-color var(--transition), box-shadow var(--transition);
+}
+#coupon-code-input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(45,155,111,.13); }
+#coupon-code-input::placeholder { letter-spacing:normal; font-weight:600; color:#B4C2BB; }
+#coupon-redeem-btn {
+  padding:10px 20px; border:none; border-radius:9px; background:var(--green); color:#fff;
+  font-size:13.5px; font-weight:800; font-family:inherit; cursor:pointer; white-space:nowrap;
+}
+#coupon-redeem-btn:hover:not(:disabled) { background:var(--green-dark); }
+#coupon-redeem-btn:disabled { opacity:.55; cursor:default; }
+#coupon-redeem-msg { display:none; font-size:12.5px; font-weight:700; line-height:1.6; }
+
 .cpn {
   position:relative; display:flex; min-height:118px; border-radius:14px; overflow:hidden;
   background:#fff; box-shadow:0 3px 14px rgba(17,17,17,.09);
@@ -258,8 +307,8 @@ body {
 .cpn.off .cpn-scope, .cpn.off .cpn-code { color:#AAB3AE; }
 
 @media (max-width:400px) {
-  .cpn-stub { flex-basis:88px; }
-  .cpn::before, .cpn::after { left:88px; }
+  .cpn-stub, .cpn-add-stub { flex-basis:88px; }
+  .cpn::before, .cpn::after, .cpn-add::before, .cpn-add::after { left:88px; }
   .cpn-val { font-size:23px; }
 }
 
@@ -694,17 +743,23 @@ body {
         <div class="mc-subsec-hdr"><h3>🎟 내 쿠폰함</h3></div>
 
         <!-- 받은 쿠폰 코드를 여기서 담는다. 강의가 지정된 전액 쿠폰이면
-             담는 게 아니라 그 자리에서 강의가 열린다. -->
-        <form id="coupon-redeem" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-          <input id="coupon-code-input" type="text" autocomplete="off" spellcheck="false"
-                 placeholder="쿠폰 코드를 입력하세요"
-                 style="flex:1;min-width:180px;padding:11px 14px;font-size:14px;font-family:inherit;
-                        border:1px solid var(--gray-300);border-radius:8px;text-transform:uppercase;">
-          <button type="submit" id="coupon-redeem-btn"
-                  style="padding:11px 22px;background:var(--green);color:#fff;border:none;border-radius:8px;
-                         font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">등록</button>
+             담는 게 아니라 그 자리에서 강의가 열린다.
+             모양은 아래 쿠폰과 같은 표(票)로 두되, 아직 비어 있다는 뜻으로 점선을 쓴다. -->
+        <form id="coupon-redeem" class="cpn-add">
+          <div class="cpn-add-stub" aria-hidden="true">
+            <span class="cpn-add-plus">＋</span>
+            <span class="cpn-add-lab">쿠폰</span>
+          </div>
+          <div class="cpn-add-body">
+            <label class="cpn-add-title" for="coupon-code-input">받은 쿠폰 코드가 있나요?</label>
+            <div class="cpn-add-row">
+              <input id="coupon-code-input" type="text" autocomplete="off" spellcheck="false"
+                     placeholder="코드 입력">
+              <button type="submit" id="coupon-redeem-btn">등록</button>
+            </div>
+            <div id="coupon-redeem-msg"></div>
+          </div>
         </form>
-        <div id="coupon-redeem-msg" style="display:none;font-size:13px;margin:-6px 0 14px;line-height:1.6;"></div>
 
         <div id="coupons-content" class="loading-msg">불러오는 중...</div>
       </div>
