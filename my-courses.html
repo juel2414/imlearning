@@ -193,7 +193,8 @@ body {
    진짜 상품권처럼 그린다. 양옆이 반달로 파이고, 안쪽에 두 겹 테두리가 돌고,
    왼쪽 귀에 코드가 세로로, 오른쪽 귀에 바코드가 선다.
    숫자가 주인공이고 나머지는 다 그 숫자를 받쳐 주는 장식이다. */
-.cpn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
+.cpn-grid { display:grid; gap:16px; justify-content:start;
+  grid-template-columns:repeat(auto-fill,minmax(320px,400px)); }
 
 .cpn {
   --cpn-ink:#14563C; --cpn-line:rgba(45,155,111,.34); --cpn-stub:#E9F5EF;
@@ -325,7 +326,7 @@ body {
    코드를 넣기 시작하면 선이 실선 초록으로 차오른다 */
 .cpn-add {
   --cpn-ink:#2C7A5A; --cpn-line:rgba(45,155,111,.4); --cpn-stub:#F2FAF6;
-  max-width:560px; margin-bottom:20px; min-height:150px;
+  max-width:400px; margin-bottom:20px; min-height:150px;
   background:#FBFDFC; border:1.5px dashed #BFD9CC; box-shadow:none;
 }
 .cpn-add:hover { transform:none; box-shadow:none; }
@@ -2917,6 +2918,7 @@ async function loadCoupons() {
     const { data, error } = await supabaseClient.rpc('get_my_coupons');
     if (error) throw error;
     if (!data || data.length === 0) {
+      el.classList.add('loading-msg');
       el.innerHTML = `<div style="padding:2.5rem 1rem;text-align:center;color:var(--gray-400);font-size:14px;line-height:1.8;">
         아직 받은 쿠폰이 없어요.<br>
         <span style="font-size:12.5px;color:var(--gray-400);">들으신 강좌에 후기를 남기시면 3,000원 쿠폰이 도착합니다.</span>
@@ -2929,6 +2931,7 @@ async function loadCoupons() {
       (a.status === '사용가능' ? 0 : 1) - (b.status === '사용가능' ? 0 : 1));
     const usable = list.filter(c => c.status === '사용가능').length;
 
+    el.classList.remove('loading-msg');
     el.innerHTML = `
       <div style="margin-bottom:18px;font-size:13.5px;color:var(--gray-500);line-height:1.7;">
         ${usable
@@ -2939,6 +2942,7 @@ async function loadCoupons() {
         ${list.map(c => renderCouponCard(c)).join('')}
       </div>`;
   } catch(e) {
+    el.classList.add('loading-msg');
     el.innerHTML = `<div class="loading-msg">쿠폰 정보를 불러오지 못했습니다: ${e.message}</div>`;
   }
 }
