@@ -34,49 +34,53 @@
     .sidebar-item.active { background: var(--green-light); color: var(--green); font-weight: 700; }
     /* ── 아이엠북스 ──
        파는 책이 이 사이트의 강좌와 그대로 이어진다. 그게 이 띠가 할 말이다.
-       '교재가 필요할 때' 같은 일반론 대신 실제 책 이름을 보여 준다 */
+       그래서 그림 대신 실제로 파는 책 표지를 올려 둔다. */
     .side-ads { display: flex; flex-direction: column; gap: 10px; margin-top: 1.25rem; }
     .courses-page-inner.no-side .side-ads { margin-top: 0; }
     .side-ad {
-      display: flex; flex-direction: column; align-items: center;
-      min-height: 430px; padding: 26px 16px 24px; border-radius: 14px;
-      text-align: center; text-decoration: none; overflow: hidden; position: relative;
-      background: linear-gradient(168deg, #F1FAF5 0%, #E0F2E8 42%, #C9E7D8 100%);
+      display: flex; flex-direction: column; min-height: 430px;
+      padding: 14px 14px 22px; border-radius: 16px; background: #fff;
+      border: 1px solid rgba(0,0,0,.07); text-decoration: none;
       transition: transform var(--transition), box-shadow var(--transition);
     }
     /* '전체' 에는 위에 분류 목록이 없다. 그만큼 띠를 늘려 다른 분류 화면의
        띠와 아랫단이 같은 높이에서 끝나게 한다.
        846px = 제목 + 소분류 6줄 + 띠 (가장 긴 '신앙' 기준) */
     .courses-page-inner.no-side .side-ad { min-height: 846px; }
-    .side-ad:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26,122,74,.18); }
+    .side-ad:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(26,122,74,.16); }
 
-    .side-ad-label { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--green); }
-    .side-ad-head {
-      font-size: 19px; font-weight: 900; line-height: 1.45; letter-spacing: -.03em;
-      color: #10432F; margin-top: 10px;
+    /* 표지를 흩뿌려 놓는 칸. 남는 높이를 전부 가져가므로
+       '전체' 에서는 길게, 분류별 화면에서는 짧게 잡힌다 */
+    .side-ad-panel {
+      flex: 1 1 auto; position: relative; overflow: hidden;
+      border-radius: 18px; min-height: 150px;
+      background: linear-gradient(158deg, #EAF7F0 0%, #CFECDD 52%, #B6E0CC 100%);
     }
-    .side-ad-sub { font-size: 12px; color: #4E6B5D; line-height: 1.6; margin-top: 8px; }
+    .side-ad-cover {
+      position: absolute; border-radius: 4px; background: #fff; display: block;
+      box-shadow: 0 9px 20px rgba(18,52,38,.2), 0 2px 5px rgba(18,52,38,.13);
+    }
+    /* '전체' — 칸이 길어 네 권을 세운다 */
+    .no-side .side-ad-cover.c1 { left: 4%;  top: 4%;  width: 96px;  transform: rotate(-8deg); z-index: 2; }
+    .no-side .side-ad-cover.c2 { left: 44%; top: 22%; width: 104px; transform: rotate(7deg); }
+    .no-side .side-ad-cover.c3 { left: 5%;  top: 46%; width: 96px;  transform: rotate(5deg); z-index: 2; }
+    .no-side .side-ad-cover.c4 { left: 43%; top: 65%; width: 102px; transform: rotate(-6deg); }
+    /* 분류별 화면 — 칸이 짧아 두 권만 */
+    .courses-page-inner:not(.no-side) .side-ad-cover.c1 { left: 5%;  top: 8%;  width: 84px; transform: rotate(-8deg); z-index: 2; }
+    .courses-page-inner:not(.no-side) .side-ad-cover.c2 { left: 46%; top: 26%; width: 90px; transform: rotate(7deg); }
+    .courses-page-inner:not(.no-side) .side-ad-cover.c3,
+    .courses-page-inner:not(.no-side) .side-ad-cover.c4 { display: none; }
 
-    /* 실제로 파는 책들 */
-    .side-ad-books { width: 100%; margin-top: 20px; display: flex; flex-direction: column; gap: 6px; }
-    .side-ad-book {
-      display: flex; align-items: center; gap: 8px; text-align: left;
-      padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.72);
-      font-size: 12px; font-weight: 700; color: #1B5540; line-height: 1.35;
-    }
-    .side-ad-book::before {
-      content: ''; flex: 0 0 auto; width: 3px; height: 15px; border-radius: 2px;
-      background: var(--green); opacity: .55;
-    }
-    .side-ad-more { font-size: 11.5px; color: #5E7C6D; margin-top: 10px; }
-
+    .side-ad-copy { display: block; text-align: center; margin-top: 26px; }
+    .side-ad-kicker,
+    .side-ad-line { display: block; font-weight: 800; font-size: 25px; line-height: 1.36; letter-spacing: -.045em; color: #1A1A1A; }
+    .side-ad-kicker { color: #8A9A93; }
     .side-ad-cta {
-      margin-top: auto; padding: 11px 26px; border-radius: 999px;
-      background: var(--green); color: #fff; font-size: 13.5px; font-weight: 800;
-      display: inline-flex; align-items: center; gap: 5px;
+      display: block; margin-top: 22px; text-align: center; white-space: nowrap;
+      font-weight: 800; font-size: 24px; letter-spacing: -.05em; color: #1A1A1A;
     }
-    .courses-page-inner:not(.no-side) .side-ad-cta { margin-top: 20px; }
-    .side-ad:hover .side-ad-cta { background: var(--green-dark); }
+    .side-ad-cta span { font-size: 19px; margin-left: 3px; }
+    .side-ad:hover .side-ad-cta { color: var(--green-dark); }
 
     .courses-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
     .courses-list-title { font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
@@ -168,18 +172,18 @@
         <nav class="sidebar-menu" id="sidebar-menu"></nav>
         <div class="side-ads">
           <a class="side-ad" href="https://imbooks.kr" target="_blank" rel="noopener">
-            <span class="side-ad-label">아이엠북스</span>
-            <span class="side-ad-head">수강에 필요한 교재<br>바로 구매하세요</span>
-            <span class="side-ad-sub">강좌에서 쓰는 책을<br>그대로 팔고 있어요</span>
-            <span class="side-ad-books">
-              <span class="side-ad-book">영어성경으로 배우는 67패턴</span>
-              <span class="side-ad-book">예수님과 함께 떠나는 구약여행 14일</span>
-              <span class="side-ad-book">하나님 나라 이야기</span>
-              <span class="side-ad-book">성막으로 보는 그리스도</span>
-              <span class="side-ad-book">삶의 예배 바인더</span>
+            <span class="side-ad-panel">
+              <img class="side-ad-cover c1" src="images/books/super-guide.png" alt="">
+              <img class="side-ad-cover c2" src="images/books/geom-eng.png" alt="">
+              <img class="side-ad-cover c3" src="images/books/essential-english.png" alt="">
+              <img class="side-ad-cover c4" src="images/books/hananara.png" alt="">
             </span>
-            <span class="side-ad-more">그 밖에도 여러 권</span>
-            <span class="side-ad-cta">교재 구매하기 <span aria-hidden="true">↗</span></span>
+            <span class="side-ad-copy">
+              <span class="side-ad-kicker">강좌에서 쓰는</span>
+              <span class="side-ad-line">교재를</span>
+              <span class="side-ad-line">바로 구매</span>
+            </span>
+            <span class="side-ad-cta">교재 보러 가기<span aria-hidden="true">→</span></span>
           </a>
         </div>
       </aside>
