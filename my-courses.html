@@ -741,12 +741,12 @@ body {
 <!-- 탭 -->
 <div class="container">
   <div class="my-tabs">
-    <div class="my-tab active" onclick="switchTab('courses', this)">📚 수강 중인 강좌</div>
-    <div class="my-tab" onclick="switchTab('stats', this)">📊 학습 기록</div>
-    <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)">📋 CBUP 골카드</div>
+    <div class="my-tab active" onclick="switchTab('courses', this)"><img src="icons/books.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 수강 중인 강좌</div>
+    <div class="my-tab" onclick="switchTab('stats', this)"><img src="icons/chart.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 학습 기록</div>
+    <div class="my-tab" id="tab-goalcard-btn" style="display:none;" onclick="switchTab('goalcard', this)"><img src="icons/clipboard.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> CBUP 골카드</div>
     <div class="my-tab" onclick="switchTab('wishlist', this)"><img src="icons/heart-filled.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 찜한 강좌</div>
     <div class="my-tab" onclick="switchTab('gifts', this)"><img src="icons/gift.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 결제·선물·쿠폰</div>
-    <div class="my-tab" onclick="switchTab('account', this)">⚙ 내 정보·문의</div>
+    <div class="my-tab" onclick="switchTab('account', this)"><img src="icons/gear.svg" alt="" style="width:1em;height:1em;vertical-align:-0.15em;display:inline-block;"> 내 정보·문의</div>
   </div>
 </div>
 
@@ -956,7 +956,7 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js?v=3"></script>
 <script src="js/course-series.js"></script>
-<script src="js/nav.js?v=5"></script>
+<script src="js/nav.js?v=6"></script>
 <script src="js/main.js"></script>
 <script src="js/badges.js"></script>
 <script>
@@ -1160,7 +1160,7 @@ function renderCourses(orders, coursesMap) {
   if (orders.length === 0) {
     el.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">📚</div>
+        <div class="empty-state-icon"><img src="icons/books.svg" alt="" style="width:1em;height:1em;"></div>
         <div class="empty-state-title">아직 수강 중인 강좌가 없어요</div>
         <div class="empty-state-desc">원하는 강좌를 찾아 수강을 시작해보세요!<br>지금 바로 강좌 목록을 둘러보세요.</div>
         <a href="courses.html" class="btn btn-primary">강좌 둘러보기</a>

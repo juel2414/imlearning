@@ -40,7 +40,9 @@
     '.nb-bell-item:hover{background:#f7f9f8;}',
     '.nb-bell-item.unread{background:#f2faf6;}',
     '.nb-bell-item.unread:hover{background:#eaf6f0;}',
-    '.nb-bell-icon{flex-shrink:0;font-size:15px;line-height:1.5;}',
+    '.nb-bell-icon{flex-shrink:0;font-size:15px;line-height:1.5;color:#9AA5A0;}',
+    '.nb-bell-icon .nb-ico{display:block;margin-top:3px;}',
+    '.nb-bell-item.unread .nb-bell-icon{color:var(--green,#2D9B6F);}',
     '.nb-bell-body{display:flex;flex-direction:column;gap:2px;min-width:0;}',
     '.nb-bell-body b{font-size:13px;color:#111;font-weight:700;}',
     '.nb-bell-desc{font-size:12px;color:#666;line-height:1.5;white-space:pre-line;',
@@ -776,7 +778,7 @@
     if (!list) return;
     if (!rows.length) { list.innerHTML = '<div class="nb-bell-empty">받은 알림이 없습니다</div>'; return; }
     list.innerHTML = rows.map(function (r) {
-      var icon = r.type === 'note_rejected' ? '↩' : r.type === 'note_resubmitted' ? '📝' : '🔔';
+      var icon = r.type === 'note_rejected' ? '↩' : r.type === 'note_resubmitted' ? '📝' : '<svg class="nb-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
       return '<a class="nb-bell-item' + (r.read_at ? '' : ' unread') + '" ' +
 'href="' + esc(r.link || '#') + '" data-nid="' + r.id + '" ' +
         'onclick="return navReadNotification(event, ' + r.id + ')">' +
