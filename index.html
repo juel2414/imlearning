@@ -1540,7 +1540,7 @@ function initHeroCanvas() {
     <div class="np-footer">
       <label class="np-dismiss-row">
         <input type="checkbox" id="np-dismiss-today">
-        오늘 하루 보지 않기
+        다시 보지 않기
       </label>
       <a href="notices.html" class="np-more-link">전체 공지 보기 →</a>
     </div>
@@ -1549,17 +1549,30 @@ function initHeroCanvas() {
 
 <script>
 (function () {
-  var DISMISS_KEY = 'iml_notice_dismissed';
+  // 닫은 공지의 id 를 모아 둔다. 날짜로 막던 예전 방식은 같은 안내를
+  // 날마다 다시 보여줬다. 한 번 하면 끝나는 안내에는 맞지 않는다.
+  // id 로 기억하므로 새 공지가 올라오면 그건 다시 뜬다.
+  var DISMISS_KEY = 'iml_notice_dismissed_ids';
+  var currentNoticeId = null;
 
-  function todayStr() {
-    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  function dismissedIds() {
+    try { return JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function rememberDismissed(id) {
+    if (id == null) return;
+    try {
+      var ids = dismissedIds();
+      if (ids.indexOf(id) === -1) ids.push(id);
+      localStorage.setItem(DISMISS_KEY, JSON.stringify(ids.slice(-50)));
+    } catch (e) {}
   }
 
   function closePopup() {
     var overlay = document.getElementById('notice-popup-overlay');
     if (!overlay) return;
     if (document.getElementById('np-dismiss-today').checked) {
-      localStorage.setItem(DISMISS_KEY, todayStr());
+      rememberDismissed(currentNoticeId);
     }
     overlay.classList.remove('open');
   }
@@ -1570,6 +1583,7 @@ function initHeroCanvas() {
     var contentEl = document.getElementById('np-content');
     if (!overlay || !notice) return;
 
+    currentNoticeId = notice.id;
     titleEl.textContent  = notice.title;
     // 공지 목록과 같은 규칙으로 꾸민다. 함수가 없으면 글자 그대로 둔다.
     if (window.formatNoticeText) contentEl.innerHTML = window.formatNoticeText(notice.content);
@@ -1583,9 +1597,6 @@ function initHeroCanvas() {
   }
 
   function initNoticePopup() {
-    // 오늘 닫은 기록 있으면 스킵
-    if (localStorage.getItem(DISMISS_KEY) === todayStr()) return;
-
     var sb = window.supabaseClient;
     if (!sb) { setTimeout(initNoticePopup, 80); return; }
 
@@ -1596,7 +1607,8 @@ function initHeroCanvas() {
       .limit(1)
       .maybeSingle()
       .then(function (res) {
-        if (res.data) showPopup(res.data);
+        // 이 공지를 이미 '다시 보지 않기' 로 닫았으면 띄우지 않는다
+        if (res.data && dismissedIds().indexOf(res.data.id) === -1) showPopup(res.data);
       })
       .catch(function () {});
   }
