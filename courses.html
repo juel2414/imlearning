@@ -32,21 +32,38 @@
     .sidebar-item { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; color: var(--gray-700); transition: all var(--transition); font-weight: 500; cursor: pointer; }
     .sidebar-item:hover { background: var(--green-light); color: var(--green-dark); }
     .sidebar-item.active { background: var(--green-light); color: var(--green); font-weight: 700; }
-    /* ── 아이엠북스 ── 강의를 고르다 교재가 필요해지는 자리다 */
-    .side-ad { display: block; margin-top: 1.5rem; border: 1px solid rgba(0,0,0,.08);
-      border-radius: 14px; overflow: hidden; background: var(--white); text-decoration: none;
-      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition); }
-    .side-ad:hover { border-color: var(--green); box-shadow: 0 8px 22px rgba(17,17,17,.10); transform: translateY(-2px); }
-    .courses-page-inner.no-side .side-ad { margin-top: 0; }
-    .side-ad-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-    .side-ad-body { padding: 14px 14px 16px; }
-    .side-ad-label { font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--green); }
-    .side-ad-title { font-size: 16px; font-weight: 800; color: var(--black); margin-top: 4px; letter-spacing: -.02em; }
-    .side-ad-desc { font-size: 12.5px; color: var(--gray-500); line-height: 1.6; margin-top: 6px; }
-    .side-ad-cta { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px;
-      padding: 8px 14px; border-radius: 8px; background: var(--green); color: #fff;
-      font-size: 12.5px; font-weight: 800; }
+    /* ── 아이엠북스 ── 강의를 고르다 교재가 필요해지는 자리다.
+       사진 카드보다 길쭉한 띠가 이 폭에서 더 잘 읽힌다 */
+    .side-ads { display: flex; flex-direction: column; gap: 12px; margin-top: 1.5rem; }
+    .courses-page-inner.no-side .side-ads { margin-top: 0; }
+    .side-ad {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; min-height: 300px; padding: 28px 18px; border-radius: 14px;
+      text-align: center; text-decoration: none; overflow: hidden; position: relative;
+      background: linear-gradient(160deg, #EAF7F0 0%, #D8EFE3 55%, #C6E6D6 100%);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .side-ad:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26,122,74,.18); }
+    .side-ad-label { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; color: var(--green); }
+    .side-ad-head {
+      font-size: 22px; font-weight: 900; line-height: 1.35; letter-spacing: -.03em;
+      color: #10432F; margin-top: 10px;
+    }
+    .side-ad-brand {
+      font-size: 27px; font-weight: 900; letter-spacing: -.04em; color: var(--green-dark);
+      margin-top: 12px;
+    }
+    .side-ad-desc { font-size: 12.5px; color: #4E6B5D; line-height: 1.6; margin-top: 8px; }
+    .side-ad-cta {
+      margin-top: 20px; padding: 10px 24px; border-radius: 999px;
+      background: var(--green); color: #fff; font-size: 13.5px; font-weight: 800;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
     .side-ad:hover .side-ad-cta { background: var(--green-dark); }
+    /* 뒤에 깔리는 책 모양. 글자를 가리지 않게 아주 옅게 */
+    .side-ad-deco { position: absolute; right: -18px; bottom: -22px; width: 116px; height: 116px;
+      opacity: .16; color: var(--green-dark); pointer-events: none; }
+
     .courses-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
     .courses-list-title { font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
     .courses-list-title span { color: var(--green); }
@@ -135,15 +152,18 @@
       <aside class="sidebar" id="courses-side">
         <div class="sidebar-title" id="sidebar-title">전체 강좌</div>
         <nav class="sidebar-menu" id="sidebar-menu"></nav>
-        <a class="side-ad" href="https://imbooks.kr" target="_blank" rel="noopener">
-          <img class="side-ad-img" src="images/inst-books.jpg" alt="" loading="lazy">
-          <div class="side-ad-body">
-            <div class="side-ad-label">교재</div>
-            <div class="side-ad-title">아이엠북스</div>
-            <div class="side-ad-desc">강의와 함께 보는 교재를 만나보세요.</div>
-            <span class="side-ad-cta">둘러보기 <span aria-hidden="true">↗</span></span>
-          </div>
-        </a>
+        <div class="side-ads">
+          <a class="side-ad" href="https://imbooks.kr" target="_blank" rel="noopener">
+            <svg class="side-ad-deco" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M3 5.5A1.5 1.5 0 0 1 4.5 4H10a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4.5A1.5 1.5 0 0 1 3 15.5v-10Z" fill="currentColor"/>
+              <path d="M21 5.5A1.5 1.5 0 0 0 19.5 4H14a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h5.5a1.5 1.5 0 0 0 1.5-1.5v-10Z" fill="currentColor" opacity=".6"/>
+            </svg>
+            <span class="side-ad-label">아이엠북스</span>
+            <span class="side-ad-head">교재가<br>필요할 때</span>
+            <span class="side-ad-desc">강의와 함께 보는<br>교재를 한 곳에서</span>
+            <span class="side-ad-cta">바로가기 <span aria-hidden="true">↗</span></span>
+          </a>
+        </div>
       </aside>
       <main>
         <!-- Top3 인기 강좌 -->
