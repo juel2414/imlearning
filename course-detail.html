@@ -1003,9 +1003,12 @@ async function toggleWish() {
     document.getElementById('preview-modal').classList.add('open');
     document.body.style.overflow = 'hidden';
 
+    // 바로 재생하면 첫 화면의 제목 카드를 지나쳐 버려서
+    // 강의실에서 열었을 때와 다른 장면이 떠 있게 된다.
+    // 강의 플레이어와 같이 첫 장면에서 멈춰 두고 누르게 한다.
     player = new Vimeo.Player(container, {
       id: parseInt(vimeoMatch[1], 10),
-      autoplay: true,
+      autoplay: false,
       title: false,
       byline: false,
       portrait: false,
