@@ -1,3 +1,14 @@
+// ───── http 로 들어오면 https 로 올린다 ─────
+// GitHub Pages 의 'HTTPS 강제' 는 인증서 재발급이 걸려 있는 동안 켤 수 없다.
+// 그동안 로그인·결제가 암호화 없이 오가면 안 되므로 여기서 올려 둔다.
+// 인증서가 자리 잡아 Pages 쪽 강제를 다시 켜면 이 구문은 하는 일이 없어진다.
+(function () {
+  var h = location.hostname;
+  if (location.protocol === 'http:' && /(^|\.)imlearning\.co\.kr$/.test(h)) {
+    location.replace('https://' + location.host + location.pathname + location.search + location.hash);
+  }
+})();
+
 // ───── Supabase 연동 설정 ─────
 const SUPABASE_URL = 'https://lvglkxjzraznwnfilxvy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2Z2xreGp6cmF6bnduZmlseHZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTMyOTgsImV4cCI6MjA5NzI4OTI5OH0.FGsNDbX_XQuVyJfJbFH2wuDLH21EhV7MSJvi6_Lu_tk';
