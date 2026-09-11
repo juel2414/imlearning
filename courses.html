@@ -32,31 +32,34 @@
     .sidebar-item { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; color: var(--gray-700); transition: all var(--transition); font-weight: 500; cursor: pointer; }
     .sidebar-item:hover { background: var(--green-light); color: var(--green-dark); }
     .sidebar-item.active { background: var(--green-light); color: var(--green); font-weight: 700; }
-    /* ── 아이엠북스 ── 강의를 고르다 교재가 필요해지는 자리다.
-       강좌가 주인공이므로 띠는 작게 둔다. 옆에 있는 줄만 알면 된다 */
+    /* ── 아이엠북스 ──
+       띠가 하나뿐이라 여러 개를 쌓는 대신 하나를 길게 세운다.
+       가로로는 사이드바 폭을 넘지 않으니 강좌를 가리지 않는다 */
     .side-ads { display: flex; flex-direction: column; gap: 10px; margin-top: 1.25rem; }
     .courses-page-inner.no-side .side-ads { margin-top: 0; }
     .side-ad {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 152px; padding: 18px 14px; border-radius: 12px;
+      min-height: 430px; padding: 34px 18px; border-radius: 14px;
       text-align: center; text-decoration: none; overflow: hidden; position: relative;
-      background: linear-gradient(160deg, #EDF8F2 0%, #DCF0E5 60%, #CBE8D8 100%);
+      background: linear-gradient(165deg, #EDF8F2 0%, #DCF0E5 45%, #C3E4D3 100%);
       transition: transform var(--transition), box-shadow var(--transition);
     }
-    .side-ad:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(26,122,74,.16); }
-    .side-ad-label { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; color: var(--green); }
+    .side-ad:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26,122,74,.18); }
+    .side-ad-label { font-size: 11.5px; font-weight: 800; letter-spacing: .12em; color: var(--green); }
+    .side-ad-rule { width: 26px; height: 2px; background: var(--green); opacity: .35; margin: 14px 0 0; }
     .side-ad-head {
-      font-size: 16px; font-weight: 900; line-height: 1.4; letter-spacing: -.03em;
-      color: #10432F; margin-top: 5px;
+      font-size: 23px; font-weight: 900; line-height: 1.4; letter-spacing: -.03em;
+      color: #10432F; margin-top: 16px;
     }
+    .side-ad-desc { font-size: 13px; color: #4E6B5D; line-height: 1.75; margin-top: 12px; }
     .side-ad-cta {
-      margin-top: 12px; padding: 7px 16px; border-radius: 999px;
-      background: var(--green); color: #fff; font-size: 12px; font-weight: 800;
-      display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 24px; padding: 11px 26px; border-radius: 999px;
+      background: var(--green); color: #fff; font-size: 13.5px; font-weight: 800;
+      display: inline-flex; align-items: center; gap: 5px;
     }
     .side-ad:hover .side-ad-cta { background: var(--green-dark); }
-    .side-ad-deco { position: absolute; right: -14px; bottom: -16px; width: 76px; height: 76px;
-      opacity: .14; color: var(--green-dark); pointer-events: none; }
+    .side-ad-deco { position: absolute; right: -20px; bottom: -24px; width: 132px; height: 132px;
+      opacity: .15; color: var(--green-dark); pointer-events: none; }
 
     .courses-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
     .courses-list-title { font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
@@ -153,7 +156,9 @@
               <path d="M21 5.5A1.5 1.5 0 0 0 19.5 4H14a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h5.5a1.5 1.5 0 0 0 1.5-1.5v-10Z" fill="currentColor" opacity=".6"/>
             </svg>
             <span class="side-ad-label">아이엠북스</span>
+            <span class="side-ad-rule" aria-hidden="true"></span>
             <span class="side-ad-head">교재가<br>필요할 때</span>
+            <span class="side-ad-desc">강의와 함께 보는<br>교재를 한 곳에서</span>
             <span class="side-ad-cta">바로가기 <span aria-hidden="true">↗</span></span>
           </a>
         </div>
