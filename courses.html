@@ -17,6 +17,9 @@
   }
     .courses-page { padding: 2rem 0 5rem; }
     .courses-page-inner { display: grid; grid-template-columns: 220px 1fr; gap: 2.5rem; align-items: start; }
+    /* '전체' 에서는 왼쪽 목록이 위 탭과 같은 내용이라 자리만 차지한다 */
+    .courses-page-inner.no-side { grid-template-columns: 1fr; }
+    .courses-page-inner.no-side .sidebar { display: none; }
     .top-cat-bar { background: var(--white); border-bottom: 1px solid rgba(0,0,0,0.07); position: sticky; top: 64px; z-index: 50; }
     .top-cat-inner { display: flex; gap: 0; max-width: 1160px; margin: 0 auto; padding: 0 2rem; overflow-x: auto; }
     .top-cat-btn { padding: 14px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; white-space: nowrap; transition: all var(--transition); background: none; cursor: pointer; }
@@ -110,8 +113,8 @@
 
 <div class="courses-page">
   <div class="container">
-    <div class="courses-page-inner">
-      <aside class="sidebar">
+    <div class="courses-page-inner" id="courses-layout">
+      <aside class="sidebar" id="courses-side">
         <div class="sidebar-title" id="sidebar-title">전체 강좌</div>
         <nav class="sidebar-menu" id="sidebar-menu"></nav>
       </aside>
@@ -226,6 +229,13 @@ async function toggleWish(e, courseId) {
 // ───── 사이드바 렌더 ─────
 function renderSidebar(cat) {
   const data = catData[cat];
+
+  // '전체' 는 위 탭과 똑같은 목록을 옆에 한 번 더 세우는 꼴이라 감춘다.
+  // 분류를 고른 뒤에는 그 안의 소분류가 뜨므로 그때는 보여 준다.
+  const layout = document.getElementById('courses-layout');
+  if (layout) layout.classList.toggle('no-side', cat === 'all');
+  if (cat === 'all') return;
+
   document.getElementById('sidebar-title').textContent = data.title;
   const menu = document.getElementById('sidebar-menu');
 
