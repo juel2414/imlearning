@@ -76,11 +76,13 @@
     .side-ad-line { display: block; font-weight: 800; font-size: 25px; line-height: 1.36; letter-spacing: -.045em; color: #1A1A1A; }
     .side-ad-kicker { color: #8A9A93; }
     .side-ad-cta {
-      display: block; margin-top: 22px; text-align: center; white-space: nowrap;
-      font-weight: 800; font-size: 24px; letter-spacing: -.05em; color: #1A1A1A;
+      display: block; margin-top: 20px; padding: 15px 0; border-radius: 12px;
+      background: var(--green); color: #fff; text-align: center; white-space: nowrap;
+      font-weight: 800; font-size: 16.5px; letter-spacing: -.03em;
+      transition: background var(--transition);
     }
-    .side-ad-cta span { font-size: 19px; margin-left: 3px; }
-    .side-ad:hover .side-ad-cta { color: var(--green-dark); }
+    .side-ad-cta span { font-size: 14px; margin-left: 4px; }
+    .side-ad:hover .side-ad-cta { background: var(--green-dark); }
 
     .courses-list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
     .courses-list-title { font-size: 22px; font-weight: 800; color: var(--black); letter-spacing: -0.5px; }
