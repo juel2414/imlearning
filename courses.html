@@ -37,6 +37,10 @@
        가로로는 사이드바 폭을 넘지 않으니 강좌를 가리지 않는다 */
     .side-ads { display: flex; flex-direction: column; gap: 10px; margin-top: 1.25rem; }
     .courses-page-inner.no-side .side-ads { margin-top: 0; }
+    /* '전체' 에서는 위에 분류 목록이 없다. 그만큼 띠를 늘려 다른 분류 화면의
+       띠와 아랫단이 같은 높이에서 끝나게 한다.
+       772px = 제목 + 소분류 6줄 + 띠 430px (가장 긴 '신앙' 기준) */
+    .courses-page-inner.no-side .side-ad { min-height: 772px; }
     .side-ad {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       min-height: 430px; padding: 34px 18px; border-radius: 14px;
