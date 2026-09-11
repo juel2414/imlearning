@@ -955,6 +955,7 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js?v=3"></script>
+<script src="js/phone-modal.js?v=1"></script>
 <script src="js/course-series.js"></script>
 <script src="js/nav.js?v=6"></script>
 <script src="js/main.js"></script>
@@ -3307,9 +3308,9 @@ async function gmRequestGift() {
   } catch(e) {}
 
   if (!profile.phone) {
-    const inputPhone = prompt('결제를 위해 휴대폰 번호를 입력해주세요.\n(예: 01012345678)', '');
-    if (!inputPhone || !inputPhone.trim()) { alert('휴대폰 번호를 입력해야 결제를 진행할 수 있습니다.'); return; }
-    profile.phone = inputPhone.trim().replace(/[^0-9]/g, '');
+    const inputPhone = await askPhone();
+    if (!inputPhone) return;          // 취소하면 조용히 멈춘다
+    profile.phone = inputPhone;
     try { await supabaseClient.from('profiles').upsert({ id: user.id, phone: profile.phone }, { onConflict: 'id' }); } catch(e) {}
   }
 
