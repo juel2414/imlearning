@@ -527,26 +527,25 @@ body {
   background:var(--green,#2D9B6F); color:#fff; font-family:inherit; white-space:nowrap; }
 .pnb-btn:hover { filter:brightness(1.08); }
 .pnb-btn.ghost { background:rgba(255,255,255,.14); }
-/* 강의 넘기기 — 화면 양옆. 영상 위에 얹어 두어 자리를 먹지 않는다 */
+/* 강의 넘기기 — 영상 바깥 좌우. 화면을 가리지 않는다 */
+.player-stage { display:flex; align-items:center; gap:10px; }
+.player-stage > .player-sidebar-row { flex:1; min-width:0; }
 .lesson-nav {
-  position:absolute; top:50%; transform:translateY(-50%); z-index:6;
-  width:42px; height:42px; border-radius:50%; border:none; cursor:pointer;
-  display:none; align-items:center; justify-content:center;
-  background:rgba(0,0,0,.42); color:#fff; padding:0;
-  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
-  transition:background .14s, transform .14s;
+  flex:0 0 auto; width:44px; height:44px; border-radius:50%; cursor:pointer;
+  display:none; align-items:center; justify-content:center; padding:0;
+  background:#fff; border:1px solid rgba(0,0,0,.1); color:#444;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  transition:background .14s, color .14s, border-color .14s, transform .14s;
 }
 .lesson-nav.show { display:flex; }
-.lesson-nav:hover { background:rgba(0,0,0,.68); }
-.lesson-nav:active { transform:translateY(-50%) scale(.94); }
-.lesson-nav.prev { left:10px; }
-.lesson-nav.next { right:10px; }
+.lesson-nav:hover { background:var(--green); border-color:var(--green); color:#fff; }
+.lesson-nav:active { transform:scale(.93); }
 .lesson-nav svg { width:20px; height:20px; display:block; }
-@media (max-width:600px){
-  .lesson-nav { width:36px; height:36px; }
-  .lesson-nav svg { width:17px; height:17px; }
-  .lesson-nav.prev { left:6px; }
-  .lesson-nav.next { right:6px; }
+@media (max-width:900px){
+  .player-stage { gap:6px; }
+  .lesson-nav { width:34px; height:34px; }
+  .lesson-nav svg { width:16px; height:16px; }
+}
 }
 .note-submit-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer; border:1.5px solid var(--green); background:#fff; color:var(--green); transition:all .15s; margin-top:6px; font-family:inherit; }
 .note-submit-btn:hover { background:var(--green); color:#fff; }
@@ -654,6 +653,9 @@ body {
         </div>
         <div class="tab-content active" id="tab-curriculum">
           <!-- 강의 영상 플레이어 (한양사이버대 스타일 2열) -->
+          <div class="player-stage">
+            <button type="button" class="lesson-nav prev" id="lesson-prev-btn"
+                    onclick="playPrevLesson()" aria-label="이전 강의"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
           <div class="player-sidebar-row" id="playerSidebarRow">
             <!-- 왼쪽: 동영상 -->
             <div class="player-main-col" id="lesson-player-wrap">
@@ -670,14 +672,6 @@ body {
               </div>
               <div class="lesson-iframe-wrap">
                 <div id="vimeo-player-container"></div>
-                <button type="button" class="lesson-nav prev" id="lesson-prev-btn"
-                        onclick="playPrevLesson()" aria-label="이전 강의"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-                <button type="button" class="lesson-nav next" id="lesson-next-btn"
-                        onclick="playNextLesson()" aria-label="다음 강의"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
-              </div>
-              <div class="player-note-bar" id="player-note-bar" style="display:none;">
-                <span class="pnb-status" id="pnb-status">이 강의의 노트를 제출해 주세요</span>
-                <button class="pnb-btn" id="pnb-btn" onclick="submitNoteForCurrentLesson()">📝 강의노트 제출</button>
               </div>
               <div class="watch-info">
                 <span>실제 시청: <strong id="watch-display">0초</strong></span>
@@ -686,6 +680,9 @@ body {
                 <span id="watch-done-badge" style="display:none;color:rgba(255,255,255,.9);font-weight:700;font-size:12px;">✅ 완료</span>
               </div>
             </div>
+          </div>
+            <button type="button" class="lesson-nav next" id="lesson-next-btn"
+                    onclick="playNextLesson()" aria-label="다음 강의"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
           </div>
           <!-- 진도 요약 (수강 중일 때만 표시) -->
           <div class="prog-summary" id="prog-summary">
