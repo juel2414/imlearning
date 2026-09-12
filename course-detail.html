@@ -527,6 +527,17 @@ body {
   background:var(--green,#2D9B6F); color:#fff; font-family:inherit; white-space:nowrap; }
 .pnb-btn:hover { filter:brightness(1.08); }
 .pnb-btn.ghost { background:rgba(255,255,255,.14); }
+/* 다음 강의 — 한 강을 끝내고 눈이 머무는 자리에 둔다 */
+.player-next-bar { display:none; align-items:center; gap:11px; padding:11px 14px; background:#0E1C16;
+  border-top:1px solid rgba(255,255,255,.08); }
+.player-next-bar.show { display:flex; }
+.pnx-label { font-size:11px; font-weight:700; letter-spacing:.06em; color:rgba(255,255,255,.42); flex-shrink:0; }
+.pnx-title { font-size:13px; color:rgba(255,255,255,.88); flex:1; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pnx-btn { padding:8px 16px; font-size:13px; font-weight:800; border-radius:8px; border:none; cursor:pointer;
+  background:var(--green); color:#fff; white-space:nowrap; flex-shrink:0;
+  font-family:inherit; transition:filter .12s; }
+.pnx-btn:hover { filter:brightness(1.08); }
 .note-submit-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer; border:1.5px solid var(--green); background:#fff; color:var(--green); transition:all .15s; margin-top:6px; font-family:inherit; }
 .note-submit-btn:hover { background:var(--green); color:#fff; }
 .note-submit-btn.submitted { background:#f0faf5; border-color:transparent; color:#1e7a54; }
@@ -653,6 +664,11 @@ body {
               <div class="player-note-bar" id="player-note-bar" style="display:none;">
                 <span class="pnb-status" id="pnb-status">이 강의의 노트를 제출해 주세요</span>
                 <button class="pnb-btn" id="pnb-btn" onclick="submitNoteForCurrentLesson()">📝 강의노트 제출</button>
+              </div>
+              <div class="player-next-bar" id="player-next-bar">
+                <span class="pnx-label">다음 강의</span>
+                <span class="pnx-title" id="pnx-title"></span>
+                <button type="button" class="pnx-btn" onclick="playNextLesson()">다음 강의 듣기 →</button>
               </div>
               <div class="watch-info">
                 <span>실제 시청: <strong id="watch-display">0초</strong></span>
@@ -2541,6 +2557,7 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
   document.getElementById('lesson-player-title').textContent = lessonNum + '강 — ' + lessonTitle;
   currentPlayingLesson = { num: lessonNum, title: lessonTitle };
   updatePlayerNoteBar();
+  updateNextBar();
   document.getElementById('resume-banner').classList.remove('show');
   document.getElementById('watch-display').textContent = '0초';
   document.getElementById('watch-pct-text').textContent = '';
@@ -2630,6 +2647,32 @@ async function openLesson(lessonNum, lessonTitle, videoUrl) {
   }
 }
 
+/** 지금 강의 다음 차례를 찾는다. 목록 순서를 그대로 따른다 */
+function nextLessonOf(num) {
+  const i = curriculumLessons.findIndex(c => c.num === num);
+  return i < 0 ? null : (curriculumLessons[i + 1] || null);
+}
+
+function updateNextBar() {
+  const bar = document.getElementById('player-next-bar');
+  if (!bar) return;
+  const nx = currentPlayingLesson ? nextLessonOf(currentPlayingLesson.num) : null;
+  if (!nx) { bar.classList.remove('show'); return; }
+  document.getElementById('pnx-title').textContent = nx.num + '강 · ' + nx.title;
+  bar.classList.add('show');
+}
+
+function playNextLesson() {
+  if (!currentPlayingLesson) return;
+  const nx = nextLessonOf(currentPlayingLesson.num);
+  if (!nx) return;
+  // 영상 주소는 목록 DOM 에 채워져 있다. 없으면 강의 목록 쪽 값을 쓴다
+  const el  = document.querySelector('[data-lesson="lesson-' + nx.num + '"]');
+  const url = (el && el.dataset.videoUrl) || nx.videoUrl || '';
+  if (!url) { alert('다음 강의 영상이 아직 올라오지 않았어요.'); return; }
+  openLesson(nx.num, nx.title, url);
+}
+
 function toggleCurriculumSection(hdrEl) {
   hdrEl.closest('.curriculum-section').classList.toggle('collapsed');
 }
@@ -2649,6 +2692,7 @@ function closeLessonPlayer() {
   document.querySelector('.detail-inner')?.classList.remove('playing');
   currentPlayingLesson = null;
   updatePlayerNoteBar();
+  updateNextBar();
   updateSidebarActive(0);
 }
 
