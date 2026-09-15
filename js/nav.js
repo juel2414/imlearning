@@ -883,9 +883,10 @@
     'font-size:13px;z-index:101;',
     'position:sticky;top:0;',
     'animation:bnrSlide .3s ease;}',
-    '@keyframes bnrSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}',
+    '@keyframes bnrSlide{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}',
+    // 글자가 위아래로 움직이며 넘어간다. 띠 밖으로 새지 않게 가둔다.
     '#im-notice-banner.open{display:flex;align-items:center;gap:10px;',
-    'padding:10px 18px;justify-content:space-between;flex-wrap:wrap;}',
+    'padding:10px 18px;justify-content:space-between;flex-wrap:wrap;overflow:hidden;}',
     '.bnr-type{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;',
     'background:rgba(255,255,255,.18);border-radius:4px;padding:2px 7px;flex-shrink:0;}',
     '.bnr-text{flex:1;min-width:0;font-weight:600;line-height:1.4;word-break:keep-all;}',
@@ -918,7 +919,7 @@
 
   // 지금 차례의 공지를 배너 안에 그린다. 껍데기는 그대로 두고 속만 바꾼다.
   // 글자가 위로 빠지고 다음 글자가 아래에서 올라온다. 깜빡이지 않는다.
-  var BNR_MOVE = 220;
+  var BNR_MOVE = 240;
   function bannerHtml(n) {
     return '<span class="bnr-type">' + (TYPE_LABEL[n.type] || '공지') + '</span>' +
            '<span class="bnr-text">' + esc(n.title) + '</span>';
@@ -944,13 +945,13 @@
 
     body.style.transition = 'opacity ' + BNR_MOVE + 'ms ease, transform ' + BNR_MOVE + 'ms ease';
     body.style.opacity = '0';
-    body.style.transform = 'translateY(-8px)';
+    body.style.transform = 'translateY(-7px)';
 
     setTimeout(function () {
       body.innerHTML = bannerHtml(n);
       // 전환 없이 아래로 내려 두었다가 올라오게 한다
       body.style.transition = 'none';
-      body.style.transform = 'translateY(8px)';
+      body.style.transform = 'translateY(7px)';
       void body.offsetHeight;
       body.style.transition = 'opacity ' + BNR_MOVE + 'ms ease, transform ' + BNR_MOVE + 'ms ease';
       body.style.opacity = '1';
