@@ -892,7 +892,7 @@
     '.bnr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}',
     '.bnr-link{font-size:11px;color:rgba(255,255,255,.8);text-decoration:none;white-space:nowrap;}',
     '.bnr-link:hover{color:#fff;text-decoration:underline;}',
-    '.bnr-body{display:flex;align-items:center;gap:10px;min-width:0;flex:1;','transition:opacity .18s ease;}',
+    '.bnr-body{display:flex;align-items:center;gap:10px;min-width:0;flex:1;will-change:opacity,transform;}',
     '.bnr-dismiss{background:none;border:none;color:rgba(255,255,255,.7);',
     'cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;border-radius:4px;}',
     '.bnr-dismiss:hover{color:#fff;background:rgba(255,255,255,.15);}',
@@ -917,21 +917,45 @@
   }
 
   // 지금 차례의 공지를 배너 안에 그린다. 껍데기는 그대로 두고 속만 바꾼다.
-  function paintBanner() {
+  // 글자가 위로 빠지고 다음 글자가 아래에서 올라온다. 깜빡이지 않는다.
+  var BNR_MOVE = 220;
+  function bannerHtml(n) {
+    return '<span class="bnr-type">' + (TYPE_LABEL[n.type] || '공지') + '</span>' +
+           '<span class="bnr-text">' + esc(n.title) + '</span>';
+  }
+  function paintBanner(instant) {
     var b = document.getElementById(BANNER_ID);
     if (!b || !bnrList.length) return;
     var n = bnrList[bnrAt];
     var body = b.querySelector('.bnr-body');
     if (!body) return;
-    body.style.opacity = '0';
-    setTimeout(function () {
-      body.innerHTML =
-        '<span class="bnr-type">' + (TYPE_LABEL[n.type] || '공지') + '</span>' +
-        '<span class="bnr-text">' + esc(n.title) + '</span>';
-      body.style.opacity = '1';
-    }, 180);
+
     var link = b.querySelector('.bnr-link');
     if (link) link.style.visibility = n.content ? 'visible' : 'hidden';
+
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (instant || still) {
+      body.style.transition = 'none';
+      body.style.opacity = '1';
+      body.style.transform = 'none';
+      body.innerHTML = bannerHtml(n);
+      return;
+    }
+
+    body.style.transition = 'opacity ' + BNR_MOVE + 'ms ease, transform ' + BNR_MOVE + 'ms ease';
+    body.style.opacity = '0';
+    body.style.transform = 'translateY(-8px)';
+
+    setTimeout(function () {
+      body.innerHTML = bannerHtml(n);
+      // 전환 없이 아래로 내려 두었다가 올라오게 한다
+      body.style.transition = 'none';
+      body.style.transform = 'translateY(8px)';
+      void body.offsetHeight;
+      body.style.transition = 'opacity ' + BNR_MOVE + 'ms ease, transform ' + BNR_MOVE + 'ms ease';
+      body.style.opacity = '1';
+      body.style.transform = 'translateY(0)';
+    }, BNR_MOVE + 20);
   }
 
   function stopBannerRotation() {
@@ -959,7 +983,7 @@
     else document.body.insertBefore(banner, document.body.firstChild);
     document.body.classList.add('has-notice-banner');
 
-    paintBanner();
+    paintBanner(true);
 
     // 공지가 둘 이상일 때만 돌린다. 하나뿐이면 가만히 둔다.
     if (bnrList.length > 1) {
