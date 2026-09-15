@@ -2831,7 +2831,7 @@ async function renderReviewForm() {
 
   formEl.innerHTML = `
     <div class="review-form-box">
-      <div class="review-form-title">후기를 남겨주세요 (후기 작성 시 3,000원 쿠폰 증정!)</div>
+      <div class="review-form-title">후기를 남겨주세요 (별 다섯 개 후기에 3,000원 쿠폰!)</div>
       <div class="star-select" id="star-select">
         <button type="button" class="im-star" data-v="1" onclick="selectStar(1)" aria-label="1점"></button>
         <button type="button" class="im-star" data-v="2" onclick="selectStar(2)" aria-label="2점"></button>
@@ -2841,7 +2841,7 @@ async function renderReviewForm() {
       </div>
       <input class="review-name-input" id="review-display-name" type="text" placeholder="표시될 이름 (예: 김○○ 집사)" maxlength="20" value="${esc(defaultName)}">
       <textarea class="review-textarea" id="review-content" placeholder="강좌를 수강하고 느낀 점을 자유롭게 작성해주세요." maxlength="500"></textarea>
-      <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">후기 작성 후 3,000원 쿠폰이 즉시 발급됩니다. 5점 후기 시 리뷰어 뱃지도 획득!</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">별 다섯 개로 남겨 주시면 3,000원 쿠폰이 바로 발급되고 리뷰어 뱃지도 드려요. 솔직한 별점은 그대로 남겨 주세요.</div>
       <button class="review-submit-btn" id="review-submit-btn" onclick="submitReview()">후기 등록하기</button>
     </div>
     <div class="review-reward-notice" id="review-reward-notice"></div>`;
@@ -2877,10 +2877,16 @@ async function submitReview() {
     // 보상 지급
     const { data: reward } = await supabaseClient.rpc('reward_review', { p_review_id: inserted.id });
 
+    // 쿠폰은 별 다섯 개에만 나간다. 그 외에는 고맙다는 말만 전한다.
     const noticeEl = document.getElementById('review-reward-notice');
-    if (noticeEl && reward?.ok) {
+    if (noticeEl) {
       noticeEl.style.display = 'block';
-      noticeEl.innerHTML = `🎉 후기 감사합니다! <strong>3,000원 쿠폰(코드: ${esc(reward.coupon_code)})</strong>이 내 쿠폰함에 추가됐어요.${reward.badge_new ? ' 리뷰어 뱃지도 획득하셨어요! 🏅' : ''}`;
+      if (reward?.ok) {
+        noticeEl.innerHTML = `후기 감사합니다. <strong>3,000원 쿠폰(코드: ${esc(reward.coupon_code)})</strong>이 내 쿠폰함에 들어갔어요.`
+          + (reward.badge_new ? ' 리뷰어 뱃지도 받으셨습니다.' : '');
+      } else {
+        noticeEl.innerHTML = '후기 감사합니다. 남겨 주신 이야기가 다른 분들께 큰 도움이 됩니다.';
+      }
     }
 
     reviewLoaded = false;
