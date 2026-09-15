@@ -172,6 +172,13 @@ body {
 .my-course-action { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
 .btn-continue { padding: 10px 20px; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block; text-align: center; }
 .btn-continue:hover { background: var(--green-dark); }
+.btn-review {
+  display: block; margin-top: 6px; padding: 6px 10px; border-radius: 7px;
+  background: #FFF6E0; color: #9A6B12; border: 1px solid rgba(232,176,75,.45);
+  font-size: 11.5px; font-weight: 700; text-align: center; white-space: nowrap;
+  transition: background var(--transition);
+}
+.btn-review:hover { background: #FBEDCC; }
 .badge-complete { padding: 6px 14px; background: #DCFCE7; color: #16A34A; border-radius: 20px; font-size: 12px; font-weight: 700; }
 .badge-new { padding: 6px 14px; background: #FEF3C7; color: #D97706; border-radius: 20px; font-size: 12px; font-weight: 700; }
 
@@ -957,7 +964,7 @@ body {
 <script src="js/supabase-client.js?v=3"></script>
 <script src="js/phone-modal.js?v=1"></script>
 <script src="js/course-series.js"></script>
-<script src="js/nav.js?v=6"></script>
+<script src="js/nav.js?v=7"></script>
 <script src="js/main.js"></script>
 <script src="js/badges.js"></script>
 <script>
@@ -1246,6 +1253,7 @@ function renderCourses(orders, coursesMap) {
                 ? `<a href="course-detail.html?id=${course.id}" class="btn-continue">수강하기 →</a>`
                 : `<a href="course-detail.html?id=${course.id}" class="btn-continue">이어 보기 →</a>`}
           ${!isExpired && !touched ? '<span class="badge-new">🆕 시작 전</span>' : ''}
+          ${isExpired ? '' : `<a href="course-detail.html?id=${course.id}&tab=review" class="btn-review">후기 쓰고 1,000원 쿠폰</a>`}
         </div>
       </div>`;
   }).join('');

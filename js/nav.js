@@ -892,6 +892,7 @@
     '.bnr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}',
     '.bnr-link{font-size:11px;color:rgba(255,255,255,.8);text-decoration:none;white-space:nowrap;}',
     '.bnr-link:hover{color:#fff;text-decoration:underline;}',
+    '.bnr-body{display:flex;align-items:center;gap:10px;min-width:0;flex:1;','transition:opacity .18s ease;}',
     '.bnr-dismiss{background:none;border:none;color:rgba(255,255,255,.7);',
     'cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;border-radius:4px;}',
     '.bnr-dismiss:hover{color:#fff;background:rgba(255,255,255,.15);}',
@@ -905,31 +906,82 @@
     return new Date().toISOString().slice(0, 10);
   }
 
-  function showNoticeBanner(notice) {
+  var bnrList = [];     // 배너에 돌릴 공지들
+  var bnrAt   = 0;
+  var bnrTimer = null;
+  var TYPE_LABEL = { notice: '공지', event: '이벤트', info: '안내' };
+
+  function esc(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // 지금 차례의 공지를 배너 안에 그린다. 껍데기는 그대로 두고 속만 바꾼다.
+  function paintBanner() {
+    var b = document.getElementById(BANNER_ID);
+    if (!b || !bnrList.length) return;
+    var n = bnrList[bnrAt];
+    var body = b.querySelector('.bnr-body');
+    if (!body) return;
+    body.style.opacity = '0';
+    setTimeout(function () {
+      body.innerHTML =
+        '<span class="bnr-type">' + (TYPE_LABEL[n.type] || '공지') + '</span>' +
+        '<span class="bnr-text">' + esc(n.title) + '</span>';
+      body.style.opacity = '1';
+    }, 180);
+    var link = b.querySelector('.bnr-link');
+    if (link) link.style.visibility = n.content ? 'visible' : 'hidden';
+  }
+
+  function stopBannerRotation() {
+    if (bnrTimer) { clearInterval(bnrTimer); bnrTimer = null; }
+  }
+
+  function showNoticeBanner(notices) {
     if (document.getElementById(BANNER_ID)) return;
-    // 배지에는 글자만 둔다. 제목에도 이모지가 붙으면 한 줄에 두 개가 되어 산만하다.
-    var typeMap = { notice:'공지', event:'이벤트', info:'안내' };
+    bnrList = notices || [];
+    if (!bnrList.length) return;
+    bnrAt = 0;
+
     var banner = document.createElement('div');
     banner.id = BANNER_ID;
     banner.innerHTML =
-      '<span class="bnr-type">' + (typeMap[notice.type] || '공지') + '</span>' +
-      '<span class="bnr-text">' + String(notice.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' +
+      '<div class="bnr-body"></div>' +
       '<div class="bnr-right">' +
-        (notice.content ? '<a href="notices.html" class="bnr-link">자세히 보기 →</a>' : '') +
+        '<a href="notices.html" class="bnr-link">자세히 보기 →</a>' +
         '<button class="bnr-dismiss" onclick="dismissBanner()" title="닫기">✕</button>' +
       '</div>';
     banner.classList.add('open');
 
     var nb = document.getElementById('site-navbar');
-    if (nb && nb.parentNode) {
-      nb.parentNode.insertBefore(banner, nb);
-    } else {
-      document.body.insertBefore(banner, document.body.firstChild);
-    }
+    if (nb && nb.parentNode) nb.parentNode.insertBefore(banner, nb);
+    else document.body.insertBefore(banner, document.body.firstChild);
     document.body.classList.add('has-notice-banner');
+
+    paintBanner();
+
+    // 공지가 둘 이상일 때만 돌린다. 하나뿐이면 가만히 둔다.
+    if (bnrList.length > 1) {
+      bnrTimer = setInterval(function () {
+        bnrAt = (bnrAt + 1) % bnrList.length;
+        paintBanner();
+      }, 6000);
+      // 읽는 중에 넘어가면 성가시다. 마우스를 올리면 멈춘다.
+      banner.addEventListener('mouseenter', stopBannerRotation);
+      banner.addEventListener('mouseleave', function () {
+        if (!bnrTimer && bnrList.length > 1) {
+          bnrTimer = setInterval(function () {
+            bnrAt = (bnrAt + 1) % bnrList.length;
+            paintBanner();
+          }, 6000);
+        }
+      });
+    }
   }
 
   window.dismissBanner = function () {
+    stopBannerRotation();
     var b = document.getElementById(BANNER_ID);
     if (b) b.remove();
     document.body.classList.remove('has-notice-banner');
@@ -946,9 +998,8 @@
       // 꼭 봐야 하는 안내가 그렇게 사라지면 곤란하다.
       .in('display_mode', ['banner', 'popup'])
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(function (res) { if (res.data) showNoticeBanner(res.data); })
+      .limit(5)
+      .then(function (res) { if (res.data && res.data.length) showNoticeBanner(res.data); })
       .catch(function () {});
   }
 
