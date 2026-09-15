@@ -45,8 +45,32 @@
     }
     /* '전체' 에는 위에 분류 목록이 없다. 그만큼 띠를 늘려 다른 분류 화면의
        띠와 아랫단이 같은 높이에서 끝나게 한다.
-       846px = 제목 + 소분류 6줄 + 띠 (가장 긴 '신앙' 기준) */
-    .courses-page-inner.no-side .side-ad { min-height: 846px; }
+       846px = 제목 + 소분류 6줄 + 띠 (가장 긴 '신앙' 기준)
+       그 846 을 책 띠와 후기 카드가 나눠 쓴다. 666 + 10(사이) + 170 */
+    .courses-page-inner.no-side .side-ad { min-height: 666px; }
+
+    /* 후기 카드 — 자리가 넉넉한 '전체' 에서만 내보낸다.
+       분류별 화면은 위에 목록이 있어 둘을 다 넣으면 아랫단이 어긋난다 */
+    .side-review { display: none; }
+    .courses-page-inner.no-side .side-review {
+      display: flex; flex-direction: column; height: 170px;
+      padding: 18px 16px; border-radius: 16px; text-decoration: none;
+      background: linear-gradient(158deg, #F2FAF6 0%, #DFF2E8 100%);
+      border: 1px solid rgba(45,155,111,.18);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .side-review:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(26,122,74,.16); }
+    .side-review-stars { display: flex; gap: 2px; }
+    .side-review-stars img { width: 15px; height: 15px; display: block; }
+    .side-review-head {
+      display: block; margin-top: 10px; font-weight: 800; font-size: 17px;
+      line-height: 1.42; letter-spacing: -.04em; color: #12432F;
+    }
+    .side-review-sub { display: block; margin-top: 6px; font-size: 12px; color: #4E6B5D; line-height: 1.6; }
+    .side-review-cta {
+      display: block; margin-top: auto; font-weight: 800; font-size: 13.5px;
+      letter-spacing: -.02em; color: var(--green-dark);
+    }
     .side-ad:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(26,122,74,.16); }
 
     /* 표지를 흩뿌려 놓는 칸. 남는 높이를 전부 가져가므로
@@ -186,6 +210,12 @@
               <span class="side-ad-line">바로 구매</span>
             </span>
             <span class="side-ad-cta">교재 보러 가기<span aria-hidden="true">→</span></span>
+          </a>
+          <a class="side-review" href="my-courses.html">
+            <span class="side-review-stars"><img src="icons/star.svg" alt=""><img src="icons/star.svg" alt=""><img src="icons/star.svg" alt=""><img src="icons/star.svg" alt=""><img src="icons/star.svg" alt=""></span>
+            <span class="side-review-head">후기 남기고<br>1,000원 쿠폰 받기</span>
+            <span class="side-review-sub">들으신 강좌에 한 줄 남겨 주세요</span>
+            <span class="side-review-cta">내 강의실로 가기 →</span>
           </a>
         </div>
       </aside>
