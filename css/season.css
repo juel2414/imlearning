@@ -2,76 +2,170 @@
    설날·추석·성탄절처럼 때에 맞춰 화면을 꾸민다.
    테마가 꺼져 있으면 이 파일은 아무것도 하지 않는다. 장식은 모두
    html.season-<이름> 아래에만 있고, 원래 화면의 자리나 크기는 건드리지 않는다.
+
+   히어로의 층은 이렇게 쌓인다 —
+     0 사진  /  1 오버레이  /  2 뒷배경 장식  /  3 글  /  4 앞 장식(단풍잎)
    ──────────────────────────────────────────────────────────────────── */
 
-.season-deco { position: absolute; inset: 0; pointer-events: none; z-index: 3; overflow: hidden; }
+.season-deco       { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+.season-deco-front { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
 
-/* ── 추석 ── 보름달, 흐르는 구름, 억새 */
-html.season-chuseok .lp-hero { --moon: #FFE9A8; --moon-glow: rgba(255,224,150,.34); }
+/* ══ 추석 ══════════════════════════════════════════════════════════════
+   보름달 뜬 보랏빛 밤, 소나무 가지, 흩날리는 단풍잎, 기와 담장.        */
 
+html.season-chuseok .lp-hero {
+  --moon:   #FFD666;
+  --moon-2: #F7B733;
+  --lit:    #FFEFC4;
+}
+
+/* 사진 위 오버레이를 남색에서 보랏빛 밤으로 바꾼다 */
+html.season-chuseok .hero-overlay {
+  background: linear-gradient(168deg,
+    rgba(38,16,70,.945) 0%,
+    rgba(30,13,58,.94) 38%,
+    rgba(21,10,44,.95) 72%,
+    rgba(13,7,29,.965) 100%);
+}
+
+/* ── 단청 띠 — 히어로 맨 위를 가로지르는 오방색 선 ── */
+.sn-trim {
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: repeating-linear-gradient(90deg,
+    #35604F 0 26px, #9B4038 26px 52px, #BC8A3C 52px 78px,
+    #35547A 78px 104px, #C9BFA8 104px 130px);
+  opacity: .62;
+}
+
+/* ── 보름달 ── */
+.sn-halo {
+  position: absolute; top: 10%; right: 8%;
+  width: 460px; height: 460px; margin: -164px -164px 0 0;
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle,
+    rgba(255,214,102,.30) 0%, rgba(255,198,86,.16) 34%,
+    rgba(255,190,80,.06) 58%, rgba(255,190,80,0) 74%);
+}
 .sn-moon {
-  position: absolute; top: 9%; right: 8%;
-  width: 132px; height: 132px; border-radius: 50%;
-  background: radial-gradient(circle at 36% 32%, #FFF7DC 0%, var(--moon, #FFE9A8) 58%, #F2CE7A 100%);
-  box-shadow: 0 0 48px 16px var(--moon-glow, rgba(255,224,150,.34)),
-              0 0 130px 60px rgba(255,224,150,.16);
+  position: absolute; top: 10%; right: 8%;
+  width: 164px; height: 164px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%,
+    #FFF6D2 0%, var(--moon, #FFD666) 52%, var(--moon-2, #F7B733) 100%);
+  box-shadow: 0 0 54px 14px rgba(255,205,90,.42),
+              0 0 140px 54px rgba(255,196,80,.20);
 }
 /* 달 표면 — 옅게 파인 자국 몇 개 */
 .sn-moon::before,
-.sn-moon::after {
-  content: ''; position: absolute; border-radius: 50%; background: rgba(199,158,84,.22);
-}
-.sn-moon::before { width: 26px; height: 26px; top: 30%; left: 22%; }
-.sn-moon::after  { width: 16px; height: 16px; top: 58%; left: 55%; box-shadow: -22px -8px 0 -4px rgba(199,158,84,.18); }
+.sn-moon::after { content: ''; position: absolute; border-radius: 50%; background: rgba(206,150,52,.20); }
+.sn-moon::before { width: 32px; height: 32px; top: 29%; left: 21%; }
+.sn-moon::after  { width: 19px; height: 19px; top: 57%; left: 54%;
+                   box-shadow: -26px -9px 0 -5px rgba(206,150,52,.16); }
 
-/* 구름 — 달 앞을 아주 느리게 지나간다 */
-.sn-cloud { position: absolute; opacity: .16; color: #DDE9F5; }
+/* ── 별 ── */
+.sn-star {
+  position: absolute; border-radius: 50%; background: #FFF3D0;
+  box-shadow: 0 0 6px rgba(255,235,180,.9);
+  animation: snTwinkle 4s ease-in-out infinite;
+}
+@keyframes snTwinkle { 0%,100% { opacity: .25; } 50% { opacity: .95; } }
+
+/* ── 구름 — 달 앞을 아주 느리게 지나간다 ── */
+.sn-cloud { position: absolute; opacity: .13; color: #E7DCF2; }
 .sn-cloud svg { display: block; }
-.sn-cloud-1 { top: 12%; left: -30%; width: 340px; animation: snDrift 92s linear infinite; }
-.sn-cloud-2 { top: 26%; left: -46%; width: 240px; opacity: .11; animation: snDrift 128s linear infinite 18s; }
+.sn-cloud-1 { top: 13%; left: -30%; width: 340px; animation: snDrift 92s linear infinite; }
+.sn-cloud-2 { top: 27%; left: -46%; width: 240px; opacity: .09; animation: snDrift 128s linear infinite 18s; }
 @keyframes snDrift { from { transform: translateX(0); } to { transform: translateX(190vw); } }
 
-/* 땅거미 — 억새가 설 자리를 어둡게 깔아 준다 */
-.sn-ground {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 340px;
-  background: linear-gradient(to top, rgba(7,17,27,.80) 0%, rgba(7,17,27,.46) 42%, rgba(7,17,27,0) 100%);
-}
+/* ── 소나무 가지 — 왼쪽 위 모서리 ── */
+.sn-pine { position: absolute; top: -14px; left: -18px; width: 380px; opacity: .92; }
+.sn-pine svg { display: block; width: 100%; height: auto; overflow: visible; }
+.sn-bough    { fill: none; stroke: #4A3120; stroke-width: 8; stroke-linecap: round; }
+.sn-bough-sm { stroke-width: 4.5; }
+.sn-needle   { fill: none; stroke: #35794A; stroke-width: 1.5; stroke-linecap: round; }
+.sn-needle-d { fill: none; stroke: #1F4C2E; stroke-width: 1.5; stroke-linecap: round; }
 
-/* 억새 — 달빛을 받아 희게 빛나고, 바람에 흔들린다 */
-.sn-reeds { position: absolute; left: 0; right: 0; bottom: -2px; color: #FFEFC4; opacity: .42; }
-.sn-reeds svg { display: block; width: 100%; height: auto; overflow: visible; }
-.sn-reeds-far { opacity: .20; transform: translateY(8px) scaleY(.72); }
+/* ── 땅 — 산 능선, 억새, 기와 담장 ── */
+.sn-scene { position: absolute; left: 0; right: 0; bottom: -1px; }
+.sn-scene svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.sn-hill-far       { fill: #2B1A50; }
+.sn-hill-near      { fill: #1E1138; }
+.sn-hill-far-line,
+.sn-hill-near-line { fill: none; stroke: var(--lit, #FFEFC4); stroke-width: 1.6; opacity: .16; }
+.sn-hill-near-line { opacity: .20; }
+
+.sn-reeds     { color: var(--lit, #FFEFC4); opacity: .42; }
+.sn-reeds-far { color: var(--lit, #FFEFC4); opacity: .20; }
 .sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .sn-plume { fill: none; stroke: currentColor; stroke-width: .85; stroke-linecap: round; opacity: .85; }
+
+.sn-wall-roof   { fill: #2A1740; }
+.sn-wall-groove { fill: none; stroke: #140A22; stroke-width: 1.6; opacity: .75; }
+.sn-wall-eave   { fill: #1A0E2B; }
+.sn-wall-body   { fill: #221230; }
+.sn-wall-brick  { fill: none; stroke: #3A2352; stroke-width: 1.2; opacity: .45; }
+.sn-wall-lit    { fill: none; stroke: var(--lit, #FFEFC4); stroke-width: 2; opacity: .28; }
+
+/* 억새가 바람에 흔들린다 */
 .sn-sway { transform-box: fill-box; transform-origin: bottom center; animation: snSway 7s ease-in-out infinite; }
-.sn-sway-2 { animation-duration: 9s; animation-delay: -2s; }
+.sn-sway-2 { animation-duration: 9s;  animation-delay: -2s; }
 .sn-sway-3 { animation-duration: 11s; animation-delay: -5s; }
-.sn-sway-4 { animation-duration: 8s; animation-delay: -3.5s; }
+.sn-sway-4 { animation-duration: 8s;  animation-delay: -3.5s; }
 @keyframes snSway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
 
-/* 한가위 인사 — 아래 eyebrow 알약과 겹쳐 보이지 않게 테두리 없는 한 줄로 둔다 */
+/* ── 단풍잎 — 글 앞으로 천천히 떨어진다 ── */
+.sn-leaf {
+  position: absolute; top: -48px;
+  animation: snFall 20s linear infinite;
+}
+.sn-leaf-i { display: block; animation: snSwing 5s ease-in-out infinite; }
+.sn-leaf svg { display: block; filter: drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
+@keyframes snFall {
+  0%   { transform: translateY(0);      opacity: 0; }
+  6%   { opacity: .85; }
+  88%  { opacity: .85; }
+  100% { transform: translateY(142vh);  opacity: 0; }
+}
+@keyframes snSwing {
+  0%,100% { transform: translateX(-24px) rotate(-28deg); }
+  50%     { transform: translateX(24px)  rotate(32deg); }
+}
+
+/* ── 한가위 인사 — 아래 eyebrow 알약과 겹쳐 보이지 않게 테두리 없는 한 줄로 둔다 ── */
 html.season-chuseok .sn-greet {
   display: inline-flex; align-items: center; gap: 7px;
   margin-bottom: 10px;
-  color: #FFE9A8; font-size: 13px; font-weight: 700; letter-spacing: .06em;
-  text-shadow: 0 1px 10px rgba(0,0,0,.45);
+  color: #FFE0A0; font-size: 13px; font-weight: 700; letter-spacing: .06em;
+  text-shadow: 0 1px 10px rgba(0,0,0,.5);
 }
 .sn-greet-dot {
   width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto;
-  background: radial-gradient(circle at 34% 32%, #FFF7DC 0%, #FFE9A8 60%, #EFC978 100%);
-  box-shadow: 0 0 8px rgba(255,224,150,.7);
+  background: radial-gradient(circle at 34% 32%, #FFF6D2 0%, #FFD666 60%, #F7B733 100%);
+  box-shadow: 0 0 9px rgba(255,205,90,.85);
 }
 
-/* 화면 움직임을 줄인 설정이면 흐르거나 흔들리지 않는다 */
+/* ── 화면 움직임을 줄인 설정이면 흐르거나 흔들리거나 떨어지지 않는다 ── */
 @media (prefers-reduced-motion: reduce) {
-  .sn-cloud-1, .sn-cloud-2, .sn-sway, .sn-sway-2, .sn-sway-3, .sn-sway-4 { animation: none; }
+  .sn-cloud-1, .sn-cloud-2, .sn-star,
+  .sn-sway, .sn-sway-2, .sn-sway-3, .sn-sway-4 { animation: none; }
+  .sn-leaf, .sn-leaf-i { animation: none; }
+  .sn-leaf { display: none; }
 }
 
+/* ── 좁은 화면 ── */
 @media (max-width: 768px) {
-  /* 좁은 화면에서는 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
-  .sn-moon { width: 76px; height: 76px; top: 24px; right: 18px; }
-  .sn-moon::before { width: 17px; height: 17px; }
-  .sn-moon::after  { width: 10px; height: 10px; box-shadow: -14px -5px 0 -3px rgba(199,158,84,.18); }
+  /* 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
+  .sn-moon { width: 96px; height: 96px; top: 22px; right: 16px; }
+  .sn-moon::before { width: 19px; height: 19px; }
+  .sn-moon::after  { width: 11px; height: 11px; box-shadow: -15px -5px 0 -3px rgba(206,150,52,.16); }
+  .sn-halo { width: 300px; height: 300px; top: 22px; right: 16px; margin: -102px -102px 0 0; }
+
+  .sn-pine { width: 220px; top: -10px; left: -30px; opacity: .8; }
   .sn-cloud-1 { width: 220px; }
   .sn-cloud-2 { display: none; }
+
+  /* 그림 하나를 그대로 줄이면 담장이 실처럼 얇아진다. 넓게 잡아 키운다. */
+  .sn-scene { width: 230%; left: -65%; right: auto; }
+
+  .sn-leaf svg { width: 15px; height: 15px; }
 }
