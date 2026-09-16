@@ -229,6 +229,12 @@
   var SAEKDONG_UNDER = ['.notice-tabs', '.my-tabs', '.res-cats', '.courses-list-header'];
 
   function doLight() {
+    // 소개 페이지는 배경 사진이 body::before 한 장으로 깔린다.
+    // 그 한 장만 가려내려면 화면을 가려낼 표가 필요하다.
+    if (document.querySelector('.about-hero')) {
+      document.documentElement.classList.add('sn-page-about');
+    }
+
     LIGHT_HEADS.forEach(function (sel) {
       var el = document.querySelector(sel);
       if (!el || !once(el, 'lmoon')) return;

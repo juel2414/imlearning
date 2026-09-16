@@ -35,6 +35,11 @@
 
   /* 종이와 자연물 */
   --sn-hanji: #F3EDE0;
+  /* 한지 — 종이 섬유를 잡음으로 만들어 깐다. 그림 파일을 받지 않는다. */
+  --sn-hanji-img:
+    radial-gradient(ellipse at 18% 8%,  rgba(255,255,255,.60), transparent 58%),
+    radial-gradient(ellipse at 84% 86%, rgba(176,154,114,.18), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E");
   --sn-leaf:  #3E7A4E;
   --sn-stem:  #6B4A2E;
 
@@ -202,6 +207,49 @@
   box-shadow: 0 0 9px rgba(255,220,130,.85);
 }
 
+/* ── 사진 걷어 내기 ───────────────────────────────────────────────
+   시즌 동안에는 배경 사진을 감추고 계절 바탕만 남긴다. 사진이 비치면
+   달과 억새가 묻히고 밤으로도 읽히지 않는다. 테마를 끄면 사진이 돌아온다. */
+
+/* 강사 소개 — 히어로 사진 */
+[data-season="chuseok"] .inst-hero-bg { display: none; }
+
+/* 랜딩 CTA — 초록 사진 대신 밤하늘.
+   이 자리의 바탕색은 랜딩 편집 값으로 자바스크립트가 인라인에 박는다.
+   인라인은 규칙보다 세서, 여기서만 important 를 쓴다. */
+[data-season="chuseok"] .lp-cta-bg-photo { display: none; }
+[data-season="chuseok"] .lp-cta {
+  background:
+    radial-gradient(52% 64% at 84% 20%, rgba(64,38,112,.55) 0%, rgba(64,38,112,0) 70%),
+    linear-gradient(150deg, var(--sn-night-top) 0%, var(--sn-night-deep) 100%) !important;
+}
+/* 위쪽에 번지던 초록 빛무리도 달빛으로 */
+[data-season="chuseok"] .lp-cta::before {
+  background: radial-gradient(circle, rgba(255,231,163,.13) 0%, transparent 70%);
+}
+
+/* 그 안에 놓인 시즌 배너는 같은 밤색이라 묻힌다. 유리판처럼 띄운다. */
+[data-season="chuseok"] .lp-cta .sn-cta {
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,231,163,.26);
+}
+
+/* 소개 — 페이지 전체에 깔린 숲 사진 대신 한지 한 장 */
+[data-season="chuseok"].sn-page-about body::before {
+  background-color: var(--sn-hanji);
+  background-image: var(--sn-hanji-img);
+  background-size: auto;
+  background-repeat: repeat;
+  background-position: center;
+}
+[data-season="chuseok"] .about-hero .sn-head-moon { top: 44px; right: 7%; }
+
+/* 사진을 가리려고 두껍게 덮던 흰 베일을 얇게 — 종이결이 보이게 */
+[data-season="chuseok"] .about-hero {
+  background: radial-gradient(100% 78% at 50% 44%,
+    rgba(255,255,255,.50) 0%, rgba(255,255,255,.28) 48%, rgba(255,255,255,0) 100%);
+}
+
 /* ══ 3. 밝은 면 ═══════════════════════════════════════════════════════ */
 
 /* 섹션 구분선 */
@@ -221,10 +269,7 @@
 [data-season="chuseok"] .review-card,
 [data-season="chuseok"] .lp-rcard {
   background-color: var(--sn-hanji);
-  background-image:
-    radial-gradient(ellipse at 18% 8%,  rgba(255,255,255,.60), transparent 58%),
-    radial-gradient(ellipse at 84% 86%, rgba(176,154,114,.18), transparent 60%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E");
+  background-image: var(--sn-hanji-img);
   border-color: rgba(154,126,78,.28);
 }
 [data-season="chuseok"] .review-card:hover {
@@ -334,10 +379,7 @@
 [data-season="chuseok"] .auth-card {
   position: relative; overflow: hidden;
   background-color: var(--sn-hanji);
-  background-image:
-    radial-gradient(ellipse at 18% 8%,  rgba(255,255,255,.62), transparent 58%),
-    radial-gradient(ellipse at 84% 86%, rgba(176,154,114,.18), transparent 60%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E");
+  background-image: var(--sn-hanji-img);
 }
 .sn-card-moon {
   position: absolute; right: -26px; top: -26px; width: 108px; height: 108px;
