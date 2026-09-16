@@ -83,14 +83,16 @@
       #101A34 56%,
       var(--sn-night-deep) 100%);
 }
-/* index 히어로는 사진 위에 얹히므로 조금 더 덮는다 */
+/* 첫 화면은 사진을 아예 걷어 내고 밤하늘만 남긴다.
+   사진이 비치면 달과 억새가 묻히고 밤으로도 안 읽힌다. */
+[data-season="chuseok"] .lp-hero .hero-bg-layer { display: none; }
 [data-season="chuseok"] .lp-hero .hero-overlay {
   background:
-    radial-gradient(58% 52% at 84% 17%, rgba(58,34,104,.55) 0%, rgba(58,34,104,0) 70%),
+    radial-gradient(58% 52% at 84% 17%, rgba(64,38,112,.62) 0%, rgba(64,38,112,0) 70%),
     linear-gradient(168deg,
-      rgba(20,33,63,.945) 0%,
-      rgba(16,26,52,.94) 56%,
-      rgba(11,17,36,.965) 100%);
+      var(--sn-night-top) 0%,
+      #101A34 56%,
+      var(--sn-night-deep) 100%);
 }
 [data-season="chuseok"] .lp-hero,
 [data-season="chuseok"] .inst-hero,
