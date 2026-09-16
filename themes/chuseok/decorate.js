@@ -219,10 +219,9 @@
      대신 달·구름문양·색동으로만 계절을 알린다. */
 
   // 머리글 오른쪽 위에 얹는 작은 달
-  var LIGHT_HEADS = [
-    '.about-hero', '.terms-hero',
-    '.notices-header', '.res-header', '.gc-header', '.gift-card-outer'
-  ];
+  var LIGHT_HEADS = ['.about-hero', '.terms-hero', '.notices-header', '.gift-card-outer'];
+  // 윷 네 가락을 놓는 자리
+  var YUT_HEADS = ['.res-header', '.gc-header'];
   // 뒤에 구름문양 한 줄을 까는 자리
   var DIVIDER_AFTER = ['.about-hero', '.terms-hero', '.notices-header', '.res-header'];
   // 아래에 색동 선을 긋는 자리
@@ -240,6 +239,13 @@
       if (!el || !once(el, 'lmoon')) return;
       if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
       el.appendChild(make('span', 'sn-head-moon', M.moon()));
+    });
+
+    YUT_HEADS.forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (!el || !once(el, 'yut')) return;
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      el.appendChild(make('span', 'sn-yut-mark', M.yut()));
     });
 
     DIVIDER_AFTER.forEach(function (sel) {
@@ -260,14 +266,6 @@
     if (gift && once(gift, 'knot')) {
       if (getComputedStyle(gift).position === 'static') gift.style.position = 'relative';
       gift.appendChild(make('span', 'sn-knot-mark', M.knot()));
-    }
-
-    // 목표 카드에는 감과 밤을 한 알씩
-    var gc = document.querySelector('.gc-stats, .gc-wrap');
-    if (gc && once(gc, 'fruit')) {
-      if (getComputedStyle(gc).position === 'static') gc.style.position = 'relative';
-      gc.appendChild(make('span', 'sn-fruit sn-fruit-a', M.persimmon()));
-      gc.appendChild(make('span', 'sn-fruit sn-fruit-b', M.chestnut()));
     }
 
     // 문의하기에는 청사초롱 하나
@@ -353,7 +351,7 @@
     document.querySelectorAll('.empty-state').forEach(function (box) {
       if (box.querySelector('.sn-empty-art')) return;
       if (!once(box, 'art')) return;
-      box.insertBefore(make('div', 'sn-empty-art', M.songpyeon()), box.firstChild);
+      box.insertBefore(make('div', 'sn-empty-art sn-empty-art-wide', M.songpyeonSet()), box.firstChild);
     });
   }
 

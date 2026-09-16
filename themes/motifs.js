@@ -31,65 +31,100 @@
       cls || 'sn-m-moon');
   }
 
-  /* ── 달토끼 — 앉아서 왼쪽을 보는 옆모습 ────────────────────────── */
-  function rabbit(cls) {
-    return svg('0 0 100 100',
-      '<g fill="currentColor">' +
-      '<ellipse cx="58" cy="70" rx="27" ry="22"/>' +                 // 몸
-      '<circle cx="34" cy="56" r="15"/>' +                           // 머리
-      '<path d="M29 43 C 25 25, 29 11, 35 11 C 41 11, 42 30, 37 45 Z"/>' +  // 귀
-      '<path d="M40 44 C 40 27, 47 16, 52 19 C 57 22, 52 35, 47 46 Z"/>' +
-      '<circle cx="83" cy="65" r="8"/>' +                            // 꼬리
-      '<path d="M34 88 C 34 82, 44 80, 50 84 C 52 88, 44 91, 36 90 Z"/>' +  // 앞발
+  /* ── 달토끼 — 달 안에서 둘이 마주 서서 방아를 찧는다 ────────────
+     흰 몸에 굵은 먹선, 긴 귀, 볼 홍조. 오른쪽 토끼는 왼쪽을 뒤집어 쓴다. */
+  function bunny() {
+    return '<g class="sn-b">' +
+      // 귀 둘
+      '<path d="M56 66 C 50 46, 52 26, 59 26 C 66 26, 65 48, 62 68 Z"/>' +
+      '<path d="M68 68 C 68 50, 76 32, 82 35 C 88 38, 80 56, 74 70 Z"/>' +
+      // 몸
+      '<path d="M52 98 C 44 114, 46 138, 58 148 C 70 156, 88 150, 90 134 ' +
+      'C 92 116, 84 98, 74 94 Z"/>' +
+      // 발
+      '<path d="M46 142 C 40 150, 46 157, 56 155 C 63 153, 63 145, 58 141 Z"/>' +
+      // 머리 — 몸과 귀의 선을 덮는다
+      '<circle cx="66" cy="82" r="20"/>' +
+      // 절굿공이를 잡은 앞발
+      '<path d="M74 94 C 78 90, 83 87, 88 85 C 91 88, 91 92, 88 94 ' +
+      'C 83 96, 78 100, 75 102 Z"/>' +
       '</g>' +
-      '<circle cx="28" cy="53" r="2" fill="#000" opacity=".35"/>',   // 눈
+      '<ellipse class="sn-b-blush" cx="50" cy="89" rx="6.5" ry="4.2"/>' +
+      '<circle class="sn-b-eye" cx="59" cy="79" r="2.9"/>' +
+      '<path class="sn-b-mouth" d="M64 89 C 66 92, 70 92, 72 89"/>';
+  }
+
+  function rabbit(cls) {
+    // 절구는 토끼보다 앞에 둔다. 참고 그림처럼 앞발이 절구 뒤로 들어간다.
+    return svg('0 0 200 200',
+      '<circle class="sn-b-disc" cx="100" cy="100" r="88"/>' +
+      // 절굿공이 — 선 하나로 그으면 테두리가 안 생겨 나뭇대처럼 보인다.
+      // 채운 모양으로 그려 먹선을 두른다.
+      '<rect class="sn-b-pestle" x="-5" y="-38" width="10" height="76" rx="5" ' +
+      'transform="translate(86,103) rotate(-12.2)"/>' +
+      '<rect class="sn-b-pestle" x="-5" y="-38" width="10" height="76" rx="5" ' +
+      'transform="translate(114,103) rotate(12.2)"/>' +
+      bunny() +
+      '<g transform="translate(200,0) scale(-1,1)">' + bunny() + '</g>' +
+      // 공이를 쥔 앞발 — 막대 위에 얹어야 '쥐었다'로 읽힌다
+      '<circle class="sn-b-paw" cx="84" cy="89" r="8.5"/>' +
+      '<circle class="sn-b-paw" cx="116" cy="89" r="8.5"/>' +
+      // 절구는 맨 앞 — 공이 밑동을 가린다. 옆이 곧아야 화분으로 안 보인다.
+      '<path class="sn-b-mortar" d="M74 138 L126 138 L124 170 ' +
+      'C 123 176, 114 179, 100 179 C 86 179, 77 176, 76 170 Z"/>' +
+      '<path class="sn-b-mortar-lip" d="M76 150 L124 150"/>',
       cls || 'sn-m-rabbit');
   }
 
-  /* ── 방아 찧는 토끼 — 빈 상태나 404 처럼 자리가 넉넉할 때 ──────── */
-  function rabbitMortar(cls) {
-    return svg('0 0 150 112',
-      // 절구
-      '<g class="sn-m-mortar">' +
-      '<path d="M96 74 L146 74 L137 104 L105 104 Z" fill="currentColor" opacity=".45"/>' +
-      '<ellipse cx="121" cy="74" rx="25" ry="7" fill="currentColor" opacity=".7"/>' +
-      '<ellipse cx="121" cy="74" rx="17" ry="4.5" fill="#000" opacity=".28"/>' +
-      '<ellipse cx="121" cy="72" rx="13" ry="3.4" fill="#fff" opacity=".55"/>' +   // 떡
+  // 예전 이름으로도 부를 수 있게 둔다 — 빈 상태와 404 가 쓴다
+  function rabbitMortar(cls) { return rabbit(cls || 'sn-m-rabbit-mortar'); }
+
+  /* ── 송편 — 반달 모양. 쑥·치자·흰·분홍으로 빚는다 ──────────────── */
+  var SONGPYEON_HUES = {
+    ssuk:  ['#5E8C4A', '#416633'],
+    chija: ['#F2CC5E', '#C79B2E'],
+    white: ['#F5F1E6', '#C9C0AC'],
+    pink:  ['#F2A7B8', '#CF7387']
+  };
+
+  function songpyeonBody(kind) {
+    var h = SONGPYEON_HUES[kind] || SONGPYEON_HUES.white;
+    return '<path d="M5 58 C 7 24, 26 7, 50 7 C 74 7, 93 24, 95 58 ' +
+      'C 74 63, 26 63, 5 58 Z" fill="' + h[0] + '" stroke="' + h[1] + '" ' +
+      'stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<path d="M17 36 C 25 21, 37 14, 50 14" stroke="#fff" stroke-opacity=".5" ' +
+      'stroke-width="6" stroke-linecap="round" fill="none"/>' +
+      '<g fill="#fff" transform="translate(64,32)">' +
+      '<circle r="3.6" cx="0" cy="-4.5"/><circle r="3.6" cx="4.3" cy="1"/>' +
+      '<circle r="3.6" cx="-4.3" cy="1"/><circle r="3.6" cx="2.7" cy="5.8"/>' +
+      '<circle r="3.6" cx="-2.7" cy="5.8"/>' +
       '</g>' +
-      // 절굿공이 — 토끼 앞발에서 절구로 내려간다
-      '<g stroke="var(--sn-stem, #6B4A2E)" stroke-linecap="round" fill="none">' +
-      '<path d="M63 33 L104 61" stroke-width="7"/>' +
-      '</g>' +
-      '<ellipse cx="110" cy="65" rx="10" ry="8" fill="var(--sn-stem, #6B4A2E)" ' +
-      'transform="rotate(34 110 65)"/>' +
-      // 토끼
-      '<g fill="currentColor">' +
-      '<ellipse cx="46" cy="72" rx="20" ry="26"/>' +
-      '<circle cx="47" cy="40" r="14"/>' +
-      '<path d="M40 29 C 34 12, 38 0, 44 1 C 50 3, 48 18, 44 31 Z"/>' +
-      '<path d="M52 30 C 54 13, 61 4, 66 7 C 70 11, 62 24, 56 32 Z"/>' +
-      '<ellipse cx="34" cy="96" rx="12" ry="6"/>' +                                 // 발
-      '</g>' +
-      // 앞발이 공이를 잡는다
-      '<g stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none">' +
-      '<path d="M55 52 L69 38"/><path d="M58 62 L74 45"/>' +
-      '</g>' +
-      '<circle cx="41" cy="37" r="2.2" fill="#000" opacity=".35"/>',
-      cls || 'sn-m-rabbit-mortar');
+      '<circle cx="64" cy="33" r="2.4" fill="#F2CC5E"/>';
   }
 
-  /* ── 송편 — 반달 모양, 위에 솔잎 자국 ──────────────────────────── */
-  function songpyeon(cls) {
-    return svg('0 0 100 72',
-      '<path d="M4 57 C 6 24, 26 7, 50 7 C 74 7, 94 24, 96 57 ' +
-      'C 74 61, 26 61, 4 57 Z" fill="currentColor"/>' +
-      '<path d="M16 34 C 24 20, 36 13, 50 13" stroke="#fff" stroke-opacity=".35" ' +
-      'stroke-width="5" stroke-linecap="round" fill="none"/>' +
-      '<g stroke="var(--sn-leaf, #3E7A4E)" stroke-opacity=".55" stroke-width="2.4" ' +
-      'stroke-linecap="round" fill="none">' +
-      '<path d="M36 26 L28 16"/><path d="M42 22 L38 11"/><path d="M62 23 L68 13"/>' +
-      '</g>',
-      cls || 'sn-m-songpyeon');
+  function songpyeon(cls, kind) {
+    return svg('0 0 100 72', songpyeonBody(kind), cls || 'sn-m-songpyeon');
+  }
+
+  // 솔잎 위에 송편 여러 개 — 자리가 넉넉할 때
+  function songpyeonSet(cls) {
+    var needles = '';
+    for (var i = 0; i < 54; i++) {
+      var x = 10 + (i * 29) % 184, y = 88 + (i * 17) % 30;
+      var a = ((i * 53) % 130 - 65) * Math.PI / 180;
+      needles += 'M' + x + ' ' + y + ' L' + r(x + Math.cos(a) * 24) +
+                 ' ' + r(y + Math.sin(a) * 24);
+    }
+    function one(dx, dy, sc, kind) {
+      return '<g transform="translate(' + dx + ',' + dy + ') scale(' + sc + ')">' +
+        songpyeonBody(kind) + '</g>';
+    }
+    return svg('0 0 200 130',
+      '<path d="' + needles + '" stroke="#3E7A4E" stroke-width="2" ' +
+      'stroke-linecap="round" opacity=".65" fill="none"/>' +
+      one(4, 26, 0.74, 'ssuk') + one(64, 14, 0.80, 'chija') +
+      one(126, 28, 0.72, 'pink') + one(46, 58, 0.68, 'white'),
+      cls || 'sn-m-songpyeon-set');
   }
 
   /* ── 감 — 꼭지 네 갈래 ─────────────────────────────────────────── */
@@ -236,6 +271,28 @@
       cls || 'sn-m-pine');
   }
 
+  /* ── 윷 — 반으로 켠 나무 네 가락. 등에 X 자국이 있다 ───────────── */
+  function yutStick(x, y, rot, marks) {
+    var m = '';
+    for (var i = 0; i < marks; i++) {
+      var my = -20 + i * 18;
+      m += 'M-4.5 ' + (my - 4.5) + ' L4.5 ' + (my + 4.5) +
+           ' M4.5 ' + (my - 4.5) + ' L-4.5 ' + (my + 4.5);
+    }
+    return '<g transform="translate(' + x + ',' + y + ') rotate(' + rot + ')">' +
+      '<rect class="sn-y-body" x="-9" y="-34" width="18" height="68" rx="9"/>' +
+      '<rect class="sn-y-face" x="-5" y="-30" width="10" height="60" rx="5"/>' +
+      (m ? '<path class="sn-y-mark" d="' + m + '"/>' : '') +
+      '</g>';
+  }
+
+  function yut(cls) {
+    return svg('0 0 150 130',
+      yutStick(28, 60, -20, 3) + yutStick(62, 54, 9, 2) +
+      yutStick(96, 62, -7, 3) + yutStick(124, 76, 62, 0),
+      cls || 'sn-m-yut');
+  }
+
   /* ── 전통 구름문양 — 섹션 구분선에 이어 붙인다 ──────────────────
      덩어리 하나에 말린 꼬리가 달린 모양. 좌우로 되풀이해도 이가 맞는다. */
   function cloudMotif(cls) {
@@ -336,7 +393,8 @@
   window.SeasonMotifs = {
     svg: svg, jitter: jitter, round: r,
     moon: moon, rabbit: rabbit, rabbitMortar: rabbitMortar,
-    songpyeon: songpyeon, persimmon: persimmon, chestnut: chestnut,
+    songpyeon: songpyeon, songpyeonSet: songpyeonSet, yut: yut,
+    persimmon: persimmon, chestnut: chestnut,
     maple: maple, leafPath: LEAF_PATH,
     reed: reed, reedRow: reedRow, reedBand: reedBand,
     pineBough: pineBough, cloudMotif: cloudMotif,

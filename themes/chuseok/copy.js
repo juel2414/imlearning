@@ -24,7 +24,7 @@
         to:   '아직 후기가 없어요. 첫 마디를 남겨 주세요.' },
 
       { sel: '.empty-result-title',
-        from: '검색 결과가 없습니다',
+        from: '검색 결과가 없어요',
         to:   '찾으시는 것이 달 뒤에 숨었나 봐요' }
     ],
 
@@ -34,9 +34,9 @@
 
     cta: {
       title: '풍성한 한가위,<br><em>배움도 가득 채우세요</em>',
-      sub:   '연휴에 듣기 좋은 강좌를 모았습니다. 하루 한 편이면 충분합니다.',
-      btn:   '강좌 둘러보기',
-      href:  'courses.html'
+      sub:   '온 가족이 모이는 연휴, 부모님을 위한 강좌를 모았습니다.',
+      btn:   '부모 강좌 보러 가기',
+      href:  'courses.html?cat=edu&sub=parent'
     },
 
     notFound: {
