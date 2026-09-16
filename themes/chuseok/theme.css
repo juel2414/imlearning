@@ -1,0 +1,401 @@
+/* ── 추석 테마 ──────────────────────────────────────────────────────────
+   달 밝은 가을 저녁. 밤하늘은 남색으로 깔고, 달 둘레만 보랏빛으로 물들인다.
+   남색은 브랜드 초록과 색상환에서 60도 거리라 부딪히지 않는다.
+
+   기본 테마는 손대지 않는다. 여기 있는 것은 모두 [data-season="chuseok"]
+   아래에 있어서, 테마를 끄면 한 줄도 남지 않는다.
+
+   글자 대비(WCAG) — 흰 글자/남색 15.9:1, 달빛 크림/남색 13.1:1,
+   금빛/남색 9.5:1, 흰 글자/감 주황 5.1:1, 먹빛 글자/한지 14.9:1.
+   ──────────────────────────────────────────────────────────────────── */
+
+[data-season="chuseok"] {
+  /* 밤하늘 */
+  --sn-night-top:   #14213F;
+  --sn-night-mid:   #221A47;   /* 달 둘레 보랏빛 */
+  --sn-night-deep:  #0C1226;
+
+  /* 달빛 */
+  --sn-moon:        #FFE7A3;
+  --sn-moon-core:   #FFF6D2;
+  --sn-moon-edge:   #F2C14E;
+  --sn-gold:        #F2C14E;
+  --sn-lit:         #FFEFC4;
+
+  /* 감·단풍 */
+  --sn-persimmon:    #BC4A1B;  /* 버튼 바탕. 흰 글자로 5.08:1 */
+  --sn-persimmon-dk: #A63E15;
+  --sn-persimmon-lt: #F0873F;  /* 밤하늘 위 글자. 6.25:1 */
+  --sn-maple:        #C4452F;
+
+  /* 한복 톤 보조 */
+  --sn-jaju:  #8E3B5A;
+  --sn-pink:  #E8A9B8;
+  --sn-teal:  #2E7F79;
+
+  /* 종이와 자연물 */
+  --sn-hanji: #F3EDE0;
+  --sn-leaf:  #3E7A4E;
+  --sn-stem:  #6B4A2E;
+
+  --sn-lantern-cap:  #B5322C;
+  --sn-lantern-body: #2E7F79;
+
+  /* 색동 — 자주·감·금빛·청록·남색·한지 */
+  --sn-saekdong: repeating-linear-gradient(90deg,
+    #8E3B5A 0 18px, #C2552A 18px 36px, #E3B44A 36px 54px,
+    #2E7F79 54px 72px, #2C4A7A 72px 90px, #EDE3CE 90px 108px);
+
+  --sn-divider-color: var(--sn-gold);
+  --sn-divider-o: .30;
+}
+
+/* ══ 1. 헤더 ══════════════════════════════════════════════════════════
+   아래에 색동 선을 한 줄 깔고, 로고 옆에 작은 달을 띄운다. */
+
+[data-season="chuseok"] .navbar { position: relative; }
+[data-season="chuseok"] .navbar::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background-image: var(--sn-saekdong);
+  opacity: .75;
+  pointer-events: none;
+}
+.sn-nav-moon {
+  display: inline-block; width: 17px; height: 17px;
+  margin-left: 7px; vertical-align: 2px;
+  color: var(--sn-moon-edge);
+  filter: drop-shadow(0 0 5px rgba(242,193,78,.65));
+  animation: snGlow 5s ease-in-out infinite;
+}
+.sn-nav-moon svg { width: 100%; height: 100%; }
+
+/* ══ 2. 밤하늘 히어로 ═════════════════════════════════════════════════
+   원래 어두웠던 히어로만 밤으로 바꾼다. 흰 바탕 히어로는 건드리지 않고
+   글자 대비를 지킨다. */
+
+[data-season="chuseok"] .lp-hero .hero-overlay,
+[data-season="chuseok"] .inst-hero,
+[data-season="chuseok"] .pass-hero {
+  background:
+    radial-gradient(58% 52% at 84% 17%, rgba(58,34,104,.58) 0%, rgba(58,34,104,0) 70%),
+    linear-gradient(168deg,
+      var(--sn-night-top) 0%,
+      #101A34 56%,
+      var(--sn-night-deep) 100%);
+}
+/* index 히어로는 사진 위에 얹히므로 조금 더 덮는다 */
+[data-season="chuseok"] .lp-hero .hero-overlay {
+  background:
+    radial-gradient(58% 52% at 84% 17%, rgba(58,34,104,.55) 0%, rgba(58,34,104,0) 70%),
+    linear-gradient(168deg,
+      rgba(20,33,63,.945) 0%,
+      rgba(16,26,52,.94) 56%,
+      rgba(11,17,36,.965) 100%);
+}
+[data-season="chuseok"] .lp-hero,
+[data-season="chuseok"] .inst-hero,
+[data-season="chuseok"] .pass-hero { position: relative; overflow: hidden; }
+
+/* 장식 층이 2번이라, 글이 1번에 있던 화면은 위로 올려 준다 */
+[data-season="chuseok"] .inst-hero-content,
+[data-season="chuseok"] .pass-hero-inner { position: relative; z-index: 3; }
+
+/* 강사 소개 히어로는 사진이 위에 한 겹 더 있다. 밤이 되게 더 눌러 준다 */
+[data-season="chuseok"] .inst-hero-bg { opacity: .14; }
+
+/* 히어로 맨 위 색동 띠 */
+.sn-trim {
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background-image: var(--sn-saekdong);
+  opacity: .62;
+}
+
+/* ── 보름달 — 천천히 떠오른다 ── */
+.sn-halo {
+  position: absolute; top: 10%; right: 8%;
+  width: 460px; height: 460px; margin: -164px -164px 0 0;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255,231,163,.28) 0%, rgba(242,193,78,.15) 34%,
+    rgba(242,193,78,.05) 58%, rgba(242,193,78,0) 74%);
+  animation: snRise 2.6s cubic-bezier(.22,.7,.3,1) both;
+}
+.sn-moon {
+  position: absolute; top: 10%; right: 8%;
+  width: 164px; height: 164px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%,
+    var(--sn-moon-core) 0%, var(--sn-moon) 52%, var(--sn-moon-edge) 100%);
+  box-shadow: 0 0 54px 14px rgba(255,220,130,.40),
+              0 0 140px 54px rgba(242,193,78,.18);
+  animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
+}
+.sn-moon::before,
+.sn-moon::after {
+  content: ''; position: absolute; border-radius: 50%;
+  background: rgba(198,150,62,.20);
+}
+.sn-moon::before { width: 32px; height: 32px; top: 29%; left: 21%; }
+.sn-moon::after  { width: 19px; height: 19px; top: 57%; left: 54%;
+                   box-shadow: -26px -9px 0 -5px rgba(198,150,62,.16); }
+
+/* ── 별 ── */
+.sn-star {
+  position: absolute; border-radius: 50%; background: #FFF3D0;
+  box-shadow: 0 0 6px rgba(255,235,180,.9);
+  animation: snTwinkle 4s ease-in-out infinite;
+}
+
+/* ── 구름 — 달 앞을 아주 느리게 지나간다 ── */
+.sn-cloud { position: absolute; opacity: .12; color: #DCE4F2; }
+.sn-cloud-1 { top: 13%; left: -30%; width: 340px; animation: snDrift 92s linear infinite; }
+.sn-cloud-2 { top: 27%; left: -46%; width: 240px; opacity: .08;
+              animation: snDrift 128s linear infinite 18s; }
+
+/* ── 소나무 가지 ── */
+.sn-pine { position: absolute; top: -14px; left: -18px; width: 380px; opacity: .92; }
+.sn-pine svg { width: 100%; height: auto; overflow: visible; }
+.sn-bough    { fill: none; stroke: #4A3120; stroke-width: 8; stroke-linecap: round; }
+.sn-bough-sm { stroke-width: 4.5; }
+.sn-needle   { fill: none; stroke: #35794A; stroke-width: 1.5; stroke-linecap: round; }
+.sn-needle-d { fill: none; stroke: #1F4C2E; stroke-width: 1.5; stroke-linecap: round; }
+
+/* ── 땅 — 산 능선, 억새, 기와 담장 ── */
+.sn-scene { position: absolute; left: 0; right: 0; bottom: -1px; }
+.sn-scene svg { width: 100%; height: auto; overflow: visible; }
+
+.sn-hill-far       { fill: #24305C; }
+.sn-hill-near      { fill: #1A2244; }
+.sn-hill-far-line,
+.sn-hill-near-line { fill: none; stroke: var(--sn-lit); stroke-width: 1.6; opacity: .16; }
+.sn-hill-near-line { opacity: .20; }
+
+.sn-reeds     { color: var(--sn-lit); opacity: .42; }
+.sn-reeds-far { color: var(--sn-lit); opacity: .20; }
+.sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.sn-plume { fill: none; stroke: currentColor; stroke-width: .85; stroke-linecap: round; opacity: .85; }
+
+.sn-wall-roof   { fill: #202A4E; }
+.sn-wall-groove { fill: none; stroke: #0E1428; stroke-width: 1.6; opacity: .75; }
+.sn-wall-eave   { fill: #161C36; }
+.sn-wall-body   { fill: #1B2340; }
+.sn-wall-brick  { fill: none; stroke: #2E3A66; stroke-width: 1.2; opacity: .45; }
+.sn-wall-lit    { fill: none; stroke: var(--sn-lit); stroke-width: 2; opacity: .26; }
+
+/* ── 단풍잎 — 글 앞으로 천천히 떨어진다 ── */
+.sn-leaf   { position: absolute; top: -48px; animation: snFall 20s linear infinite; }
+.sn-leaf-i { display: block; animation: snSwing 5s ease-in-out infinite; }
+.sn-leaf svg { filter: drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
+
+/* ── 한가위 인사 — 아래 알약과 겹쳐 보이지 않게 테두리 없는 한 줄 ── */
+.sn-greet {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-bottom: 10px;
+  color: var(--sn-moon); font-size: 13px; font-weight: 700; letter-spacing: .06em;
+  text-shadow: 0 1px 10px rgba(0,0,0,.5);
+}
+.sn-greet-dot {
+  width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto;
+  background: radial-gradient(circle at 34% 32%,
+    var(--sn-moon-core) 0%, var(--sn-moon) 60%, var(--sn-moon-edge) 100%);
+  box-shadow: 0 0 9px rgba(255,220,130,.85);
+}
+
+/* ══ 3. 밝은 면 ═══════════════════════════════════════════════════════ */
+
+/* 섹션 구분선 */
+.sn-divider { margin: 14px auto 18px; max-width: 1160px; }
+
+/* 카드 모서리 문양과 달빛 번짐 */
+[data-season="chuseok"] .course-card { position: relative; }
+/* 흰 카드 위에서는 밝은 금빛이 묻힌다. 한 톤 짙은 금으로 쓴다. */
+.sn-corner { color: #B9862A; opacity: .5; }
+[data-season="chuseok"] .course-card:hover {
+  box-shadow: 0 10px 28px rgba(0,0,0,.10), 0 0 22px rgba(242,193,78,.30);
+  border-color: rgba(242,193,78,.45);
+}
+[data-season="chuseok"] .course-card:hover .sn-corner { opacity: .95; }
+
+/* 후기는 한지 위에 — 종이 섬유를 잡음으로 만들어 깐다 */
+[data-season="chuseok"] .review-card,
+[data-season="chuseok"] .lp-rcard {
+  background-color: var(--sn-hanji);
+  background-image:
+    radial-gradient(ellipse at 18% 8%,  rgba(255,255,255,.60), transparent 58%),
+    radial-gradient(ellipse at 84% 86%, rgba(176,154,114,.18), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E");
+  border-color: rgba(154,126,78,.28);
+}
+[data-season="chuseok"] .review-card:hover {
+  border-color: rgba(242,193,78,.55);
+  box-shadow: 0 4px 18px rgba(0,0,0,.09), 0 0 18px rgba(242,193,78,.22);
+}
+/* 한지 위에 놓인 강좌 칩은 종이보다 살짝 밝게 */
+[data-season="chuseok"] .review-card .rv-course,
+[data-season="chuseok"] .review-card a { background-color: rgba(255,255,255,.55); }
+
+/* ── 밝은 화면에 얹는 표식 ────────────────────────────────────────
+   흰 바탕 위에서도 읽히도록 금빛을 쓰고, 글자 위로는 오지 않게 둔다. */
+.sn-head-moon {
+  position: absolute; right: 26px; top: 20px; width: 58px; height: 58px;
+  color: var(--sn-moon-edge); opacity: .38; pointer-events: none;
+}
+.sn-head-moon svg { width: 100%; height: 100%; }
+
+.sn-knot-mark {
+  position: absolute; right: 18px; top: 14px; width: 46px;
+  color: var(--sn-jaju); opacity: .42; pointer-events: none;
+}
+.sn-lantern-mark {
+  position: absolute; right: 34px; top: 26px; width: 46px;
+  opacity: .8; pointer-events: none;
+}
+.sn-fruit { position: absolute; width: 34px; opacity: .45; pointer-events: none; }
+.sn-fruit-a { right: 44px; top: -16px; color: var(--sn-persimmon-lt); }
+.sn-fruit-b { right: 10px; top: -6px; width: 26px; color: #8A5A32; }
+.sn-knot-mark svg, .sn-lantern-mark svg, .sn-fruit svg { width: 100%; height: auto; }
+
+/* 색동 선은 탭 아래에 가늘게 */
+.sn-saekdong-line { height: 3px; opacity: .6; }
+
+@media (max-width: 768px) {
+  .sn-head-moon { width: 40px; height: 40px; right: 14px; top: 12px; }
+  .sn-knot-mark, .sn-lantern-mark, .sn-fruit { display: none; }
+}
+
+/* ══ 4. 시즌 버튼과 배너 ══════════════════════════════════════════════
+   기능 버튼(결제·확인·로그인)은 초록 그대로 둔다. 시즌 것만 감 주황. */
+
+.sn-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 12px 24px; border-radius: 10px;
+  font-size: 15px; font-weight: 700;
+  background: var(--sn-persimmon); color: #fff;
+  box-shadow: 0 4px 14px rgba(188,74,27,.28);
+  transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.sn-btn:hover {
+  background: var(--sn-persimmon-dk);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(188,74,27,.38);
+}
+.sn-btn:focus-visible { outline: 3px solid var(--sn-gold); outline-offset: 2px; }
+
+/* 시즌 CTA 배너 */
+.sn-cta {
+  position: relative; overflow: hidden;
+  border-radius: 18px;
+  padding: 34px 32px;
+  background:
+    radial-gradient(52% 70% at 88% 26%, rgba(58,34,104,.55) 0%, rgba(58,34,104,0) 70%),
+    linear-gradient(150deg, var(--sn-night-top) 0%, var(--sn-night-deep) 100%);
+  color: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+}
+.sn-cta-title { font-size: 21px; font-weight: 800; line-height: 1.45; }
+.sn-cta-title em { font-style: normal; color: var(--sn-moon); }
+.sn-cta-sub { margin-top: 7px; font-size: 14px; color: rgba(255,255,255,.72); }
+/* 달은 동그라미라 배너 모서리에서 잘려도 자연스럽다 */
+.sn-cta-art { position: absolute; right: -26px; top: -34px; width: 152px;
+              color: var(--sn-moon); opacity: .17; }
+.sn-cta-body { position: relative; z-index: 1; }
+.sn-cta .sn-btn { position: relative; z-index: 1; }
+
+/* ══ 5. 푸터 ══════════════════════════════════════════════════════════ */
+
+[data-season="chuseok"] .footer { position: relative; overflow: hidden; }
+.sn-footer-band {
+  position: absolute; left: 0; right: 0; top: 0; height: 88px;
+  color: var(--sn-lit); opacity: .22; pointer-events: none;
+}
+.sn-footer-band svg { width: 100%; height: 100%; }
+.sn-footer-rabbit {
+  position: absolute; right: 5%; top: 20px; width: 68px;
+  color: var(--sn-lit); opacity: .40; pointer-events: none;
+}
+.sn-footer-greet {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 0 0;
+  font-size: 13px; font-weight: 700; color: var(--sn-moon);
+}
+.sn-footer-greet .sn-m-moon { width: 15px; height: 15px; color: var(--sn-moon-edge); }
+
+/* ══ 6. 인증·문서 페이지 ══════════════════════════════════════════════
+   흰 바탕이라 밤으로 덮지 않는다. 한지와 색동으로만 계절을 알린다. */
+
+[data-season="chuseok"] .top-logo-bar { position: relative; }
+[data-season="chuseok"] .top-logo-bar::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background-image: var(--sn-saekdong); opacity: .7;
+}
+[data-season="chuseok"] .auth-card {
+  position: relative; overflow: hidden;
+  background-color: var(--sn-hanji);
+  background-image:
+    radial-gradient(ellipse at 18% 8%,  rgba(255,255,255,.62), transparent 58%),
+    radial-gradient(ellipse at 84% 86%, rgba(176,154,114,.18), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E");
+}
+.sn-card-moon {
+  position: absolute; right: -26px; top: -26px; width: 108px; height: 108px;
+  color: var(--sn-moon-edge); opacity: .17; pointer-events: none;
+}
+.sn-card-moon svg { width: 100%; height: 100%; }
+
+/* ══ 7. 빈 상태와 404 ═════════════════════════════════════════════════ */
+
+.sn-empty-art { width: 132px; margin: 0 auto 12px; color: var(--sn-stem); opacity: .8; }
+.sn-empty-art svg { width: 100%; height: auto; }
+/* 이모지 자리를 그림으로 갈아 끼웠으니 원래 글자 크기는 지운다 */
+[data-season="chuseok"] .empty-state-icon,
+[data-season="chuseok"] .empty-result-icon { font-size: 0; line-height: 0; }
+
+/* 404 — 테마가 꺼져 있으면 이 규칙은 하나도 걸리지 않는다 */
+[data-season="chuseok"] .nf-wrap {
+  background:
+    radial-gradient(58% 52% at 78% 18%, rgba(58,34,104,.55) 0%, rgba(58,34,104,0) 70%),
+    linear-gradient(168deg, var(--sn-night-top) 0%, var(--sn-night-deep) 100%);
+}
+[data-season="chuseok"] .nf-art   { color: var(--sn-lit); }
+[data-season="chuseok"] .nf-code  { color: var(--sn-moon); }
+[data-season="chuseok"] .nf-title { color: #fff; }
+[data-season="chuseok"] .nf-desc  { color: rgba(255,255,255,.74); }
+[data-season="chuseok"] .nf-wrap .btn-outline {
+  color: #fff; border-color: rgba(255,255,255,.42); background: transparent;
+}
+[data-season="chuseok"] .nf-wrap .btn-outline:hover {
+  color: var(--sn-night-top); border-color: var(--sn-moon); background: var(--sn-moon);
+}
+
+/* ══ 8. 좁은 화면 ═════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
+  .sn-moon { width: 96px; height: 96px; top: 22px; right: 16px; }
+  .sn-moon::before { width: 19px; height: 19px; }
+  .sn-moon::after  { width: 11px; height: 11px;
+                     box-shadow: -15px -5px 0 -3px rgba(198,150,62,.16); }
+  .sn-halo { width: 300px; height: 300px; top: 22px; right: 16px; margin: -102px -102px 0 0; }
+
+  .sn-pine { width: 210px; top: -10px; left: -32px; opacity: .78; }
+  .sn-cloud-1 { width: 220px; }
+  .sn-cloud-2 { display: none; }
+
+  /* 그림 하나를 그대로 줄이면 담장이 실처럼 얇아진다. 넓게 잡아 키운다. */
+  .sn-scene { width: 230%; left: -65%; right: auto; }
+
+  .sn-leaf svg { width: 15px; height: 15px; }
+
+  .sn-cta { padding: 26px 22px; }
+  .sn-cta-title { font-size: 18px; }
+  .sn-cta-art { width: 96px; right: 8px; opacity: .16; }
+
+  .sn-404-art { width: 168px; }
+  .sn-404-title { font-size: 21px; }
+}
+
+@media (max-width: 480px) {
+  .sn-pine { display: none; }          /* 좁으면 달만 남긴다 */
+  .sn-footer-rabbit { display: none; }
+}

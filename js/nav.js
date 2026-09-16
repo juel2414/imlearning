@@ -1051,3 +1051,13 @@ window.formatNoticeText = function (raw) {
     .replace(/\*\*([^*\n]+)\*\*/g, '<strong class="nc-b">$1</strong>')
     .replace(/!!([^!\n]+)!!/g, '<mark class="nc-m">$1</mark>');
 };
+
+/* ── 시즌 테마 ──────────────────────────────────────────────────────────
+   themes/loader.js 가 설정을 읽고, 켜져 있을 때만 테마 파일을 불러온다.
+   꺼져 있으면 설정 한 줄만 읽고 끝난다. */
+(function () {
+  var s = document.createElement('script');
+  s.src = 'themes/loader.js?v=1';
+  s.defer = true;
+  document.head.appendChild(s);
+})();

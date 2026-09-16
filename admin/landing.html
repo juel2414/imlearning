@@ -68,8 +68,17 @@
     .sec-id   { font-size: 10px; color: var(--muted); }
     .sec-toggle { flex-shrink: 0; }
     .season-box { padding: 10px 12px 14px; border-bottom: 1px solid var(--border); }
-    .season-row { display: flex; align-items: center; gap: 10px; }
-    .season-sel { flex: 1; min-width: 0; font-size: 12.5px; padding: 7px 9px; }
+    .season-sel { width: 100%; font-size: 12.5px; padding: 7px 9px; }
+    .season-modes { display: flex; gap: 4px; margin-top: 8px; }
+    .season-mode {
+      flex: 1; padding: 6px 0; font-size: 11.5px; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 7px;
+      background: #fff; color: var(--muted); cursor: pointer;
+    }
+    .season-mode.on { background: var(--g); border-color: var(--g); color: #fff; }
+    .season-dates { display: flex; gap: 6px; margin-top: 8px; }
+    .season-dates label { flex: 1; font-size: 11px; color: var(--muted); }
+    .season-dates input { width: 100%; font-size: 11.5px; padding: 5px 6px; margin-top: 3px; }
     .season-hint { margin-top: 8px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
     .toggle-btn {
       width: 32px; height: 18px; border-radius: 9px; background: var(--dark3);
@@ -219,13 +228,19 @@
     <!-- 시즌 테마 — 설날·추석·성탄절처럼 때에 맞춰 화면을 꾸민다 -->
     <div class="sec-panel-head">시즌 테마</div>
     <div class="season-box">
-      <div class="season-row">
-        <select class="form-input season-sel" id="season-theme">
-          <option value="chuseok">추석 · 보름달과 억새</option>
-        </select>
-        <div class="toggle-btn" id="season-toggle" onclick="toggleSeason(this)" title="켜기"></div>
+      <select class="form-input season-sel" id="season-theme" onchange="seasonChanged()">
+        <option value="chuseok">추석 · 보름달과 억새</option>
+      </select>
+      <div class="season-modes" id="season-modes">
+        <button type="button" class="season-mode" data-mode="off"  onclick="setSeasonMode('off')">끄기</button>
+        <button type="button" class="season-mode" data-mode="auto" onclick="setSeasonMode('auto')">기간에 맞춰</button>
+        <button type="button" class="season-mode" data-mode="on"   onclick="setSeasonMode('on')">늘 켜기</button>
       </div>
-      <div class="season-hint" id="season-hint">꺼져 있습니다</div>
+      <div class="season-dates" id="season-dates">
+        <label>시작 <input type="date" class="form-input" id="season-from" onchange="seasonChanged()"></label>
+        <label>종료 <input type="date" class="form-input" id="season-to"   onchange="seasonChanged()"></label>
+      </div>
+      <div class="season-hint" id="season-hint"></div>
     </div>
     <div class="sec-panel-head">섹션 목록</div>
     <div class="sec-list" id="js-sec-list">
@@ -510,24 +525,43 @@ function setStatus(msg, ok=true) {
 // ─────────────────────────────────────────
 // 시즌 테마
 // ─────────────────────────────────────────
-let seasonCfg = { active: false, theme: 'chuseok' };
+let seasonCfg = { mode: 'off', theme: 'chuseok', starts_at: '', ends_at: '' };
+
+function seasonActiveToday() {
+  if (seasonCfg.mode === 'on')  return true;
+  if (seasonCfg.mode !== 'auto') return false;
+  const d = new Date();
+  const ymd = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  if (seasonCfg.starts_at && ymd < seasonCfg.starts_at) return false;
+  if (seasonCfg.ends_at   && ymd > seasonCfg.ends_at)   return false;
+  return true;
+}
 
 function renderSeason() {
   const sel = document.getElementById('season-theme');
-  const btn = document.getElementById('season-toggle');
-  const hint = document.getElementById('season-hint');
-  if (!sel || !btn || !hint) return;
+  if (!sel) return;
   sel.value = seasonCfg.theme || 'chuseok';
-  btn.classList.toggle('on', !!seasonCfg.active);
-  btn.title = seasonCfg.active ? '끄기' : '켜기';
-  hint.textContent = seasonCfg.active
-    ? '켜져 있습니다. 첫 화면 히어로에 보름달과 억새가 얹힙니다.'
-    : '꺼져 있습니다';
-  sel.onchange = function () { seasonCfg.theme = sel.value; };
+  document.getElementById('season-from').value = seasonCfg.starts_at || '';
+  document.getElementById('season-to').value   = seasonCfg.ends_at   || '';
+  document.querySelectorAll('.season-mode').forEach(b => {
+    b.classList.toggle('on', b.dataset.mode === (seasonCfg.mode || 'off'));
+  });
+  document.getElementById('season-dates').style.display = seasonCfg.mode === 'auto' ? 'flex' : 'none';
+
+  const hint = document.getElementById('season-hint');
+  if (seasonCfg.mode === 'off')       hint.textContent = '꺼져 있습니다.';
+  else if (seasonCfg.mode === 'on')   hint.textContent = '늘 켜져 있습니다.';
+  else hint.textContent = seasonActiveToday()
+    ? '기간 안이라 지금 켜져 있습니다.'
+    : '기간 밖이라 지금은 꺼져 있습니다.';
 }
 
-function toggleSeason(el) {
-  seasonCfg.active = !seasonCfg.active;
+function setSeasonMode(m) { seasonCfg.mode = m; renderSeason(); }
+
+function seasonChanged() {
+  seasonCfg.theme     = document.getElementById('season-theme').value;
+  seasonCfg.starts_at = document.getElementById('season-from').value;
+  seasonCfg.ends_at   = document.getElementById('season-to').value;
   renderSeason();
 }
 
@@ -780,7 +814,7 @@ function syncColor(inputId, val) {
 // ─────────────────────────────────────────
 function collectData() {
   return {
-    season: seasonCfg,
+    season: Object.assign({}, seasonCfg, { active: seasonActiveToday() }),
     sections_order: sectionOrder,
     sections_visible: sectionVisible,
     hero: {
