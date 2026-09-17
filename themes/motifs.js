@@ -35,9 +35,15 @@
      흰 몸에 굵은 먹선, 긴 귀, 볼 홍조. 오른쪽 토끼는 왼쪽을 뒤집어 쓴다. */
   function bunny() {
     return '<g class="sn-b">' +
-      // 귀 둘
-      '<path d="M56 66 C 50 46, 52 26, 59 26 C 66 26, 65 48, 62 68 Z"/>' +
-      '<path d="M68 68 C 68 50, 76 32, 82 35 C 88 38, 80 56, 74 70 Z"/>' +
+      // 귀 둘 — 바깥을 먼저, 안쪽 분홍을 그 위에
+      '<path d="M55 66 C 48 46, 50 24, 58 24 C 66 24, 65 48, 62 68 Z"/>' +
+      '<path d="M68 68 C 68 50, 77 30, 83 33 C 90 37, 81 56, 74 70 Z"/>' +
+      '</g>' +
+      '<path class="sn-b-inner" d="M57.5 62 C 53 46, 54 32, 58 32 ' +
+      'C 62 32, 61.5 47, 60 63 Z"/>' +
+      '<path class="sn-b-inner" d="M70.5 64 C 70.5 51, 77 38, 80.5 40 ' +
+      'C 84 42.5, 78 55, 74.5 65 Z"/>' +
+      '<g class="sn-b">' +
       // 몸
       '<path d="M52 98 C 44 114, 46 138, 58 148 C 70 156, 88 150, 90 134 ' +
       'C 92 116, 84 98, 74 94 Z"/>' +
@@ -140,6 +146,32 @@
       '<rect x="46" y="4" width="8" height="14" rx="4" fill="var(--sn-stem, #6B4A2E)"/>' +
       '</g>',
       cls || 'sn-m-persimmon');
+  }
+
+  /* ── 감나무 가지 — 감이 서넛 매달린 잔가지 ─────────────────────── */
+  function persimmonBranch(cls) {
+    function fruit(x, y, sc) {
+      return '<g transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
+        '<path class="sn-pb-stem" d="M0 -26 L0 -14"/>' +
+        '<path class="sn-pb-fruit" d="M0 20 C -14 20, -21 11, -21 1 ' +
+        'C -21 -10, -12 -17, 0 -17 C 12 -17, 21 -10, 21 1 C 21 11, 14 20, 0 20 Z"/>' +
+        '<path class="sn-pb-calyx" d="M0 -22 L9 -15 L20 -13 L10 -8 L0 -5 ' +
+        'L-10 -8 L-20 -13 L-9 -15 Z"/>' +
+        '</g>';
+    }
+    function leaf(x, y, rot) {
+      return '<path class="sn-pb-leaf" transform="translate(' + x + ',' + y +
+        ') rotate(' + rot + ')" d="M0 0 C 10 -9, 26 -9, 34 0 C 26 9, 10 9, 0 0 Z"/>';
+    }
+    return svg('0 0 250 190',
+      '<path class="sn-pb-bough" d="M258 8 C 210 26, 166 48, 124 80 ' +
+      'C 100 98, 74 116, 44 128"/>' +
+      '<path class="sn-pb-bough sn-pb-twig" d="M196 34 C 190 54, 186 68, 184 82"/>' +
+      '<path class="sn-pb-bough sn-pb-twig" d="M134 74 C 132 92, 132 106, 134 120"/>' +
+      '<path class="sn-pb-bough sn-pb-twig" d="M74 118 C 76 132, 80 144, 86 154"/>' +
+      leaf(206, 22, 28) + leaf(150, 58, 16) + leaf(96, 100, 34) + leaf(52, 124, 8) +
+      fruit(184, 104, 1) + fruit(134, 142, 0.86) + fruit(88, 176, 0.74),
+      cls || 'sn-m-persimmon-branch');
   }
 
   /* ── 밤 ─────────────────────────────────────────────────────────── */
@@ -394,7 +426,7 @@
     svg: svg, jitter: jitter, round: r,
     moon: moon, rabbit: rabbit, rabbitMortar: rabbitMortar,
     songpyeon: songpyeon, songpyeonSet: songpyeonSet, yut: yut,
-    persimmon: persimmon, chestnut: chestnut,
+    persimmon: persimmon, persimmonBranch: persimmonBranch, chestnut: chestnut,
     maple: maple, leafPath: LEAF_PATH,
     reed: reed, reedRow: reedRow, reedBand: reedBand,
     pineBough: pineBough, cloudMotif: cloudMotif,

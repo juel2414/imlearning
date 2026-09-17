@@ -23,6 +23,19 @@
 
 .sn-deco svg, .sn-deco-front svg, .sn-ornament svg { display: block; }
 
+/* ── 배경 사진 ────────────────────────────────────────────────────
+   어떤 시즌이든 테마가 켜지면 배경 사진은 빠진다. 계절 바탕이 사진에
+   비쳐 흐려지면 장식이 다 묻히기 때문이다. 테마를 끄면 사진이 돌아온다.
+   각 시즌이 그 자리에 무엇을 깔지는 제 theme.css 에서 정한다. */
+[data-season] .hero-bg-layer,
+[data-season] .lp-cta-bg-photo,
+[data-season] .inst-hero-bg { display: none; }
+
+[data-season].sn-page-about body::before {
+  background-image: none;
+  background-color: transparent;
+}
+
 /* ── 색동 띠 ───────────────────────────────────────────────────────
    줄무늬 자체는 각 테마가 --sn-saekdong 으로 준다. */
 .sn-saekdong {

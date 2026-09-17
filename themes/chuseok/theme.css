@@ -89,9 +89,7 @@
       #101A34 56%,
       var(--sn-night-deep) 100%);
 }
-/* 첫 화면은 사진을 아예 걷어 내고 밤하늘만 남긴다.
-   사진이 비치면 달과 억새가 묻히고 밤으로도 안 읽힌다. */
-[data-season="chuseok"] .lp-hero .hero-bg-layer { display: none; }
+/* 사진이 빠진 자리에 밤하늘을 깐다 */
 [data-season="chuseok"] .lp-hero .hero-overlay {
   background:
     radial-gradient(58% 52% at 84% 17%, rgba(64,38,112,.62) 0%, rgba(64,38,112,0) 70%),
@@ -137,14 +135,20 @@
               0 0 140px 54px rgba(242,193,78,.18);
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
-.sn-moon::before,
-.sn-moon::after {
-  content: ''; position: absolute; border-radius: 50%;
-  background: rgba(198,150,62,.20);
-}
-.sn-moon::before { width: 32px; height: 32px; top: 29%; left: 21%; }
-.sn-moon::after  { width: 19px; height: 19px; top: 57%; left: 54%;
-                   box-shadow: -26px -9px 0 -5px rgba(198,150,62,.16); }
+/* 달 속 토끼 — 파인 자국 대신 그림자 한 톤으로만 넣는다.
+   선을 살리면 스티커처럼 붕 뜨고, 달이 아니라 배지로 보인다. */
+.sn-moon-rabbit { position: absolute; inset: 8% 10% 10%; width: 80%; height: 82%; }
+.sn-moon-rabbit .sn-b-disc,
+.sn-moon-rabbit .sn-b-eye,
+.sn-moon-rabbit .sn-b-blush,
+.sn-moon-rabbit .sn-b-mouth,
+.sn-moon-rabbit .sn-b-inner,
+.sn-moon-rabbit .sn-b-mortar-lip { display: none; }
+.sn-moon-rabbit .sn-b path,
+.sn-moon-rabbit .sn-b circle,
+.sn-moon-rabbit .sn-b-paw   { fill: rgba(186,136,50,.30); stroke: none; }
+.sn-moon-rabbit .sn-b-pestle,
+.sn-moon-rabbit .sn-b-mortar { fill: rgba(168,118,42,.40); stroke: none; }
 
 /* ── 별 ── */
 .sn-star {
@@ -158,6 +162,8 @@
 .sn-cloud-1 { top: 13%; left: -30%; width: 340px; animation: snDrift 92s linear infinite; }
 .sn-cloud-2 { top: 27%; left: -46%; width: 240px; opacity: .08;
               animation: snDrift 128s linear infinite 18s; }
+.sn-cloud-3 { top: 46%; left: -62%; width: 300px; opacity: .07;
+              animation: snDrift 156s linear infinite 46s; }
 
 /* ── 소나무 가지 ── */
 .sn-pine { position: absolute; top: -14px; left: -18px; width: 380px; opacity: .92; }
@@ -166,6 +172,28 @@
 .sn-bough-sm { stroke-width: 4.5; }
 .sn-needle   { fill: none; stroke: #35794A; stroke-width: 1.5; stroke-linecap: round; }
 .sn-needle-d { fill: none; stroke: #1F4C2E; stroke-width: 1.5; stroke-linecap: round; }
+
+/* ── 청사초롱 — 솔가지에 매단다. 줄은 위로 뻗어 가지에 닿는다 ── */
+.sn-lantern { position: absolute; pointer-events: none; }
+.sn-lantern svg { width: 100%; height: auto; }
+.sn-lantern::before {
+  content: ''; position: absolute; left: 50%; bottom: 100%; width: 1px;
+  background: linear-gradient(to bottom, rgba(255,239,196,0), rgba(255,239,196,.35));
+}
+.sn-lantern-a { left: 124px; top: 150px; width: 46px; }
+.sn-lantern-a::before { height: 84px; }
+.sn-lantern-b { left: 214px; top: 196px; width: 36px; opacity: .85; }
+.sn-lantern-b::before { height: 116px; }
+
+/* ── 감나무 가지 — 오른쪽에서 드리운다 ── */
+.sn-pb { position: absolute; right: -14px; top: 30%; width: 250px; opacity: .92; }
+.sn-pb svg { width: 100%; height: auto; overflow: visible; }
+.sn-pb-bough { fill: none; stroke: #5A3C24; stroke-width: 7; stroke-linecap: round; }
+.sn-pb-twig  { stroke-width: 4; }
+.sn-pb-leaf  { fill: #2F6B42; stroke: #1F4C2E; stroke-width: 2; }
+.sn-pb-stem  { fill: none; stroke: #5A3C24; stroke-width: 4; stroke-linecap: round; }
+.sn-pb-fruit { fill: #E2662E; stroke: #A83F16; stroke-width: 2.5; }
+.sn-pb-calyx { fill: #3E7A4E; stroke: #275634; stroke-width: 2; stroke-linejoin: round; }
 
 /* ── 땅 — 산 능선, 억새, 기와 담장 ── */
 .sn-scene { position: absolute; left: 0; right: 0; bottom: -1px; }
@@ -212,13 +240,12 @@
    시즌 동안에는 배경 사진을 감추고 계절 바탕만 남긴다. 사진이 비치면
    달과 억새가 묻히고 밤으로도 읽히지 않는다. 테마를 끄면 사진이 돌아온다. */
 
-/* 강사 소개 — 히어로 사진 */
-[data-season="chuseok"] .inst-hero-bg { display: none; }
+/* 사진을 빼는 일은 themes/base.css 가 시즌 공통으로 한다.
+   여기서는 그 자리에 무엇을 깔지만 정한다. */
 
-/* 랜딩 CTA — 초록 사진 대신 밤하늘.
+/* 랜딩 CTA — 밤하늘.
    이 자리의 바탕색은 랜딩 편집 값으로 자바스크립트가 인라인에 박는다.
    인라인은 규칙보다 세서, 여기서만 important 를 쓴다. */
-[data-season="chuseok"] .lp-cta-bg-photo { display: none; }
 [data-season="chuseok"] .lp-cta {
   background:
     radial-gradient(52% 64% at 84% 20%, rgba(64,38,112,.55) 0%, rgba(64,38,112,0) 70%),
@@ -263,6 +290,8 @@
 .sn-b-mortar     { fill: #6E4B2E; stroke: var(--sn-ink); stroke-width: 4.6; stroke-linejoin: round; }
 .sn-b-paw        { fill: #FFFDF8; stroke: var(--sn-ink); stroke-width: 4.2; }
 .sn-b-mortar-lip { fill: none; stroke: var(--sn-ink); stroke-width: 3.4; opacity: .5; }
+.sn-b-inner      { fill: #F2A7B8; stroke: var(--sn-ink); stroke-width: 3.2;
+                   stroke-linejoin: round; }
 .sn-b-eye        { fill: var(--sn-ink); }
 .sn-b-blush      { fill: #F2A7B8; opacity: .85; }
 .sn-b-mouth      { fill: none; stroke: var(--sn-ink); stroke-width: 3; stroke-linecap: round; }
@@ -460,12 +489,18 @@
   .sn-404-art { width: 168px; }
   .sn-404-title { font-size: 21px; }
 
+  .sn-lantern-a { left: 72px; top: 112px; width: 34px; }
+  .sn-lantern-a::before { height: 62px; }
+  .sn-lantern-b { display: none; }
+  .sn-pb { width: 150px; right: -26px; top: 22%; opacity: .8; }
+  .sn-cloud-3 { display: none; }
+
   .sn-head-moon { width: 40px; height: 40px; right: 14px; top: 12px; }
   .sn-knot-mark, .sn-lantern-mark, .sn-yut-mark { display: none; }
   .sn-footer-rabbit { width: 58px; }
 }
 
 @media (max-width: 480px) {
-  .sn-pine { display: none; }          /* 좁으면 달만 남긴다 */
+  .sn-pine, .sn-lantern { display: none; }   /* 아주 좁으면 달과 감만 */
   .sn-footer-rabbit { width: 52px; right: 16px; }
 }

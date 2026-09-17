@@ -90,6 +90,17 @@
     root.setAttribute('data-season', name);
     root.classList.add('season-' + name);          // 예전 규칙과의 호환
 
+    // 소개 페이지는 배경 사진이 body::before 한 장으로 깔린다.
+    // 그 한 장만 가려내려면 화면을 알아보는 표가 필요하다.
+    var markPage = function () {
+      if (document.querySelector('.about-hero')) root.classList.add('sn-page-about');
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', markPage);
+    } else {
+      markPage();
+    }
+
     // 색이 먼저 와야 글이 잠깐 엉뚱한 색으로 보이지 않는다
     css(BASE + 'base.css?v=' + VER);
     css(BASE + name + '/theme.css?v=' + VER);

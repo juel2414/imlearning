@@ -171,9 +171,15 @@
       var back = make('div', 'sn-deco',
         '<div class="sn-trim"></div>' +
         '<div class="sn-halo"></div>' +
-        '<div class="sn-moon"></div>' +
+        // 달 속에 토끼가 산다는 그 이야기 그대로, 달무늬 자리에 토끼를 넣는다
+        '<div class="sn-moon">' + M.rabbit('sn-moon-rabbit') + '</div>' +
         stars() + cloud('sn-cloud-1') + cloud('sn-cloud-2') +
+        (h.full ? cloud('sn-cloud-3') : '') +
         '<div class="sn-pine">' + M.pineBough() + '</div>' +
+        // 솔가지에 청사초롱을 매단다
+        (h.full ? '<span class="sn-lantern sn-lantern-a">' + M.lantern() + '</span>' +
+                  '<span class="sn-lantern sn-lantern-b">' + M.lantern() + '</span>' +
+                  '<div class="sn-pb">' + M.persimmonBranch() + '</div>' : '') +
         (h.full ? scene() : ''));
       h.el.appendChild(back);
 
@@ -228,12 +234,6 @@
   var SAEKDONG_UNDER = ['.notice-tabs', '.my-tabs', '.res-cats', '.courses-list-header'];
 
   function doLight() {
-    // 소개 페이지는 배경 사진이 body::before 한 장으로 깔린다.
-    // 그 한 장만 가려내려면 화면을 가려낼 표가 필요하다.
-    if (document.querySelector('.about-hero')) {
-      document.documentElement.classList.add('sn-page-about');
-    }
-
     LIGHT_HEADS.forEach(function (sel) {
       var el = document.querySelector(sel);
       if (!el || !once(el, 'lmoon')) return;
