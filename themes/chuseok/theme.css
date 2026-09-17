@@ -291,7 +291,12 @@
 .sn-b-pestle     { fill: #A3764E; stroke: var(--sn-ink); stroke-width: 4.2; }
 .sn-b-mortar     { fill: #6E4B2E; stroke: var(--sn-ink); stroke-width: 4.6; stroke-linejoin: round; }
 .sn-b-paw        { fill: #FFFDF8; stroke: var(--sn-ink); stroke-width: 4.2; }
-.sn-b-mortar-lip { fill: none; stroke: var(--sn-ink); stroke-width: 3.4; opacity: .5; }
+.sn-b-mortar-lip { fill: none; stroke: var(--sn-ink); stroke-width: 3; opacity: .45; }
+.sn-b-mortar-in  { fill: #4A3018; stroke: var(--sn-ink); stroke-width: 3.4; }
+.sn-b-dough      { fill: #F7E9A8; stroke: var(--sn-ink); stroke-width: 3.4;
+                   stroke-linejoin: round; }
+.sn-b-earline    { fill: none; stroke: var(--sn-ink); stroke-width: 2.6;
+                   stroke-linecap: round; opacity: .75; }
 .sn-b-eye        { fill: var(--sn-ink); }
 .sn-b-blush      { fill: #F2A7B8; opacity: .85; }
 .sn-b-mouth      { fill: none; stroke: var(--sn-ink); stroke-width: 3; stroke-linecap: round; }
