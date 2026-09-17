@@ -33,71 +33,21 @@
 
   /* ── 달토끼 — 달 안에서 둘이 마주 서서 방아를 찧는다 ────────────
      흰 몸에 굵은 먹선, 긴 귀, 볼 홍조. 오른쪽 토끼는 왼쪽을 뒤집어 쓴다. */
-  /* 참고 그림의 윤곽을 따라 뜬 것.
-     원 지름 176 에 맞춰 좌표를 옮겼고, 귀 끝과 뒷발이 원 밖으로
-     나가지 않는지 좌표마다 확인했다.
-     두 토끼는 좌우를 뒤집어 쓰되 절굿공이만 따로 둔다. 참고 그림에서
-     왼쪽은 공이를 들어 올렸고 오른쪽은 절구에 넣고 있다. */
-  function bunny() {
-    return '<g class="sn-b">' +
-      // 귀 둘 — 뒤쪽은 바깥으로, 앞쪽은 위로
-      '<path d="M50 82 C 44 74, 37 65, 35 58 C 34 51, 41 50, 44 57 ' +
-      'C 48 66, 54 76, 57 81 Z"/>' +
-      '<path d="M57 80 C 56 70, 58 56, 61 48 C 63 43, 70 44, 70 51 ' +
-      'C 70 62, 66 74, 65 80 Z"/>' +
-      // 꼬리
-      '<circle cx="43" cy="122" r="6.5"/>' +
-      // 몸 — 뒷다리로 서서 안쪽으로 기울인다
-      '<path d="M52 96 C 44 106, 42 126, 46 140 C 51 152, 70 153, 76 142 ' +
-      'C 82 130, 78 108, 70 98 Z"/>' +
-      // 뒷발과 앞발
-      '<path d="M45 134 C 38 138, 37 147, 46 148 C 53 149, 55 141, 51 136 Z"/>' +
-      '<path d="M59 146 C 55 153, 60 159, 69 157 C 75 155, 74 148, 69 145 Z"/>' +
-      // 머리 — 귀 밑동을 덮는다
-      '<circle cx="62" cy="85" r="19"/>' +
-      // 앞발 — 머리 아래 가슴에서 앞으로 뻗어 공이를 잡는다
-      '<path d="M56 103 C 66 100, 80 101, 90 106 C 93 111, 89 116, 85 114 ' +
-      'C 77 110, 65 111, 56 112 Z"/>' +
-      '</g>' +
-      // 귀 안쪽 선 — 색을 채우지 않고 선만
-      '<path class="sn-b-earline" d="M47 78 C 43 71, 39 63, 38 57"/>' +
-      '<path class="sn-b-earline" d="M60 77 C 60 68, 61 57, 63 51"/>' +
-      // 어깨 주름
-      '<path class="sn-b-earline" d="M62 102 C 60 106, 60 110, 62 113"/>' +
-      // 얼굴은 일하는 쪽을 본다
-      '<ellipse class="sn-b-blush" cx="69" cy="93" rx="5.6" ry="3.8"/>' +
-      '<circle class="sn-b-eye" cx="73" cy="85" r="2.9"/>' +
-      '<path class="sn-b-mouth" d="M76 90 C 77.5 92.5, 80 92.5, 81 90"/>';
-  }
-
-  function rabbit(cls) {
-    return svg('0 0 200 200',
-      '<circle class="sn-b-disc" cx="100" cy="100" r="88"/>' +
-      // 왼쪽 공이는 들어 올린 참, 오른쪽 공이는 절구 안
-      '<rect class="sn-b-pestle" x="-4.6" y="-34.4" width="9.2" height="68.7" rx="4.6" ' +
-      'transform="translate(87.5,87) rotate(-16.1)"/>' +
-      '<rect class="sn-b-pestle" x="-4.6" y="-44.7" width="9.2" height="89.4" rx="4.6" ' +
-      'transform="translate(112,98) rotate(10.3)"/>' +
-      bunny() +
-      '<g transform="translate(200,0) scale(-1,1)">' + bunny() + '</g>' +
-      // 공이를 쥔 앞발
-      '<circle class="sn-b-paw" cx="92" cy="109" r="6.5"/>' +
-      '<circle class="sn-b-paw" cx="108" cy="109" r="6.5"/>' +
-      // 절구 — 자루처럼 아가리가 넓고 아래가 둥글다
-      '<path class="sn-b-mortar" d="M79 126 C 79 123, 82 121, 86 121 L114 121 ' +
-      'C 118 121, 121 123, 121 126 C 121 134, 118 142, 118 148 ' +
-      'C 118 156, 112 161, 100 161 C 88 161, 82 156, 82 148 ' +
-      'C 82 142, 79 134, 79 126 Z"/>' +
-      '<path class="sn-b-mortar-lip" d="M84 138 C 92 141, 108 141, 116 138"/>' +
-      // 아가리와 그 안의 떡
-      '<ellipse class="sn-b-mortar-in" cx="100" cy="122" rx="19" ry="5.5"/>' +
-      '<path class="sn-b-dough" d="M84 122 C 84 115, 91 112, 100 112 ' +
-      'C 109 112, 116 115, 116 122 C 109 126, 91 126, 84 122 Z"/>',
-      cls || 'sn-m-rabbit');
-  }
+  /* ── 달토끼 ──────────────────────────────────────────────────────
+     이것만 그림 파일을 쓴다. 나머지 모티프는 전부 코드로 그린다.
+     받은 원본은 격자무늬가 픽셀로 박혀 있어, 원만 오려 내고 바깥을
+     투명하게 만든 것을 쓴다. 원본은 같은 폴더에 -source 로 남겨 뒀다.
+     주소는 뿌리에서 잡는다. 404 처럼 없는 주소로 들어온 화면에서도
+     상대 경로가 어긋나지 않는다. */
+  var RABBIT_SRC = '/images/season/chuseok-rabbit.png';
 
   // 예전 이름으로도 부를 수 있게 둔다 — 빈 상태와 404 가 쓴다
-  function rabbitMortar(cls) { return rabbit(cls || 'sn-m-rabbit-mortar'); }
+  function rabbitMortar(cls) { return rabbit(cls); }
+
+  function rabbit(cls) {
+    return '<img class="sn-m-rabbit ' + (cls || '') + '" src="' + RABBIT_SRC + '" ' +
+      'alt="" aria-hidden="true" decoding="async" width="440" height="440">';
+  }
 
   /* ── 송편 — 반달 모양. 쑥·치자·흰·분홍으로 빚는다 ──────────────── */
   var SONGPYEON_HUES = {

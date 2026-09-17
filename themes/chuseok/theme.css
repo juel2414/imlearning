@@ -280,27 +280,12 @@
     rgba(255,255,255,.50) 0%, rgba(255,255,255,.28) 48%, rgba(255,255,255,0) 100%);
 }
 
-/* ── 달토끼·송편·윷 ──────────────────────────────────────────────
-   그림 안의 색은 모티프가 스스로 정한다. 여기서는 먹선과 나무색만 잡는다. */
-.sn-b path, .sn-b circle {
-  fill: #FFFDF8;
-  stroke: var(--sn-ink); stroke-width: 4.6;
-  stroke-linejoin: round; stroke-linecap: round;
-}
-.sn-b-disc       { fill: var(--sn-moon); stroke: var(--sn-ink); stroke-width: 6; }
-.sn-b-pestle     { fill: #A3764E; stroke: var(--sn-ink); stroke-width: 4.2; }
-.sn-b-mortar     { fill: #6E4B2E; stroke: var(--sn-ink); stroke-width: 4.6; stroke-linejoin: round; }
-.sn-b-paw        { fill: #FFFDF8; stroke: var(--sn-ink); stroke-width: 4.2; }
-.sn-b-mortar-lip { fill: none; stroke: var(--sn-ink); stroke-width: 3; opacity: .45; }
-.sn-b-mortar-in  { fill: #4A3018; stroke: var(--sn-ink); stroke-width: 3.4; }
-.sn-b-dough      { fill: #F7E9A8; stroke: var(--sn-ink); stroke-width: 3.4;
-                   stroke-linejoin: round; }
-.sn-b-earline    { fill: none; stroke: var(--sn-ink); stroke-width: 2.6;
-                   stroke-linecap: round; opacity: .75; }
-.sn-b-eye        { fill: var(--sn-ink); }
-.sn-b-blush      { fill: #F2A7B8; opacity: .85; }
-.sn-b-mouth      { fill: none; stroke: var(--sn-ink); stroke-width: 3; stroke-linecap: round; }
+/* ── 달토끼 ──────────────────────────────────────────────────────
+   이 그림 하나만 파일을 쓴다. 담는 자리가 크기를 정하고,
+   그림은 그 폭을 그대로 채운다. */
+.sn-m-rabbit { display: block; width: 100%; height: auto; }
 
+/* ── 윷 ── */
 .sn-y-body { fill: #C49A6C; stroke: var(--sn-stem); stroke-width: 2.6; }
 .sn-y-face { fill: #E6CFA8; }
 .sn-y-mark { fill: none; stroke: var(--sn-stem); stroke-width: 2.4; stroke-linecap: round; }
