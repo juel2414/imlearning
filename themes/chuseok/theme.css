@@ -11,9 +11,9 @@
 
 [data-season="chuseok"] {
   /* 밤하늘 */
-  --sn-night-top:   #14213F;
-  --sn-night-mid:   #221A47;   /* 달 둘레 보랏빛 */
-  --sn-night-deep:  #0C1226;
+  --sn-night-top:   #2A1E52;   /* 보랏빛 밤 */
+  --sn-night-mid:   #3A2A66;   /* 달 둘레 */
+  --sn-night-deep:  #140D2C;
 
   /* 달빛 */
   --sn-moon:        #FFE7A3;
@@ -92,10 +92,10 @@
 /* 사진이 빠진 자리에 밤하늘을 깐다 */
 [data-season="chuseok"] .lp-hero .hero-overlay {
   background:
-    radial-gradient(58% 52% at 84% 17%, rgba(64,38,112,.62) 0%, rgba(64,38,112,0) 70%),
+    radial-gradient(58% 52% at 84% 17%, rgba(96,62,150,.55) 0%, rgba(96,62,150,0) 70%),
     linear-gradient(168deg,
       var(--sn-night-top) 0%,
-      #101A34 56%,
+      #241848 56%,
       var(--sn-night-deep) 100%);
 }
 [data-season="chuseok"] .lp-hero,
@@ -172,52 +172,30 @@
    글은 가운데로 모이고 좌우가 비어 있다. 그 자리에 하나씩 놓는다. */
 .sn-hero-art { position: absolute; pointer-events: none; }
 .sn-hero-art svg { width: 100%; height: auto; }
-.sn-hero-rabbit    { left: 4%;  top: 47%; width: 158px; opacity: .95; }
-.sn-hero-songpyeon { right: 6%; top: 50%; width: 186px; opacity: .95; }
-
-/* ── 청사초롱 — 솔가지에 매단다. 줄은 위로 뻗어 가지에 닿는다 ── */
-.sn-lantern { position: absolute; pointer-events: none; }
-.sn-lantern svg { width: 100%; height: auto; }
-.sn-lantern::before {
-  content: ''; position: absolute; left: 50%; bottom: 100%; width: 1px;
-  background: linear-gradient(to bottom, rgba(255,239,196,0), rgba(255,239,196,.35));
+/* ── 히어로 아래 — 돗자리와 수확물 ── */
+/* 히어로 바로 아래 제 줄로 놓인다. 위는 밤하늘을 이어받고
+   아래로 갈수록 다음 칸 색에 스민다. */
+.sn-ground {
+  position: relative; height: 250px; overflow: hidden;
+  /* 위는 히어로의 밤을 이어받고, 아래는 다음 칸(#111)에 맞춰 끝낸다.
+     색을 맞춰 두지 않으면 경계에 선이 생긴다. */
+  background: linear-gradient(180deg,
+    var(--sn-night-deep) 0%, #17102C 58%, #111111 100%);
 }
-.sn-lantern-a { left: 124px; top: 150px; width: 46px; }
-.sn-lantern-a::before { height: 84px; }
-.sn-lantern-b { left: 214px; top: 196px; width: 36px; opacity: .85; }
-.sn-lantern-b::before { height: 116px; }
+.sn-g { position: absolute; bottom: 0; }
+.sn-g-mat     { left: 50%; transform: translateX(-50%); bottom: 18px; width: 620px; }
+.sn-g-pumpkin { left: 13%;  bottom: 86px; width: 118px; }
+.sn-g-squash  { left: 20%;  bottom: 74px; width: 104px; }
+.sn-g-potato  { left: 27.5%; bottom: 62px; width: 96px; }
+.sn-g-ornam   { right: 15%; bottom: 74px; width: 62px; }
+.sn-g-rabbit  { right: 20%; bottom: 96px; width: 186px; }
 
-/* ── 감나무 가지 — 오른쪽에서 드리운다 ── */
-.sn-pb { position: absolute; right: -14px; top: 30%; width: 250px; opacity: .92; }
-.sn-pb svg { width: 100%; height: auto; overflow: visible; }
-.sn-pb-bough { fill: none; stroke: #5A3C24; stroke-width: 7; stroke-linecap: round; }
-.sn-pb-twig  { stroke-width: 4; }
-.sn-pb-leaf  { fill: #2F6B42; stroke: #1F4C2E; stroke-width: 2; }
-.sn-pb-stem  { fill: none; stroke: #5A3C24; stroke-width: 4; stroke-linecap: round; }
-.sn-pb-fruit { fill: #E2662E; stroke: #A83F16; stroke-width: 2.5; }
-.sn-pb-calyx { fill: #3E7A4E; stroke: #275634; stroke-width: 2; stroke-linejoin: round; }
-
-/* ── 땅 — 산 능선, 억새, 기와 담장 ── */
-.sn-scene { position: absolute; left: 0; right: 0; bottom: -1px; }
-.sn-scene svg { width: 100%; height: auto; overflow: visible; }
-
-.sn-hill-far       { fill: #24305C; }
-.sn-hill-near      { fill: #1A2244; }
-.sn-hill-far-line,
-.sn-hill-near-line { fill: none; stroke: var(--sn-lit); stroke-width: 1.6; opacity: .16; }
-.sn-hill-near-line { opacity: .20; }
-
-.sn-reeds     { color: var(--sn-lit); opacity: .42; }
-.sn-reeds-far { color: var(--sn-lit); opacity: .20; }
-.sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-.sn-plume { fill: none; stroke: currentColor; stroke-width: .85; stroke-linecap: round; opacity: .85; }
-
-.sn-wall-roof   { fill: #202A4E; }
-.sn-wall-groove { fill: none; stroke: #0E1428; stroke-width: 1.6; opacity: .75; }
-.sn-wall-eave   { fill: #161C36; }
-.sn-wall-body   { fill: #1B2340; }
-.sn-wall-brick  { fill: none; stroke: #2E3A66; stroke-width: 1.2; opacity: .45; }
-.sn-wall-lit    { fill: none; stroke: var(--sn-lit); stroke-width: 2; opacity: .26; }
+/* ── 솔가지에 얹은 송편과 솔방울 ── */
+.sn-perch { position: absolute; }
+.sn-perch-1 { left: 138px; top: 96px;  width: 58px; transform: rotate(-9deg); }
+.sn-perch-2 { left: 206px; top: 132px; width: 52px; transform: rotate(7deg); }
+.sn-perch-3 { left: 78px;  top: 150px; width: 46px; transform: rotate(-14deg); }
+.sn-perch-4 { left: 262px; top: 78px;  width: 62px; }
 
 /* ── 단풍잎 — 글 앞으로 천천히 떨어진다 ── */
 .sn-leaf   { position: absolute; top: -48px; animation: snFall 20s linear infinite; }
@@ -283,6 +261,7 @@
 /* ── 달토끼 ──────────────────────────────────────────────────────
    이 그림 하나만 파일을 쓴다. 담는 자리가 크기를 정하고,
    그림은 그 폭을 그대로 채운다. */
+.sn-art { display: block; width: 100%; height: auto; }
 .sn-m-rabbit { display: block; width: 100%; height: auto; }
 
 /* ── 윷 ── */
@@ -465,11 +444,19 @@
   .sn-halo { width: 300px; height: 300px; top: 22px; right: 16px; margin: -102px -102px 0 0; }
 
   .sn-pine { width: 210px; top: -10px; left: -32px; opacity: .78; }
+  .sn-perch-1 { left: 74px; top: 58px; width: 36px; }
+  .sn-perch-2 { left: 118px; top: 82px; width: 32px; }
+  .sn-perch-3, .sn-perch-4 { display: none; }
+
+  /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */
+  .sn-ground { height: clamp(190px, 26vw, 220px); }
+  .sn-g-mat { width: min(480px, 94%); bottom: 10px; }
+  .sn-g-pumpkin { left: 3%;  bottom: 16%; width: min(92px, 18%); }
+  .sn-g-squash  { left: 17%; bottom: 14%; width: min(82px, 16%); }
+  .sn-g-potato, .sn-g-ornam { display: none; }
+  .sn-g-rabbit { right: 5%; bottom: 18%; width: min(150px, 30%); }
   .sn-cloud-1 { width: 220px; }
   .sn-cloud-2 { display: none; }
-
-  /* 그림 하나를 그대로 줄이면 담장이 실처럼 얇아진다. 넓게 잡아 키운다. */
-  .sn-scene { width: 230%; left: -65%; right: auto; }
 
   .sn-leaf svg { width: 15px; height: 15px; }
 
@@ -480,12 +467,6 @@
   .sn-404-art { width: 168px; }
   .sn-404-title { font-size: 21px; }
 
-  .sn-hero-rabbit { width: 98px; left: 3%; top: 46%; }
-  .sn-hero-songpyeon { display: none; }
-  .sn-lantern-a { left: 72px; top: 112px; width: 34px; }
-  .sn-lantern-a::before { height: 62px; }
-  .sn-lantern-b { display: none; }
-  .sn-pb { width: 150px; right: -26px; top: 22%; opacity: .8; }
   .sn-cloud-3 { display: none; }
 
   .sn-head-moon { width: 40px; height: 40px; right: 14px; top: 12px; }
@@ -494,6 +475,6 @@
 }
 
 @media (max-width: 480px) {
-  .sn-pine, .sn-lantern { display: none; }   /* 아주 좁으면 달과 감만 */
+  .sn-pine, .sn-perch { display: none; }   /* 아주 좁으면 달만 남긴다 */
   .sn-footer-rabbit { width: 52px; right: 16px; }
 }

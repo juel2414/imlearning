@@ -38,78 +38,18 @@
 
   /* ══ 밤하늘 히어로 ════════════════════════════════════════════════ */
 
-  var VW = 1440, VH = 460, WALL_TOP = 340, SOIL = 352;
   var r = M.round;
 
-  function ridge(pts, rad) {
-    var d = 'M' + pts[0][0] + ' ' + VH + ' L' + pts[0][0] + ' ' + pts[0][1];
-    for (var i = 1; i < pts.length - 1; i++) {
-      var p0 = pts[i - 1], p1 = pts[i], p2 = pts[i + 1];
-      d += ' L' + r(p1[0] + (p0[0] - p1[0]) * rad) + ' ' + r(p1[1] + (p0[1] - p1[1]) * rad);
-      d += ' Q' + p1[0] + ' ' + p1[1] +
-           ' ' + r(p1[0] + (p2[0] - p1[0]) * rad) + ' ' + r(p1[1] + (p2[1] - p1[1]) * rad);
-    }
-    var last = pts[pts.length - 1];
-    d += ' L' + last[0] + ' ' + last[1] + ' L' + last[0] + ' ' + VH + ' Z';
-    return d;
-  }
-
-  function hills() {
-    var far = ridge([[-60, 322], [104, 196], [238, 286], [372, 176], [508, 280],
-                     [648, 166], [796, 282], [934, 188], [1078, 288], [1218, 174],
-                     [1352, 276], [1500, 322]], 0.16);
-    var near = ridge([[-60, 356], [92, 276], [230, 340], [368, 264], [502, 338],
-                      [646, 270], [792, 344], [928, 278], [1070, 342], [1216, 272],
-                      [1358, 338], [1500, 356]], 0.16);
-    return '<path class="sn-hill-far" d="' + far + '"/>' +
-           '<path class="sn-hill-far-line" d="' + far + '"/>' +
-           '<path class="sn-hill-near" d="' + near + '"/>' +
-           '<path class="sn-hill-near-line" d="' + near + '"/>';
-  }
-
-  // 기와 담장 — 위에 수막새가 잘게 줄지어 앉고, 아래는 전돌 벽이다.
-  function wall() {
-    var out = '', P = 18, R = 9;
-    var top = WALL_TOP, roofBot = WALL_TOP + 30, x, g, by, row = 0;
-
-    var ridgePath = 'M0 ' + top;
-    for (x = 0; x < VW; x += P) ridgePath += ' A ' + R + ' ' + R + ' 0 0 1 ' + (x + P) + ' ' + top;
-    out += '<path class="sn-wall-roof" d="' + ridgePath +
-           ' L' + VW + ' ' + roofBot + ' L0 ' + roofBot + ' Z"/>';
-
-    var grooves = '';
-    for (g = P; g < VW; g += P) grooves += 'M' + g + ' ' + (top - 1) + ' L' + g + ' ' + (roofBot - 3);
-    out += '<path class="sn-wall-groove" d="' + grooves + '"/>';
-
-    out += '<rect class="sn-wall-eave" x="0" y="' + roofBot + '" width="' + VW + '" height="9"/>';
-    out += '<rect class="sn-wall-body" x="0" y="' + (roofBot + 9) + '" width="' + VW +
-           '" height="' + (VH - roofBot - 9) + '"/>';
-
-    var bricks = '';
-    for (by = roofBot + 27; by < VH; by += 17) {
-      bricks += 'M0 ' + by + ' L' + VW + ' ' + by;
-      for (var bx = (row % 2 ? 0 : 23); bx < VW; bx += 46) {
-        bricks += 'M' + bx + ' ' + by + ' L' + bx + ' ' + Math.min(by + 17, VH);
-      }
-      row++;
-    }
-    out += '<path class="sn-wall-brick" d="' + bricks + '"/>';
-
-    var lit = 'M0 ' + top;
-    for (var lx = 0; lx < VW; lx += P) lit += ' A ' + R + ' ' + R + ' 0 0 1 ' + (lx + P) + ' ' + top;
-    out += '<path class="sn-wall-lit" d="' + lit + '"/>';
-    return out;
-  }
-
-  function scene() {
-    return '<div class="sn-scene">' +
-      '<svg viewBox="0 0 ' + VW + ' ' + VH + '" preserveAspectRatio="none" ' +
-      'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-      hills() +
-      M.reedRow({ width: VW, baseY: SOIL - 8, minH: 70, spread: 50, step: 34, cls: 'sn-reeds-far' }) +
-      M.reedRow({ width: VW, baseY: SOIL,     minH: 92, spread: 70, step: 38, cls: 'sn-reeds' }) +
-      wall() +
-      '</svg></div>';
+  /* ── 히어로 아래 — 돗자리에 윷판을 깔고 수확물을 쌓는다 ─────────
+     산·억새·담장을 코드로 그리던 것을 걷어 내고, 받은 그림으로 바꿨다. */
+  function ground() {
+    return make('div', 'sn-ground',
+      '<span class="sn-g sn-g-mat">'     + M.piece('mat')     + '</span>' +
+      '<span class="sn-g sn-g-pumpkin">' + M.piece('pumpkin') + '</span>' +
+      '<span class="sn-g sn-g-squash">'  + M.piece('squash')  + '</span>' +
+      '<span class="sn-g sn-g-potato">'  + M.piece('potato')  + '</span>' +
+      '<span class="sn-g sn-g-ornam">'   + M.piece('ornam')   + '</span>' +
+      '<span class="sn-g sn-g-rabbit">'  + M.rabbit()         + '</span>');
   }
 
   function stars() {
@@ -175,16 +115,21 @@
         stars() + cloud('sn-cloud-1') + cloud('sn-cloud-2') +
         (h.full ? cloud('sn-cloud-3') : '') +
         '<div class="sn-pine">' + M.pineBough() + '</div>' +
-        // 솔가지에 청사초롱을 매단다
-        (h.full ? '<span class="sn-lantern sn-lantern-a">' + M.lantern() + '</span>' +
-                  '<span class="sn-lantern sn-lantern-b">' + M.lantern() + '</span>' +
-                  '<div class="sn-pb">' + M.persimmonBranch() + '</div>' +
-                  '<span class="sn-hero-art sn-hero-rabbit">' + M.rabbit() + '</span>' +
-                  '<span class="sn-hero-art sn-hero-songpyeon">' + M.songpyeonSet() + '</span>' : '') +
-        (h.full ? scene() : ''));
+        // 솔가지에 송편을 얹는다
+        (h.full ? '<span class="sn-perch sn-perch-1">' + M.songpyeon('', 'pink') + '</span>' +
+                  '<span class="sn-perch sn-perch-2">' + M.songpyeon('', 'ssuk') + '</span>' +
+                  '<span class="sn-perch sn-perch-3">' + M.songpyeon('', 'chija') + '</span>' +
+                  '<span class="sn-perch sn-perch-4">' + M.piece('pinecone') + '</span>' : '') +
+        '');
       h.el.appendChild(back);
 
       h.el.appendChild(make('div', 'sn-deco-front', leaves(h.full ? 8 : 5)));
+
+      // 돗자리는 히어로 안에 두면 아래쪽 강좌 카드에 가린다.
+      // 히어로 다음 자리에 제 줄로 놓아 자리를 차지하게 한다.
+      if (h.full && h.el.parentNode) {
+        h.el.parentNode.insertBefore(ground(), h.el.nextSibling);
+      }
 
       // 인사말은 눈썹 문구 위에 놓는다
       var eyebrow = h.el.querySelector('.lp-eyebrow, .inst-hero-eye, .pass-eyebrow-text');
@@ -389,18 +334,34 @@
 
   /* ══ 전체 훑기 ════════════════════════════════════════════════════ */
 
+  // 한 군데가 넘어져도 나머지는 붙이되, 무슨 일인지는 남긴다.
+  function warn(where, e) {
+    if (window.console && console.warn) console.warn('[season] ' + where + ' 실패', e);
+  }
+
+  // 랜딩은 섹션을 전부 떼었다 순서대로 다시 붙인다. 그때 섹션이 아닌
+  // 돗자리 줄만 제자리에 남아 화면 맨 위로 밀린다. 매번 제자리로 되돌린다.
+  function keepGround() {
+    var g = document.querySelector('.sn-ground');
+    var hero = document.querySelector('[data-section="hero"]');
+    if (!g || !hero || !hero.parentNode) return;
+    if (hero.nextSibling === g) return;
+    hero.parentNode.insertBefore(g, hero.nextSibling);
+  }
+
   function scan() {
-    try { doNav(); }       catch (e) {}
-    try { doHero(); }      catch (e) {}
-    try { doDividers(); }  catch (e) {}
-    try { doCards(); }     catch (e) {}
-    try { doLight(); }     catch (e) {}
-    try { doCta(); }       catch (e) {}
-    try { doFooter(); }    catch (e) {}
-    try { doAuth(); }      catch (e) {}
-    try { doEmpty(); }     catch (e) {}
-    try { do404(); }       catch (e) {}
-    try { doCopy(); }      catch (e) {}
+    try { doNav(); } catch (e) { warn('doNav', e); }
+    try { doHero(); } catch (e) { warn('doHero', e); }
+    try { keepGround(); } catch (e) { warn('keepGround', e); }
+    try { doDividers(); } catch (e) { warn('doDividers', e); }
+    try { doCards(); } catch (e) { warn('doCards', e); }
+    try { doLight(); } catch (e) { warn('doLight', e); }
+    try { doCta(); } catch (e) { warn('doCta', e); }
+    try { doFooter(); } catch (e) { warn('doFooter', e); }
+    try { doAuth(); } catch (e) { warn('doAuth', e); }
+    try { doEmpty(); } catch (e) { warn('doEmpty', e); }
+    try { do404(); } catch (e) { warn('do404', e); }
+    try { doCopy(); } catch (e) { warn('doCopy', e); }
   }
 
   window.SeasonDecorate = function () {
