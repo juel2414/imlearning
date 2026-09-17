@@ -266,38 +266,54 @@
       cls || 'sn-m-soban');
   }
 
-  /* ── 들꽃 한 줄 — 화면 아래를 두른다 ────────────────────────────── */
+  /* ── 들꽃 한 무더기 — 화면 아래 모서리에 놓는다 ─────────────────
+     왼쪽 가장자리(x=0)에 몰리고 안쪽으로 갈수록 성기고 낮아진다.
+     오른쪽에 둘 때는 쓰는 쪽에서 좌우로 뒤집는다. */
   var PETAL = ['#F6F2E6', '#F5D46A', '#F0A2BE', '#C7A6E8', '#F3B278'];
-  function flowerRow(cls) {
-    var w = 1400, base = 200, out = '';
-    // 풀잎
+  function flowerClump(cls) {
+    var w = 360, base = 260, out = '';
+    // 가장자리일수록 1, 안쪽 끝이 0
+    var edge = function (x) { return 1 - x / w; };
+
+    // 풀잎 — 가장자리에 빽빽하게
     var grass = '';
-    for (var i = 0; i < 120; i++) {
-      var gx = (i * 11.7) % w;
-      var gh = 30 + jitter(i * 5) * 62;
-      var lean = (jitter(i * 3) - 0.5) * 34;
+    for (var i = 0; i < 70; i++) {
+      var gx = Math.pow(jitter(i * 7 + 1), 1.7) * w;
+      var gh = (26 + jitter(i * 5) * 50) * (0.45 + edge(gx) * 0.9);
+      var lean = (jitter(i * 3) - 0.35) * 40;
       grass += 'M' + r(gx) + ' ' + base + ' Q ' + r(gx + lean * 0.4) + ' ' + r(base - gh * 0.55) +
                ' ' + r(gx + lean) + ' ' + r(base - gh);
     }
     out += '<path class="sn-fl-grass" d="' + grass + '"/>';
-    // 꽃
-    for (var k = 0; k < 46; k++) {
-      var fx = (k * 30.4 + jitter(k * 7) * 18) % w;
-      var fh = 40 + jitter(k * 11) * 78;
+
+    // 꽃 — 줄기째 한 묶음으로 흔든다
+    var sways = ['sn-sway', 'sn-sway-2', 'sn-sway-3', 'sn-sway-4'];
+    for (var k = 0; k < 22; k++) {
+      var fx = 8 + Math.pow(jitter(k * 7 + 3), 1.5) * (w - 40);
+      var fh = (46 + jitter(k * 11) * 70) * (0.5 + edge(fx) * 0.85);
       var fy = base - fh;
+      var bend = (jitter(k * 17) - 0.5) * 22;
+      var hx = fx + bend;
       var col = PETAL[k % PETAL.length];
-      var rad = 6 + jitter(k * 13) * 4;
-      out += '<path class="sn-fl-stem" d="M' + r(fx) + ' ' + base + ' L' + r(fx) + ' ' + r(fy) + '"/>';
+      var rad = 6 + jitter(k * 13) * 5;
+      var g = '<path class="sn-fl-stem" d="M' + r(fx) + ' ' + base + ' Q ' + r(fx) + ' ' +
+              r(base - fh * 0.5) + ' ' + r(hx) + ' ' + r(fy) + '"/>';
+      // 잎 하나
+      if (k % 3 === 0) {
+        var ly = base - fh * 0.35;
+        g += '<path class="sn-fl-leaf" d="M' + r(fx) + ' ' + r(ly) + ' q 14 -12 26 -6 q -12 12 -26 6 Z"/>';
+      }
       var pet = '';
       for (var q = 0; q < 5; q++) {
         var a = Math.PI * 2 * q / 5 - Math.PI / 2;
-        pet += '<circle cx="' + r(fx + Math.cos(a) * rad * 0.82) + '" cy="' +
+        pet += '<circle cx="' + r(hx + Math.cos(a) * rad * 0.82) + '" cy="' +
                r(fy + Math.sin(a) * rad * 0.82) + '" r="' + r(rad * 0.62) + '"/>';
       }
-      out += '<g fill="' + col + '">' + pet + '</g>' +
-             '<circle class="sn-fl-eye" cx="' + r(fx) + '" cy="' + r(fy) + '" r="' + r(rad * 0.34) + '"/>';
+      g += '<g fill="' + col + '">' + pet + '</g>' +
+           '<circle class="sn-fl-eye" cx="' + r(hx) + '" cy="' + r(fy) + '" r="' + r(rad * 0.34) + '"/>';
+      out += '<g class="' + sways[k % 4] + '">' + g + '</g>';
     }
-    return svg('0 0 ' + w + ' ' + base, out, cls || 'sn-m-flowers', 'preserveAspectRatio="none"');
+    return svg('0 0 ' + w + ' ' + base, out, cls || 'sn-m-flowers');
   }
 
   /* ── 구름문양 구분선 ────────────────────────────────────────────
@@ -388,6 +404,6 @@
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
     cloudKr: cloudKr,
-    norigae: norigae, soban: soban, flowerRow: flowerRow
+    norigae: norigae, soban: soban, flowerClump: flowerClump
   };
 })();

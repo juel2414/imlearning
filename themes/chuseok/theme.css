@@ -218,9 +218,12 @@
 .sn-sb-edge { fill: #6F4526; }
 .sn-sb-leg  { fill: #6F4526; }
 
-/* ── 들꽃 — 화면 아래를 두른다 ── */
-.sn-flowers { position: absolute; left: 0; right: 0; bottom: -4px; pointer-events: none; }
-.sn-flowers svg { width: 100%; height: 190px; }
+/* ── 들꽃 — 아래 양옆 모서리에 억새와 함께 모인다. 가운데는 비운다 ── */
+.sn-flowers { position: absolute; bottom: -6px; width: 260px; pointer-events: none; }
+.sn-flowers svg { width: 100%; height: auto; display: block; overflow: visible; }
+.sn-flowers-l { left: -10px; }
+.sn-flowers-r { right: -10px; transform: scaleX(-1); }
+.sn-fl-leaf  { fill: #4E7F45; }
 .sn-fl-grass { fill: none; stroke: #5E8F52; stroke-width: 2.4; stroke-linecap: round; opacity: .85; }
 .sn-fl-stem  { fill: none; stroke: #56864B; stroke-width: 2.6; stroke-linecap: round; }
 .sn-fl-eye   { fill: #E8B23C; }
@@ -522,7 +525,7 @@
   .sn-pine2 { width: 150px; bottom: 360px; right: -30px; }
   .sn-norigae { display: none; }
   .sn-soban { width: 118px; right: 5%; bottom: 190px; }
-  .sn-flowers svg { height: 120px; }
+  .sn-flowers { width: 118px; }
   .sn-songpyeon { width: 94px; right: 7%; bottom: 222px; }
   .sn-milky { filter: blur(4px); }
   .sn-ck-1 { width: 150px; }

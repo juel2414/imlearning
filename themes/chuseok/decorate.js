@@ -157,15 +157,18 @@
         (h.full ? '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
                   '<span class="sn-reeds-r">' + M.reedClump() + '</span>' : '') +
         // 솔가지에 송편을 얹는다
-        (h.full ? '<span class="sn-pine2">' + M.piece('pine') + '</span>' +
-                  '<span class="sn-flowers">' + M.flowerRow() + '</span>' : '') +
+        (h.full ? '<span class="sn-pine2">' + M.piece('pine') + '</span>' : '') +
         '');
       h.el.appendChild(back);
 
       h.el.appendChild(make('div', 'sn-deco-front', leaves(h.full ? 8 : 5) +
         (h.full ? '<span class="sn-norigae">' + M.norigae() + '</span>' +
                   '<span class="sn-soban">' + M.soban() + '</span>' +
-                  '<span class="sn-songpyeon">' + M.songpyeonSet() + '</span>' : '')));
+                  '<span class="sn-songpyeon">' + M.songpyeonSet() + '</span>' +
+                  // 들꽃은 아래 한 줄로 깔지 않고 양옆 모서리에만 모은다.
+                  // 강좌 카드 판이 폭을 거의 다 차지해서, 판 모서리 앞에 걸친다.
+                  '<span class="sn-flowers sn-flowers-l">' + M.flowerClump() + '</span>' +
+                  '<span class="sn-flowers sn-flowers-r">' + M.flowerClump() + '</span>' : '')));
 
       // 색동 액자와 단청 방패는 글보다 앞에 둔다
       h.el.appendChild(make('div', 'sn-frame'));
@@ -395,10 +398,28 @@
     hero.parentNode.insertBefore(g, hero.nextSibling);
   }
 
+  /* 들꽃 밑단을 강좌 카드 판 바닥에 맞춘다. 판 아래 단계 안내 띠의 높이가
+     화면 폭마다 달라서 CSS 로는 못 박는다. 판이 없으면 히어로 바닥에 둔다. */
+  function placeFlowers() {
+    var hero = document.querySelector('[data-section="hero"]');
+    if (!hero) return;
+    var fl = hero.querySelectorAll('.sn-flowers');
+    if (!fl.length) return;
+    var panel = hero.querySelector('.lp-hero-img');
+    var gap = -6;
+    if (panel && panel.offsetHeight) {
+      gap = Math.round(hero.getBoundingClientRect().bottom - panel.getBoundingClientRect().bottom) - 4;
+      // 좁은 화면은 판이 폭을 다 차지해 버튼과 겹친다. 판 아래 틈으로 조금 내린다.
+      if (window.innerWidth <= 768) gap -= 18;
+    }
+    for (var i = 0; i < fl.length; i++) fl[i].style.bottom = gap + 'px';
+  }
+
   function scan() {
     try { doNav(); } catch (e) { warn('doNav', e); }
     try { doHero(); } catch (e) { warn('doHero', e); }
     try { keepGround(); } catch (e) { warn('keepGround', e); }
+    try { placeFlowers(); } catch (e) { warn('placeFlowers', e); }
     try { doDividers(); } catch (e) { warn('doDividers', e); }
     try { doCards(); } catch (e) { warn('doCards', e); }
     try { doLight(); } catch (e) { warn('doLight', e); }
@@ -426,6 +447,12 @@
       }, 200);
     });
     mo.observe(document.body, { childList: true, subtree: true });
+
+    var rt = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(placeFlowers, 150);
+    });
 
     // 늦게 오는 자료를 위해 몇 번 더
     [700, 1800, 3500].forEach(function (t) { setTimeout(scan, t); });
