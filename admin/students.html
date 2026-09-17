@@ -38,10 +38,18 @@ a { text-decoration:none; color:inherit; }
 .search-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 .search-input { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; width:220px; outline:none; }
 .search-input:focus { border-color:#2D9B6F; }
-.row-more { padding:14px; text-align:center; font-size:13px; color:#666; }
-.row-more button { margin-left:8px; padding:5px 12px; border-radius:7px;
-  border:1px solid #d7d7d7; background:#fff; font-size:12.5px; font-weight:600;
-  color:#2D9B6F; cursor:pointer; }
+.pager { display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:16px 4px 4px; flex-wrap:wrap; }
+.pager-count { font-size:12.5px; color:#888; }
+.pager-btns { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.pager-btns button { min-width:34px; padding:6px 10px; border-radius:7px;
+  border:1px solid #e2e2e2; background:#fff; font-size:12.5px; color:#555;
+  cursor:pointer; }
+.pager-btns button:hover:not(:disabled) { border-color:#2D9B6F; color:#2D9B6F; }
+.pager-btns button:disabled { color:#ccc; cursor:default; }
+.pager-num.on { background:#2D9B6F; border-color:#2D9B6F; color:#fff; font-weight:700; }
+.pager-num.on:hover { color:#fff; }
+.pager-gap { padding:0 2px; color:#bbb; font-size:12.5px; }
 .filter-select { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; cursor:pointer; }
 
 /* 테이블 */
@@ -216,7 +224,7 @@ tr.detail-row:hover > td { background:#FAFBFC; }
       <span class="card-title">수강생 목록</span>
       <div class="search-bar">
         <input type="text" class="search-input" id="student-search" placeholder="이름 또는 이메일 검색..." oninput="renderTableSoon()">
-        <select class="filter-select" id="status-filter" onchange="showAllRows=false;renderTable()">
+        <select class="filter-select" id="status-filter" onchange="curPage=1;renderTable()">
           <option value="">전체 상태</option>
           <option value="active">활성</option>
           <option value="dormant">휴면</option>
@@ -494,16 +502,46 @@ function renderKPI() {
 }
 
 // ── 테이블 렌더 ──
-var ROW_LIMIT = 100;     // 한 번에 그리는 줄 수
-var showAllRows = false; // '모두 보기'를 누르면 풀린다
+// 1,318줄을 한꺼번에 그리면 줄마다 든 <select> 를 브라우저가 전부 새로
+// 만드느라 한 글자 칠 때마다 화면이 멈춘다. 100명씩 끊어 쪽으로 넘긴다.
+var PAGE_SIZE = 100;
+var curPage   = 1;
 
 // 글자를 칠 때마다 다시 그리면 손가락이 따라가지 못한다.
 // 잠깐 멈춘 뒤에 한 번만 그린다.
 var searchTimer = null;
 function renderTableSoon() {
-  showAllRows = false;
+  curPage = 1;                       // 조건이 바뀌면 첫 쪽부터
   clearTimeout(searchTimer);
   searchTimer = setTimeout(renderTable, 180);
+}
+
+function goPage(n) {
+  curPage = n;
+  renderTable();
+  var card = document.getElementById('student-table-area');
+  if (card) window.scrollTo({ top: card.offsetTop - 90, behavior: 'smooth' });
+}
+
+/** 쪽 번호 줄. 쪽이 많아도 앞뒤와 지금 언저리만 보여 준다. */
+function pagerHtml(page, pages, total, from, to) {
+  var nums = [], i;
+  for (i = 1; i <= pages; i++) {
+    if (i === 1 || i === pages || Math.abs(i - page) <= 2) nums.push(i);
+  }
+  var out = '<div class="pager">' +
+    '<div class="pager-count">' + total.toLocaleString() + '명 중 ' + from + '–' + to + '</div>' +
+    '<div class="pager-btns">';
+  out += '<button type="button" ' + (page <= 1 ? 'disabled' : 'onclick="goPage(' + (page-1) + ')"') + '>이전</button>';
+  var prev = 0;
+  nums.forEach(function (n) {
+    if (prev && n - prev > 1) out += '<span class="pager-gap">…</span>';
+    out += '<button type="button" class="pager-num' + (n === page ? ' on' : '') + '" ' +
+           'onclick="goPage(' + n + ')">' + n + '</button>';
+    prev = n;
+  });
+  out += '<button type="button" ' + (page >= pages ? 'disabled' : 'onclick="goPage(' + (page+1) + ')"') + '>다음</button>';
+  return out + '</div></div>';
 }
 
 function renderTable() {
@@ -522,11 +560,11 @@ function renderTable() {
     return;
   }
 
-  // 1,318줄을 한꺼번에 그리면 한 글자 칠 때마다 화면이 멈춘다.
-  // 앞에서부터 끊어 그리고, 더 있으면 아래에 '모두 보기'를 둔다.
   var total = rows.length;
-  var cut   = showAllRows ? total : Math.min(total, ROW_LIMIT);
-  rows = rows.slice(0, cut);
+  var pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (curPage > pages) curPage = pages;
+  var from  = (curPage - 1) * PAGE_SIZE;
+  rows = rows.slice(from, from + PAGE_SIZE);
 
   var html = '<div class="table-wrap"><table><thead><tr>' +
     '<th>이름 / 이메일</th><th>수강 강좌</th><th>평균 진행률</th>' +
@@ -624,12 +662,7 @@ function renderTable() {
   });
 
   html += '</tbody></table></div>';
-  if (cut < total) {
-    html += '<div class="row-more">' +
-      total + '명 중 ' + cut + '명을 보여 주고 있습니다. ' +
-      '<button type="button" onclick="showAllRows=true;renderTable()">모두 보기</button>' +
-      '</div>';
-  }
+  html += pagerHtml(curPage, pages, total, from + 1, from + rows.length);
   el.innerHTML = html;
 }
 
