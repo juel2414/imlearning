@@ -57,6 +57,28 @@
   var STAR_CYCLE = 3.2;   // 한 번 반짝이는 데 걸리는 시간
   var STAR_SWEEP = 2.4;   // 대각선 끝에서 끝까지 번지는 데 걸리는 시간
 
+  /* 별자리 — 별 몇 개를 가는 선으로 잇는다. 시안의 밤하늘처럼
+     성글게 셋만 놓는다. 자리는 글줄을 피해 좌우로 뺀다. */
+  var CONSTS = [
+    [[9,10],[13,7],[17,10],[16,15],[11,16],[9,10]],
+    [[87,6],[90,9],[94,7],[97,11]],
+    [[82,40],[85,37],[89,40],[92,36],[95,40]],
+    [[6,44],[9,41],[13,44],[11,49]]
+  ];
+  function constellations() {
+    var g = CONSTS.map(function (pts) {
+      var d = pts.map(function (p, i) {
+        return (i ? 'L' : 'M') + p[0] + ' ' + p[1];
+      }).join(' ');
+      var dots = pts.map(function (p) {
+        return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="0.28"/>';
+      }).join('');
+      return '<path d="' + d + '"/>' + dots;
+    }).join('');
+    return '<svg class="sn-consts" viewBox="0 0 100 60" preserveAspectRatio="none" ' +
+      'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + g + '</svg>';
+  }
+
   function stars(n) {
     var out = '', N = n || 46;
     for (var i = 0; i < N; i++) {
@@ -114,18 +136,19 @@
 
       var back = make('div', 'sn-deco',
         // 달은 빛무리까지 그려진 그림이라 따로 후광을 두지 않는다
-        '<span class="sn-moon">' + M.piece('moon') + '</span>' +
-        '<span class="sn-peek">' + M.piece('peek') + '</span>' +
-        stars() + cloud('sn-cloud-1') + cloud('sn-cloud-2') +
+        // 토끼를 달 안에 넣어야 달 크기가 바뀌어도 늘 붙어 있다
+        '<span class="sn-moon">' + M.piece('moon') +
+          '<span class="sn-peek">' + M.piece('peek') + '</span></span>' +
+        '<span class="sn-milky"></span>' + stars() + constellations() +
+        cloud('sn-cloud-1') + cloud('sn-cloud-2') +
         (h.full ? cloud('sn-cloud-3') : '') +
         '<span class="sn-pine">' + M.piece('pine') + '</span>' +
         // 억새는 아래 양옆에서 바람에 흔들린다
         (h.full ? '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
                   '<span class="sn-reeds-r">' + M.reedClump() + '</span>' : '') +
         // 솔가지에 송편을 얹는다
-        (h.full ? '<span class="sn-perch sn-perch-1">' + M.songpyeon('', 'pink') + '</span>' +
-                  '<span class="sn-perch sn-perch-2">' + M.songpyeon('', 'ssuk') + '</span>' +
-                  '<span class="sn-perch sn-perch-3">' + M.songpyeon('', 'chija') + '</span>' : '') +
+        (h.full ? '<span class="sn-pine2">' + M.piece('pine') + '</span>' +
+                  '<span class="sn-songpyeon">' + M.songpyeonSet() + '</span>' : '') +
         '');
       h.el.appendChild(back);
 

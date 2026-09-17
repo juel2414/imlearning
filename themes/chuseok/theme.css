@@ -109,16 +109,17 @@
 /* 강사 소개 히어로는 사진이 위에 한 겹 더 있다. 밤이 되게 더 눌러 준다 */
 [data-season="chuseok"] .inst-hero-bg { opacity: .14; }
 
-/* ── 보름달 — 빛무리까지 그려진 그림이라 후광을 따로 두지 않는다 ── */
+/* ── 보름달 — 빛무리까지 그려진 그림이라 후광을 따로 두지 않는다.
+   토끼는 달 안에 있어서 달 크기를 바꿔도 늘 붙어 다닌다. ── */
 .sn-moon {
-  position: absolute; top: 52px; right: 0; width: 480px;
+  position: absolute; top: 40px; right: -40px; width: 620px;
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
-/* 달에 매달린 토끼 */
+.sn-moon > img { width: 100%; height: auto; display: block; }
 .sn-peek {
-  position: absolute; top: 176px; right: 27%; width: 128px;
-  animation: snRise 2.6s cubic-bezier(.22,.7,.3,1) both;
+  position: absolute; left: 8%; top: 33%; width: 27%;
 }
+.sn-peek img { width: 100%; height: auto; display: block; }
 
 /* ── 별 ── */
 .sn-star {
@@ -130,6 +131,25 @@
   animation-iteration-count: infinite;
 }
 
+/* ── 은하수 — 오른쪽 위에서 왼쪽 아래로 비스듬히 흐른다 ── */
+.sn-milky {
+  position: absolute; top: -12%; left: -18%; width: 136%; height: 92%;
+  background:
+    radial-gradient(60% 26% at 50% 50%, rgba(214,198,255,.17) 0%, rgba(214,198,255,0) 72%),
+    radial-gradient(44% 16% at 38% 46%, rgba(255,236,198,.13) 0%, rgba(255,236,198,0) 74%);
+  transform: rotate(-24deg);
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* ── 별자리 — 가는 선으로 몇 개만 잇는다 ── */
+.sn-consts {
+  position: absolute; inset: 0; width: 100%; height: 62%;
+  opacity: .22; pointer-events: none;
+}
+.sn-consts path   { fill: none; stroke: #DCD2FF; stroke-width: .09; }
+.sn-consts circle { fill: #F2ECFF; }
+
 /* ── 구름 — 달 앞을 아주 느리게 지나간다 ── */
 .sn-cloud { position: absolute; opacity: .12; color: #DCE4F2; }
 .sn-cloud-1 { top: 13%; left: -30%; width: 340px; animation: snDrift 92s linear infinite; }
@@ -139,13 +159,14 @@
               animation: snDrift 156s linear infinite 46s; }
 
 /* ── 소나무 가지 — 왼쪽 위 ── */
-.sn-pine { position: absolute; top: 18px; left: -40px; width: 330px; }
+/* 솔가지는 둘. 하나는 왼쪽 위에서, 하나는 오른쪽 아래에서 뻗어 나온다. */
+.sn-pine  { position: absolute; top: 16px; left: -46px; width: 360px; }
+.sn-pine2 { position: absolute; bottom: 206px; right: -62px; width: 290px;
+            transform: scaleX(-1); opacity: .92; }
 
-/* ── 솔가지에 얹은 송편 ── */
-.sn-perch { position: absolute; }
-.sn-perch-1 { left: 148px; top: 172px; width: 58px; transform: rotate(-9deg); }
-.sn-perch-2 { left: 212px; top: 214px; width: 52px; transform: rotate(7deg); }
-.sn-perch-3 { left: 84px;  top: 232px; width: 46px; transform: rotate(-14deg); }
+/* 송편 한 접시 — 오른쪽 아래, 억새 사이에 놓는다 */
+.sn-songpyeon { position: absolute; right: 9%; bottom: 34px; width: 180px; }
+.sn-songpyeon svg { width: 100%; height: auto; }
 
 /* ── 억새 — 아래 양옆에서 바람에 흔들린다 ── */
 .sn-reeds-l, .sn-reeds-r {
@@ -194,11 +215,6 @@
 .sn-g-rabbit  { right: 19%; bottom: 72px; width: 178px; }
 
 /* ── 솔가지에 얹은 송편과 솔방울 ── */
-.sn-perch { position: absolute; }
-.sn-perch-1 { left: 138px; top: 96px;  width: 58px; transform: rotate(-9deg); }
-.sn-perch-2 { left: 206px; top: 132px; width: 52px; transform: rotate(7deg); }
-.sn-perch-3 { left: 78px;  top: 150px; width: 46px; transform: rotate(-14deg); }
-.sn-perch-4 { left: 262px; top: 78px;  width: 62px; }
 
 /* ── 단풍잎 — 글 앞으로 천천히 떨어진다 ── */
 .sn-leaf   { position: absolute; top: -60px; animation: snFall 20s linear infinite; }
@@ -440,18 +456,18 @@
 
 @media (max-width: 768px) {
   /* 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
-  .sn-moon { width: 250px; top: 50px; right: -36px; }
+  .sn-moon { width: 300px; top: 46px; right: -54px; }
   .sn-reeds-l, .sn-reeds-r { width: 240px; }
   .sn-reeds-l { left: -56px; }
   .sn-reeds-r { right: -56px; }
-  .sn-peek { width: 72px; top: 118px; right: 120px; }
-  .sn-pine { width: 180px; top: 46px; left: -34px; }
+
+  .sn-pine { width: 190px; top: 44px; left: -40px; }
+  .sn-pine2 { width: 150px; bottom: 150px; right: -44px; }
+  .sn-songpyeon { width: 120px; right: 8%; }
+  .sn-milky { filter: blur(4px); }
   .sn-shield { width: 58px; top: 52px; }
   .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
   .sn-g-chestnut { display: none; }
-  .sn-perch-1 { left: 74px; top: 58px; width: 36px; }
-  .sn-perch-2 { left: 118px; top: 82px; width: 32px; }
-  .sn-perch-3 { display: none; }
 
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */
   .sn-ground { height: clamp(190px, 26vw, 220px); }
@@ -479,6 +495,6 @@
 }
 
 @media (max-width: 480px) {
-  .sn-perch { display: none; }   /* 아주 좁으면 솔가지만 남긴다 */
+  .sn-pine2, .sn-songpyeon { display: none; }   /* 아주 좁으면 덜어 낸다 */
   .sn-footer-rabbit { width: 52px; right: 16px; }
 }
