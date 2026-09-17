@@ -135,20 +135,15 @@
               0 0 140px 54px rgba(242,193,78,.18);
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
-/* 달 속 토끼 — 파인 자국 대신 그림자 한 톤으로만 넣는다.
-   선을 살리면 스티커처럼 붕 뜨고, 달이 아니라 배지로 보인다. */
-.sn-moon-rabbit { position: absolute; inset: 8% 10% 10%; width: 80%; height: 82%; }
-.sn-moon-rabbit .sn-b-disc,
-.sn-moon-rabbit .sn-b-eye,
-.sn-moon-rabbit .sn-b-blush,
-.sn-moon-rabbit .sn-b-mouth,
-.sn-moon-rabbit .sn-b-inner,
-.sn-moon-rabbit .sn-b-mortar-lip { display: none; }
-.sn-moon-rabbit .sn-b path,
-.sn-moon-rabbit .sn-b circle,
-.sn-moon-rabbit .sn-b-paw   { fill: rgba(186,136,50,.30); stroke: none; }
-.sn-moon-rabbit .sn-b-pestle,
-.sn-moon-rabbit .sn-b-mortar { fill: rgba(168,118,42,.40); stroke: none; }
+/* 달 표면 — 옅게 파인 자국 몇 개 */
+.sn-moon::before,
+.sn-moon::after {
+  content: ''; position: absolute; border-radius: 50%;
+  background: rgba(198,150,62,.20);
+}
+.sn-moon::before { width: 32px; height: 32px; top: 29%; left: 21%; }
+.sn-moon::after  { width: 19px; height: 19px; top: 57%; left: 54%;
+                   box-shadow: -26px -9px 0 -5px rgba(198,150,62,.16); }
 
 /* ── 별 ── */
 .sn-star {
@@ -172,6 +167,13 @@
 .sn-bough-sm { stroke-width: 4.5; }
 .sn-needle   { fill: none; stroke: #35794A; stroke-width: 1.5; stroke-linecap: round; }
 .sn-needle-d { fill: none; stroke: #1F4C2E; stroke-width: 1.5; stroke-linecap: round; }
+
+/* ── 빈 자리에 놓는 그림 — 달토끼와 송편 한 접시 ────────────────
+   글은 가운데로 모이고 좌우가 비어 있다. 그 자리에 하나씩 놓는다. */
+.sn-hero-art { position: absolute; pointer-events: none; }
+.sn-hero-art svg { width: 100%; height: auto; }
+.sn-hero-rabbit    { left: 5%;  top: 47%; width: 134px; opacity: .95; }
+.sn-hero-songpyeon { right: 6%; top: 50%; width: 186px; opacity: .95; }
 
 /* ── 청사초롱 — 솔가지에 매단다. 줄은 위로 뻗어 가지에 닿는다 ── */
 .sn-lantern { position: absolute; pointer-events: none; }
@@ -290,8 +292,6 @@
 .sn-b-mortar     { fill: #6E4B2E; stroke: var(--sn-ink); stroke-width: 4.6; stroke-linejoin: round; }
 .sn-b-paw        { fill: #FFFDF8; stroke: var(--sn-ink); stroke-width: 4.2; }
 .sn-b-mortar-lip { fill: none; stroke: var(--sn-ink); stroke-width: 3.4; opacity: .5; }
-.sn-b-inner      { fill: #F2A7B8; stroke: var(--sn-ink); stroke-width: 3.2;
-                   stroke-linejoin: round; }
 .sn-b-eye        { fill: var(--sn-ink); }
 .sn-b-blush      { fill: #F2A7B8; opacity: .85; }
 .sn-b-mouth      { fill: none; stroke: var(--sn-ink); stroke-width: 3; stroke-linecap: round; }
@@ -303,7 +303,8 @@
 /* ══ 3. 밝은 면 ═══════════════════════════════════════════════════════ */
 
 /* 섹션 구분선 */
-.sn-divider { margin: 14px auto 18px; max-width: 1160px; }
+/* 섹션 안 맨 위에 들어간다. 섹션의 위쪽 여백 안으로 끌어올려 놓는다. */
+.sn-divider { margin: -34px auto 10px; max-width: 1160px; }
 
 /* 카드 모서리 문양과 달빛 번짐 */
 [data-season="chuseok"] .course-card { position: relative; }
@@ -489,6 +490,8 @@
   .sn-404-art { width: 168px; }
   .sn-404-title { font-size: 21px; }
 
+  .sn-hero-rabbit { width: 84px; left: 4%; top: 46%; }
+  .sn-hero-songpyeon { display: none; }
   .sn-lantern-a { left: 72px; top: 112px; width: 34px; }
   .sn-lantern-a::before { height: 62px; }
   .sn-lantern-b { display: none; }

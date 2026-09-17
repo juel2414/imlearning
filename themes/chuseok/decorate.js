@@ -171,15 +171,16 @@
       var back = make('div', 'sn-deco',
         '<div class="sn-trim"></div>' +
         '<div class="sn-halo"></div>' +
-        // 달 속에 토끼가 산다는 그 이야기 그대로, 달무늬 자리에 토끼를 넣는다
-        '<div class="sn-moon">' + M.rabbit('sn-moon-rabbit') + '</div>' +
+        '<div class="sn-moon"></div>' +
         stars() + cloud('sn-cloud-1') + cloud('sn-cloud-2') +
         (h.full ? cloud('sn-cloud-3') : '') +
         '<div class="sn-pine">' + M.pineBough() + '</div>' +
         // 솔가지에 청사초롱을 매단다
         (h.full ? '<span class="sn-lantern sn-lantern-a">' + M.lantern() + '</span>' +
                   '<span class="sn-lantern sn-lantern-b">' + M.lantern() + '</span>' +
-                  '<div class="sn-pb">' + M.persimmonBranch() + '</div>' : '') +
+                  '<div class="sn-pb">' + M.persimmonBranch() + '</div>' +
+                  '<span class="sn-hero-art sn-hero-rabbit">' + M.rabbit() + '</span>' +
+                  '<span class="sn-hero-art sn-hero-songpyeon">' + M.songpyeonSet() + '</span>' : '') +
         (h.full ? scene() : ''));
       h.el.appendChild(back);
 
@@ -202,9 +203,12 @@
   function doDividers() {
     ['features', 'reviews', 'faq'].forEach(function (name) {
       var sec = document.querySelector('[data-section="' + name + '"]');
-      if (!sec || !sec.parentNode || !once(sec, 'div')) return;
+      if (!sec || !once(sec, 'div')) return;
+      // 형제로 끼우면 안 된다. 랜딩은 섹션을 전부 떼었다 순서대로 다시 붙이는데,
+      // 그때 섹션이 아닌 것만 제자리에 남아 화면 맨 위로 밀려 올라간다.
+      // 섹션 안에 넣으면 섹션을 따라 같이 움직인다.
       var d = make('div', 'sn-divider', M.cloudDivider());
-      sec.parentNode.insertBefore(d, sec);
+      sec.insertBefore(d, sec.firstChild);
     });
   }
 

@@ -35,50 +35,46 @@
      흰 몸에 굵은 먹선, 긴 귀, 볼 홍조. 오른쪽 토끼는 왼쪽을 뒤집어 쓴다. */
   function bunny() {
     return '<g class="sn-b">' +
-      // 귀 둘 — 바깥을 먼저, 안쪽 분홍을 그 위에
-      '<path d="M55 66 C 48 46, 50 24, 58 24 C 66 24, 65 48, 62 68 Z"/>' +
-      '<path d="M68 68 C 68 50, 77 30, 83 33 C 90 37, 81 56, 74 70 Z"/>' +
+      // 뒷귀와 앞귀 — 안쪽 색 없이 흰 몸에 먹선만
+      '<path d="M45 62 C 38 46, 31 32, 37 29 C 44 26, 51 42, 53 60 Z"/>' +
+      '<path d="M55 60 C 53 42, 55 27, 61 27 C 67 27, 65 45, 61 61 Z"/>' +
+      // 꼬리 — 엉덩이에 붙은 작은 혹
+      '<circle cx="34" cy="132" r="7.5"/>' +
+      // 몸 — 일하는 쪽으로 기울여 세운다
+      '<path d="M46 86 C 36 99, 31 123, 38 139 C 46 153, 68 153, 74 138 ' +
+      'C 80 122, 72 98, 62 87 Z"/>' +
+      // 뒷다리와 앞다리
+      '<path d="M34 140 C 27 147, 32 155, 42 153 C 49 151, 49 143, 44 139 Z"/>' +
+      '<path d="M57 143 C 52 151, 58 158, 68 156 C 74 154, 73 146, 68 141 Z"/>' +
+      // 머리
+      '<circle cx="56" cy="72" r="20"/>' +
+      // 팔 — 아래앞으로 뻗어 공이를 잡는다
+      '<path d="M60 96 C 68 94, 77 96, 85 100 C 87 105, 84 110, 80 108 ' +
+      'C 73 105, 65 105, 59 106 Z"/>' +
       '</g>' +
-      '<path class="sn-b-inner" d="M57.5 62 C 53 46, 54 32, 58 32 ' +
-      'C 62 32, 61.5 47, 60 63 Z"/>' +
-      '<path class="sn-b-inner" d="M70.5 64 C 70.5 51, 77 38, 80.5 40 ' +
-      'C 84 42.5, 78 55, 74.5 65 Z"/>' +
-      '<g class="sn-b">' +
-      // 몸
-      '<path d="M52 98 C 44 114, 46 138, 58 148 C 70 156, 88 150, 90 134 ' +
-      'C 92 116, 84 98, 74 94 Z"/>' +
-      // 발
-      '<path d="M46 142 C 40 150, 46 157, 56 155 C 63 153, 63 145, 58 141 Z"/>' +
-      // 머리 — 몸과 귀의 선을 덮는다
-      '<circle cx="66" cy="82" r="20"/>' +
-      // 절굿공이를 잡은 앞발
-      '<path d="M74 94 C 78 90, 83 87, 88 85 C 91 88, 91 92, 88 94 ' +
-      'C 83 96, 78 100, 75 102 Z"/>' +
-      '</g>' +
-      '<ellipse class="sn-b-blush" cx="50" cy="89" rx="6.5" ry="4.2"/>' +
-      '<circle class="sn-b-eye" cx="59" cy="79" r="2.9"/>' +
-      '<path class="sn-b-mouth" d="M64 89 C 66 92, 70 92, 72 89"/>';
+      // 얼굴은 일하는 쪽을 본다
+      '<ellipse class="sn-b-blush" cx="70" cy="80" rx="6.2" ry="4.2"/>' +
+      '<circle class="sn-b-eye" cx="66" cy="69" r="3"/>' +
+      '<path class="sn-b-mouth" d="M72 76 C 74 79, 77 79, 79 76"/>';
   }
 
   function rabbit(cls) {
-    // 절구는 토끼보다 앞에 둔다. 참고 그림처럼 앞발이 절구 뒤로 들어간다.
     return svg('0 0 200 200',
       '<circle class="sn-b-disc" cx="100" cy="100" r="88"/>' +
-      // 절굿공이 — 선 하나로 그으면 테두리가 안 생겨 나뭇대처럼 보인다.
-      // 채운 모양으로 그려 먹선을 두른다.
-      '<rect class="sn-b-pestle" x="-5" y="-38" width="10" height="76" rx="5" ' +
-      'transform="translate(86,103) rotate(-12.2)"/>' +
-      '<rect class="sn-b-pestle" x="-5" y="-38" width="10" height="76" rx="5" ' +
-      'transform="translate(114,103) rotate(12.2)"/>' +
+      // 절굿공이 — 앞발을 지나 절구로 내려간다
+      '<rect class="sn-b-pestle" x="-5" y="-49" width="10" height="98" rx="5" ' +
+      'transform="translate(84,93) rotate(-16.6)"/>' +
+      '<rect class="sn-b-pestle" x="-5" y="-49" width="10" height="98" rx="5" ' +
+      'transform="translate(116,93) rotate(16.6)"/>' +
       bunny() +
       '<g transform="translate(200,0) scale(-1,1)">' + bunny() + '</g>' +
-      // 공이를 쥔 앞발 — 막대 위에 얹어야 '쥐었다'로 읽힌다
-      '<circle class="sn-b-paw" cx="84" cy="89" r="8.5"/>' +
-      '<circle class="sn-b-paw" cx="116" cy="89" r="8.5"/>' +
-      // 절구는 맨 앞 — 공이 밑동을 가린다. 옆이 곧아야 화분으로 안 보인다.
-      '<path class="sn-b-mortar" d="M74 138 L126 138 L124 170 ' +
-      'C 123 176, 114 179, 100 179 C 86 179, 77 176, 76 170 Z"/>' +
-      '<path class="sn-b-mortar-lip" d="M76 150 L124 150"/>',
+      // 공이를 쥔 앞발
+      '<circle class="sn-b-paw" cx="86" cy="104" r="8"/>' +
+      '<circle class="sn-b-paw" cx="114" cy="104" r="8"/>' +
+      // 절구는 맨 앞 — 공이 밑동과 토끼 안쪽을 가린다
+      '<path class="sn-b-mortar" d="M73 122 L127 122 L122 156 ' +
+      'C 121 162, 112 165, 100 165 C 88 165, 79 162, 78 156 Z"/>' +
+      '<path class="sn-b-mortar-lip" d="M75 133 L125 133"/>',
       cls || 'sn-m-rabbit');
   }
 
