@@ -176,8 +176,10 @@
     window.location.href = '../login.html?next=' + encodeURIComponent(location.pathname.split('/admin/')[1] ? 'admin/' + location.pathname.split('/admin/')[1] : 'admin/index.html');
     return;
   }
-  const { data: profile } = await supabaseClient
+  const { data: profile, error: profileErr } = await supabaseClient
     .from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  // 조회 실패는 권한 없음과 다르다. 판단을 못 했으면 내보내지 않는다.
+  if (profileErr) { console.warn('[admin] 역할 조회 실패 — 판단 보류', profileErr); return; }
   if (!profile || profile.role !== 'super_admin') {
     alert('관리자 권한이 없는 계정입니다.');
     window.location.href = '../index.html';
@@ -249,6 +251,6 @@ function showSuccess(id) {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 </script>
-<script src="../js/admin-nav.js?v=2"></script>
+<script src="../js/admin-nav.js?v=3"></script>
 </body>
 </html>

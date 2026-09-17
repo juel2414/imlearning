@@ -186,7 +186,16 @@
         return;
       }
 
-      var profileRes = await _sb.from('profiles').select('role').eq('id', session.user.id).single();
+      var profileRes = await _sb.from('profiles')
+        .select('role').eq('id', session.user.id).maybeSingle();
+
+      // 조회가 실패한 것은 '권한이 없다'는 뜻이 아니다. 여기서 내보내면
+      // 네트워크가 한 번 끊기거나 토큰 갱신이 어긋난 순간에 화면이 하얘지며
+      // 첫 화면으로 튕긴다. 판단을 못 했으면 그냥 둔다. 진짜 방어막은 RLS 다.
+      if (profileRes.error) {
+        console.warn('[admin-nav] 역할 조회 실패 — 판단 보류', profileRes.error);
+        return;
+      }
       var role = profileRes.data && profileRes.data.role;
       if (role !== 'admin' && role !== 'super_admin') {
         document.body.style.visibility = 'hidden';
