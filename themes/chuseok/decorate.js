@@ -51,17 +51,26 @@
       '<span class="sn-g sn-g-rabbit">'  + M.rabbit()         + '</span>');
   }
 
-  function stars() {
-    var pts = [[6, 16], [13, 32], [21, 11], [28, 26], [35, 7], [43, 19],
-               [52, 9], [58, 28], [64, 14], [71, 24], [78, 8], [84, 30],
-               [90, 17], [96, 27], [17, 44], [47, 38], [75, 41], [88, 46]];
-    return pts.map(function (p, i) {
-      var s = 1.5 + M.jitter(i * 7) * 2.2;
-      return '<span class="sn-star" style="left:' + p[0] + '%;top:' + p[1] + '%;' +
+  /* 별 — 오른쪽 위에서 왼쪽 아래로 물결처럼 차례로 반짝인다.
+     자리에서 지연 시간을 뽑으므로 같은 대각선에 있는 별은 함께 빛난다.
+     주기를 모두 같게 둬야 물결이 흐트러지지 않는다. */
+  var STAR_CYCLE = 3.2;   // 한 번 반짝이는 데 걸리는 시간
+  var STAR_SWEEP = 2.4;   // 대각선 끝에서 끝까지 번지는 데 걸리는 시간
+
+  function stars(n) {
+    var out = '', N = n || 46;
+    for (var i = 0; i < N; i++) {
+      var x = M.jitter(i * 3 + 1) * 98 + 1;
+      var y = M.jitter(i * 7 + 5) * 62 + 2;
+      var s = 1.4 + M.jitter(i * 11 + 2) * 2.4;
+      // 오른쪽 위가 0, 왼쪽 아래가 1
+      var d = ((100 - x) + y) / 200;
+      out += '<span class="sn-star" style="left:' + r(x) + '%;top:' + r(y) + '%;' +
         'width:' + r(s) + 'px;height:' + r(s) + 'px;' +
-        'animation-duration:' + r(3 + M.jitter(i * 3) * 4) + 's;' +
-        'animation-delay:-' + r(M.jitter(i * 11) * 5) + 's"></span>';
-    }).join('');
+        'animation-duration:' + STAR_CYCLE + 's;' +
+        'animation-delay:' + r(d * STAR_SWEEP) + 's"></span>';
+    }
+    return out;
   }
 
   function cloud(cls) {
@@ -110,6 +119,9 @@
         stars() + cloud('sn-cloud-1') + cloud('sn-cloud-2') +
         (h.full ? cloud('sn-cloud-3') : '') +
         '<span class="sn-pine">' + M.piece('pine') + '</span>' +
+        // 억새는 아래 양옆에서 바람에 흔들린다
+        (h.full ? '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
+                  '<span class="sn-reeds-r">' + M.reedClump() + '</span>' : '') +
         // 솔가지에 송편을 얹는다
         (h.full ? '<span class="sn-perch sn-perch-1">' + M.songpyeon('', 'pink') + '</span>' +
                   '<span class="sn-perch sn-perch-2">' + M.songpyeon('', 'ssuk') + '</span>' +

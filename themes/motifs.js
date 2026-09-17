@@ -170,6 +170,15 @@
     return '<g class="' + (o.cls || 'sn-reeds') + '">' + body + '</g>';
   }
 
+  /* 억새 한 무더기 — 가로로 눕힌 띠와 달리 위로 솟는다.
+     화면 아래 양옆에 세워 두면 바람에 흔들리는 수풀처럼 보인다. */
+  function reedClump(cls) {
+    return svg('0 0 420 300',
+      reedRow({ width: 420, baseY: 296, minH: 120, spread: 110, step: 30, cls: 'sn-reeds-far' }) +
+      reedRow({ width: 420, baseY: 300, minH: 160, spread: 130, step: 34, cls: 'sn-reeds' }),
+      cls || 'sn-m-reedclump');
+  }
+
   // 억새만 따로 한 띠로 — 푸터나 좁은 자리에 쓴다
   function reedBand(cls) {
     return svg('0 0 1440 140',
@@ -284,7 +293,7 @@
     svg: svg, jitter: jitter, round: r, piece: piece,
     moon: moon, rabbit: rabbit, rabbitMortar: rabbitMortar,
     songpyeon: songpyeon, songpyeonSet: songpyeonSet, yut: yut,
-    reed: reed, reedRow: reedRow, reedBand: reedBand,
+    reed: reed, reedRow: reedRow, reedBand: reedBand, reedClump: reedClump,
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot
   };

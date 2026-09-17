@@ -20,7 +20,8 @@
   'use strict';
 
   var THEMES = ['chuseok'];          // 쓸 수 있는 테마 이름
-  var VER = '1';                     // 캐시를 끊고 싶을 때 올린다
+  // 테마 파일을 고칠 때마다 올린다. 안 올리면 돌아온 사람은 옛 파일을 본다.
+  var VER = '2';
 
   // 이 파일이 themes/loader.js 로 불렸다는 전제로 themes/ 의 주소를 찾는다.
   // 페이지가 하위 폴더(admin/)에 있어도 맞게 나온다.

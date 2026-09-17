@@ -111,20 +111,23 @@
 
 /* ── 보름달 — 빛무리까지 그려진 그림이라 후광을 따로 두지 않는다 ── */
 .sn-moon {
-  position: absolute; top: 60px; right: 2%; width: 380px;
+  position: absolute; top: 52px; right: 0; width: 480px;
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
 /* 달에 매달린 토끼 */
 .sn-peek {
-  position: absolute; top: 152px; right: 25%; width: 116px;
+  position: absolute; top: 176px; right: 27%; width: 128px;
   animation: snRise 2.6s cubic-bezier(.22,.7,.3,1) both;
 }
 
 /* ── 별 ── */
 .sn-star {
-  position: absolute; border-radius: 50%; background: #FFF3D0;
-  box-shadow: 0 0 6px rgba(255,235,180,.9);
-  animation: snTwinkle 4s ease-in-out infinite;
+  position: absolute; border-radius: 50%; background: #FFF6DD;
+  box-shadow: 0 0 7px rgba(255,240,200,.95);
+  /* 주기와 지연은 자리마다 달라서 decorate.js 가 직접 넣는다 */
+  animation-name: snTwinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
 
 /* ── 구름 — 달 앞을 아주 느리게 지나간다 ── */
@@ -143,6 +146,19 @@
 .sn-perch-1 { left: 148px; top: 172px; width: 58px; transform: rotate(-9deg); }
 .sn-perch-2 { left: 212px; top: 214px; width: 52px; transform: rotate(7deg); }
 .sn-perch-3 { left: 84px;  top: 232px; width: 46px; transform: rotate(-14deg); }
+
+/* ── 억새 — 아래 양옆에서 바람에 흔들린다 ── */
+.sn-reeds-l, .sn-reeds-r {
+  position: absolute; bottom: -8px; width: 420px;
+  color: var(--sn-lit); opacity: .34; pointer-events: none;
+}
+.sn-reeds-l { left: -90px; }
+.sn-reeds-r { right: -90px; transform: scaleX(-1); }
+.sn-reeds-l svg, .sn-reeds-r svg { width: 100%; height: auto; }
+.sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.sn-plume { fill: none; stroke: currentColor; stroke-width: .85; stroke-linecap: round; opacity: .85; }
+.sn-reeds     { opacity: 1; }
+.sn-reeds-far { opacity: .5; }
 
 /* ── 색동 액자 — 화면 가장자리를 두른다 ── */
 .sn-frame {
@@ -424,8 +440,11 @@
 
 @media (max-width: 768px) {
   /* 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
-  .sn-moon { width: 210px; top: 52px; right: -24px; }
-  .sn-peek { width: 62px; top: 102px; right: 108px; }
+  .sn-moon { width: 250px; top: 50px; right: -36px; }
+  .sn-reeds-l, .sn-reeds-r { width: 240px; }
+  .sn-reeds-l { left: -56px; }
+  .sn-reeds-r { right: -56px; }
+  .sn-peek { width: 72px; top: 118px; right: 120px; }
   .sn-pine { width: 180px; top: 46px; left: -34px; }
   .sn-shield { width: 58px; top: 52px; }
   .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
