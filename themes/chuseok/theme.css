@@ -109,41 +109,16 @@
 /* 강사 소개 히어로는 사진이 위에 한 겹 더 있다. 밤이 되게 더 눌러 준다 */
 [data-season="chuseok"] .inst-hero-bg { opacity: .14; }
 
-/* 히어로 맨 위 색동 띠 */
-.sn-trim {
-  position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background-image: var(--sn-saekdong);
-  opacity: .62;
-}
-
-/* ── 보름달 — 천천히 떠오른다 ── */
-.sn-halo {
-  position: absolute; top: 10%; right: 8%;
-  width: 460px; height: 460px; margin: -164px -164px 0 0;
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    rgba(255,231,163,.28) 0%, rgba(242,193,78,.15) 34%,
-    rgba(242,193,78,.05) 58%, rgba(242,193,78,0) 74%);
-  animation: snRise 2.6s cubic-bezier(.22,.7,.3,1) both;
-}
+/* ── 보름달 — 빛무리까지 그려진 그림이라 후광을 따로 두지 않는다 ── */
 .sn-moon {
-  position: absolute; top: 10%; right: 8%;
-  width: 164px; height: 164px; border-radius: 50%;
-  background: radial-gradient(circle at 36% 32%,
-    var(--sn-moon-core) 0%, var(--sn-moon) 52%, var(--sn-moon-edge) 100%);
-  box-shadow: 0 0 54px 14px rgba(255,220,130,.40),
-              0 0 140px 54px rgba(242,193,78,.18);
+  position: absolute; top: 60px; right: 2%; width: 380px;
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
-/* 달 표면 — 옅게 파인 자국 몇 개 */
-.sn-moon::before,
-.sn-moon::after {
-  content: ''; position: absolute; border-radius: 50%;
-  background: rgba(198,150,62,.20);
+/* 달에 매달린 토끼 */
+.sn-peek {
+  position: absolute; top: 152px; right: 25%; width: 116px;
+  animation: snRise 2.6s cubic-bezier(.22,.7,.3,1) both;
 }
-.sn-moon::before { width: 32px; height: 32px; top: 29%; left: 21%; }
-.sn-moon::after  { width: 19px; height: 19px; top: 57%; left: 54%;
-                   box-shadow: -26px -9px 0 -5px rgba(198,150,62,.16); }
 
 /* ── 별 ── */
 .sn-star {
@@ -160,18 +135,31 @@
 .sn-cloud-3 { top: 46%; left: -62%; width: 300px; opacity: .07;
               animation: snDrift 156s linear infinite 46s; }
 
-/* ── 소나무 가지 ── */
-.sn-pine { position: absolute; top: -14px; left: -18px; width: 380px; opacity: .92; }
-.sn-pine svg { width: 100%; height: auto; overflow: visible; }
-.sn-bough    { fill: none; stroke: #4A3120; stroke-width: 8; stroke-linecap: round; }
-.sn-bough-sm { stroke-width: 4.5; }
-.sn-needle   { fill: none; stroke: #35794A; stroke-width: 1.5; stroke-linecap: round; }
-.sn-needle-d { fill: none; stroke: #1F4C2E; stroke-width: 1.5; stroke-linecap: round; }
+/* ── 소나무 가지 — 왼쪽 위 ── */
+.sn-pine { position: absolute; top: 18px; left: -40px; width: 330px; }
 
-/* ── 빈 자리에 놓는 그림 — 달토끼와 송편 한 접시 ────────────────
-   글은 가운데로 모이고 좌우가 비어 있다. 그 자리에 하나씩 놓는다. */
-.sn-hero-art { position: absolute; pointer-events: none; }
-.sn-hero-art svg { width: 100%; height: auto; }
+/* ── 솔가지에 얹은 송편 ── */
+.sn-perch { position: absolute; }
+.sn-perch-1 { left: 148px; top: 172px; width: 58px; transform: rotate(-9deg); }
+.sn-perch-2 { left: 212px; top: 214px; width: 52px; transform: rotate(7deg); }
+.sn-perch-3 { left: 84px;  top: 232px; width: 46px; transform: rotate(-14deg); }
+
+/* ── 색동 액자 — 화면 가장자리를 두른다 ── */
+.sn-frame {
+  /* 히어로 위쪽 40px 은 네비가 덮고 있다. 그만큼 내려야 윗변이 보인다. */
+  position: absolute; inset: 50px 10px 10px; z-index: 5; pointer-events: none;
+  /* 그림의 테두리 두께가 22 다. 조각을 그만큼 잘라 이어 붙인다. */
+  border: 15px solid transparent;
+  border-image: url('/images/season/chuseok-frame.png') 22 round;
+}
+
+/* ── 단청 방패 — 맨 위 가운데 ── */
+.sn-shield {
+  position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+  width: 88px; z-index: 6; pointer-events: none;
+}
+.sn-shield img { width: 100%; height: auto; }
+
 /* ── 히어로 아래 — 돗자리와 수확물 ── */
 /* 히어로 바로 아래 제 줄로 놓인다. 위는 밤하늘을 이어받고
    아래로 갈수록 다음 칸 색에 스민다. */
@@ -186,6 +174,7 @@
 .sn-g-mat     { left: 50%; transform: translateX(-50%); bottom: 18px; width: 620px; }
 .sn-g-pumpkin { left: 13%;  bottom: 86px; width: 118px; }
 .sn-g-squash  { left: 20%;  bottom: 74px; width: 104px; }
+.sn-g-chestnut{ left: 26%; bottom: 58px; width: 104px; }
 .sn-g-rabbit  { right: 19%; bottom: 72px; width: 178px; }
 
 /* ── 솔가지에 얹은 송편과 솔방울 ── */
@@ -196,9 +185,9 @@
 .sn-perch-4 { left: 262px; top: 78px;  width: 62px; }
 
 /* ── 단풍잎 — 글 앞으로 천천히 떨어진다 ── */
-.sn-leaf   { position: absolute; top: -48px; animation: snFall 20s linear infinite; }
+.sn-leaf   { position: absolute; top: -60px; animation: snFall 20s linear infinite; }
 .sn-leaf-i { display: block; animation: snSwing 5s ease-in-out infinite; }
-.sn-leaf svg { filter: drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
+.sn-leaf img { width: 100%; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
 
 /* ── 한가위 인사 — 아래 알약과 겹쳐 보이지 않게 테두리 없는 한 줄 ── */
 .sn-greet {
@@ -435,16 +424,15 @@
 
 @media (max-width: 768px) {
   /* 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
-  .sn-moon { width: 96px; height: 96px; top: 22px; right: 16px; }
-  .sn-moon::before { width: 19px; height: 19px; }
-  .sn-moon::after  { width: 11px; height: 11px;
-                     box-shadow: -15px -5px 0 -3px rgba(198,150,62,.16); }
-  .sn-halo { width: 300px; height: 300px; top: 22px; right: 16px; margin: -102px -102px 0 0; }
-
-  .sn-pine { width: 210px; top: -10px; left: -32px; opacity: .78; }
+  .sn-moon { width: 210px; top: 52px; right: -24px; }
+  .sn-peek { width: 62px; top: 102px; right: 108px; }
+  .sn-pine { width: 180px; top: 46px; left: -34px; }
+  .sn-shield { width: 58px; top: 52px; }
+  .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
+  .sn-g-chestnut { display: none; }
   .sn-perch-1 { left: 74px; top: 58px; width: 36px; }
   .sn-perch-2 { left: 118px; top: 82px; width: 32px; }
-  .sn-perch-3, .sn-perch-4 { display: none; }
+  .sn-perch-3 { display: none; }
 
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */
   .sn-ground { height: clamp(190px, 26vw, 220px); }
@@ -472,6 +460,6 @@
 }
 
 @media (max-width: 480px) {
-  .sn-pine, .sn-perch { display: none; }   /* 아주 좁으면 달만 남긴다 */
+  .sn-perch { display: none; }   /* 아주 좁으면 솔가지만 남긴다 */
   .sn-footer-rabbit { width: 52px; right: 16px; }
 }

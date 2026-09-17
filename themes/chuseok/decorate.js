@@ -47,6 +47,7 @@
       '<span class="sn-g sn-g-mat">'     + M.piece('mat')     + '</span>' +
       '<span class="sn-g sn-g-pumpkin">' + M.piece('pumpkin') + '</span>' +
       '<span class="sn-g sn-g-squash">'  + M.piece('squash')  + '</span>' +
+      '<span class="sn-g sn-g-chestnut">'+ M.piece('chestnut')+ '</span>' +
       '<span class="sn-g sn-g-rabbit">'  + M.rabbit()         + '</span>');
   }
 
@@ -73,23 +74,19 @@
       '</svg></div>';
   }
 
-  var LEAF_HUES = ['#E4552F', '#F0902B', '#C9362C', '#EFBB47', '#D9663A', '#E8A33A', '#CF4A2E'];
-
+  // 단풍잎 — 받은 그림 두 장을 번갈아 쓴다
   function leaves(n) {
     var out = '';
     for (var i = 0; i < (n || 8); i++) {
       var j = M.jitter(i * 5 + 1), k = M.jitter(i * 9 + 4);
-      var size = 16 + j * 10, hue = LEAF_HUES[i % LEAF_HUES.length];
+      var size = 26 + j * 18;
       out += '<span class="sn-leaf" style="left:' + r(5 + i * 12 + k * 7) + '%;' +
+        'width:' + r(size) + 'px;' +
         'animation-duration:' + r(16 + j * 12) + 's;animation-delay:-' + r(k * 24) + 's">' +
         '<span class="sn-leaf-i" style="animation-duration:' + r(4 + k * 4) + 's;' +
         'animation-delay:-' + r(j * 4) + 's">' +
-        '<svg viewBox="0 0 28 30" width="' + r(size) + '" height="' + r(size * 30 / 28) + '" ' +
-        'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-        '<path d="M14 20 L14 28" stroke="' + hue + '" stroke-width="1.6" ' +
-        'stroke-linecap="round" fill="none"/>' +
-        '<path d="' + M.leafPath + '" fill="' + hue + '"/>' +
-        '</svg></span></span>';
+        M.piece(i % 2 ? 'mapleR' : 'mapleO') +
+        '</span></span>';
     }
     return out;
   }
@@ -107,21 +104,24 @@
       if (cs.position === 'static') h.el.style.position = 'relative';
 
       var back = make('div', 'sn-deco',
-        '<div class="sn-trim"></div>' +
-        '<div class="sn-halo"></div>' +
-        '<div class="sn-moon"></div>' +
+        // 달은 빛무리까지 그려진 그림이라 따로 후광을 두지 않는다
+        '<span class="sn-moon">' + M.piece('moon') + '</span>' +
+        '<span class="sn-peek">' + M.piece('peek') + '</span>' +
         stars() + cloud('sn-cloud-1') + cloud('sn-cloud-2') +
         (h.full ? cloud('sn-cloud-3') : '') +
-        '<div class="sn-pine">' + M.pineBough() + '</div>' +
+        '<span class="sn-pine">' + M.piece('pine') + '</span>' +
         // 솔가지에 송편을 얹는다
         (h.full ? '<span class="sn-perch sn-perch-1">' + M.songpyeon('', 'pink') + '</span>' +
                   '<span class="sn-perch sn-perch-2">' + M.songpyeon('', 'ssuk') + '</span>' +
-                  '<span class="sn-perch sn-perch-3">' + M.songpyeon('', 'chija') + '</span>' +
-                  '<span class="sn-perch sn-perch-4">' + M.piece('pinecone') + '</span>' : '') +
+                  '<span class="sn-perch sn-perch-3">' + M.songpyeon('', 'chija') + '</span>' : '') +
         '');
       h.el.appendChild(back);
 
       h.el.appendChild(make('div', 'sn-deco-front', leaves(h.full ? 8 : 5)));
+
+      // 색동 액자와 단청 방패는 글보다 앞에 둔다
+      h.el.appendChild(make('div', 'sn-frame'));
+      if (h.full) h.el.appendChild(make('div', 'sn-shield', M.piece('shield')));
 
       // 돗자리는 히어로 안에 두면 아래쪽 강좌 카드에 가린다.
       // 히어로 다음 자리에 제 줄로 놓아 자리를 차지하게 한다.

@@ -41,16 +41,21 @@
      주소는 뿌리에서 잡는다. 404 처럼 없는 주소로 들어온 화면에서도
      상대 경로가 어긋나지 않는다. */
   var ART = '/images/season/chuseok-';
-  // 이름 → [파일, 폭, 높이, 미리 받을지]
-  // 첫 화면에 안 보이는 것은 늦게 받는다. 돗자리는 488KB 로 무겁다.
+
+  /* 이름 → [파일, 폭, 높이, 미리 받을지]
+     받은 그림을 배경만 벗겨 쓴다. 첫 화면에 안 보이는 것은 늦게 받는다. */
   var PIECES = {
-    rabbit:   ['rabbit',   520, 408, 1],
-    mat:      ['mat',      990, 277, 0],
-    pumpkin:  ['pumpkin',  134, 115, 0],
-    squash:   ['squash',   119, 116, 0],
-    potato:   ['potato',   128,  86, 0],
-    pinecone: ['pinecone', 119, 104, 1],
-    ornam:    ['ornam',     67,  91, 0]
+    moon:    ['moon',          824, 496, 1],
+    peek:    ['rabbit-peek',   267, 351, 1],
+    shield:  ['shield',        248, 240, 1],
+    pine:    ['pine',          484, 400, 1],
+    mapleO:  ['maple-orange',  170, 168, 1],
+    mapleR:  ['maple-red',     160, 170, 1],
+    rabbit:  ['rabbit',        520, 408, 1],
+    mat:     ['mat',           990, 277, 0],
+    pumpkin: ['pumpkin',       325, 288, 0],
+    squash:  ['squash',        345, 246, 0],
+    chestnut:['chestnut',      259, 182, 0]
   };
 
   // 그림 조각 하나를 <img> 로 낸다. 담는 자리가 크기를 정한다.
@@ -116,85 +121,6 @@
       cls || 'sn-m-songpyeon-set');
   }
 
-  /* ── 감 — 꼭지 네 갈래 ─────────────────────────────────────────── */
-  function persimmon(cls) {
-    return svg('0 0 100 100',
-      '<path d="M50 95 C 24 95, 11 77, 11 58 C 11 38, 28 25, 50 25 ' +
-      'C 72 25, 89 38, 89 58 C 89 77, 76 95, 50 95 Z" fill="currentColor"/>' +
-      '<path d="M50 30 C 44 30, 38 27, 34 22 C 40 22, 46 24, 50 27 ' +
-      'C 54 24, 60 22, 66 22 C 62 27, 56 30, 50 30 Z" fill="#000" opacity=".08"/>' +
-      '<g class="sn-m-calyx">' +
-      '<path d="M50 16 L64 25 L82 27 L66 34 L50 40 L34 34 L18 27 L36 25 Z" ' +
-      'fill="var(--sn-leaf, #3E7A4E)"/>' +
-      '<rect x="46" y="4" width="8" height="14" rx="4" fill="var(--sn-stem, #6B4A2E)"/>' +
-      '</g>',
-      cls || 'sn-m-persimmon');
-  }
-
-  /* ── 감나무 가지 — 감이 서넛 매달린 잔가지 ─────────────────────── */
-  function persimmonBranch(cls) {
-    function fruit(x, y, sc) {
-      return '<g transform="translate(' + x + ',' + y + ') scale(' + sc + ')">' +
-        '<path class="sn-pb-stem" d="M0 -26 L0 -14"/>' +
-        '<path class="sn-pb-fruit" d="M0 20 C -14 20, -21 11, -21 1 ' +
-        'C -21 -10, -12 -17, 0 -17 C 12 -17, 21 -10, 21 1 C 21 11, 14 20, 0 20 Z"/>' +
-        '<path class="sn-pb-calyx" d="M0 -22 L9 -15 L20 -13 L10 -8 L0 -5 ' +
-        'L-10 -8 L-20 -13 L-9 -15 Z"/>' +
-        '</g>';
-    }
-    function leaf(x, y, rot) {
-      return '<path class="sn-pb-leaf" transform="translate(' + x + ',' + y +
-        ') rotate(' + rot + ')" d="M0 0 C 10 -9, 26 -9, 34 0 C 26 9, 10 9, 0 0 Z"/>';
-    }
-    return svg('0 0 250 190',
-      '<path class="sn-pb-bough" d="M258 8 C 210 26, 166 48, 124 80 ' +
-      'C 100 98, 74 116, 44 128"/>' +
-      '<path class="sn-pb-bough sn-pb-twig" d="M196 34 C 190 54, 186 68, 184 82"/>' +
-      '<path class="sn-pb-bough sn-pb-twig" d="M134 74 C 132 92, 132 106, 134 120"/>' +
-      '<path class="sn-pb-bough sn-pb-twig" d="M74 118 C 76 132, 80 144, 86 154"/>' +
-      leaf(206, 22, 28) + leaf(150, 58, 16) + leaf(96, 100, 34) + leaf(52, 124, 8) +
-      fruit(184, 104, 1) + fruit(134, 142, 0.86) + fruit(88, 176, 0.74),
-      cls || 'sn-m-persimmon-branch');
-  }
-
-  /* ── 밤 ─────────────────────────────────────────────────────────── */
-  function chestnut(cls) {
-    return svg('0 0 100 100',
-      '<path d="M50 12 C 62 12, 85 35, 87 62 C 88 78, 73 87, 50 87 ' +
-      'C 27 87, 12 78, 13 62 C 15 35, 38 12, 50 12 Z" fill="currentColor"/>' +
-      '<path d="M14 64 C 30 74, 70 74, 86 64 C 87 79, 72 87, 50 87 ' +
-      'C 28 87, 13 79, 14 64 Z" fill="#000" opacity=".16"/>' +
-      '<path d="M47 12 L50 2 L53 12 Z" fill="currentColor"/>' +
-      '<path d="M34 34 C 40 28, 48 25, 54 26" stroke="#fff" stroke-opacity=".22" ' +
-      'stroke-width="4" stroke-linecap="round" fill="none"/>',
-      cls || 'sn-m-chestnut');
-  }
-
-  /* ── 단풍잎 — 한 점에서 갈라진 다섯 갈래 ──────────────────────── */
-  var LEAF_PATH = (function () {
-    var lobes = [[-90, 15.5, 4.6], [-137, 12.8, 4.1], [-43, 12.8, 4.1],
-                 [-176, 9.2, 3.2], [-4, 9.2, 3.2]];
-    var bx = 14, by = 20, d = '';
-    lobes.forEach(function (lo) {
-      var a = lo[0] * Math.PI / 180, L = lo[1], W = lo[2];
-      var tx = bx + Math.cos(a) * L, ty = by + Math.sin(a) * L;
-      var mx = bx + Math.cos(a) * L * 0.5, my = by + Math.sin(a) * L * 0.5;
-      var px = -Math.sin(a) * W, py = Math.cos(a) * W;
-      d += 'M' + r(bx) + ' ' + r(by) +
-           ' Q' + r(mx + px) + ' ' + r(my + py) + ' ' + r(tx) + ' ' + r(ty) +
-           ' Q' + r(mx - px) + ' ' + r(my - py) + ' ' + r(bx) + ' ' + r(by) + 'Z';
-    });
-    return d;
-  })();
-
-  function maple(cls) {
-    return svg('0 0 28 30',
-      '<path d="M14 20 L14 28" stroke="currentColor" stroke-width="1.6" ' +
-      'stroke-linecap="round" fill="none"/>' +
-      '<path d="' + LEAF_PATH + '" fill="currentColor"/>',
-      cls || 'sn-m-maple');
-  }
-
   /* ── 억새 ───────────────────────────────────────────────────────
      한 줄기를 아래에서 위로 자라는 제 좌표계에 그린 뒤 제자리로 옮긴다. */
   function reed(h, lean, seed) {
@@ -252,40 +178,6 @@
       cls || 'sn-m-reedband', 'preserveAspectRatio="none"');
   }
 
-  /* ── 소나무 가지 ────────────────────────────────────────────────── */
-  function needles(cx, cy, dir, n, len, off) {
-    var d = '';
-    for (var i = 0; i < n; i++) {
-      var a = dir + (i / (n - 1) - 0.5) * 2.1;
-      a += (jitter(cx * 3 + cy + i + off) - 0.5) * 0.16;
-      var L = len * (0.6 + jitter(cx + cy * 2 + i + off) * 0.55);
-      d += 'M' + r(cx) + ' ' + r(cy) + 'L' + r(cx + Math.cos(a) * L) + ' ' + r(cy + Math.sin(a) * L);
-    }
-    return d;
-  }
-
-  function pineBough(cls) {
-    var branch = 'M-14 8 C 54 24, 116 52, 188 90 C 228 112, 262 132, 292 154';
-    var subs = ['M86 38 C 78 62, 72 78, 66 96',
-                'M162 72 C 168 98, 172 114, 178 132',
-                'M238 112 C 228 134, 222 148, 214 166'];
-    var clusters = [
-      [30, 18, -1.9, 26, 30], [92, 42, -1.6, 26, 32], [152, 68, -2.1, 24, 28],
-      [212, 100, -1.7, 26, 31], [280, 146, -1.9, 26, 30],
-      [64, 100, 1.5, 24, 28], [180, 138, 1.4, 24, 29], [210, 172, 1.7, 22, 26],
-      [126, 52, 0.9, 20, 24], [246, 124, 1.1, 20, 25],
-      [58, 30, -2.4, 20, 26], [128, 76, -1.3, 20, 27], [252, 130, -2.3, 20, 27]
-    ];
-    var dark = clusters.map(function (c) { return needles(c[0], c[1] + 2, c[2], c[3], c[4] * 1.06, 7); }).join('');
-    var lite = clusters.map(function (c) { return needles(c[0], c[1], c[2], c[3], c[4] * 0.9, 0); }).join('');
-    return svg('0 0 340 200',
-      '<path class="sn-bough" d="' + branch + '"/>' +
-      subs.map(function (s) { return '<path class="sn-bough sn-bough-sm" d="' + s + '"/>'; }).join('') +
-      '<path class="sn-needle-d" d="' + dark + '"/>' +
-      '<path class="sn-needle" d="' + lite + '"/>',
-      cls || 'sn-m-pine');
-  }
-
   /* ── 윷 — 반으로 켠 나무 네 가락. 등에 X 자국이 있다 ───────────── */
   function yutStick(x, y, rot, marks) {
     var m = '';
@@ -306,96 +198,6 @@
       yutStick(28, 60, -20, 3) + yutStick(62, 54, 9, 2) +
       yutStick(96, 62, -7, 3) + yutStick(124, 76, 62, 0),
       cls || 'sn-m-yut');
-  }
-
-  /* ── 호박·조롱박 ───────────────────────────────────────────────── */
-  function gourd(cls, kind) {
-    var hue = kind === 'green' ? ['#7E9A4E', '#5B7335'] :
-              kind === 'pale'  ? ['#D9C87E', '#B0A055'] :
-                                 ['#E0913A', '#B26A1E'];
-    if (kind === 'long') {
-      return svg('0 0 80 120',
-        '<path d="M40 118 C 22 118, 12 104, 12 88 C 12 70, 24 60, 30 48 ' +
-        'C 35 38, 32 24, 36 14 C 39 6, 47 6, 49 14 C 52 26, 46 38, 46 48 ' +
-        'C 46 62, 68 70, 68 88 C 68 104, 58 118, 40 118 Z" ' +
-        'fill="' + hue[0] + '" stroke="' + hue[1] + '" stroke-width="3" stroke-linejoin="round"/>' +
-        '<path d="M24 92 C 28 100, 34 104, 40 105" stroke="#fff" stroke-opacity=".35" ' +
-        'stroke-width="5" stroke-linecap="round" fill="none"/>',
-        cls || 'sn-m-gourd');
-    }
-    return svg('0 0 110 100',
-      '<path d="M55 96 C 26 96, 8 80, 8 56 C 8 34, 28 22, 55 22 ' +
-      'C 82 22, 102 34, 102 56 C 102 80, 84 96, 55 96 Z" ' +
-      'fill="' + hue[0] + '" stroke="' + hue[1] + '" stroke-width="3.4" stroke-linejoin="round"/>' +
-      '<g stroke="' + hue[1] + '" stroke-width="2.6" fill="none" opacity=".55">' +
-      '<path d="M32 26 C 24 44, 24 72, 33 92"/><path d="M78 26 C 86 44, 86 72, 77 92"/>' +
-      '<path d="M55 22 L55 96"/></g>' +
-      '<path d="M50 20 C 50 12, 54 6, 58 4 C 62 6, 62 14, 58 20 Z" ' +
-      'fill="var(--sn-stem, #6B4A2E)"/>',
-      cls || 'sn-m-gourd');
-  }
-
-  /* ── 윷판 — 스물아홉 밭. 돗자리 위에 눕히므로 타원으로 그린다 ──── */
-  function yutBoard(cls) {
-    var cx = 100, cy = 62, RX = 78, RY = 40, d = '';
-    var i, a;
-    for (i = 0; i < 20; i++) {
-      a = Math.PI * 2 * i / 20 - Math.PI / 2;
-      var big = (i % 5 === 0);
-      d += '<circle cx="' + r(cx + Math.cos(a) * RX) + '" cy="' + r(cy + Math.sin(a) * RY) +
-           '" r="' + (big ? 6 : 4.4) + '"/>';
-    }
-    // 가운데를 지나는 두 대각선, 각각 다섯 밭
-    for (var k = 0; k < 2; k++) {
-      var a0 = (k ? 1 : 3) * Math.PI / 4 - Math.PI / 2;
-      for (i = -2; i <= 2; i++) {
-        if (i === 0 && k) continue;                    // 한가운데는 한 번만
-        var t = i / 2.2;
-        d += '<circle cx="' + r(cx + Math.cos(a0) * RX * t) + '" cy="' +
-             r(cy + Math.sin(a0) * RY * t) + '" r="' + (i === 0 ? 6.5 : 4.4) + '"/>';
-      }
-    }
-    return svg('0 0 200 124',
-      '<ellipse class="sn-yb-plate" cx="100" cy="62" rx="92" ry="52"/>' +
-      '<g class="sn-yb-dot">' + d + '</g>',
-      cls || 'sn-m-yutboard');
-  }
-
-  /* ── 돗자리 — 앞이 넓은 사다리꼴로 눕힌다 ──────────────────────── */
-  function mat(cls) {
-    var weave = '';
-    for (var i = 1; i < 9; i++) {                      // 가로결
-      var t = i / 9;
-      var lx = 86 + (26 - 86) * t, rx = 514 - (26 - 86) * t * -1;
-      weave += 'M' + r(86 + (26 - 86) * t) + ' ' + r(30 + 140 * t) +
-               ' L' + r(514 + (86 - 26) * t) + ' ' + r(30 + 140 * t);
-    }
-    for (var j = 1; j < 16; j++) {                     // 세로결
-      var u = j / 16;
-      weave += 'M' + r(86 + 428 * u) + ' 30 L' + r(26 + 548 * u) + ' 170';
-    }
-    return svg('0 0 600 200',
-      '<path class="sn-mat-body" d="M86 30 L514 30 L574 170 L26 170 Z"/>' +
-      '<path class="sn-mat-weave" d="' + weave + '"/>' +
-      '<path class="sn-mat-edge" d="M86 30 L514 30 L574 170 L26 170 Z"/>',
-      cls || 'sn-m-mat', 'preserveAspectRatio="none"');
-  }
-
-  /* ── 전통 구름문양 — 섹션 구분선에 이어 붙인다 ──────────────────
-     덩어리 하나에 말린 꼬리가 달린 모양. 좌우로 되풀이해도 이가 맞는다. */
-  function cloudMotif(cls) {
-    return svg('0 0 160 56',
-      '<g fill="none" stroke="currentColor" stroke-width="2.6" ' +
-      'stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M2 48 C 2 36, 13 30, 23 34 C 26 21, 45 16, 54 27 ' +
-      'C 65 18, 82 24, 84 37 C 96 34, 106 40, 107 48"/>' +
-      '<path d="M107 48 C 107 36, 119 30, 128 36 C 136 42, 133 53, 124 52 ' +
-      'C 118 51, 117 44, 122 42"/>' +
-      '<path d="M136 48 L158 48"/>' +
-      '<path d="M30 46 C 34 40, 42 38, 48 41"/>' +
-      '<path d="M62 44 C 66 38, 74 37, 79 40"/>' +
-      '</g>',
-      cls || 'sn-m-cloud');
   }
 
   /* ── 구름문양 구분선 ────────────────────────────────────────────
@@ -482,11 +284,7 @@
     svg: svg, jitter: jitter, round: r, piece: piece,
     moon: moon, rabbit: rabbit, rabbitMortar: rabbitMortar,
     songpyeon: songpyeon, songpyeonSet: songpyeonSet, yut: yut,
-    gourd: gourd, yutBoard: yutBoard, mat: mat,
-    persimmon: persimmon, persimmonBranch: persimmonBranch, chestnut: chestnut,
-    maple: maple, leafPath: LEAF_PATH,
     reed: reed, reedRow: reedRow, reedBand: reedBand,
-    pineBough: pineBough, cloudMotif: cloudMotif,
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot
   };
