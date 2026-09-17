@@ -111,8 +111,17 @@
 
 /* ── 보름달 — 빛무리까지 그려진 그림이라 후광을 따로 두지 않는다.
    토끼는 달 안에 있어서 달 크기를 바꿔도 늘 붙어 다닌다. ── */
+/* 좁은 PC 화면에서는 달을 줄이고 오른쪽으로 민다. 토끼(달 폭의 15.5% 지점)가
+   가운데 글줄(좌우 250px) 안으로 들어오지 않게 자리를 계산한다.
+   달 곁 구름도 이 값으로 자리를 잡아 달과 함께 움직인다. */
+[data-season="chuseok"] .lp-hero,
+[data-season="chuseok"] .inst-hero,
+[data-season="chuseok"] .pass-hero {
+  --sn-moon-w: clamp(460px, 43vw, 620px);
+  --sn-moon-r: min(-40px, calc(50% - 250px - 0.845 * var(--sn-moon-w)));
+}
 .sn-moon {
-  position: absolute; top: 40px; right: -40px; width: 620px;
+  position: absolute; top: 40px; width: var(--sn-moon-w); right: var(--sn-moon-r);
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
 .sn-moon > img { width: 100%; height: auto; display: block; }
@@ -162,10 +171,32 @@
 .sn-ck-curl { fill: none; stroke: #6B5A44; stroke-width: 3.4; stroke-linecap: round; }
 .sn-ck-line { fill: none; stroke: #BFAE93; stroke-width: 2.6; stroke-linecap: round; }
 
-.sn-ck-1 { top: 16%;  left: -4%;  width: 260px; opacity: .92; animation: snDrift 118s linear infinite; }
-.sn-ck-2 { top: 7%;   right: 14%; width: 190px; opacity: .88; }
-.sn-ck-3 { top: 27%;  right: 3%;  width: 220px; opacity: .85; }
-.sn-ck-4 { top: 33%;  left: 9%;   width: 150px; opacity: .8;  animation: snDrift 164s linear infinite 24s; }
+/* 구름은 화면을 가로지르지 않고 제자리에서 살짝만 떠다닌다.
+   흰 제목 뒤로 크림색 구름이 지나가면 글이 묻힌다.
+   가로 자리도 min() 으로 묶어, 화면이 좁아져도 가운데 글줄(좌우 270px)에 들어오지 않게 한다. */
+.sn-ck-1 { top: 16%;  left: min(-4%, calc(50% - 530px));  width: 260px; opacity: .92;
+           animation: snBob 14s ease-in-out infinite; }
+.sn-ck-2 { /* 달 원판 오른쪽 아래에 걸친다. 토끼는 왼쪽이라 겹치지 않는다 */
+           top: calc(40px + 0.37 * var(--sn-moon-w));
+           right: calc(var(--sn-moon-r) + 0.17 * var(--sn-moon-w)); width: 190px; opacity: .88;
+           animation: snBob 17s ease-in-out infinite -6s; }
+.sn-ck-3 { top: 38%;  right: min(3%, calc(50% - 490px));  width: 220px; opacity: .85;
+           animation: snBob 19s ease-in-out infinite -11s; }
+.sn-ck-4 { top: 33%;  left: min(9%, calc(50% - 420px));   width: 150px; opacity: .8;
+           animation: snBob 15s ease-in-out infinite -3s; }
+@keyframes snBob { 0%,100% { transform: translateX(0); } 50% { transform: translateX(16px); } }
+
+/* 제목 뒤 — 은하수가 지나가는 자리라 밝다. 글 뒤만 살짝 눌러 대비를 지킨다. */
+[data-season="chuseok"] .lp-hero .sn-deco::after {
+  content: ''; position: absolute; left: 50%; top: 34%;
+  width: min(900px, 96%); height: 520px; transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(22,12,52,.62), rgba(22,12,52,.32) 55%, rgba(22,12,52,0));
+  pointer-events: none;
+}
+[data-season="chuseok"] .lp-hero-headline,
+[data-season="chuseok"] .lp-hero-sub,
+[data-season="chuseok"] .lp-eyebrow,
+[data-season="chuseok"] .lp-hero-stats { text-shadow: 0 2px 14px rgba(16,8,40,.75), 0 0 2px rgba(16,8,40,.5); }
 
 /* ── 반딧불 — 천천히 밝아졌다 사그라들며 조금씩 떠오른다 ── */
 .sn-ff {
@@ -288,8 +319,9 @@
 
 /* ── 색동 액자 — 화면 가장자리를 두른다 ── */
 .sn-frame {
-  /* 히어로 위쪽 40px 은 네비가 덮고 있다. 그만큼 내려야 윗변이 보인다. */
-  position: absolute; inset: 50px 10px 10px; z-index: 5; pointer-events: none;
+  /* 히어로 위쪽은 네비가 덮는다. 공지 띠가 있으면 40px, 닫으면 0 이라
+     decorate.js 가 재서 --sn-nav 로 넣는다. */
+  position: absolute; inset: calc(var(--sn-nav, 40px) + 10px) 10px 10px; z-index: 5; pointer-events: none;
   /* 그림의 테두리 두께가 22 다. 조각을 그만큼 잘라 이어 붙인다. */
   border: 15px solid transparent;
   border-image: url('/images/season/chuseok-frame.png') 22 round;
@@ -297,7 +329,7 @@
 
 /* ── 단청 방패 — 맨 위 가운데 ── */
 .sn-shield {
-  position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: calc(var(--sn-nav, 40px) + 18px); left: 50%; transform: translateX(-50%);
   width: 88px; z-index: 6; pointer-events: none;
 }
 .sn-shield img { width: 100%; height: auto; }
@@ -584,8 +616,8 @@
   /* 달 옆에 두면 인사말을 가린다. 달 아래 오른쪽 가장자리로 뺀다 */
   .sn-ck-2 { width: 96px; top: 300px; right: -18px; }
   .sn-ck-3, .sn-ck-4 { display: none; }
-  .sn-shield { width: 58px; top: 52px; }
-  .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
+  .sn-shield { width: 58px; top: calc(var(--sn-nav, 40px) + 12px); }
+  .sn-frame { inset: calc(var(--sn-nav, 40px) + 6px) 6px 6px; border-width: 10px; }
   .sn-g-chestnut { display: none; }
 
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */

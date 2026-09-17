@@ -435,11 +435,26 @@
     for (var i = 0; i < fl.length; i++) fl[i].style.bottom = gap + 'px';
   }
 
+  /* 메뉴바가 히어로 윗부분을 얼마나 덮는지 잰다. 공지 띠를 닫으면
+     메뉴바가 올라가 덮는 높이가 달라진다. 색동 액자와 방패가 이 값을 쓴다.
+     스크롤한 뒤에는 고정 메뉴바 자리가 달라져 재지 않는다. */
+  function placeFrame() {
+    if (window.scrollY > 4) return;
+    var nav = document.getElementById('site-navbar') || document.querySelector('.navbar');
+    var navBottom = nav ? nav.getBoundingClientRect().bottom : 0;
+    document.querySelectorAll('[data-sn-hero]').forEach(function (h) {
+      var cover = Math.max(0, Math.round(navBottom - h.getBoundingClientRect().top));
+      if (cover > 160) cover = 0;          // 페이지 한가운데 있는 히어로는 덮이지 않는다
+      h.style.setProperty('--sn-nav', cover + 'px');
+    });
+  }
+
   function scan() {
     try { doNav(); } catch (e) { warn('doNav', e); }
     try { doHero(); } catch (e) { warn('doHero', e); }
     try { keepGround(); } catch (e) { warn('keepGround', e); }
     try { placeFlowers(); } catch (e) { warn('placeFlowers', e); }
+    try { placeFrame(); } catch (e) { warn('placeFrame', e); }
     try { doDividers(); } catch (e) { warn('doDividers', e); }
     try { doCards(); } catch (e) { warn('doCards', e); }
     try { doLight(); } catch (e) { warn('doLight', e); }
@@ -471,7 +486,7 @@
     var rt = null;
     window.addEventListener('resize', function () {
       clearTimeout(rt);
-      rt = setTimeout(placeFlowers, 150);
+      rt = setTimeout(function () { placeFlowers(); placeFrame(); }, 150);
     });
 
     // 늦게 오는 자료를 위해 몇 번 더
