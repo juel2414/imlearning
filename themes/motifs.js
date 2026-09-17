@@ -234,6 +234,93 @@
       cls || 'sn-m-cloudkr');
   }
 
+  /* ── 민화풍 소나무 ───────────────────────────────────────────────
+     먹선 두른 갈색 가지에, 부채꼴로 펼친 솔잎 뭉치를 얹는다.
+     가지는 왼쪽 가장자리에서 들어온다. 오른쪽에 둘 때는 쓰는 쪽에서 뒤집는다. */
+  var PINE_BRANCHES = [
+    // [점들, 시작 굵기, 끝 굵기]
+    [[[-24,150],[40,166],[110,160],[180,150],[250,176],[320,196],[396,188]], 30, 9],
+    [[[96,160],[118,118],[150,84],[196,62]], 14, 5],
+    [[[180,150],[214,112],[258,98],[300,74]], 12, 5],
+    [[[250,176],[292,222],[346,244],[414,250]], 11, 4],
+    [[[320,196],[364,160],[430,140]], 9, 4],
+    [[[40,166],[34,208],[62,238]], 9, 4]
+  ];
+  var PINE_PADS = [
+    // [x, 밑단 y, 폭]
+    [196, 64, 112], [128, 92, 84], [302, 76, 104], [248, 104, 70],
+    [430, 142, 116], [398, 190, 92], [414, 252, 128], [346, 246, 86],
+    [66, 240, 90], [20, 150, 74]
+  ];
+  function pinePad(x, y, w) {
+    var h = w * 0.44;
+    var shape = function (cx, cy, ww, hh) {
+      return 'M' + r(cx - ww / 2) + ' ' + r(cy) +
+        ' C ' + r(cx - ww / 2) + ' ' + r(cy - hh * 1.3) + ', ' + r(cx + ww / 2) + ' ' + r(cy - hh * 1.3) +
+        ', ' + r(cx + ww / 2) + ' ' + r(cy) +
+        ' Q ' + r(cx + ww / 4) + ' ' + r(cy + hh * 0.2) + ' ' + r(cx) + ' ' + r(cy + hh * 0.06) +
+        ' Q ' + r(cx - ww / 4) + ' ' + r(cy + hh * 0.2) + ' ' + r(cx - ww / 2) + ' ' + r(cy) + ' Z';
+    };
+    var lines = '';
+    for (var i = 0; i <= 12; i++) {
+      var a = Math.PI * (1.06 + 0.88 * i / 12);
+      lines += 'M' + r(x) + ' ' + r(y + h * 0.04) + ' L' +
+        r(x + Math.cos(a) * w * 0.46) + ' ' + r(y + Math.sin(a) * h * 0.92);
+    }
+    // 큰 뭉치는 양옆 아래에 작은 뭉치를 겹쳐 구름처럼 부풀린다
+    var sub = '';
+    if (w >= 84 && !pinePad.inner) {
+      pinePad.inner = true;
+      sub = pinePad(x - w * 0.34, y + h * 0.16, w * 0.6) + pinePad(x + w * 0.34, y + h * 0.16, w * 0.6);
+      pinePad.inner = false;
+    }
+    return sub +
+           '<path class="sn-pn-pad" d="' + shape(x, y, w, h) + '"/>' +
+           '<path class="sn-pn-top" d="' + shape(x, y - h * 0.22, w * 0.7, h * 0.66) + '"/>' +
+           '<path class="sn-pn-needle" d="' + lines + '"/>';
+  }
+  function pineKr(cls) {
+    var outline = '', wood = '';
+    PINE_BRANCHES.forEach(function (b) {
+      var pts = b[0], n = pts.length - 1;
+      for (var i = 0; i < n; i++) {
+        var w = b[1] + (b[2] - b[1]) * (i / Math.max(1, n - 1));
+        var d = 'M' + pts[i][0] + ' ' + pts[i][1] + ' L' + pts[i + 1][0] + ' ' + pts[i + 1][1];
+        outline += '<path class="sn-pn-ink" d="' + d + '" stroke-width="' + r(w + 5) + '"/>';
+        wood += '<path class="sn-pn-wood" d="' + d + '" stroke-width="' + r(w) + '"/>';
+      }
+    });
+    // 껍질 결
+    var bark = 'M58 162 q 12 -4 22 2 M132 156 q 10 -5 20 0 M214 160 q 10 3 18 10 ' +
+               'M280 186 q 10 2 18 8 M150 96 q 6 -6 14 -8';
+    var pads = PINE_PADS.map(function (p) { return pinePad(p[0], p[1], p[2]); }).join('');
+    return svg('0 0 500 320', outline + wood +
+      '<path class="sn-pn-bark" d="' + bark + '"/>' + pads, cls || 'sn-m-pine');
+  }
+
+  /* 네 갈래로 빛나는 별 — 한 점짜리 별 사이에 드문드문 섞는다 */
+  function sparkle(cls) {
+    return svg('-10 -10 20 20',
+      '<path d="M0 -10 Q 0.9 -0.9 10 0 Q 0.9 0.9 0 10 Q -0.9 0.9 -10 0 Q -0.9 -0.9 0 -10 Z"/>',
+      cls || 'sn-m-sparkle');
+  }
+
+  /* 은하수 가루 — 오른쪽 위에서 왼쪽 아래로 흐르는 띠를 따라 뿌린다.
+     slice 로 채워서 폭이 달라도 점이 찌그러지지 않는다. */
+  function starDust(cls, n) {
+    var out = '', N = n || 340;
+    for (var i = 0; i < N; i++) {
+      var t = jitter(i * 3 + 7);
+      var off = (jitter(i * 5 + 1) + jitter(i * 7 + 2) - 1) * 150;
+      var x = 1360 - t * 1240 + off * 0.45;
+      var y = 60 + t * 700 + off * 0.9;
+      var k = jitter(i * 11 + 5);
+      out += '<circle cx="' + r(x) + '" cy="' + r(y) + '" r="' + r(0.5 + k * k * k * 2) +
+        '" opacity="' + r(0.25 + jitter(i * 13) * 0.65) + '"/>';
+    }
+    return svg('0 0 1440 900', out, cls || 'sn-m-dust', 'preserveAspectRatio="xMidYMid slice"');
+  }
+
   /* ── 노리개 — 끈, 매듭, 둥근 패, 술 ─────────────────────────────── */
   function norigae(cls) {
     return svg('0 0 64 210',
@@ -253,72 +340,111 @@
       cls || 'sn-m-norigae');
   }
 
-  /* ── 소반 — 송편 접시를 올려 두는 낮은 상 ───────────────────────── */
+  /* ── 소반 — 개다리소반 위에 흰 그릇, 그 안에 송편을 소복이 ───────── */
   function soban(cls) {
-    return svg('0 0 220 120',
-      '<ellipse class="sn-sb-top" cx="110" cy="30" rx="98" ry="22"/>' +
-      '<path class="sn-sb-edge" d="M12 30 C 12 44, 56 54, 110 54 C 164 54, 208 44, 208 30 ' +
-      'L208 40 C 208 54, 164 64, 110 64 C 56 64, 12 54, 12 40 Z"/>' +
-      '<path class="sn-sb-leg" d="M44 60 C 40 78, 34 92, 26 106 C 36 104, 44 92, 52 70 Z"/>' +
-      '<path class="sn-sb-leg" d="M176 60 C 180 78, 186 92, 194 106 C 184 104, 176 92, 168 70 Z"/>' +
-      '<path class="sn-sb-leg" d="M104 64 C 103 82, 103 96, 104 112 L116 112 ' +
-      'C 117 96, 117 82, 116 64 Z"/>',
+    function one(dx, dy, sc, kind) {
+      return '<g transform="translate(' + dx + ',' + dy + ') scale(' + sc + ')">' +
+        songpyeonBody(kind) + '</g>';
+    }
+    return svg('0 0 240 200',
+      // 다리 — 바깥으로 휘었다 안으로 들어오는 개다리
+      '<path class="sn-sb-leg" d="M44 126 C 26 146, 22 170, 40 192 L50 192 C 40 172, 44 150, 60 132 Z"/>' +
+      '<path class="sn-sb-leg" d="M196 126 C 214 146, 218 170, 200 192 L190 192 C 200 172, 196 150, 180 132 Z"/>' +
+      '<path class="sn-sb-leg sn-sb-back" d="M82 130 C 76 150, 78 168, 88 186 L96 186 C 88 168, 88 150, 94 134 Z"/>' +
+      '<path class="sn-sb-leg sn-sb-back" d="M158 130 C 164 150, 162 168, 152 186 L144 186 C 152 168, 152 150, 146 134 Z"/>' +
+      // 운각 — 상판 아래 구름 모양 턱
+      '<path class="sn-sb-apron" d="M34 118 L206 118 L200 134 C 184 138, 176 128, 160 136 ' +
+      'C 146 142, 134 132, 120 138 C 106 132, 94 142, 80 136 C 64 128, 56 138, 40 134 Z"/>' +
+      // 상판
+      '<path class="sn-sb-edge" d="M14 106 C 14 118, 60 128, 120 128 C 180 128, 226 118, 226 106 L226 114 ' +
+      'C 226 126, 180 136, 120 136 C 60 136, 14 126, 14 114 Z"/>' +
+      '<ellipse class="sn-sb-top" cx="120" cy="106" rx="106" ry="20"/>' +
+      '<path class="sn-sb-shine" d="M40 100 C 70 92, 110 90, 150 91"/>' +
+      // 그릇 뒷전
+      '<ellipse class="sn-bw-rim" cx="120" cy="58" rx="54" ry="9"/>' +
+      // 송편
+      one(70, 30, 0.40, 'ssuk') + one(100, 24, 0.42, 'pink') + one(132, 30, 0.40, 'chija') +
+      one(84, 10, 0.38, 'white') + one(116, 6, 0.40, 'ssuk') + one(100, 40, 0.36, 'chija') +
+      // 그릇 몸통 — 송편 아랫부분을 덮는다
+      '<path class="sn-bw-body" d="M66 58 Q 120 74 174 58 Q 172 100 120 104 Q 68 100 66 58 Z"/>' +
+      '<path class="sn-bw-band" d="M76 76 Q 120 88 164 76"/>',
       cls || 'sn-m-soban');
   }
 
   /* ── 들꽃 한 무더기 — 화면 아래 모서리에 놓는다 ─────────────────
+     먹선을 두른 민화풍. 데이지·미나리아재비·코스모스·튤립·도라지꽃을 섞는다.
      왼쪽 가장자리(x=0)에 몰리고 안쪽으로 갈수록 성기고 낮아진다.
      오른쪽에 둘 때는 쓰는 쪽에서 좌우로 뒤집는다. */
-  var PETAL = ['#F6F2E6', '#F5D46A', '#F0A2BE', '#C7A6E8', '#F3B278'];
+  var FLOWER_KINDS = ['daisy', 'butter', 'cosmos', 'tulip', 'bell', 'daisy', 'butter'];
+  function petals(x, y, s, n, rx, ry, dist, cls) {
+    var out = '';
+    for (var q = 0; q < n; q++) {
+      var a = 360 * q / n;
+      out += '<ellipse class="' + cls + '" cx="' + r(x) + '" cy="' + r(y - s * dist) + '" rx="' +
+        r(s * rx) + '" ry="' + r(s * ry) + '" transform="rotate(' + r(a) + ' ' + r(x) + ' ' + r(y) + ')"/>';
+    }
+    return out;
+  }
+  function flowerHead(kind, x, y, s) {
+    if (kind === 'daisy') {
+      return petals(x, y, s, 10, 0.24, 0.52, 0.56, 'sn-fl-daisy') +
+        '<circle class="sn-fl-core" cx="' + r(x) + '" cy="' + r(y) + '" r="' + r(s * 0.3) + '"/>';
+    }
+    if (kind === 'cosmos') {
+      return petals(x, y, s, 8, 0.3, 0.55, 0.56, 'sn-fl-cosmos') +
+        '<circle class="sn-fl-core" cx="' + r(x) + '" cy="' + r(y) + '" r="' + r(s * 0.24) + '"/>';
+    }
+    if (kind === 'butter') {
+      return petals(x, y, s, 5, 0.42, 0.46, 0.5, 'sn-fl-butter') +
+        '<circle class="sn-fl-core2" cx="' + r(x) + '" cy="' + r(y) + '" r="' + r(s * 0.22) + '"/>';
+    }
+    if (kind === 'tulip') {
+      return '<path class="sn-fl-tulip" d="M' + r(x - s * 0.62) + ' ' + r(y - s * 0.3) +
+        ' Q ' + r(x - s * 0.74) + ' ' + r(y - s * 1.3) + ' ' + r(x - s * 0.3) + ' ' + r(y - s * 1.16) +
+        ' L ' + r(x) + ' ' + r(y - s * 0.72) + ' L ' + r(x + s * 0.3) + ' ' + r(y - s * 1.16) +
+        ' Q ' + r(x + s * 0.74) + ' ' + r(y - s * 1.3) + ' ' + r(x + s * 0.62) + ' ' + r(y - s * 0.3) +
+        ' Q ' + r(x) + ' ' + r(y + s * 0.5) + ' ' + r(x - s * 0.62) + ' ' + r(y - s * 0.3) + ' Z"/>';
+    }
+    // bell — 도라지꽃, 다섯 갈래 별꽃
+    return petals(x, y, s, 5, 0.3, 0.56, 0.52, 'sn-fl-bell') +
+      '<circle class="sn-fl-core3" cx="' + r(x) + '" cy="' + r(y) + '" r="' + r(s * 0.16) + '"/>';
+  }
   function flowerClump(cls) {
     var w = 360, base = 260, out = '';
-    // 가장자리일수록 1, 안쪽 끝이 0
     var edge = function (x) { return 1 - x / w; };
 
-    // 풀잎 — 가장자리에 빽빽하게
     var grass = '';
-    for (var i = 0; i < 70; i++) {
+    for (var i = 0; i < 60; i++) {
       var gx = Math.pow(jitter(i * 7 + 1), 1.7) * w;
-      var gh = (26 + jitter(i * 5) * 50) * (0.45 + edge(gx) * 0.9);
+      var gh = (30 + jitter(i * 5) * 54) * (0.45 + edge(gx) * 0.9);
       var lean = (jitter(i * 3) - 0.35) * 40;
-      grass += 'M' + r(gx) + ' ' + base + ' Q ' + r(gx + lean * 0.4) + ' ' + r(base - gh * 0.55) +
-               ' ' + r(gx + lean) + ' ' + r(base - gh);
+      var gw = 3 + jitter(i * 9) * 3;
+      grass += 'M' + r(gx - gw) + ' ' + base + ' Q ' + r(gx + lean * 0.4) + ' ' + r(base - gh * 0.55) +
+               ' ' + r(gx + lean) + ' ' + r(base - gh) + ' Q ' + r(gx + lean * 0.3) + ' ' + r(base - gh * 0.5) +
+               ' ' + r(gx + gw) + ' ' + base + ' Z';
     }
     out += '<path class="sn-fl-grass" d="' + grass + '"/>';
 
-    // 꽃 — 줄기째 한 묶음으로 흔든다
     var sways = ['sn-sway', 'sn-sway-2', 'sn-sway-3', 'sn-sway-4'];
-    for (var k = 0; k < 22; k++) {
+    for (var k = 0; k < 20; k++) {
       var fx = 8 + Math.pow(jitter(k * 7 + 3), 1.5) * (w - 40);
-      var fh = (46 + jitter(k * 11) * 70) * (0.5 + edge(fx) * 0.85);
+      var fh = (50 + jitter(k * 11) * 74) * (0.5 + edge(fx) * 0.85);
       var fy = base - fh;
-      var bend = (jitter(k * 17) - 0.5) * 22;
-      var hx = fx + bend;
-      var col = PETAL[k % PETAL.length];
-      var rad = 6 + jitter(k * 13) * 5;
+      var hx = fx + (jitter(k * 17) - 0.5) * 22;
+      var size = 13 + jitter(k * 13) * 8;
       var g = '<path class="sn-fl-stem" d="M' + r(fx) + ' ' + base + ' Q ' + r(fx) + ' ' +
               r(base - fh * 0.5) + ' ' + r(hx) + ' ' + r(fy) + '"/>';
-      // 잎 하나
-      if (k % 3 === 0) {
-        var ly = base - fh * 0.35;
-        g += '<path class="sn-fl-leaf" d="M' + r(fx) + ' ' + r(ly) + ' q 14 -12 26 -6 q -12 12 -26 6 Z"/>';
+      if (k % 2 === 0) {
+        var ly = base - fh * 0.32, dir = k % 4 ? 1 : -1;
+        g += '<path class="sn-fl-leaf" d="M' + r(fx) + ' ' + r(ly) + ' q ' + (dir * 14) + ' -16 ' + (dir * 30) +
+             ' -10 q ' + (dir * -12) + ' 14 ' + (dir * -30) + ' 10 Z"/>';
       }
-      var pet = '';
-      for (var q = 0; q < 5; q++) {
-        var a = Math.PI * 2 * q / 5 - Math.PI / 2;
-        pet += '<circle cx="' + r(hx + Math.cos(a) * rad * 0.82) + '" cy="' +
-               r(fy + Math.sin(a) * rad * 0.82) + '" r="' + r(rad * 0.62) + '"/>';
-      }
-      g += '<g fill="' + col + '">' + pet + '</g>' +
-           '<circle class="sn-fl-eye" cx="' + r(hx) + '" cy="' + r(fy) + '" r="' + r(rad * 0.34) + '"/>';
+      g += flowerHead(FLOWER_KINDS[k % FLOWER_KINDS.length], hx, fy, size);
       out += '<g class="' + sways[k % 4] + '">' + g + '</g>';
     }
     return svg('0 0 ' + w + ' ' + base, out, cls || 'sn-m-flowers');
   }
 
-  /* ── 구름문양 구분선 ────────────────────────────────────────────
-     SVG 패턴으로 가로로 이어 붙인다. 폭이 얼마든 이가 맞고,
-     패턴 안에서도 currentColor 가 살아 있어 색은 쓰는 쪽에서 정한다. */
   var dividerSeq = 0;
   function cloudDivider(cls) {
     var id = 'sn-cloud-pat-' + (++dividerSeq);
@@ -404,6 +530,6 @@
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
     cloudKr: cloudKr,
-    norigae: norigae, soban: soban, flowerClump: flowerClump
+    norigae: norigae, soban: soban, flowerClump: flowerClump, pineKr: pineKr, sparkle: sparkle, starDust: starDust
   };
 })();

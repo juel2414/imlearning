@@ -116,8 +116,12 @@
   animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
 }
 .sn-moon > img { width: 100%; height: auto; display: block; }
+/* 달 원판은 그림 폭의 32~69%, 높이의 17~80% 자리에 있다.
+   앞발이 원판 왼쪽 가장자리 안에 걸치고, 몸이 달에 기대도록 놓는다. */
 .sn-peek {
-  position: absolute; left: 8%; top: 33%; width: 27%;
+  position: absolute; left: 15.5%; top: 14%; width: 27%;
+  transform: rotate(9deg); transform-origin: 77% 67%;
+  filter: drop-shadow(-3px 5px 8px rgba(40,20,70,.35));
 }
 .sn-peek img { width: 100%; height: auto; display: block; }
 
@@ -180,13 +184,37 @@
 
 /* ── 소나무 가지 — 왼쪽 위 ── */
 /* 솔가지는 둘. 하나는 왼쪽 위에서, 하나는 오른쪽 아래에서 뻗어 나온다. */
-.sn-pine  { position: absolute; top: 16px; left: -46px; width: 360px; }
-.sn-pine2 { position: absolute; bottom: 448px; right: -34px; width: 232px;
-            transform: scaleX(-1); opacity: .95; }
+.sn-pine  { position: absolute; top: 44px; left: -40px; width: 470px; }
+.sn-pine2 { position: absolute; bottom: 440px; right: -40px; width: 380px;
+            transform: scaleX(-1); }
+.sn-pine svg, .sn-pine2 svg { width: 100%; height: auto; display: block; overflow: visible;
+            filter: drop-shadow(0 6px 10px rgba(10,4,30,.35)); }
+/* 민화풍 소나무 — 먹선, 갈색 가지, 부채꼴 솔잎 */
+.sn-pn-ink    { fill: none; stroke: #2B1B12; stroke-linecap: round; }
+.sn-pn-wood   { fill: none; stroke: #7B4F2E; stroke-linecap: round; }
+.sn-pn-bark   { fill: none; stroke: #3E2616; stroke-width: 2; stroke-linecap: round; opacity: .7; }
+.sn-pn-pad    { fill: #2F6B4A; stroke: #1E3A2A; stroke-width: 2.4; stroke-linejoin: round; }
+.sn-pn-top    { fill: #4E9467; }
+.sn-pn-needle { fill: none; stroke: #CFE8C2; stroke-width: 1.3; stroke-linecap: round; opacity: .55; }
+
+/* ── 네 갈래 별과 은하수 가루 ── */
+.sn-spark {
+  position: absolute; transform: translate(-50%, -50%);
+  animation-name: snSpark; animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.sn-spark svg { width: 100%; height: 100%; display: block; overflow: visible;
+  fill: currentColor; filter: drop-shadow(0 0 4px currentColor); }
+@keyframes snSpark {
+  0%,100% { opacity: .35; transform: translate(-50%,-50%) scale(.72); }
+  50%     { opacity: 1;   transform: translate(-50%,-50%) scale(1.08); }
+}
+.sn-dust { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sn-dust circle { fill: #FFF2D4; }
 
 /* 송편 한 접시 — 오른쪽 아래, 억새 사이에 놓는다 */
-.sn-norigae { right: 19.5%; bottom: 372px; }
-.sn-soban { right: 16%; bottom: 232px; }
+.sn-norigae { right: 23%; bottom: 404px; }
+.sn-soban { right: 14.5%; bottom: 196px; }
 .sn-songpyeon { position: absolute; right: 17.5%; bottom: 276px; width: 150px; }
 .sn-songpyeon svg { width: 100%; height: auto; }
 
@@ -202,21 +230,28 @@
 .sn-norigae { position: absolute; width: 58px; pointer-events: none; }
 .sn-norigae svg { width: 100%; height: auto; }
 .sn-nr-cord    { fill: none; stroke: #C0392B; stroke-width: 3; }
-.sn-nr-knot    { fill: #C0392B; stroke: #8E2A1E; stroke-width: 2; stroke-linejoin: round; }
+.sn-nr-knot    { fill: #C0392B; stroke: #3A2A20; stroke-width: 2; stroke-linejoin: round; }
 .sn-nr-knot-in { fill: #E4695B; }
-.sn-nr-ring    { fill: #D8A93C; stroke: #A87F22; stroke-width: 2; }
-.sn-nr-face    { fill: #3E8E74; }
+.sn-nr-ring    { fill: #B98A3E; stroke: #3A2A20; stroke-width: 2.2; }
+.sn-nr-face    { fill: #BFD8DF; stroke: #6E8E96; stroke-width: 1.5; }
 .sn-nr-gleam   { fill: none; stroke: #fff; stroke-opacity: .45; stroke-width: 3;
                  stroke-linecap: round; }
 .sn-nr-cap     { fill: #A82F22; }
 .sn-nr-tassel  { fill: none; stroke: #C0392B; stroke-width: 3; stroke-linecap: round; }
 
 /* ── 소반과 송편 ── */
-.sn-soban { position: absolute; width: 190px; pointer-events: none; }
-.sn-soban svg { width: 100%; height: auto; }
-.sn-sb-top  { fill: #8A5A33; stroke: #5E3A1E; stroke-width: 3; }
-.sn-sb-edge { fill: #6F4526; }
-.sn-sb-leg  { fill: #6F4526; }
+.sn-soban { position: absolute; width: 210px; pointer-events: none; }
+.sn-soban svg { width: 100%; height: auto; display: block;
+  filter: drop-shadow(0 8px 10px rgba(40,24,10,.28)); }
+.sn-sb-top   { fill: #7A4526; stroke: #2B1810; stroke-width: 2.4; }
+.sn-sb-edge  { fill: #5A321B; stroke: #2B1810; stroke-width: 2; stroke-linejoin: round; }
+.sn-sb-apron { fill: #5A321B; stroke: #2B1810; stroke-width: 2; stroke-linejoin: round; }
+.sn-sb-leg   { fill: #5E361E; stroke: #2B1810; stroke-width: 2; stroke-linejoin: round; }
+.sn-sb-back  { fill: #43260F; }
+.sn-sb-shine { fill: none; stroke: #B07A4E; stroke-width: 2.4; stroke-linecap: round; opacity: .55; }
+.sn-bw-rim   { fill: #E6DDCB; stroke: #3A2A20; stroke-width: 2; }
+.sn-bw-body  { fill: #FBF8F1; stroke: #3A2A20; stroke-width: 2.2; stroke-linejoin: round; }
+.sn-bw-band  { fill: none; stroke: #3F6FA6; stroke-width: 2; opacity: .55; }
 
 /* ── 들꽃 — 아래 양옆 모서리에 억새와 함께 모인다. 가운데는 비운다 ── */
 .sn-flowers { position: absolute; bottom: -6px; width: 260px; pointer-events: none; }
@@ -224,15 +259,25 @@
 .sn-flowers-l { left: -10px; }
 .sn-flowers-r { right: -10px; transform: scaleX(-1); }
 .sn-fl-leaf  { fill: #4E7F45; }
-.sn-fl-grass { fill: none; stroke: #5E8F52; stroke-width: 2.4; stroke-linecap: round; opacity: .85; }
-.sn-fl-stem  { fill: none; stroke: #56864B; stroke-width: 2.6; stroke-linecap: round; }
-.sn-fl-eye   { fill: #E8B23C; }
+.sn-fl-grass  { fill: #4F8A4A; stroke: #23361F; stroke-width: 1.1; stroke-linejoin: round; }
+.sn-fl-stem   { fill: none; stroke: #3F6E3A; stroke-width: 2.2; stroke-linecap: round; }
+.sn-fl-leaf   { fill: #5E9A58; stroke: #23361F; stroke-width: 1.1; }
+.sn-fl-daisy  { fill: #FBF8EE; stroke: #3A2A20; stroke-width: 1.1; }
+.sn-fl-cosmos { fill: #F2A3BC; stroke: #3A2A20; stroke-width: 1.1; }
+.sn-fl-butter { fill: #F4C542; stroke: #3A2A20; stroke-width: 1.1; }
+.sn-fl-bell   { fill: #9E82D8; stroke: #3A2A20; stroke-width: 1.1; }
+.sn-fl-tulip  { fill: #D9483B; stroke: #3A2A20; stroke-width: 1.2; stroke-linejoin: round; }
+.sn-fl-core   { fill: #E9B23A; stroke: #3A2A20; stroke-width: 1; }
+.sn-fl-core2  { fill: #C9811E; }
+.sn-fl-core3  { fill: #FFF6E0; }
 
 /* ── 억새 — 아래 양옆에서 바람에 흔들린다 ── */
 .sn-reeds-l, .sn-reeds-r {
   position: absolute; bottom: -8px; width: 420px;
-  color: #EADBB0; opacity: .62; pointer-events: none;
+  color: #E9D3A0; opacity: .88; pointer-events: none;
 }
+.sn-reeds-l .sn-stalk, .sn-reeds-r .sn-stalk { stroke: #A88A58; }
+.sn-reeds-l .sn-plume, .sn-reeds-r .sn-plume { stroke-width: 1.7; }
 .sn-reeds-l { left: -80px; }
 .sn-reeds-r { right: -80px; transform: scaleX(-1); }
 .sn-reeds-l svg, .sn-reeds-r svg { width: 100%; height: auto; }
@@ -280,6 +325,8 @@
 .sn-leaf   { position: absolute; top: -60px; animation: snFall 20s linear infinite; }
 .sn-leaf-i { display: block; animation: snSwing 5s ease-in-out infinite; }
 .sn-leaf img { width: 100%; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
+/* 초록 잎도 섞는다 — 주황 단풍 그림의 색만 돌린다 */
+.sn-leaf-green img { filter: hue-rotate(78deg) saturate(1.05) brightness(1.02) drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
 
 /* ── 한가위 인사 — 아래 알약과 겹쳐 보이지 않게 테두리 없는 한 줄 ── */
 .sn-greet {
@@ -317,6 +364,7 @@
 
 /* 그 안에 놓인 시즌 배너는 같은 밤색이라 묻힌다. 유리판처럼 띄운다. */
 [data-season="chuseok"] .lp-cta .sn-cta {
+  max-width: 860px; margin: 0 auto 64px;
   background: rgba(255,255,255,.055);
   border: 1px solid rgba(255,231,163,.26);
 }
@@ -440,22 +488,25 @@
 .sn-cta-title { font-size: 21px; font-weight: 800; line-height: 1.45; }
 .sn-cta-title em { font-style: normal; color: var(--sn-moon); }
 .sn-cta-sub { margin-top: 7px; font-size: 14px; color: rgba(255,255,255,.72); }
-/* 달은 동그라미라 배너 모서리에서 잘려도 자연스럽다 */
-.sn-cta-art { position: absolute; right: -26px; top: -34px; width: 152px;
-              color: var(--sn-moon); opacity: .17; }
-.sn-cta-body { position: relative; z-index: 1; }
+.sn-cta-art { flex: none; width: 54px; height: 54px; color: var(--sn-moon);
+              filter: drop-shadow(0 0 14px rgba(255,214,120,.55)); }
+.sn-cta-art svg { width: 100%; height: 100%; display: block; }
+.sn-cta-body { position: relative; z-index: 1; flex: 1 1 260px; text-align: left; }
 .sn-cta .sn-btn { position: relative; z-index: 1; }
 
 /* ══ 5. 푸터 ══════════════════════════════════════════════════════════ */
 
-[data-season="chuseok"] .footer { position: relative; overflow: hidden; }
+/* 억새 띠가 들어설 자리만큼 위를 띄워 글과 겹치지 않게 한다 */
+[data-season="chuseok"] .footer { position: relative; overflow: hidden; padding-top: calc(4rem + 64px); }
 .sn-footer-band {
-  position: absolute; left: 0; right: 0; top: 0; height: 88px;
-  color: var(--sn-lit); opacity: .22; pointer-events: none;
+  position: absolute; left: 0; right: 0; top: 0; height: 84px;
+  color: var(--sn-lit); opacity: .2; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+          mask-image: linear-gradient(to bottom, #000 55%, transparent);
 }
 .sn-footer-band svg { width: 100%; height: 100%; }
 .sn-footer-rabbit {
-  position: absolute; right: 5%; top: 16px; width: 78px;
+  position: absolute; right: 5%; top: 8px; width: 72px;
   opacity: .92; pointer-events: none;
 }
 .sn-footer-rabbit svg { width: 100%; height: auto; }
@@ -516,20 +567,22 @@
 
 @media (max-width: 768px) {
   /* 히어로가 길어져 %로는 달이 글 위로 내려온다. 위에서 재서 붙인다. */
-  .sn-moon { width: 300px; top: 46px; right: -54px; }
+  .sn-moon { width: 250px; top: 30px; right: -54px; }
   .sn-reeds-l, .sn-reeds-r { width: 240px; }
   .sn-reeds-l { left: -56px; }
   .sn-reeds-r { right: -56px; }
 
-  .sn-pine { width: 190px; top: 44px; left: -40px; }
-  .sn-pine2 { width: 150px; bottom: 360px; right: -30px; }
+  .sn-pine { width: 200px; top: 32px; left: -36px; }
+  .sn-pine2 { width: 190px; bottom: 360px; right: -34px; }
+  .sn-spark:nth-of-type(3n) { display: none; }
   .sn-norigae { display: none; }
   .sn-soban { width: 118px; right: 5%; bottom: 190px; }
   .sn-flowers { width: 118px; }
   .sn-songpyeon { width: 94px; right: 7%; bottom: 222px; }
   .sn-milky { filter: blur(4px); }
-  .sn-ck-1 { width: 150px; }
-  .sn-ck-2 { width: 118px; }
+  .sn-ck-1 { width: 104px; top: 466px; left: -34px; }   /* 제목을 가리지 않게 버튼 옆으로 */
+  /* 달 옆에 두면 인사말을 가린다. 달 아래 오른쪽 가장자리로 뺀다 */
+  .sn-ck-2 { width: 96px; top: 300px; right: -18px; }
   .sn-ck-3, .sn-ck-4 { display: none; }
   .sn-shield { width: 58px; top: 52px; }
   .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
@@ -546,7 +599,9 @@
 
   .sn-cta { padding: 26px 22px; }
   .sn-cta-title { font-size: 18px; }
-  .sn-cta-art { width: 96px; right: 8px; opacity: .16; }
+  .sn-cta-art { width: 42px; height: 42px; }
+  [data-season="chuseok"] .lp-cta .sn-cta { margin-bottom: 44px; }
+  .sn-cta .sn-btn { width: 100%; text-align: center; }
 
   .sn-404-art { width: 168px; }
   .sn-404-title { font-size: 21px; }

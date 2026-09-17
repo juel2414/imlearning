@@ -97,6 +97,25 @@
     return out;
   }
 
+  /* 네 갈래 별 — 시안처럼 크고 또렷한 별을 드문드문. 글줄 한가운데는 피한다. */
+  var SPARK_TINT = ['#FFF4D6', '#FFF4D6', '#DCE6FF', '#FFE0EC', '#FFE8A8'];
+  function sparkles(n) {
+    var out = '';
+    for (var i = 0; i < n; i++) {
+      var x = M.jitter(i * 19 + 4) * 96 + 2;
+      var y = M.jitter(i * 23 + 8) * 70 + 3;
+      if (x > 33 && x < 67 && y > 22 && y < 62) x = x < 50 ? x - 18 : x + 18;
+      var k = M.jitter(i * 29 + 1);
+      var s = 9 + k * k * 16;
+      var d = ((100 - x) + y) / 200;
+      out += '<span class="sn-spark" style="left:' + r(x) + '%;top:' + r(y) + '%;' +
+        'width:' + r(s) + 'px;height:' + r(s) + 'px;color:' + SPARK_TINT[i % SPARK_TINT.length] + ';' +
+        'animation-duration:' + STAR_CYCLE + 's;animation-delay:' + r(d * STAR_SWEEP + 0.4) + 's">' +
+        M.sparkle() + '</span>';
+    }
+    return out;
+  }
+
   /* 반딧불 — 노란 점빛. 천천히 밝아졌다 사그라들며 조금씩 떠오른다. */
   function fireflies(n) {
     var out = '', N = n || 22;
@@ -118,7 +137,7 @@
     for (var i = 0; i < (n || 8); i++) {
       var j = M.jitter(i * 5 + 1), k = M.jitter(i * 9 + 4);
       var size = 26 + j * 18;
-      out += '<span class="sn-leaf" style="left:' + r(5 + i * 12 + k * 7) + '%;' +
+      out += '<span class="sn-leaf' + (i % 3 === 2 ? ' sn-leaf-green' : '') + '" style="left:' + r(5 + i * 12 + k * 7) + '%;' +
         'width:' + r(size) + 'px;' +
         'animation-duration:' + r(16 + j * 12) + 's;animation-delay:-' + r(k * 24) + 's">' +
         '<span class="sn-leaf-i" style="animation-duration:' + r(4 + k * 4) + 's;' +
@@ -146,25 +165,26 @@
         // 토끼를 달 안에 넣어야 달 크기가 바뀌어도 늘 붙어 있다
         '<span class="sn-moon">' + M.piece('moon') +
           '<span class="sn-peek">' + M.piece('peek') + '</span></span>' +
-        '<span class="sn-milky"></span>' + stars() + constellations() +
+        '<span class="sn-milky"></span>' + M.starDust('sn-dust') + stars() + sparkles(h.full ? 30 : 16) +
+        constellations() +
         fireflies(h.full ? 22 : 12) +
         '<span class="sn-ck sn-ck-1">' + M.cloudKr() + '</span>' +
         '<span class="sn-ck sn-ck-2">' + M.cloudKr() + '</span>' +
         (h.full ? '<span class="sn-ck sn-ck-3">' + M.cloudKr() + '</span>' +
                   '<span class="sn-ck sn-ck-4">' + M.cloudKr() + '</span>' : '') +
-        '<span class="sn-pine">' + M.piece('pine') + '</span>' +
+        '<span class="sn-pine">' + M.pineKr() + '</span>' +
         // 억새는 아래 양옆에서 바람에 흔들린다
         (h.full ? '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
                   '<span class="sn-reeds-r">' + M.reedClump() + '</span>' : '') +
         // 솔가지에 송편을 얹는다
-        (h.full ? '<span class="sn-pine2">' + M.piece('pine') + '</span>' : '') +
+        (h.full ? '<span class="sn-pine2">' + M.pineKr() + '</span>' : '') +
         '');
       h.el.appendChild(back);
 
       h.el.appendChild(make('div', 'sn-deco-front', leaves(h.full ? 8 : 5) +
         (h.full ? '<span class="sn-norigae">' + M.norigae() + '</span>' +
+                  // 소반 그림에 송편 그릇까지 들어 있다
                   '<span class="sn-soban">' + M.soban() + '</span>' +
-                  '<span class="sn-songpyeon">' + M.songpyeonSet() + '</span>' +
                   // 들꽃은 아래 한 줄로 깔지 않고 양옆 모서리에만 모은다.
                   // 강좌 카드 판이 폭을 거의 다 차지해서, 판 모서리 앞에 걸친다.
                   '<span class="sn-flowers sn-flowers-l">' + M.flowerClump() + '</span>' +
