@@ -38,6 +38,10 @@ a { text-decoration:none; color:inherit; }
 .search-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 .search-input { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; width:220px; outline:none; }
 .search-input:focus { border-color:#2D9B6F; }
+.row-more { padding:14px; text-align:center; font-size:13px; color:#666; }
+.row-more button { margin-left:8px; padding:5px 12px; border-radius:7px;
+  border:1px solid #d7d7d7; background:#fff; font-size:12.5px; font-weight:600;
+  color:#2D9B6F; cursor:pointer; }
 .filter-select { padding:8px 12px; border:1.5px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; cursor:pointer; }
 
 /* 테이블 */
@@ -211,8 +215,8 @@ tr.detail-row:hover > td { background:#FAFBFC; }
     <div class="card-header">
       <span class="card-title">수강생 목록</span>
       <div class="search-bar">
-        <input type="text" class="search-input" id="student-search" placeholder="이름 또는 이메일 검색..." oninput="renderTable()">
-        <select class="filter-select" id="status-filter" onchange="renderTable()">
+        <input type="text" class="search-input" id="student-search" placeholder="이름 또는 이메일 검색..." oninput="renderTableSoon()">
+        <select class="filter-select" id="status-filter" onchange="showAllRows=false;renderTable()">
           <option value="">전체 상태</option>
           <option value="active">활성</option>
           <option value="dormant">휴면</option>
@@ -359,8 +363,27 @@ function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
 
+// 줄마다 전체 목록을 훑으면 1,318줄 × 2,906건이라 한 번 그릴 때마다 멈춘다.
+// 미리 한 번만 표로 만들어 두고 찾아 쓴다.
+var ordersByUid   = {};   // uid → 주문들
+var profileByUid  = {};   // uid → 프로필
+var courseById    = {};   // 강좌 id → 강좌
+
+function buildLookups() {
+  ordersByUid = {};
+  allOrders.forEach(function(o) {
+    if (!ordersByUid[o.user_id]) ordersByUid[o.user_id] = [];
+    ordersByUid[o.user_id].push(o);
+  });
+  profileByUid = {};
+  allProfiles.forEach(function(p) { profileByUid[p.id] = p; });
+  courseById = {};
+  allCourses.forEach(function(c) { courseById[String(c.id)] = c; });
+}
+
 // ── 수강생 행 계산 ──
 function buildStudentRows() {
+  buildLookups();
   var now = Date.now();
   var todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
@@ -471,6 +494,18 @@ function renderKPI() {
 }
 
 // ── 테이블 렌더 ──
+var ROW_LIMIT = 200;     // 한 번에 그리는 줄 수
+var showAllRows = false; // '모두 보기'를 누르면 풀린다
+
+// 글자를 칠 때마다 다시 그리면 손가락이 따라가지 못한다.
+// 잠깐 멈춘 뒤에 한 번만 그린다.
+var searchTimer = null;
+function renderTableSoon() {
+  showAllRows = false;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderTable, 180);
+}
+
 function renderTable() {
   var q      = (document.getElementById('student-search').value || '').toLowerCase();
   var filter = document.getElementById('status-filter').value;
@@ -487,6 +522,12 @@ function renderTable() {
     return;
   }
 
+  // 1,318줄을 한꺼번에 그리면 한 글자 칠 때마다 화면이 멈춘다.
+  // 앞에서부터 끊어 그리고, 더 있으면 아래에 '모두 보기'를 둔다.
+  var total = rows.length;
+  var cut   = showAllRows ? total : Math.min(total, ROW_LIMIT);
+  rows = rows.slice(0, cut);
+
   var html = '<div class="table-wrap"><table><thead><tr>' +
     '<th>이름 / 이메일</th><th>수강 강좌</th><th>평균 진행률</th>' +
     '<th>마지막 수강일</th><th>총 시청시간</th><th>상태</th><th>권한</th><th>관리</th>' +
@@ -498,7 +539,7 @@ function renderTable() {
     var rowClass   = (r.isDormant ? 'dormant-row ' : '') + 'clickable-row';
     var lastTxt    = r.lastStudy ? fmtDate(r.lastStudy) + ' (' + r.daysSinceLast + '일 전)' : '미접속';
     var encBtn = r.isDormant ? '<button class="enc-btn" data-uid="' + esc(r.uid) + '" data-name="' + esc(r.name) + '" onclick="event.stopPropagation();encourage(this.dataset.uid,this.dataset.name)">독려 메시지</button>' : '';
-    var userOrders = allOrders.filter(function(o){ return o.user_id === r.uid; });
+    var userOrders = ordersByUid[r.uid] || [];
     var refundableOrder = userOrders
       .filter(function(o){ return (!o.refund_status || o.refund_status === 'none') && o.status === 'paid' && (o.amount || 0) > 0; })
       .sort(function(a,b){ return (b.amount||0) - (a.amount||0); })[0];
@@ -508,14 +549,14 @@ function renderTable() {
 
     // CBUP 수강생이면 골카드 바로가기
     var cbupId = r.courseIds.find(function(cid) {
-      var c = allCourses.find(function(x){ return String(x.id) === String(cid); });
+      var c = courseById[String(cid)];
       return c && c.title && c.title.toUpperCase().indexOf('CBUP') !== -1;
     });
     var gcBtn = cbupId
       ? '<a class="refund-btn" style="background:#ede9fe;color:#5b21b6;border-color:#ddd6fe;text-decoration:none;" href="../goalcard.html?course=' + cbupId + '&user=' + r.uid + '" target="_blank" onclick="event.stopPropagation()">골카드</a>'
       : '';
 
-    var profile = allProfiles.find(function(p){ return p.id === r.uid; }) || {};
+    var profile = profileByUid[r.uid] || {};
     var role    = profile.role || 'user';
     var isSelf  = r.uid === currentUserId;
     var BADGE = {
@@ -583,6 +624,12 @@ function renderTable() {
   });
 
   html += '</tbody></table></div>';
+  if (cut < total) {
+    html += '<div class="row-more">' +
+      total + '명 중 ' + cut + '명을 보여 주고 있습니다. ' +
+      '<button type="button" onclick="showAllRows=true;renderTable()">모두 보기</button>' +
+      '</div>';
+  }
   el.innerHTML = html;
 }
 
