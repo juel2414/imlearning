@@ -186,9 +186,7 @@
 .sn-g-mat     { left: 50%; transform: translateX(-50%); bottom: 18px; width: 620px; }
 .sn-g-pumpkin { left: 13%;  bottom: 86px; width: 118px; }
 .sn-g-squash  { left: 20%;  bottom: 74px; width: 104px; }
-.sn-g-potato  { left: 27.5%; bottom: 62px; width: 96px; }
-.sn-g-ornam   { right: 15%; bottom: 74px; width: 62px; }
-.sn-g-rabbit  { right: 20%; bottom: 96px; width: 186px; }
+.sn-g-rabbit  { right: 19%; bottom: 72px; width: 178px; }
 
 /* ── 솔가지에 얹은 송편과 솔방울 ── */
 .sn-perch { position: absolute; }
@@ -453,7 +451,6 @@
   .sn-g-mat { width: min(480px, 94%); bottom: 10px; }
   .sn-g-pumpkin { left: 3%;  bottom: 16%; width: min(92px, 18%); }
   .sn-g-squash  { left: 17%; bottom: 14%; width: min(82px, 16%); }
-  .sn-g-potato, .sn-g-ornam { display: none; }
   .sn-g-rabbit { right: 5%; bottom: 18%; width: min(150px, 30%); }
   .sn-cloud-1 { width: 220px; }
   .sn-cloud-2 { display: none; }

@@ -41,14 +41,16 @@
      주소는 뿌리에서 잡는다. 404 처럼 없는 주소로 들어온 화면에서도
      상대 경로가 어긋나지 않는다. */
   var ART = '/images/season/chuseok-';
+  // 이름 → [파일, 폭, 높이, 미리 받을지]
+  // 첫 화면에 안 보이는 것은 늦게 받는다. 돗자리는 488KB 로 무겁다.
   var PIECES = {
-    rabbit:   ['rabbit',   520, 408],
-    mat:      ['mat',      415, 103],
-    pumpkin:  ['pumpkin',  134, 115],
-    squash:   ['squash',   119, 116],
-    potato:   ['potato',   128,  86],
-    pinecone: ['pinecone', 119, 104],
-    ornam:    ['ornam',     67,  91]
+    rabbit:   ['rabbit',   520, 408, 1],
+    mat:      ['mat',      990, 277, 0],
+    pumpkin:  ['pumpkin',  134, 115, 0],
+    squash:   ['squash',   119, 116, 0],
+    potato:   ['potato',   128,  86, 0],
+    pinecone: ['pinecone', 119, 104, 1],
+    ornam:    ['ornam',     67,  91, 0]
   };
 
   // 그림 조각 하나를 <img> 로 낸다. 담는 자리가 크기를 정한다.
@@ -57,6 +59,7 @@
     if (!p) return '';
     return '<img class="sn-art sn-art-' + name + ' ' + (cls || '') + '" ' +
       'src="' + ART + p[0] + '.png" alt="" aria-hidden="true" decoding="async" ' +
+      'loading="' + (p[3] ? 'eager' : 'lazy') + '" ' +
       'width="' + p[1] + '" height="' + p[2] + '">';
   }
 

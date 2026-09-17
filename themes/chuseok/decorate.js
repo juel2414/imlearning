@@ -47,8 +47,6 @@
       '<span class="sn-g sn-g-mat">'     + M.piece('mat')     + '</span>' +
       '<span class="sn-g sn-g-pumpkin">' + M.piece('pumpkin') + '</span>' +
       '<span class="sn-g sn-g-squash">'  + M.piece('squash')  + '</span>' +
-      '<span class="sn-g sn-g-potato">'  + M.piece('potato')  + '</span>' +
-      '<span class="sn-g sn-g-ornam">'   + M.piece('ornam')   + '</span>' +
       '<span class="sn-g sn-g-rabbit">'  + M.rabbit()         + '</span>');
   }
 
