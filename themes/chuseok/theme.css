@@ -287,7 +287,7 @@
   stroke: var(--sn-ink); stroke-width: 4.6;
   stroke-linejoin: round; stroke-linecap: round;
 }
-.sn-b-disc       { fill: var(--sn-moon); stroke: var(--sn-ink); stroke-width: 5.5; }
+.sn-b-disc       { fill: var(--sn-moon); stroke: var(--sn-ink); stroke-width: 6; }
 .sn-b-pestle     { fill: #A3764E; stroke: var(--sn-ink); stroke-width: 4.2; }
 .sn-b-mortar     { fill: #6E4B2E; stroke: var(--sn-ink); stroke-width: 4.6; stroke-linejoin: round; }
 .sn-b-paw        { fill: #FFFDF8; stroke: var(--sn-ink); stroke-width: 4.2; }
