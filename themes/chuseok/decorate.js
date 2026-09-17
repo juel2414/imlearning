@@ -148,11 +148,14 @@
                   '<span class="sn-reeds-r">' + M.reedClump() + '</span>' : '') +
         // 솔가지에 송편을 얹는다
         (h.full ? '<span class="sn-pine2">' + M.piece('pine') + '</span>' +
-                  '<span class="sn-songpyeon">' + M.songpyeonSet() + '</span>' : '') +
+                  '<span class="sn-flowers">' + M.flowerRow() + '</span>' : '') +
         '');
       h.el.appendChild(back);
 
-      h.el.appendChild(make('div', 'sn-deco-front', leaves(h.full ? 8 : 5)));
+      h.el.appendChild(make('div', 'sn-deco-front', leaves(h.full ? 8 : 5) +
+        (h.full ? '<span class="sn-norigae">' + M.norigae() + '</span>' +
+                  '<span class="sn-soban">' + M.soban() + '</span>' +
+                  '<span class="sn-songpyeon">' + M.songpyeonSet() + '</span>' : '')));
 
       // 색동 액자와 단청 방패는 글보다 앞에 둔다
       h.el.appendChild(make('div', 'sn-frame'));

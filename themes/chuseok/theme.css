@@ -161,23 +161,60 @@
 /* ── 소나무 가지 — 왼쪽 위 ── */
 /* 솔가지는 둘. 하나는 왼쪽 위에서, 하나는 오른쪽 아래에서 뻗어 나온다. */
 .sn-pine  { position: absolute; top: 16px; left: -46px; width: 360px; }
-.sn-pine2 { position: absolute; bottom: 206px; right: -62px; width: 290px;
-            transform: scaleX(-1); opacity: .92; }
+.sn-pine2 { position: absolute; bottom: 448px; right: -34px; width: 232px;
+            transform: scaleX(-1); opacity: .95; }
 
 /* 송편 한 접시 — 오른쪽 아래, 억새 사이에 놓는다 */
-.sn-songpyeon { position: absolute; right: 9%; bottom: 34px; width: 180px; }
+.sn-norigae { right: 19.5%; bottom: 372px; }
+.sn-soban { right: 16%; bottom: 232px; }
+.sn-songpyeon { position: absolute; right: 17.5%; bottom: 276px; width: 150px; }
 .sn-songpyeon svg { width: 100%; height: auto; }
+
+/* ── 강좌 카드가 놓인 판 — 초록 대신 따뜻한 베이지에 잔점 ── */
+[data-season="chuseok"] .lp-hero-img {
+  background-image:
+    radial-gradient(rgba(122,101,70,.16) 1px, transparent 1px),
+    linear-gradient(145deg, #E9DFCC 0%, #D6CAB1 100%);
+  background-size: 13px 13px, auto;
+}
+
+/* ── 노리개 — 솔가지에 매달린다 ── */
+.sn-norigae { position: absolute; width: 58px; pointer-events: none; }
+.sn-norigae svg { width: 100%; height: auto; }
+.sn-nr-cord    { fill: none; stroke: #C0392B; stroke-width: 3; }
+.sn-nr-knot    { fill: #C0392B; stroke: #8E2A1E; stroke-width: 2; stroke-linejoin: round; }
+.sn-nr-knot-in { fill: #E4695B; }
+.sn-nr-ring    { fill: #D8A93C; stroke: #A87F22; stroke-width: 2; }
+.sn-nr-face    { fill: #3E8E74; }
+.sn-nr-gleam   { fill: none; stroke: #fff; stroke-opacity: .45; stroke-width: 3;
+                 stroke-linecap: round; }
+.sn-nr-cap     { fill: #A82F22; }
+.sn-nr-tassel  { fill: none; stroke: #C0392B; stroke-width: 3; stroke-linecap: round; }
+
+/* ── 소반과 송편 ── */
+.sn-soban { position: absolute; width: 190px; pointer-events: none; }
+.sn-soban svg { width: 100%; height: auto; }
+.sn-sb-top  { fill: #8A5A33; stroke: #5E3A1E; stroke-width: 3; }
+.sn-sb-edge { fill: #6F4526; }
+.sn-sb-leg  { fill: #6F4526; }
+
+/* ── 들꽃 — 화면 아래를 두른다 ── */
+.sn-flowers { position: absolute; left: 0; right: 0; bottom: -4px; pointer-events: none; }
+.sn-flowers svg { width: 100%; height: 190px; }
+.sn-fl-grass { fill: none; stroke: #5E8F52; stroke-width: 2.4; stroke-linecap: round; opacity: .85; }
+.sn-fl-stem  { fill: none; stroke: #56864B; stroke-width: 2.6; stroke-linecap: round; }
+.sn-fl-eye   { fill: #E8B23C; }
 
 /* ── 억새 — 아래 양옆에서 바람에 흔들린다 ── */
 .sn-reeds-l, .sn-reeds-r {
   position: absolute; bottom: -8px; width: 420px;
-  color: var(--sn-lit); opacity: .34; pointer-events: none;
+  color: #EADBB0; opacity: .62; pointer-events: none;
 }
-.sn-reeds-l { left: -90px; }
-.sn-reeds-r { right: -90px; transform: scaleX(-1); }
+.sn-reeds-l { left: -80px; }
+.sn-reeds-r { right: -80px; transform: scaleX(-1); }
 .sn-reeds-l svg, .sn-reeds-r svg { width: 100%; height: auto; }
 .sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-.sn-plume { fill: none; stroke: currentColor; stroke-width: .85; stroke-linecap: round; opacity: .85; }
+.sn-plume { fill: none; stroke: currentColor; stroke-width: 1.05; stroke-linecap: round; opacity: .9; }
 .sn-reeds     { opacity: 1; }
 .sn-reeds-far { opacity: .5; }
 
@@ -462,8 +499,11 @@
   .sn-reeds-r { right: -56px; }
 
   .sn-pine { width: 190px; top: 44px; left: -40px; }
-  .sn-pine2 { width: 150px; bottom: 150px; right: -44px; }
-  .sn-songpyeon { width: 120px; right: 8%; }
+  .sn-pine2 { width: 150px; bottom: 360px; right: -30px; }
+  .sn-norigae { display: none; }
+  .sn-soban { width: 118px; right: 5%; bottom: 190px; }
+  .sn-flowers svg { height: 120px; }
+  .sn-songpyeon { width: 94px; right: 7%; bottom: 222px; }
   .sn-milky { filter: blur(4px); }
   .sn-shield { width: 58px; top: 52px; }
   .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
@@ -495,6 +535,6 @@
 }
 
 @media (max-width: 480px) {
-  .sn-pine2, .sn-songpyeon { display: none; }   /* 아주 좁으면 덜어 낸다 */
+  .sn-pine2, .sn-songpyeon, .sn-soban { display: none; }   /* 아주 좁으면 덜어 낸다 */
   .sn-footer-rabbit { width: 52px; right: 16px; }
 }

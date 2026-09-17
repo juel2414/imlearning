@@ -209,6 +209,72 @@
       cls || 'sn-m-yut');
   }
 
+  /* ── 노리개 — 끈, 매듭, 둥근 패, 술 ─────────────────────────────── */
+  function norigae(cls) {
+    return svg('0 0 64 210',
+      '<path class="sn-nr-cord" d="M32 0 L32 62"/>' +
+      // 매듭 — 네모 매듭을 단순하게
+      '<path class="sn-nr-knot" d="M32 60 L44 72 L32 84 L20 72 Z"/>' +
+      '<path class="sn-nr-knot-in" d="M32 66 L38 72 L32 78 L26 72 Z"/>' +
+      // 둥근 패
+      '<circle class="sn-nr-ring" cx="32" cy="112" r="24"/>' +
+      '<circle class="sn-nr-face" cx="32" cy="112" r="17"/>' +
+      '<path class="sn-nr-gleam" d="M22 104 C 26 99, 34 98, 39 101"/>' +
+      // 아래 매듭과 술
+      '<path class="sn-nr-knot" d="M32 134 L41 144 L32 154 L23 144 Z"/>' +
+      '<path class="sn-nr-tassel" d="M24 152 L21 204 M28 153 L26 206 M32 154 L32 207 ' +
+      'M36 153 L38 206 M40 152 L43 204"/>' +
+      '<ellipse class="sn-nr-cap" cx="32" cy="153" rx="11" ry="5"/>',
+      cls || 'sn-m-norigae');
+  }
+
+  /* ── 소반 — 송편 접시를 올려 두는 낮은 상 ───────────────────────── */
+  function soban(cls) {
+    return svg('0 0 220 120',
+      '<ellipse class="sn-sb-top" cx="110" cy="30" rx="98" ry="22"/>' +
+      '<path class="sn-sb-edge" d="M12 30 C 12 44, 56 54, 110 54 C 164 54, 208 44, 208 30 ' +
+      'L208 40 C 208 54, 164 64, 110 64 C 56 64, 12 54, 12 40 Z"/>' +
+      '<path class="sn-sb-leg" d="M44 60 C 40 78, 34 92, 26 106 C 36 104, 44 92, 52 70 Z"/>' +
+      '<path class="sn-sb-leg" d="M176 60 C 180 78, 186 92, 194 106 C 184 104, 176 92, 168 70 Z"/>' +
+      '<path class="sn-sb-leg" d="M104 64 C 103 82, 103 96, 104 112 L116 112 ' +
+      'C 117 96, 117 82, 116 64 Z"/>',
+      cls || 'sn-m-soban');
+  }
+
+  /* ── 들꽃 한 줄 — 화면 아래를 두른다 ────────────────────────────── */
+  var PETAL = ['#F6F2E6', '#F5D46A', '#F0A2BE', '#C7A6E8', '#F3B278'];
+  function flowerRow(cls) {
+    var w = 1400, base = 200, out = '';
+    // 풀잎
+    var grass = '';
+    for (var i = 0; i < 120; i++) {
+      var gx = (i * 11.7) % w;
+      var gh = 30 + jitter(i * 5) * 62;
+      var lean = (jitter(i * 3) - 0.5) * 34;
+      grass += 'M' + r(gx) + ' ' + base + ' Q ' + r(gx + lean * 0.4) + ' ' + r(base - gh * 0.55) +
+               ' ' + r(gx + lean) + ' ' + r(base - gh);
+    }
+    out += '<path class="sn-fl-grass" d="' + grass + '"/>';
+    // 꽃
+    for (var k = 0; k < 46; k++) {
+      var fx = (k * 30.4 + jitter(k * 7) * 18) % w;
+      var fh = 40 + jitter(k * 11) * 78;
+      var fy = base - fh;
+      var col = PETAL[k % PETAL.length];
+      var rad = 6 + jitter(k * 13) * 4;
+      out += '<path class="sn-fl-stem" d="M' + r(fx) + ' ' + base + ' L' + r(fx) + ' ' + r(fy) + '"/>';
+      var pet = '';
+      for (var q = 0; q < 5; q++) {
+        var a = Math.PI * 2 * q / 5 - Math.PI / 2;
+        pet += '<circle cx="' + r(fx + Math.cos(a) * rad * 0.82) + '" cy="' +
+               r(fy + Math.sin(a) * rad * 0.82) + '" r="' + r(rad * 0.62) + '"/>';
+      }
+      out += '<g fill="' + col + '">' + pet + '</g>' +
+             '<circle class="sn-fl-eye" cx="' + r(fx) + '" cy="' + r(fy) + '" r="' + r(rad * 0.34) + '"/>';
+    }
+    return svg('0 0 ' + w + ' ' + base, out, cls || 'sn-m-flowers', 'preserveAspectRatio="none"');
+  }
+
   /* ── 구름문양 구분선 ────────────────────────────────────────────
      SVG 패턴으로 가로로 이어 붙인다. 폭이 얼마든 이가 맞고,
      패턴 안에서도 currentColor 가 살아 있어 색은 쓰는 쪽에서 정한다. */
@@ -295,6 +361,7 @@
     songpyeon: songpyeon, songpyeonSet: songpyeonSet, yut: yut,
     reed: reed, reedRow: reedRow, reedBand: reedBand, reedClump: reedClump,
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
-    lantern: lantern, knot: knot
+    lantern: lantern, knot: knot,
+    norigae: norigae, soban: soban, flowerRow: flowerRow
   };
 })();
