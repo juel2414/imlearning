@@ -80,11 +80,13 @@
   }
 
   function stars(n) {
-    var out = '', N = n || 46;
+    var out = '', N = n || 180;
     for (var i = 0; i < N; i++) {
       var x = M.jitter(i * 3 + 1) * 98 + 1;
       var y = M.jitter(i * 7 + 5) * 62 + 2;
-      var s = 1.4 + M.jitter(i * 11 + 2) * 2.4;
+      // 대부분은 티끌만 하게, 열에 하나쯤만 도드라지게
+      var j = M.jitter(i * 11 + 2);
+      var s = (j > 0.9 ? 2.6 + j * 2.2 : 0.8 + j * 1.5);
       // 오른쪽 위가 0, 왼쪽 아래가 1
       var d = ((100 - x) + y) / 200;
       out += '<span class="sn-star" style="left:' + r(x) + '%;top:' + r(y) + '%;' +
@@ -95,14 +97,19 @@
     return out;
   }
 
-  function cloud(cls) {
-    return '<div class="sn-cloud ' + cls + '">' +
-      '<svg viewBox="0 0 300 80" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-      '<path d="M40 64 C 14 64, 10 40, 34 36 C 34 16, 64 10, 76 26 C 88 8, 124 10, 130 30 ' +
-      'C 152 22, 176 34, 174 50 C 196 48, 206 64, 188 64 Z"/>' +
-      '<path d="M196 66 C 178 66, 176 50, 192 48 C 194 34, 216 32, 222 44 ' +
-      'C 234 34, 256 40, 256 54 C 274 54, 278 66, 264 66 Z" opacity=".8"/>' +
-      '</svg></div>';
+  /* 반딧불 — 노란 점빛. 천천히 밝아졌다 사그라들며 조금씩 떠오른다. */
+  function fireflies(n) {
+    var out = '', N = n || 22;
+    for (var i = 0; i < N; i++) {
+      var x = M.jitter(i * 13 + 3) * 96 + 2;
+      var y = 14 + M.jitter(i * 17 + 9) * 44;
+      var s = 2.6 + M.jitter(i * 5 + 2) * 2.6;
+      out += '<span class="sn-ff" style="left:' + r(x) + '%;top:' + r(y) + '%;' +
+        'width:' + r(s) + 'px;height:' + r(s) + 'px;' +
+        'animation-duration:' + r(4 + M.jitter(i * 7) * 5) + 's;' +
+        'animation-delay:-' + r(M.jitter(i * 3) * 8) + 's"></span>';
+    }
+    return out;
   }
 
   // 단풍잎 — 받은 그림 두 장을 번갈아 쓴다
@@ -140,8 +147,11 @@
         '<span class="sn-moon">' + M.piece('moon') +
           '<span class="sn-peek">' + M.piece('peek') + '</span></span>' +
         '<span class="sn-milky"></span>' + stars() + constellations() +
-        cloud('sn-cloud-1') + cloud('sn-cloud-2') +
-        (h.full ? cloud('sn-cloud-3') : '') +
+        fireflies(h.full ? 22 : 12) +
+        '<span class="sn-ck sn-ck-1">' + M.cloudKr() + '</span>' +
+        '<span class="sn-ck sn-ck-2">' + M.cloudKr() + '</span>' +
+        (h.full ? '<span class="sn-ck sn-ck-3">' + M.cloudKr() + '</span>' +
+                  '<span class="sn-ck sn-ck-4">' + M.cloudKr() + '</span>' : '') +
         '<span class="sn-pine">' + M.piece('pine') + '</span>' +
         // 억새는 아래 양옆에서 바람에 흔들린다
         (h.full ? '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +

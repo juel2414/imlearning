@@ -209,6 +209,31 @@
       cls || 'sn-m-yut');
   }
 
+  /* ── 전통 구름무늬 — 봉긋한 등에 말린 꼬리 ────────────────────────
+     뭉게구름과 달리 윤곽이 또렷하고 안쪽에 결을 한 겹 더 그린다. */
+  function cloudKr(cls) {
+    return svg('0 0 300 150',
+      // 몸통 — 봉긋한 덩이 넷이 겹치고, 아랫배는 물결친다
+      '<path class="sn-ck-body" d="M34 112 ' +
+      'C 16 112, 6 96, 20 84 ' +
+      'C 8 62, 32 42, 54 56 ' +
+      'C 56 24, 100 14, 116 44 ' +
+      'C 134 14, 184 20, 188 54 ' +
+      'C 218 38, 254 54, 250 82 ' +
+      'C 274 80, 292 98, 278 114 ' +
+      'C 250 126, 224 108, 196 118 ' +
+      'C 168 128, 140 108, 112 118 ' +
+      'C 82 128, 56 110, 34 112 Z"/>' +
+      // 왼쪽 끝에 말린 꼬리
+      '<path class="sn-ck-curl" d="M34 112 C 16 114, 2 102, 8 88 ' +
+      'C 14 76, 32 76, 34 88 C 36 97, 27 101, 22 96"/>' +
+      // 안쪽 결 — 덩이마다 한 줄씩
+      '<path class="sn-ck-line" d="M42 92 C 52 74, 74 70, 88 82"/>' +
+      '<path class="sn-ck-line" d="M116 82 C 128 64, 154 62, 166 76"/>' +
+      '<path class="sn-ck-line" d="M196 90 C 208 76, 232 74, 242 86"/>',
+      cls || 'sn-m-cloudkr');
+  }
+
   /* ── 노리개 — 끈, 매듭, 둥근 패, 술 ─────────────────────────────── */
   function norigae(cls) {
     return svg('0 0 64 210',
@@ -362,6 +387,7 @@
     reed: reed, reedRow: reedRow, reedBand: reedBand, reedClump: reedClump,
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
+    cloudKr: cloudKr,
     norigae: norigae, soban: soban, flowerRow: flowerRow
   };
 })();

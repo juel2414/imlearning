@@ -135,8 +135,9 @@
 .sn-milky {
   position: absolute; top: -12%; left: -18%; width: 136%; height: 92%;
   background:
-    radial-gradient(60% 26% at 50% 50%, rgba(214,198,255,.17) 0%, rgba(214,198,255,0) 72%),
-    radial-gradient(44% 16% at 38% 46%, rgba(255,236,198,.13) 0%, rgba(255,236,198,0) 74%);
+    radial-gradient(58% 24% at 52% 50%, rgba(216,202,255,.30) 0%, rgba(216,202,255,0) 72%),
+    radial-gradient(40% 14% at 38% 46%, rgba(255,238,204,.22) 0%, rgba(255,238,204,0) 74%),
+    radial-gradient(26% 9% at 62% 54%, rgba(255,214,236,.16) 0%, rgba(255,214,236,0) 76%);
   transform: rotate(-24deg);
   filter: blur(6px);
   pointer-events: none;
@@ -150,13 +151,32 @@
 .sn-consts path   { fill: none; stroke: #DCD2FF; stroke-width: .09; }
 .sn-consts circle { fill: #F2ECFF; }
 
-/* ── 구름 — 달 앞을 아주 느리게 지나간다 ── */
-.sn-cloud { position: absolute; opacity: .12; color: #DCE4F2; }
-.sn-cloud-1 { top: 13%; left: -30%; width: 340px; animation: snDrift 92s linear infinite; }
-.sn-cloud-2 { top: 27%; left: -46%; width: 240px; opacity: .08;
-              animation: snDrift 128s linear infinite 18s; }
-.sn-cloud-3 { top: 46%; left: -62%; width: 300px; opacity: .07;
-              animation: snDrift 156s linear infinite 46s; }
+/* ── 전통 구름무늬 — 달 둘레와 왼쪽 가장자리에 떠 있다 ── */
+.sn-ck { position: absolute; pointer-events: none; }
+.sn-ck svg { width: 100%; height: auto; }
+.sn-ck-body { fill: #F4EEDF; stroke: #6B5A44; stroke-width: 3.4; stroke-linejoin: round; }
+.sn-ck-curl { fill: none; stroke: #6B5A44; stroke-width: 3.4; stroke-linecap: round; }
+.sn-ck-line { fill: none; stroke: #BFAE93; stroke-width: 2.6; stroke-linecap: round; }
+
+.sn-ck-1 { top: 16%;  left: -4%;  width: 260px; opacity: .92; animation: snDrift 118s linear infinite; }
+.sn-ck-2 { top: 7%;   right: 14%; width: 190px; opacity: .88; }
+.sn-ck-3 { top: 27%;  right: 3%;  width: 220px; opacity: .85; }
+.sn-ck-4 { top: 33%;  left: 9%;   width: 150px; opacity: .8;  animation: snDrift 164s linear infinite 24s; }
+
+/* ── 반딧불 — 천천히 밝아졌다 사그라들며 조금씩 떠오른다 ── */
+.sn-ff {
+  position: absolute; border-radius: 50%;
+  background: #FFE68A;
+  box-shadow: 0 0 10px 3px rgba(255,214,96,.55);
+  animation-name: snFly;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes snFly {
+  0%,100% { opacity: .12; transform: translateY(6px); }
+  45%     { opacity: .95; transform: translateY(-8px); }
+  70%     { opacity: .4;  transform: translateY(-14px); }
+}
 
 /* ── 소나무 가지 — 왼쪽 위 ── */
 /* 솔가지는 둘. 하나는 왼쪽 위에서, 하나는 오른쪽 아래에서 뻗어 나온다. */
@@ -505,6 +525,9 @@
   .sn-flowers svg { height: 120px; }
   .sn-songpyeon { width: 94px; right: 7%; bottom: 222px; }
   .sn-milky { filter: blur(4px); }
+  .sn-ck-1 { width: 150px; }
+  .sn-ck-2 { width: 118px; }
+  .sn-ck-3, .sn-ck-4 { display: none; }
   .sn-shield { width: 58px; top: 52px; }
   .sn-frame { inset: 46px 6px 6px; border-width: 10px; }
   .sn-g-chestnut { display: none; }
@@ -515,8 +538,6 @@
   .sn-g-pumpkin { left: 3%;  bottom: 16%; width: min(92px, 18%); }
   .sn-g-squash  { left: 17%; bottom: 14%; width: min(82px, 16%); }
   .sn-g-rabbit { right: 5%; bottom: 18%; width: min(150px, 30%); }
-  .sn-cloud-1 { width: 220px; }
-  .sn-cloud-2 { display: none; }
 
   .sn-leaf svg { width: 15px; height: 15px; }
 
@@ -527,7 +548,6 @@
   .sn-404-art { width: 168px; }
   .sn-404-title { font-size: 21px; }
 
-  .sn-cloud-3 { display: none; }
 
   .sn-head-moon { width: 40px; height: 40px; right: 14px; top: 12px; }
   .sn-knot-mark, .sn-lantern-mark, .sn-yut-mark { display: none; }
