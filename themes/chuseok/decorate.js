@@ -184,9 +184,16 @@
                   '<span class="sn-soban">' + M.soban() + '</span>' +
                   // 억새와 들꽃을 한 덩어리로 묶어 양옆 모서리에 세운다.
                   // 강좌 카드 판이 폭을 거의 다 차지해서, 판 모서리 앞에 걸친다.
-                  // 시안에서 오려 낸 억새·들꽃 무더기 한 장으로 양옆을 꾸민다
-                  '<span class="sn-reeds-l">' + M.piece('reeds') + '</span>' +
-                  '<span class="sn-reeds-r">' + M.piece('reeds') + '</span>' : '')));
+                  '' : '')));
+
+      // 억새·들꽃은 강좌 카드 판 안에 넣는다. 판보다 앞, 흰 카드보다 뒤라
+      // 글을 가리지 않으면서 모서리까지 들어온다.
+      var show = h.full && h.el.querySelector('.lp-hero-showcase');
+      if (show && once(show, 'reeds')) {
+        if (getComputedStyle(show).position === 'static') show.style.position = 'relative';
+        show.appendChild(make('span', 'sn-reeds-l', M.piece('reeds')));
+        show.appendChild(make('span', 'sn-reeds-r', M.piece('reeds')));
+      }
 
       // 색동 액자. 메뉴바 아래 색동 선과 나란히 놓이면 띠가 둘로 보여서,
       // 액자를 쓴 화면에서는 메뉴바 선을 지우도록 표를 남긴다.
@@ -423,7 +430,7 @@
   function placeFlowers() {
     var hero = document.querySelector('[data-section="hero"]');
     if (!hero) return;
-    var fl = hero.querySelectorAll('.sn-flowers, .sn-reeds-l, .sn-reeds-r');
+    var fl = hero.querySelectorAll('.sn-flowers');
     if (!fl.length) return;
     var panel = hero.querySelector('.lp-hero-img');
     var gap = -6;
