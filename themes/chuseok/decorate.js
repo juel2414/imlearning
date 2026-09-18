@@ -173,9 +173,6 @@
         (h.full ? '<span class="sn-ck sn-ck-3">' + M.cloudKr() + '</span>' +
                   '<span class="sn-ck sn-ck-4">' + M.cloudKr() + '</span>' : '') +
         '<span class="sn-pine">' + M.pineKr() + '</span>' +
-        // 억새는 아래 양옆에서 바람에 흔들린다
-        (h.full ? '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
-                  '<span class="sn-reeds-r">' + M.reedClump() + '</span>' : '') +
         // 솔가지에 송편을 얹는다
         (h.full ? '<span class="sn-pine2">' + M.pineKr() + '</span>' : '') +
         '');
@@ -185,9 +182,11 @@
         (h.full ? '<span class="sn-norigae">' + M.norigae() + '</span>' +
                   // 소반 그림에 송편 그릇까지 들어 있다
                   '<span class="sn-soban">' + M.soban() + '</span>' +
-                  // 들꽃은 아래 한 줄로 깔지 않고 양옆 모서리에만 모은다.
+                  // 억새와 들꽃을 한 덩어리로 묶어 양옆 모서리에 세운다.
                   // 강좌 카드 판이 폭을 거의 다 차지해서, 판 모서리 앞에 걸친다.
+                  '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
                   '<span class="sn-flowers sn-flowers-l">' + M.flowerClump() + '</span>' +
+                  '<span class="sn-reeds-r">' + M.reedClump() + '</span>' +
                   '<span class="sn-flowers sn-flowers-r">' + M.flowerClump() + '</span>' : '')));
 
       // 색동 액자. 메뉴바 아래 색동 선과 나란히 놓이면 띠가 둘로 보여서,
@@ -425,7 +424,7 @@
   function placeFlowers() {
     var hero = document.querySelector('[data-section="hero"]');
     if (!hero) return;
-    var fl = hero.querySelectorAll('.sn-flowers');
+    var fl = hero.querySelectorAll('.sn-flowers, .sn-reeds-l, .sn-reeds-r');
     if (!fl.length) return;
     var panel = hero.querySelector('.lp-hero-img');
     var gap = -6;
