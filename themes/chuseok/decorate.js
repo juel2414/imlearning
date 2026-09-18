@@ -191,8 +191,8 @@
       var show = h.full && h.el.querySelector('.lp-hero-showcase');
       if (show && once(show, 'reeds')) {
         if (getComputedStyle(show).position === 'static') show.style.position = 'relative';
-        show.appendChild(make('span', 'sn-reeds-l', M.piece('reeds')));
-        show.appendChild(make('span', 'sn-reeds-r', M.piece('reeds')));
+        show.appendChild(make('span', 'sn-reeds-l', M.reedsArt()));
+        show.appendChild(make('span', 'sn-reeds-r', M.reedsArt()));
       }
 
       // 색동 액자. 메뉴바 아래 색동 선과 나란히 놓이면 띠가 둘로 보여서,

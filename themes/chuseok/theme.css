@@ -334,19 +334,20 @@
   position: absolute; bottom: -26px; z-index: 4; width: 262px;
   color: #EFE3C6; opacity: .95; pointer-events: none;
 }
-.sn-reeds-l img, .sn-reeds-r img {
-  width: 100%; height: auto; display: block;
-  /* 바람 — 밑동을 축으로 천천히 쓸린다. 좌우가 같은 박자로 흔들리면
-     기계처럼 보여서 길이와 시작을 어긋나게 둔다. */
-  transform-origin: 50% 100%;
-  animation: snWind 9s ease-in-out infinite;
+/* 억새·들꽃 — 식물마다 층이 나뉘어 제 밑동을 축으로 따로 흔들린다.
+   흔들리는 폭(--sn-a)과 주기는 motifs.js 가 낱낱이 달리 넣는다. */
+.sn-reed-art { position: relative; display: block; width: 100%; }
+.sn-reed-base { width: 100%; height: auto; display: block; }
+.sn-reed-part {
+  position: absolute; height: auto;
+  animation-name: snWind;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   will-change: transform;
 }
-.sn-reeds-r img { animation-duration: 11.5s; animation-delay: -3.5s; }
 @keyframes snWind {
-  0%, 100% { transform: rotate(-1.1deg) skewX(0.7deg); }
-  35%      { transform: rotate(0.6deg)  skewX(-0.4deg); }
-  65%      { transform: rotate(1.4deg)  skewX(-0.9deg); }
+  0%, 100% { transform: rotate(calc(var(--sn-a, 1.4deg) * -1)); }
+  50%      { transform: rotate(var(--sn-a, 1.4deg)); }
 }
 .sn-reeds-l .sn-stalk, .sn-reeds-r .sn-stalk { stroke: #BBA277; }
 .sn-reeds-l .sn-plume, .sn-reeds-r .sn-plume { stroke-width: 1.7; }

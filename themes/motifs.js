@@ -55,8 +55,7 @@
     mat:     ['mat',           990, 277, 0],
     pumpkin: ['pumpkin',       325, 288, 0],
     squash:  ['squash',        345, 246, 0],
-    chestnut:['chestnut',      259, 182, 0],
-    reeds:   ['reeds',         560, 835, 1]   // 시안에서 오려 낸 억새·들꽃 무더기
+    chestnut:['chestnut',      259, 182, 0]
   };
 
   // 그림 조각 하나를 <img> 로 낸다. 담는 자리가 크기를 정한다.
@@ -251,6 +250,48 @@
       '<path class="sn-ck-line" d="M116 82 C 128 64, 154 62, 166 76"/>' +
       '<path class="sn-ck-line" d="M196 90 C 208 76, 232 74, 242 86"/>',
       cls || 'sn-m-cloudkr');
+  }
+
+  /* 억새·들꽃 — 식물마다 층을 나눠 따로 흔들린다.
+     자리 값은 그림을 쪼갤 때 뽑았다. 밑동(ox%, 100%)을 축으로 돈다. */
+  var REED_PARTS = [
+    { f: 'reeds-p1', k: 'p', l: 8.491, t: 3.48, w: 24.764, ox: 1.0 },
+    { f: 'reeds-p2', k: 'p', l: 20.991, t: 17.795, w: 27.241, ox: 1.6 },
+    { f: 'reeds-p3', k: 'p', l: 39.505, t: 33.612, w: 25.0, ox: 3.4 },
+    { f: 'reeds-p4', k: 'p', l: 10.731, t: 24.912, w: 16.274, ox: 2.2 },
+    { f: 'reeds-p5', k: 'p', l: 28.892, t: 39.464, w: 18.632, ox: 10.3 },
+    { f: 'reeds-f1', k: 'f', l: 22.17, t: 72.918, w: 10.024, ox: 50.3 },
+    { f: 'reeds-f2', k: 'f', l: 8.255, t: 67.857, w: 14.741, ox: 64.5 },
+    { f: 'reeds-f3', k: 'f', l: 52.476, t: 92.295, w: 8.491, ox: 52.3 },
+    { f: 'reeds-f4', k: 'f', l: 64.741, t: 86.442, w: 8.019, ox: 46.4 },
+    { f: 'reeds-f5', k: 'f', l: 70.991, t: 77.98, w: 7.665, ox: 46.2 },
+    { f: 'reeds-f6', k: 'f', l: 32.075, t: 77.268, w: 5.307, ox: 59.0 },
+    { f: 'reeds-f7', k: 'f', l: 34.906, t: 76.794, w: 6.84, ox: 32.2 },
+    { f: 'reeds-f8', k: 'f', l: 41.038, t: 87.154, w: 13.325, ox: 49.1 },
+    { f: 'reeds-f9', k: 'f', l: 3.184, t: 77.664, w: 8.019, ox: 49.0 },
+    { f: 'reeds-f10', k: 'f', l: 0.0, t: 90.792, w: 4.953, ox: 69.7 }
+  ];
+
+  function reedsArt(cls) {
+    var ver = window.SeasonVer ? '?v=' + window.SeasonVer : '';
+    var img = function (name, klass, style) {
+      return '<img class="' + klass + '" src="' + ART + name + '.png' + ver + '" alt="" ' +
+             'aria-hidden="true" decoding="async"' + (style ? ' style="' + style + '"' : '') + '>';
+    };
+    var out = img('reeds-base', 'sn-reed-base');
+    for (var i = 0; i < REED_PARTS.length; i++) {
+      var p = REED_PARTS[i];
+      var plume = p.k === 'p';
+      var dur = plume ? 6.5 + jitter(i * 7 + 1) * 4.5 : 4.2 + jitter(i * 11 + 3) * 3.4;
+      var amp = plume ? 1.4 + jitter(i * 5 + 2) * 1.3 : 0.9 + jitter(i * 3 + 5) * 1.4;
+      var del = -jitter(i * 13 + 7) * dur;
+      out += img(p.f, 'sn-reed-part',
+        'left:' + p.l + '%;top:' + p.t + '%;width:' + p.w + '%;' +
+        'transform-origin:' + p.ox + '% 100%;' +
+        '--sn-a:' + r(amp) + 'deg;' +
+        'animation-duration:' + r(dur) + 's;animation-delay:' + r(del) + 's');
+    }
+    return '<span class="' + (cls || 'sn-reed-art') + '">' + out + '</span>';
   }
 
   /* ── 민화풍 소나무 ───────────────────────────────────────────────
@@ -549,6 +590,6 @@
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
     cloudKr: cloudKr,
-    norigae: norigae, soban: soban, flowerClump: flowerClump, pineKr: pineKr, sparkle: sparkle, starDust: starDust
+    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, pineKr: pineKr, sparkle: sparkle, starDust: starDust
   };
 })();
