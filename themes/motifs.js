@@ -55,7 +55,8 @@
     mat:     ['mat',           990, 277, 0],
     pumpkin: ['pumpkin',       325, 288, 0],
     squash:  ['squash',        345, 246, 0],
-    chestnut:['chestnut',      259, 182, 0]
+    chestnut:['chestnut',      259, 182, 0],
+    reeds:   ['reeds',         212, 688, 1]   // 시안에서 오려 낸 억새·들꽃 무더기
   };
 
   // 그림 조각 하나를 <img> 로 낸다. 담는 자리가 크기를 정한다.

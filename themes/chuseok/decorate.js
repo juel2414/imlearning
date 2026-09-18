@@ -184,10 +184,9 @@
                   '<span class="sn-soban">' + M.soban() + '</span>' +
                   // 억새와 들꽃을 한 덩어리로 묶어 양옆 모서리에 세운다.
                   // 강좌 카드 판이 폭을 거의 다 차지해서, 판 모서리 앞에 걸친다.
-                  '<span class="sn-reeds-l">' + M.reedClump() + '</span>' +
-                  '<span class="sn-flowers sn-flowers-l">' + M.flowerClump() + '</span>' +
-                  '<span class="sn-reeds-r">' + M.reedClump() + '</span>' +
-                  '<span class="sn-flowers sn-flowers-r">' + M.flowerClump() + '</span>' : '')));
+                  // 시안에서 오려 낸 억새·들꽃 무더기 한 장으로 양옆을 꾸민다
+                  '<span class="sn-reeds-l">' + M.piece('reeds') + '</span>' +
+                  '<span class="sn-reeds-r">' + M.piece('reeds') + '</span>' : '')));
 
       // 색동 액자. 메뉴바 아래 색동 선과 나란히 놓이면 띠가 둘로 보여서,
       // 액자를 쓴 화면에서는 메뉴바 선을 지우도록 표를 남긴다.
