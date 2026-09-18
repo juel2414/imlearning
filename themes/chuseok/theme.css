@@ -51,6 +51,10 @@
   --sn-saekdong: repeating-linear-gradient(90deg,
     #8E3B5A 0 18px, #C2552A 18px 36px, #E3B44A 36px 54px,
     #2E7F79 54px 72px, #2C4A7A 72px 90px, #EDE3CE 90px 108px);
+  /* 세로로 세운 색동 — 액자 양옆에 쓴다 */
+  --sn-saekdong-v: repeating-linear-gradient(180deg,
+    #8E3B5A 0 18px, #C2552A 18px 36px, #E3B44A 36px 54px,
+    #2E7F79 54px 72px, #2C4A7A 72px 90px, #EDE3CE 90px 108px);
 
   --sn-divider-color: var(--sn-gold);
   --sn-divider-o: .30;
@@ -311,15 +315,17 @@
 /* ── 억새 — 아래 양옆에서 바람에 흔들린다 ── */
 .sn-reeds-l, .sn-reeds-r {
   position: absolute; bottom: -8px; width: 420px;
-  color: #E9D3A0; opacity: .88; pointer-events: none;
+  color: #EFE3C6; opacity: .92; pointer-events: none;
 }
-.sn-reeds-l .sn-stalk, .sn-reeds-r .sn-stalk { stroke: #A88A58; }
+.sn-reeds-l .sn-stalk, .sn-reeds-r .sn-stalk { stroke: #BBA277; }
 .sn-reeds-l .sn-plume, .sn-reeds-r .sn-plume { stroke-width: 1.7; }
 .sn-reeds-l { left: -80px; }
 .sn-reeds-r { right: -80px; transform: scaleX(-1); }
 .sn-reeds-l svg, .sn-reeds-r svg { width: 100%; height: auto; }
 .sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-.sn-plume { fill: none; stroke: currentColor; stroke-width: 1.05; stroke-linecap: round; opacity: .9; }
+/* 이삭 — 가는 잔털을 촘촘히 겹쳐 복슬복슬하게 보이게 한다 */
+.sn-plume { fill: none; stroke: currentColor; stroke-width: .75; stroke-linecap: round; opacity: .75; }
+.sn-spine { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; opacity: .5; }
 .sn-reeds     { opacity: 1; }
 .sn-reeds-far { opacity: .5; }
 
@@ -331,10 +337,26 @@
      띠가 카드 위로 지나가지 않는다. */
   /* 윗변은 메뉴바 바로 아래에 붙인다. 사이를 띄우면 메뉴바 색동 선과 따로 놀아
      띠가 둘로 보이거나, 그 틈 때문에 띠가 사라진 것처럼 보인다. */
-  position: absolute; inset: var(--sn-nav, 40px) 10px 10px; z-index: 2; pointer-events: none;
-  /* 그림의 테두리 두께가 22 다. 조각을 그만큼 잘라 이어 붙인다. */
-  border: 15px solid transparent;
-  border-image: url('/images/season/chuseok-frame.png') 22 round;
+  /* 띠는 화면 가장자리에 딱 붙인다 */
+  position: absolute; inset: var(--sn-nav, 40px) 0 0; z-index: 2; pointer-events: none;
+  /* 색동을 네 변에 두른다. 그림 테두리는 남색·갈색 조각이 밤하늘에 묻혀
+     변에 따라 띠가 없는 것처럼 보였다. 메뉴바 선과 같은 색동으로 그린다. */
+  --sn-frame-w: 14px;
+  background-image:
+    var(--sn-saekdong), var(--sn-saekdong),
+    var(--sn-saekdong-v), var(--sn-saekdong-v);
+  background-size:
+    100% var(--sn-frame-w), 100% var(--sn-frame-w),
+    var(--sn-frame-w) 100%, var(--sn-frame-w) 100%;
+  background-position: left top, left bottom, left top, right top;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(20,12,44,.35);
+}
+/* 안쪽 가장자리에 가는 금선 — 액자처럼 보이게 */
+.sn-frame::after {
+  content: ''; position: absolute;
+  inset: var(--sn-frame-w);
+  border: 1px solid rgba(242,193,78,.34);
 }
 
 /* ── 단청 방패 — 맨 위 가운데 ── */
@@ -628,7 +650,7 @@
   .sn-ck-2 { width: 96px; top: 300px; right: -18px; }
   .sn-ck-3, .sn-ck-4 { display: none; }
   .sn-shield { width: 58px; top: calc(var(--sn-nav, 40px) - 4px); }
-  .sn-frame { inset: var(--sn-nav, 40px) 6px 6px; border-width: 10px; }
+  .sn-frame { inset: var(--sn-nav, 40px) 0 0; --sn-frame-w: 10px; }
   .sn-g-chestnut { display: none; }
 
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */

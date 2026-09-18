@@ -124,30 +124,47 @@
   /* ── 억새 ───────────────────────────────────────────────────────
      한 줄기를 아래에서 위로 자라는 제 좌표계에 그린 뒤 제자리로 옮긴다. */
   function reed(h, lean, seed) {
-    var bend = lean * 0.22, P = h * 0.34;
+    var bend = lean * 0.22, P = h * 0.5;
     var side = seed % 2 ? 1 : -1;
-    var tipX = bend + P * 0.34 * side, tipY = -h - P;
-    var cX = bend + P * 0.06 * side, cY = -h - P * 0.62;
+    var tipX = bend + P * 0.40 * side, tipY = -h - P;
+    var cX = bend + P * 0.10 * side, cY = -h - P * 0.6;
 
     var stalk = 'M0 0 Q ' + r(bend * 0.35) + ' ' + r(-h * 0.52) + ' ' + r(bend) + ' ' + r(-h);
     var spine = 'M' + r(bend) + ' ' + r(-h) + ' Q ' + r(cX) + ' ' + r(cY) + ' ' + r(tipX) + ' ' + r(tipY);
 
-    var hairs = '', N = 22;
-    for (var i = 1; i <= N; i++) {
-      var t = i / N, mt = 1 - t;
-      var px = mt * mt * bend + 2 * mt * t * cX + t * t * tipX;
-      var py = mt * mt * (-h) + 2 * mt * t * cY + t * t * tipY;
-      var j = jitter(seed * 31 + i);
-      var len = P * 0.38 * (0.28 + 0.72 * Math.sin(Math.PI * t)) * (0.7 + 0.6 * j);
-      var sgn = i % 2 ? 1 : -1;
-      var drop = 0.34 + 0.40 * t + 0.2 * j;
-      var ex = px + sgn * len * (0.92 - 0.25 * j), ey = py + len * drop;
-      var qx = px + sgn * len * 0.60, qy = py + len * (drop * 0.12);
-      hairs += 'M' + r(px) + ' ' + r(py) + ' Q ' + r(qx) + ' ' + r(qy) + ' ' + r(ex) + ' ' + r(ey);
+    function at(t) {
+      var mt = 1 - t;
+      return [mt * mt * bend + 2 * mt * t * cX + t * t * tipX,
+              mt * mt * (-h) + 2 * mt * t * cY + t * t * tipY];
+    }
+    function tangent(t) {
+      var mt = 1 - t;
+      var dx = 2 * mt * (cX - bend) + 2 * t * (tipX - cX);
+      var dy = 2 * mt * (cY + h)   + 2 * t * (tipY - cY);
+      var n = Math.sqrt(dx * dx + dy * dy) || 1;
+      return [dx / n, dy / n];
+    }
+
+    /* 잔털 — 축에서 비스듬히, 촘촘하고 가늘게. 끝은 아래로 처진다.
+       빗살처럼 보이지 않게 각도와 길이를 낱낱이 흩뜨린다. */
+    var hairs = '', M = 78;
+    for (var k = 1; k <= M; k++) {
+      var t = Math.pow(k / M, 0.92);
+      var q = at(t), tg = tangent(t);
+      var j = jitter(seed * 37 + k), j2 = jitter(seed * 53 + k * 3);
+      var sgn = k % 2 ? 1 : -1;
+      // 축을 기준으로 60~85도 벌어진 방향
+      var ang = (58 + j * 30) * Math.PI / 180 * sgn;
+      var dx = tg[0] * Math.cos(ang) - tg[1] * Math.sin(ang);
+      var dy = tg[0] * Math.sin(ang) + tg[1] * Math.cos(ang);
+      var len = P * 0.3 * (0.28 + 0.72 * Math.sin(Math.PI * Math.pow(t, 0.75))) * (0.55 + 0.9 * j2);
+      var ex = q[0] + dx * len, ey = q[1] + dy * len + len * 0.45;   // 끝이 처진다
+      var qx = q[0] + dx * len * 0.55, qy = q[1] + dy * len * 0.55 + len * 0.08;
+      hairs += 'M' + r(q[0]) + ' ' + r(q[1]) + ' Q ' + r(qx) + ' ' + r(qy) + ' ' + r(ex) + ' ' + r(ey);
     }
     return '<path class="sn-stalk" d="' + stalk + '"/>' +
-           '<path class="sn-stalk" d="' + spine + '"/>' +
-           '<path class="sn-plume" d="' + hairs + '"/>';
+           '<path class="sn-plume" d="' + hairs + '"/>' +
+           '<path class="sn-spine" d="' + spine + '"/>';
   }
 
   // 억새 한 줄. 줄기마다 흔들리는 시각을 달리해 바람처럼 보이게 한다.
@@ -174,8 +191,8 @@
      화면 아래 양옆에 세워 두면 바람에 흔들리는 수풀처럼 보인다. */
   function reedClump(cls) {
     return svg('0 0 420 300',
-      reedRow({ width: 420, baseY: 296, minH: 120, spread: 110, step: 30, cls: 'sn-reeds-far' }) +
-      reedRow({ width: 420, baseY: 300, minH: 160, spread: 130, step: 34, cls: 'sn-reeds' }),
+      reedRow({ width: 420, baseY: 296, minH: 116, spread: 104, step: 22, cls: 'sn-reeds-far' }) +
+      reedRow({ width: 420, baseY: 300, minH: 152, spread: 124, step: 26, cls: 'sn-reeds' }),
       cls || 'sn-m-reedclump');
   }
 
