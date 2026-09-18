@@ -282,8 +282,8 @@
     for (var i = 0; i < REED_PARTS.length; i++) {
       var p = REED_PARTS[i];
       var plume = p.k === 'p';
-      var dur = plume ? 6.5 + jitter(i * 7 + 1) * 4.5 : 4.2 + jitter(i * 11 + 3) * 3.4;
-      var amp = plume ? 1.4 + jitter(i * 5 + 2) * 1.3 : 0.9 + jitter(i * 3 + 5) * 1.4;
+      var dur = plume ? 4.4 + jitter(i * 7 + 1) * 3.2 : 3.0 + jitter(i * 11 + 3) * 2.6;
+      var amp = plume ? 3.4 + jitter(i * 5 + 2) * 2.6 : 2.0 + jitter(i * 3 + 5) * 2.0;
       var del = -jitter(i * 13 + 7) * dur;
       out += img(p.f, 'sn-reed-part',
         'left:' + p.l + '%;top:' + p.t + '%;width:' + p.w + '%;' +
