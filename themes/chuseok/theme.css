@@ -121,6 +121,7 @@
 [data-season="chuseok"] .lp-hero,
 [data-season="chuseok"] .inst-hero,
 [data-season="chuseok"] .pass-hero {
+  --sn-frame-w: 14px;
   --sn-moon-w: clamp(460px, 43vw, 620px);
   --sn-moon-r: min(-40px, calc(50% - 250px - 0.845 * var(--sn-moon-w)));
 }
@@ -312,6 +313,12 @@
 .sn-fl-core2  { fill: #C9811E; }
 .sn-fl-core3  { fill: #FFF6E0; }
 
+/* 앞 장식(억새·들꽃·노리개·잎)은 색동 띠 안쪽까지만 그린다.
+   띠가 늘 앞에 있는 것처럼 보이게 하는 가장 간단한 방법이다. */
+[data-season="chuseok"] .lp-hero .sn-deco-front {
+  clip-path: inset(0 var(--sn-frame-w) var(--sn-frame-w) var(--sn-frame-w));
+}
+
 /* ── 억새 — 들꽃과 한 덩어리로 아래 양옆 모서리에 선다.
    밑단은 decorate.js 가 강좌 카드 판 바닥에 맞춘다. ── */
 .sn-reeds-l, .sn-reeds-r {
@@ -321,7 +328,7 @@
 .sn-reeds-l img, .sn-reeds-r img { width: 100%; height: auto; display: block; }
 .sn-reeds-l .sn-stalk, .sn-reeds-r .sn-stalk { stroke: #BBA277; }
 .sn-reeds-l .sn-plume, .sn-reeds-r .sn-plume { stroke-width: 1.7; }
-.sn-reeds-l { left: -86px; }
+.sn-reeds-l { left: -68px; }
 .sn-reeds-r { right: -104px; transform: scaleX(-1); }
 .sn-reeds-l svg, .sn-reeds-r svg { width: 100%; height: auto; }
 .sn-stalk { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
@@ -343,7 +350,6 @@
   position: absolute; inset: var(--sn-nav, 40px) 0 0; z-index: 2; pointer-events: none;
   /* 색동을 네 변에 두른다. 그림 테두리는 남색·갈색 조각이 밤하늘에 묻혀
      변에 따라 띠가 없는 것처럼 보였다. 메뉴바 선과 같은 색동으로 그린다. */
-  --sn-frame-w: 14px;
   background-image:
     var(--sn-saekdong), var(--sn-saekdong),
     var(--sn-saekdong-v), var(--sn-saekdong-v);
@@ -637,8 +643,8 @@
   .sn-moon { width: 250px; top: 30px; right: -54px; }
   /* 좁은 화면은 카드가 폭을 다 써서, 글을 가리지 않게 더 바깥으로 뺀다 */
   .sn-reeds-l, .sn-reeds-r { width: 132px; }
-  .sn-reeds-l { left: -76px; }
-  .sn-reeds-r { right: -76px; }
+  .sn-reeds-l { left: -62px; }
+  .sn-reeds-r { right: -62px; }
 
   .sn-pine { width: 200px; top: 32px; left: -36px; }
   .sn-pine2 { width: 190px; bottom: 360px; right: -34px; }
@@ -653,7 +659,10 @@
   .sn-ck-2 { width: 96px; top: 300px; right: -18px; }
   .sn-ck-3, .sn-ck-4 { display: none; }
   .sn-shield { width: 58px; top: calc(var(--sn-nav, 40px) - 4px); }
-  .sn-frame { inset: var(--sn-nav, 40px) 0 0; --sn-frame-w: 10px; }
+  [data-season="chuseok"] .lp-hero,
+  [data-season="chuseok"] .inst-hero,
+  [data-season="chuseok"] .pass-hero { --sn-frame-w: 10px; }
+  .sn-frame { inset: var(--sn-nav, 40px) 0 0; }
   .sn-g-chestnut { display: none; }
 
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */
