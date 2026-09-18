@@ -60,6 +60,8 @@
    아래에 색동 선을 한 줄 깔고, 로고 옆에 작은 달을 띄운다. */
 
 [data-season="chuseok"] .navbar { position: relative; }
+/* 히어로에 색동 액자가 있으면 메뉴바 선은 지운다 — 띠가 둘로 보인다 */
+[data-season="chuseok"].sn-framed .navbar::after { display: none; }
 [data-season="chuseok"] .navbar::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
   background-image: var(--sn-saekdong);
@@ -318,7 +320,9 @@
 .sn-frame {
   /* 히어로 위쪽은 네비가 덮는다. 공지 띠가 있으면 40px, 닫으면 0 이라
      decorate.js 가 재서 --sn-nav 로 넣는다. */
-  position: absolute; inset: calc(var(--sn-nav, 40px) + 10px) 10px 10px; z-index: 5; pointer-events: none;
+  /* 글(z3)보다 뒤에 둔다. 강좌 카드 판처럼 넓은 것이 액자를 가리게 해,
+     띠가 카드 위로 지나가지 않는다. */
+  position: absolute; inset: calc(var(--sn-nav, 40px) + 10px) 10px 10px; z-index: 2; pointer-events: none;
   /* 그림의 테두리 두께가 22 다. 조각을 그만큼 잘라 이어 붙인다. */
   border: 15px solid transparent;
   border-image: url('/images/season/chuseok-frame.png') 22 round;

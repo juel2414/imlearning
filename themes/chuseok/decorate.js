@@ -190,8 +190,10 @@
                   '<span class="sn-flowers sn-flowers-l">' + M.flowerClump() + '</span>' +
                   '<span class="sn-flowers sn-flowers-r">' + M.flowerClump() + '</span>' : '')));
 
-      // 색동 액자와 단청 방패는 글보다 앞에 둔다
+      // 색동 액자. 메뉴바 아래 색동 선과 나란히 놓이면 띠가 둘로 보여서,
+      // 액자를 쓴 화면에서는 메뉴바 선을 지우도록 표를 남긴다.
       h.el.appendChild(make('div', 'sn-frame'));
+      document.documentElement.classList.add('sn-framed');
       if (h.full) h.el.appendChild(make('div', 'sn-shield', M.piece('shield')));
 
       // 돗자리는 히어로 안에 두면 아래쪽 강좌 카드에 가린다.
