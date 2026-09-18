@@ -16,3 +16,6 @@ images/강사 프로필/
 supabase/.env
 supabase/functions/.env
 migration_data_final.json
+
+# 시즌 일러스트 원본 (누끼 딴 chuseok-*.png 만 커밋한다)
+images/season/Gemini_Generated_Image_*.png
