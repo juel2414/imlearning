@@ -197,6 +197,15 @@
 }
 /* 글자에는 그림자를 두지 않는다. 대비는 위의 어두운 층이 맡는다. */
 
+/* 밤하늘이 넓어진 만큼 글도 위아래로 숨통을 틔운다 */
+[data-season="chuseok"] .lp-hero-center   { padding: 6.5rem 0 5.5rem; }
+[data-season="chuseok"] .sn-greet         { margin-bottom: 1.1rem; }
+[data-season="chuseok"] .lp-eyebrow       { margin-bottom: 2.2rem; }
+[data-season="chuseok"] .lp-hero-headline { line-height: 1.22; margin-bottom: 1.9rem; }
+[data-season="chuseok"] .lp-hero-sub      { margin-bottom: 3.1rem; }
+[data-season="chuseok"] .hero-friction    { margin-bottom: 2.6rem; }
+[data-season="chuseok"] .lp-hero-stats    { padding-top: 2.6rem; }
+
 /* ── 반딧불 — 천천히 밝아졌다 사그라들며 조금씩 떠오른다 ── */
 .sn-ff {
   position: absolute; border-radius: 50%;
@@ -330,8 +339,9 @@
 
 /* ── 단청 방패 — 맨 위 가운데 ── */
 .sn-shield {
-  position: absolute; top: calc(var(--sn-nav, 40px) + 18px); left: 50%; transform: translateX(-50%);
-  width: 88px; z-index: 6; pointer-events: none;
+  /* 색동 띠(액자 z2) 뒤에 두어, 띠가 방패 윗부분을 물고 있는 것처럼 보이게 한다 */
+  position: absolute; top: calc(var(--sn-nav, 40px) + 4px); left: 50%; transform: translateX(-50%);
+  width: 88px; z-index: 1; pointer-events: none;
 }
 .sn-shield img { width: 100%; height: auto; }
 
@@ -617,7 +627,7 @@
   /* 달 옆에 두면 인사말을 가린다. 달 아래 오른쪽 가장자리로 뺀다 */
   .sn-ck-2 { width: 96px; top: 300px; right: -18px; }
   .sn-ck-3, .sn-ck-4 { display: none; }
-  .sn-shield { width: 58px; top: calc(var(--sn-nav, 40px) + 12px); }
+  .sn-shield { width: 58px; top: calc(var(--sn-nav, 40px) + 3px); }
   .sn-frame { inset: calc(var(--sn-nav, 40px) + 6px) 6px 6px; border-width: 10px; }
   .sn-g-chestnut { display: none; }
 
