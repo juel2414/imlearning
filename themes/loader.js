@@ -21,7 +21,7 @@
 
   var THEMES = ['chuseok'];          // 쓸 수 있는 테마 이름
   // 테마 파일을 고칠 때마다 올린다. 안 올리면 돌아온 사람은 옛 파일을 본다.
-  var VER = '51';
+  var VER = '53';
 
   // 이 파일이 themes/loader.js 로 불렸다는 전제로 themes/ 의 주소를 찾는다.
   // 페이지가 하위 폴더(admin/)에 있어도 맞게 나온다.
@@ -87,6 +87,8 @@
   }
 
   function turnOn(name) {
+    // 그림 파일도 이 번호를 달고 간다. 안 달면 그림을 고쳐도 옛것이 남는다.
+    window.SeasonVer = VER;
     var root = document.documentElement;
     root.setAttribute('data-season', name);
     root.classList.add('season-' + name);          // 예전 규칙과의 호환

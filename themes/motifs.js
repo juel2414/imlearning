@@ -63,8 +63,9 @@
   function piece(name, cls) {
     var p = PIECES[name];
     if (!p) return '';
+    var ver = window.SeasonVer ? '?v=' + window.SeasonVer : '';
     return '<img class="sn-art sn-art-' + name + ' ' + (cls || '') + '" ' +
-      'src="' + ART + p[0] + '.png" alt="" aria-hidden="true" decoding="async" ' +
+      'src="' + ART + p[0] + '.png' + ver + '" alt="" aria-hidden="true" decoding="async" ' +
       'loading="' + (p[3] ? 'eager' : 'lazy') + '" ' +
       'width="' + p[1] + '" height="' + p[2] + '">';
   }
