@@ -425,6 +425,22 @@
     hero.parentNode.insertBefore(g, hero.nextSibling);
   }
 
+  /* 억새·들꽃은 카드 판 안에 붙어 있어서, 화면이 넓으면 판 바깥 여백만큼
+     가장자리가 빈다. 그 여백을 재서 그만큼 옆으로 늘려 화면 끝까지 채운다. */
+  function placeReeds() {
+    var hero = document.querySelector('[data-section="hero"]');
+    var show = hero && hero.querySelector('.lp-hero-showcase');
+    var l = hero && hero.querySelector('.sn-reeds-l');
+    var r = hero && hero.querySelector('.sn-reeds-r');
+    if (!show || !l || !r) return;
+    var hr = hero.getBoundingClientRect(), sr = show.getBoundingClientRect();
+    var over = window.innerWidth <= 768 ? 118 : 190;   // 판 위로 걸치는 몫
+    var offL = Math.max(0, Math.round(sr.left - hr.left));
+    var offR = Math.max(0, Math.round(hr.right - sr.right));
+    l.style.left  = -offL + 'px'; l.style.width = (offL + over) + 'px';
+    r.style.right = -offR + 'px'; r.style.width = (offR + over) + 'px';
+  }
+
   /* 들꽃 밑단을 강좌 카드 판 바닥에 맞춘다. 판 아래 단계 안내 띠의 높이가
      화면 폭마다 달라서 CSS 로는 못 박는다. 판이 없으면 히어로 바닥에 둔다. */
   function placeFlowers() {
@@ -462,6 +478,7 @@
     try { keepGround(); } catch (e) { warn('keepGround', e); }
     try { placeFlowers(); } catch (e) { warn('placeFlowers', e); }
     try { placeFrame(); } catch (e) { warn('placeFrame', e); }
+    try { placeReeds(); } catch (e) { warn('placeReeds', e); }
     try { doDividers(); } catch (e) { warn('doDividers', e); }
     try { doCards(); } catch (e) { warn('doCards', e); }
     try { doLight(); } catch (e) { warn('doLight', e); }
@@ -493,7 +510,7 @@
     var rt = null;
     window.addEventListener('resize', function () {
       clearTimeout(rt);
-      rt = setTimeout(function () { placeFlowers(); placeFrame(); }, 150);
+      rt = setTimeout(function () { placeFlowers(); placeFrame(); placeReeds(); }, 150);
     });
 
     // 늦게 오는 자료를 위해 몇 번 더
