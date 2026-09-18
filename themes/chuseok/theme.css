@@ -196,7 +196,7 @@
 [data-season="chuseok"] .lp-hero-headline,
 [data-season="chuseok"] .lp-hero-sub,
 [data-season="chuseok"] .lp-eyebrow,
-[data-season="chuseok"] .lp-hero-stats { text-shadow: 0 2px 14px rgba(16,8,40,.75), 0 0 2px rgba(16,8,40,.5); }
+[data-season="chuseok"] .lp-hero-stats { text-shadow: 0 1px 12px rgba(16,8,40,.34); }
 
 /* ── 반딧불 — 천천히 밝아졌다 사그라들며 조금씩 떠오른다 ── */
 .sn-ff {
