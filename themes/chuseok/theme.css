@@ -438,7 +438,6 @@
 /* 카드 — 흰색 대신 아이보리, 테두리는 두 줄 액자 */
 [data-season="chuseok"] .lp-pcard,
 [data-season="chuseok"] .lp-fcard,
-[data-season="chuseok"] .lp-ccard,
 [data-season="chuseok"] .lp-rcard,
 [data-season="chuseok"] .lp-faq-item,
 [data-season="chuseok"] .lp-cert-vis,
@@ -446,8 +445,9 @@
 [data-season="chuseok"] .side-review {
   background-color: #FFFBF1;
   /* 두 줄 액자 — 바깥 선은 카드 테두리로, 안쪽 선은 ::after 로 긋는다.
-     그림 테두리(border-image)는 둥근 모서리를 못 따라가서 이렇게 바꿨다. */
+     귀의 완자무늬가 두 선에 맞물려야 해서 모서리는 살짝만 둥글린다. */
   border: 2px solid rgba(184,137,46,.72);
+  border-radius: 10px;
   position: relative;
 }
 /* 안쪽 선과 글이 닿지 않게 여백을 조금 준다 */
@@ -458,7 +458,6 @@
 /* 안쪽 가는 선 — 바깥 선과 같은 둥글기를 조금 줄여 따라간다 */
 [data-season="chuseok"] .lp-pcard::after,
 [data-season="chuseok"] .lp-fcard::after,
-[data-season="chuseok"] .lp-ccard::after,
 [data-season="chuseok"] .lp-rcard::after,
 [data-season="chuseok"] .lp-faq-item::after,
 [data-season="chuseok"] .lp-cert-vis::after,
@@ -466,25 +465,28 @@
 [data-season="chuseok"] .courses-page-inner .side-review::after {
   content: ''; position: absolute; inset: 5px;
   border: 1px solid rgba(184,137,46,.42);
-  border-radius: calc(var(--sn-card-r, 16px) - 6px);
+  border-radius: 5px;
   pointer-events: none;
 }
 
 /* 모서리 완자무늬 — 두 줄 선 위에 걸쳐 놓는다 */
 /* 네 귀에 하나씩. 무늬의 팔이 늘 바깥 모서리를 향하도록 돌려 놓는다. */
+/* 무늬의 팔이 바깥 선까지 닿아야 이어져 보인다. 그래서 귀에 바짝 붙인다. */
 .sn-wanja {
-  position: absolute; width: 20px; height: 20px;
-  color: #B8892E; opacity: .85; pointer-events: none;
+  position: absolute; width: 26px; height: 26px;
+  color: #B8892E; opacity: .9; pointer-events: none;
 }
-.sn-wanja-tl { left: 9px;  top: 9px; }
-.sn-wanja-tr { right: 9px; top: 9px;    transform: scaleX(-1); }
-.sn-wanja-br { right: 9px; bottom: 9px; transform: scale(-1, -1); }
-.sn-wanja-bl { left: 9px;  bottom: 9px; transform: scaleY(-1); }
+.sn-wanja-tl { left: -1px;  top: -1px; }
+.sn-wanja-tr { right: -1px; top: -1px;    transform: scaleX(-1); }
+.sn-wanja-br { right: -1px; bottom: -1px; transform: scale(-1, -1); }
+.sn-wanja-bl { left: -1px;  bottom: -1px; transform: scaleY(-1); }
 .sn-wanja svg { width: 100%; height: 100%; display: block; }
 [data-season="chuseok"] .lp-pcard:hover,
 [data-season="chuseok"] .lp-fcard:hover,
-[data-season="chuseok"] .lp-ccard:hover,
 [data-season="chuseok"] .lp-faq-item:hover { border-color: rgba(176,140,74,.62); }
+
+/* 사진이 큰 강좌 카드는 바탕만 아이보리로, 액자는 두르지 않는다 */
+[data-season="chuseok"] .lp-ccard { background-color: #FFFBF1; border-color: rgba(176,140,74,.30); }
 
 /* 눈썹 문구(FOR YOU 같은 것) — 감빛으로. 한지 위에서 6.3:1 */
 [data-season="chuseok"] .lp-eye { color: var(--sn-persimmon-dk); }

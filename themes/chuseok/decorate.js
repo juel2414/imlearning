@@ -220,7 +220,8 @@
   /* ══ 강좌 카드 — 모서리 문양 ══════════════════════════════════════ */
 
   /* 액자 테두리는 theme.css 가 그리고, 모서리 완자무늬만 여기서 얹는다 */
-  var CARD_SEL = '.lp-pcard, .lp-fcard, .lp-ccard, .lp-rcard, .lp-faq-item, ' +
+  // 사진이 큰 강좌 카드(.lp-ccard)는 뺀다. 무늬가 사진 위로 얹혀 지저분해진다.
+  var CARD_SEL = '.lp-pcard, .lp-fcard, .lp-rcard, .lp-faq-item, ' +
                  '.lp-cert-vis, .side-ad, .side-review';
 
   function doCards() {
