@@ -308,7 +308,7 @@
 
       // 구름무늬 한 조각 — 아주 옅게 깔아 한지 결처럼 보이게
       var side = i % 2 ? 'sn-wm-r' : 'sn-wm-l';
-      sec.appendChild(make('span', 'sn-wm ' + side, M.cloudKr()));
+      sec.appendChild(make('span', 'sn-wm ' + side, M.cloudSilk(i)));
 
       // 낙엽 두어 장 — 떨어지지 않고 가만히 놓인다
       sec.appendChild(make('span', 'sn-still sn-still-1',

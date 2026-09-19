@@ -310,6 +310,55 @@
     return '<span class="' + (cls || 'sn-reed-art') + '">' + out + '</span>';
   }
 
+  /* ── 전통 구름 — 뭉게진 몸체에 끝이 말린 꼬리 ────────────────────
+     참고한 그림을 그대로 베끼지 않고 결만 따서 코드로 그린다.
+     seed 를 바꾸면 봉우리 수와 꼬리 길이가 달라진다. */
+  function cloudSilk(seed, cls) {
+    var s = seed || 0;
+    var lobes = 4 + Math.round(jitter(s * 7 + 1) * 2);      // 봉우리 4~6
+    var body = '';
+    var x = 52, y = 58, prev = 0;
+    for (var i = 0; i < lobes; i++) {
+      var t = i / (lobes - 1);
+      var rx = 17 + jitter(s * 11 + i) * 13;
+      var ry = rx * (0.72 + jitter(s * 5 + i) * 0.3);
+      var cy = y - 8 - Math.sin(Math.PI * t) * (12 + jitter(s * 3 + i) * 10);
+      body += '<ellipse cx="' + r(x) + '" cy="' + r(cy) + '" rx="' + r(rx) + '" ry="' + r(ry) + '"/>';
+      prev = x;
+      x += rx * 1.25;
+    }
+    // 몸체 아래를 평평하게 메워 한 덩어리로 만든다
+    body += '<path d="M40 ' + r(y - 4) + ' L' + r(prev + 12) + ' ' + r(y - 4) +
+            ' Q ' + r(prev + 6) + ' ' + r(y + 10) + ' ' + r(prev - 14) + ' ' + r(y + 10) +
+            ' L54 ' + r(y + 10) + ' Q 40 ' + r(y + 8) + ' 40 ' + r(y - 4) + ' Z"/>';
+
+    // 왼쪽 꼬리 — 길게 뻗다가 끝이 말린다
+    var tail = 'M46 ' + r(y + 2) +
+      ' C 30 ' + r(y + 16) + ', 10 ' + r(y + 18) + ', 6 ' + r(y + 8) +
+      ' C 3 ' + r(y + 1) + ', 12 ' + r(y - 5) + ', 18 ' + r(y - 1) +
+      ' C 22 ' + r(y + 2) + ', 20 ' + r(y + 8) + ', 15 ' + r(y + 7) +
+      ' C 12 ' + r(y + 6) + ', 12 ' + r(y + 2) + ', 15 ' + r(y + 2) +
+      ' C 13 ' + r(y + 5) + ', 17 ' + r(y + 6) + ', 18 ' + r(y + 3) +
+      ' C 20 ' + r(y - 1) + ', 10 ' + r(y - 1) + ', 10 ' + r(y + 7) +
+      ' C 10 ' + r(y + 14) + ', 28 ' + r(y + 10) + ', 44 ' + r(y - 2) + ' Z';
+    body += '<path d="' + tail + '"/>';
+
+    // 오른쪽 끝 말림 — 안쪽으로 한 바퀴
+    var ex = prev + 10;
+    body += '<path d="M' + r(ex) + ' ' + r(y - 12) +
+      ' C ' + r(ex + 16) + ' ' + r(y - 20) + ', ' + r(ex + 26) + ' ' + r(y - 6) +
+      ', ' + r(ex + 14) + ' ' + r(y + 2) +
+      ' C ' + r(ex + 6) + ' ' + r(y + 7) + ', ' + r(ex - 2) + ' ' + r(y + 2) +
+      ', ' + r(ex) + ' ' + r(y - 4) +
+      ' C ' + r(ex + 2) + ' ' + r(y - 8) + ', ' + r(ex + 9) + ' ' + r(y - 7) +
+      ', ' + r(ex + 8) + ' ' + r(y - 2) +
+      ' C ' + r(ex + 12) + ' ' + r(y - 6) + ', ' + r(ex + 6) + ' ' + r(y - 14) +
+      ', ' + r(ex) + ' ' + r(y - 12) + ' Z"/>';
+
+    return svg('0 0 ' + r(ex + 34) + ' 100', '<g class="sn-cs-body">' + body + '</g>',
+      cls || 'sn-m-cloudsilk');
+  }
+
   /* ── 민화풍 소나무 ───────────────────────────────────────────────
      먹선 두른 갈색 가지에, 부채꼴로 펼친 솔잎 뭉치를 얹는다.
      가지는 왼쪽 가장자리에서 들어온다. 오른쪽에 둘 때는 쓰는 쪽에서 뒤집는다. */
@@ -606,6 +655,6 @@
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
     cloudKr: cloudKr,
-    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, pineKr: pineKr, sparkle: sparkle, starDust: starDust
+    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, cloudSilk: cloudSilk, pineKr: pineKr, sparkle: sparkle, starDust: starDust
   };
 })();
