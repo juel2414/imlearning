@@ -219,8 +219,17 @@
 
   /* ══ 강좌 카드 — 모서리 문양 ══════════════════════════════════════ */
 
-  /* 랜딩 카드는 귀 장식 대신 뇌문 테두리를 두른다(theme.css) */
+  /* 액자 테두리는 theme.css 가 그리고, 모서리 완자무늬만 여기서 얹는다 */
+  var CARD_SEL = '.lp-pcard, .lp-fcard, .lp-ccard, .lp-rcard, .lp-faq-item, ' +
+                 '.lp-cert-vis, .side-ad, .side-review';
+
   function doCards() {
+    document.querySelectorAll(CARD_SEL).forEach(function (card) {
+      if (!once(card, 'wanja')) return;
+      if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
+      card.appendChild(make('span', 'sn-wanja', M.wanjaCorner()));
+    });
+
     document.querySelectorAll('.course-card').forEach(function (card) {
       if (!once(card, 'corner')) return;
       // 섬네일 사진 위에 얹으면 금색이 묻힌다. 흰 본문 귀에 붙인다.

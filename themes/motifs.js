@@ -310,6 +310,20 @@
     return '<span class="' + (cls || 'sn-reed-art') + '">' + out + '</span>';
   }
 
+  /* ── 완자무늬 귀 — 액자 모서리에 얹는다. 두 줄 테두리와 이어지도록
+     팔이 위·왼쪽으로 뻗는다. ── */
+  function wanjaCorner(cls) {
+    return svg('0 0 34 34',
+      '<g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square">' +
+      // 가운데 네모
+      '<path d="M11 11 H23 V23 H11 Z"/>' +
+      // 위·왼쪽으로 뻗는 팔과 갈고리
+      '<path d="M17 11 V2 H27"/><path d="M11 17 H2 V27"/>' +
+      '<path d="M23 17 H31"/><path d="M17 23 V31"/>' +
+      '</g>',
+      cls || 'sn-m-wanja');
+  }
+
   /* ── 겹아치 — 단청의 산·구름 무늬. 아치를 앞뒤로 포갠다.
      앞 아치가 뒤를 가려야 겹쳐 보이므로 속을 바탕색으로 채운다. ── */
   function archRow(seed, cls, opt) {
@@ -689,6 +703,6 @@
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
     cloudKr: cloudKr,
-    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, cloudSilk: cloudSilk, archRow: archRow, pineKr: pineKr, sparkle: sparkle, starDust: starDust
+    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, cloudSilk: cloudSilk, archRow: archRow, wanjaCorner: wanjaCorner, pineKr: pineKr, sparkle: sparkle, starDust: starDust
   };
 })();
