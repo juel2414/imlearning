@@ -401,6 +401,68 @@
 /* ── 히어로 아래 — 돗자리와 수확물 ── */
 /* 히어로 바로 아래 제 줄로 놓인다. 위는 밤하늘을 이어받고
    아래로 갈수록 다음 칸 색에 스민다. */
+/* ══ 랜딩의 밋밋한 칸들 — 흰 바탕을 한지로 바꾼다 ══════════════════
+   글자색은 그대로 두고 바탕과 테두리만 손댄다. 먹빛 글자/한지 14.9:1. */
+[data-season="chuseok"] .lp-personas,
+[data-season="chuseok"] .lp-features,
+[data-season="chuseok"] .lp-online,
+[data-season="chuseok"] .lp-instructors,
+[data-season="chuseok"] .lp-courses,
+[data-season="chuseok"] .lp-reviews,
+[data-season="chuseok"] .lp-cert,
+[data-season="chuseok"] .lp-faq {
+  background-color: var(--sn-hanji);
+  background-image: var(--sn-hanji-img);
+  background-size: auto;
+}
+/* 한 칸 걸러 조금 짙게 — 칸 사이 경계가 사라지지 않게 */
+[data-season="chuseok"] .lp-features,
+[data-season="chuseok"] .lp-courses,
+[data-season="chuseok"] .lp-cert { background-color: #EDE4D0; }
+
+/* 칸 위쪽에 가는 금빛 선 하나 */
+[data-season="chuseok"] .lp-personas,
+[data-season="chuseok"] .lp-features,
+[data-season="chuseok"] .lp-online,
+[data-season="chuseok"] .lp-instructors,
+[data-season="chuseok"] .lp-courses,
+[data-season="chuseok"] .lp-reviews,
+[data-season="chuseok"] .lp-cert,
+[data-season="chuseok"] .lp-faq { border-top: 1px solid rgba(176,140,74,.28); }
+
+/* 카드 — 흰색 대신 아이보리, 테두리는 금빛 실선 */
+[data-season="chuseok"] .lp-pcard,
+[data-season="chuseok"] .lp-fcard,
+[data-season="chuseok"] .lp-ccard,
+[data-season="chuseok"] .lp-rcard,
+[data-season="chuseok"] .lp-faq-item,
+[data-season="chuseok"] .lp-cert-vis {
+  background: #FFFBF1;
+  border-color: rgba(176,140,74,.30);
+}
+[data-season="chuseok"] .lp-pcard:hover,
+[data-season="chuseok"] .lp-fcard:hover,
+[data-season="chuseok"] .lp-ccard:hover,
+[data-season="chuseok"] .lp-faq-item:hover { border-color: rgba(176,140,74,.62); }
+
+/* 눈썹 문구(FOR YOU 같은 것) — 감빛으로. 한지 위에서 6.3:1 */
+[data-season="chuseok"] .lp-eye { color: var(--sn-persimmon-dk); }
+
+/* 다른 화면의 바탕도 흰색 대신 한지로. 흰 카드는 그대로 두면
+   한지 위에 얹힌 종이처럼 읽힌다. */
+[data-season="chuseok"] body {
+  background-color: var(--sn-hanji);
+  background-image: var(--sn-hanji-img);
+  background-size: auto;
+}
+
+/* 수치 띠는 밤하늘로 — 검정 그대로 두면 계절이 끊긴다 */
+[data-season="chuseok"] .lp-trust {
+  background:
+    radial-gradient(60% 70% at 78% 20%, rgba(74,46,126,.5) 0%, rgba(74,46,126,0) 70%),
+    linear-gradient(150deg, var(--sn-night-top) 0%, var(--sn-night-deep) 100%);
+}
+
 /* ── 구석 그림 — 밋밋한 칸의 바깥 모서리에 수확물을 하나씩 ──
    글 위를 덮지 않게 뒤로 깔고, 살짝 투명하게 둔다. */
 .sn-scene { position: absolute; z-index: 0; pointer-events: none; opacity: .92; }
