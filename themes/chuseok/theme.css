@@ -430,16 +430,32 @@
 [data-season="chuseok"] .lp-cert,
 [data-season="chuseok"] .lp-faq { border-top: 1px solid rgba(176,140,74,.28); }
 
-/* 카드 — 흰색 대신 아이보리, 테두리는 금빛 실선 */
+/* 뇌문(回紋) — 단청과 도자기에 쓰는 전통 띠무늬. 카드 테두리로 두른다.
+   가로 띠는 위아래, 세로 띠는 좌우에 깔고 안쪽 색은 그대로 둔다. */
+[data-season="chuseok"] {
+  --sn-fret-h: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 16 10'><path d='M0 9 L0 1 L7 1 L7 7 L3 7 L3 3 L5 3 L5 9 L16 9' fill='none' stroke='%23B8892E' stroke-width='1' stroke-opacity='0.55' stroke-linecap='square' stroke-linejoin='miter'/></svg>");
+  --sn-fret-v: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='16' viewBox='0 0 10 16'><path d='M9 0 L1 0 L1 7 L7 7 L7 3 L3 3 L3 5 L9 5 L9 16' fill='none' stroke='%23B8892E' stroke-width='1' stroke-opacity='0.55' stroke-linecap='square' stroke-linejoin='miter'/></svg>");
+}
+
+/* 카드 — 흰색 대신 아이보리, 테두리는 뇌문 띠 */
 [data-season="chuseok"] .lp-pcard,
 [data-season="chuseok"] .lp-fcard,
 [data-season="chuseok"] .lp-ccard,
 [data-season="chuseok"] .lp-rcard,
 [data-season="chuseok"] .lp-faq-item,
 [data-season="chuseok"] .lp-cert-vis {
-  background: #FFFBF1;
+  background-color: #FFFBF1;
+  background-image: var(--sn-fret-h), var(--sn-fret-h), var(--sn-fret-v), var(--sn-fret-v);
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  background-position: 6px 6px, 6px calc(100% - 6px), 6px 6px, calc(100% - 6px) 6px;
+  background-size: 16px 10px, 16px 10px, 10px 16px, 10px 16px;
+  background-origin: border-box;
   border-color: rgba(176,140,74,.30);
 }
+/* 뇌문이 글자와 닿지 않게 안쪽으로 조금 물린다 */
+[data-season="chuseok"] .lp-pcard,
+[data-season="chuseok"] .lp-fcard,
+[data-season="chuseok"] .lp-rcard { padding: 2.2rem 1.9rem; }
 [data-season="chuseok"] .lp-pcard:hover,
 [data-season="chuseok"] .lp-fcard:hover,
 [data-season="chuseok"] .lp-ccard:hover,
