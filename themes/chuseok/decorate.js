@@ -219,7 +219,16 @@
 
   /* ══ 강좌 카드 — 모서리 문양 ══════════════════════════════════════ */
 
+  /* 랜딩 카드에도 같은 귀 장식을 붙인다 */
+  var CARD_SEL = '.lp-pcard, .lp-fcard, .lp-ccard, .lp-rcard, .lp-faq-item';
+
   function doCards() {
+    document.querySelectorAll(CARD_SEL).forEach(function (card) {
+      if (!once(card, 'corner')) return;
+      if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
+      card.appendChild(make('span', 'sn-corner sn-corner-lp', M.cornerOrnament()));
+    });
+
     document.querySelectorAll('.course-card').forEach(function (card) {
       if (!once(card, 'corner')) return;
       // 섬네일 사진 위에 얹으면 금색이 묻힌다. 흰 본문 귀에 붙인다.
@@ -283,6 +292,38 @@
       if (getComputedStyle(ct).position === 'static') ct.style.position = 'relative';
       ct.appendChild(make('span', 'sn-lantern-mark', M.lantern()));
     }
+  }
+
+  /* ══ 칸 꾸미기 — 제목 아래 구름 선, 구석에 구름무늬와 낙엽 ═══════
+     한지로 바꾼 칸이 허전하지 않게, 글을 가리지 않는 것들만 얹는다. */
+  var DECO_SECS = ['[data-section="personas"]', '[data-section="features"]',
+                   '[data-section="online"]', '[data-section="instructors"]',
+                   '[data-section="courses"]', '[data-section="reviews"]',
+                   '[data-section="certificate"]', '[data-section="faq"]'];
+
+  function doSectionDeco() {
+    // 칸 제목 아래에 구름 선 한 줄
+    document.querySelectorAll('.lp-head').forEach(function (head) {
+      if (!once(head, 'hcloud')) return;
+      head.appendChild(make('div', 'sn-head-cloud', M.cloudDivider()));
+    });
+
+    DECO_SECS.forEach(function (sel, i) {
+      var sec = document.querySelector(sel);
+      if (!sec || !once(sec, 'secdeco')) return;
+      if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative';
+      if (getComputedStyle(sec).overflow === 'visible') sec.style.overflow = 'hidden';
+
+      // 구름무늬 한 조각 — 아주 옅게 깔아 한지 결처럼 보이게
+      var side = i % 2 ? 'sn-wm-r' : 'sn-wm-l';
+      sec.appendChild(make('span', 'sn-wm ' + side, M.cloudKr()));
+
+      // 낙엽 두어 장 — 떨어지지 않고 가만히 놓인다
+      sec.appendChild(make('span', 'sn-still sn-still-1',
+        M.piece(i % 2 ? 'mapleR' : 'mapleO')));
+      sec.appendChild(make('span', 'sn-still sn-still-2',
+        M.piece(i % 2 ? 'mapleO' : 'mapleR')));
+    });
   }
 
   /* ══ 구석 그림 — 밋밋한 칸과 화면에 수확물을 하나씩 놓는다 ═══════
@@ -486,6 +527,7 @@
     try { doCards(); } catch (e) { warn('doCards', e); }
     try { doLight(); } catch (e) { warn('doLight', e); }
     try { doScenes(); } catch (e) { warn('doScenes', e); }
+    try { doSectionDeco(); } catch (e) { warn('doSectionDeco', e); }
     try { doCta(); } catch (e) { warn('doCta', e); }
     try { doFooter(); } catch (e) { warn('doFooter', e); }
     try { doAuth(); } catch (e) { warn('doAuth', e); }
