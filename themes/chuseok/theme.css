@@ -482,7 +482,11 @@
 .sn-still-2 { right: 6%; top: 8%;   width: 34px; transform: rotate(24deg); }
 
 /* 랜딩 카드 귀 장식 */
-.sn-corner-lp { position: absolute; right: 10px; top: 10px; width: 26px; height: 26px; }
+/* 카드 모서리에 딱 붙여야 갈고리 무늬로 읽힌다. 떨어뜨리면 낙서처럼 보인다. */
+.sn-corner-lp {
+  position: absolute; right: 0; top: 0; width: 40px; height: 40px;
+  opacity: .42; overflow: hidden; border-top-right-radius: inherit;
+}
 .sn-corner-lp svg { width: 100%; height: 100%; }
 
 /* ── 구석 그림 — 밋밋한 칸의 바깥 모서리에 수확물을 하나씩 ──
