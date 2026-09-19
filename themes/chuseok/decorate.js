@@ -241,7 +241,8 @@
   // 뒤에 구름문양 한 줄을 까는 자리
   var DIVIDER_AFTER = ['.about-hero', '.terms-hero', '.notices-header', '.res-header'];
   // 아래에 색동 선을 긋는 자리
-  var SAEKDONG_UNDER = ['.notice-tabs', '.my-tabs', '.res-cats', '.courses-list-header'];
+  var SAEKDONG_UNDER = ['.notice-tabs', '.my-tabs', '.res-cats', '.courses-list-header',
+                        '.top-cat-bar'];
 
   function doLight() {
     LIGHT_HEADS.forEach(function (sel) {
@@ -349,7 +350,9 @@
     ['.reviews-header',           function () { return M.piece('chestnut'); }, 'chestnut'],
     ['.my-header',                function () { return M.rabbit(); },          'rabbit'],
     ['.search-hero',              function () { return M.piece('pumpkin'); },  'harvest1'],
-    ['.pass-hero-inner',          function () { return M.piece('squash'); },   'harvest1']
+    ['.pass-hero-inner',          function () { return M.piece('squash'); },   'harvest1'],
+    // 강좌 목록 — 인기 강좌 자리에 밤 한 톨
+    ['.top10-section',            function () { return M.piece('chestnut'); }, 'chestnut1']
   ];
 
   function doScenes() {
