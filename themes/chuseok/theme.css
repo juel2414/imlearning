@@ -476,12 +476,44 @@
 }
 
 /* ── 칸 꾸밈 — 제목 아래 구름 선, 구석에 구름무늬와 낙엽 ── */
-/* 칸 제목 아래 — 단청 겹아치 한 줄 */
-.sn-head-arch {
-  margin: 14px auto 0; width: min(320px, 56%);
-  color: var(--sn-gold); opacity: .6; pointer-events: none;
+/* 칸 제목 아래 — 무늬를 다섯 가지로 돌려 쓴다 */
+.sn-head-orn {
+  margin: 14px auto 0; color: var(--sn-gold); pointer-events: none;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
 }
-.sn-head-arch svg { width: 100%; height: auto; display: block; }
+.sn-head-orn svg { display: block; }
+
+.sn-ho-arch  { width: min(320px, 56%); opacity: .6; }
+.sn-ho-arch svg { width: 100%; height: auto; }
+
+.sn-ho-cloud { width: min(440px, 62%); height: 56px; opacity: .45; overflow: hidden; }
+.sn-ho-cloud svg { width: 100%; height: 100%; }
+
+.sn-ho-silk  { opacity: .3; gap: 14px; }
+.sn-ho-silk span { display: block; }
+.sn-ho-silk span:nth-child(1) { width: 86px; }
+.sn-ho-silk span:nth-child(2) { width: 120px; }
+.sn-ho-silk span:nth-child(3) { width: 74px; }
+.sn-ho-silk svg { width: 100%; height: auto; }
+.sn-ho-silk .sn-cs-body { fill: var(--sn-gold); }
+
+.sn-ho-saek  { gap: 12px; }
+.sn-ho-bar {
+  display: block; width: 90px; height: 5px; border-radius: 3px;
+  background-image: var(--sn-saekdong); opacity: .7;
+}
+.sn-ho-dot {
+  display: block; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--sn-gold); opacity: .8;
+}
+
+.sn-ho-moon  { gap: 14px; color: var(--sn-moon-edge); }
+.sn-ho-moon svg { width: 19px; height: 19px; }
+.sn-ho-rule {
+  display: block; width: 84px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--sn-gold), transparent);
+  opacity: .7;
+}
 .sn-ar-fill { fill: var(--sn-arch-fill, #F6F1E4); stroke: currentColor; stroke-width: 2.1; }
 .sn-ar-line { fill: none; stroke: currentColor; stroke-width: 1.5; opacity: .85; }
 .sn-ar-thin { stroke-width: 1.2; opacity: .6; }
@@ -806,7 +838,10 @@
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */
   .sn-wm { display: none; }
   .sn-still-2 { display: none; }
-  .sn-head-arch { width: 78%; }
+  .sn-ho-arch { width: 78%; }
+  .sn-ho-cloud { width: 80%; }
+  .sn-ho-silk span:nth-child(3) { display: none; }
+  .sn-ho-bar { width: 60px; }
 
   /* 좁은 화면에서는 구석 그림을 줄이고, 자리 없는 것은 덜어 낸다 */
   .sn-scene-rabbit   { width: 116px; }

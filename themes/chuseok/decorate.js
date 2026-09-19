@@ -295,10 +295,25 @@
 
   function doSectionDeco() {
     // 칸 제목 아래에 구름 선 한 줄
+    // 칸마다 다른 무늬가 나오도록 다섯 가지를 돌려 쓴다
+    var HEAD_ORN = [
+      function (i) { return ['sn-ho-arch',  M.archRow(i)]; },
+      function ()  { return ['sn-ho-cloud', M.cloudDivider()]; },
+      function (i) { return ['sn-ho-silk',
+        '<span>' + M.cloudSilk(i + 2) + '</span>' +
+        '<span>' + M.cloudSilk(i + 5) + '</span>' +
+        '<span>' + M.cloudSilk(i + 9) + '</span>']; },
+      function ()  { return ['sn-ho-saek',
+        '<i class="sn-ho-bar"></i><i class="sn-ho-dot"></i><i class="sn-ho-bar"></i>']; },
+      function ()  { return ['sn-ho-moon',
+        '<i class="sn-ho-rule"></i>' + M.moon() + '<i class="sn-ho-rule"></i>']; }
+    ];
     var hi = 0;
     document.querySelectorAll('.lp-head').forEach(function (head) {
       if (!once(head, 'hcloud')) return;
-      head.appendChild(make('div', 'sn-head-arch', M.archRow(hi++)));
+      var pick = HEAD_ORN[hi % HEAD_ORN.length](hi);
+      hi++;
+      head.appendChild(make('div', 'sn-head-orn ' + pick[0], pick[1]));
     });
 
     DECO_SECS.forEach(function (sel, i) {
