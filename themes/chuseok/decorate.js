@@ -219,7 +219,7 @@
 
   /* ══ 강좌 카드 — 모서리 문양 ══════════════════════════════════════ */
 
-  /* 액자 테두리는 theme.css 가 그리고, 모서리 완자무늬만 여기서 얹는다 */
+  /* 액자 테두리(선 + 네 귀 완자무늬)는 theme.css 가 그림 한 장으로 그린다 */
   // 사진이 큰 강좌 카드(.lp-ccard)는 뺀다. 무늬가 사진 위로 얹혀 지저분해진다.
   var CARD_SEL = '.lp-pcard, .lp-fcard, .lp-rcard, .lp-faq-item, ' +
                  '.lp-cert-vis, .side-ad, .side-review';
@@ -228,9 +228,7 @@
     document.querySelectorAll(CARD_SEL).forEach(function (card) {
       if (!once(card, 'wanja')) return;
       if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
-      ['tl', 'tr', 'br', 'bl'].forEach(function (c) {
-        card.appendChild(make('span', 'sn-wanja sn-wanja-' + c, M.wanjaCorner()));
-      });
+      // 선과 완자무늬는 theme.css 의 액자 그림이 한 번에 그린다
     });
 
     document.querySelectorAll('.course-card').forEach(function (card) {

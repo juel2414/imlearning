@@ -432,7 +432,7 @@
 
 /* 카드 액자 — 두 줄 선에 완자무늬 귀. 단청 액자에서 결만 따 왔다. */
 [data-season="chuseok"] {
-  --sn-fret: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><g fill='none' stroke='%23B8892E' stroke-linecap='square'><path d='M3 3 H45 V45 H3 Z' stroke-width='2' stroke-opacity='0.75'/><path d='M8 8 H40 V40 H8 Z' stroke-width='1' stroke-opacity='0.5'/><g stroke-width='1.6' stroke-opacity='0.8'><path d='M8 2 V14 M2 8 H14 M8 2 H12 M2 8 V4 M14 8 V12 M8 14 H4'/></g></g></svg>");
+  --sn-fret: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'><g fill='none' stroke='%237A5A1C' stroke-linecap='square' stroke-linejoin='miter'><path d='M3.5 3.5 H124.5 V124.5 H3.5 Z' stroke-width='3'/><path d='M13 13 H115 V115 H13 Z' stroke-width='2'/><g stroke-width='2.4'><g transform='translate%280%2C0%29 rotate%280 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g><g transform='translate%2864%2C0%29 rotate%2890 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g><g transform='translate%2864%2C64%29 rotate%28180 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g><g transform='translate%280%2C64%29 rotate%28270 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g></g></g></svg>");
 }
 
 /* 카드 — 흰색 대신 아이보리, 테두리는 두 줄 액자 */
@@ -444,10 +444,11 @@
 [data-season="chuseok"] .side-ad,
 [data-season="chuseok"] .side-review {
   background-color: #FFFBF1;
-  /* 두 줄 액자 — 바깥 선은 카드 테두리로, 안쪽 선은 ::after 로 긋는다.
-     귀의 완자무늬가 두 선에 맞물려야 해서 모서리는 살짝만 둥글린다. */
-  border: 2px solid rgba(184,137,46,.72);
-  border-radius: 10px;
+  /* 두 줄 액자 — 선과 네 귀 완자무늬를 그림 한 장으로 두른다.
+     시안처럼 모서리는 각지게 두고, 무늬가 두 선과 맞물린다. */
+  border: 16px solid transparent;
+  border-image: var(--sn-fret) 32 stretch;
+  border-radius: 0;
   position: relative;
 }
 /* 안쪽 선과 글이 닿지 않게 여백을 조금 준다 */
@@ -455,32 +456,8 @@
 [data-season="chuseok"] .lp-fcard,
 [data-season="chuseok"] .lp-rcard { padding: 1.9rem 1.6rem; }
 
-/* 안쪽 가는 선 — 바깥 선과 같은 둥글기를 조금 줄여 따라간다 */
-[data-season="chuseok"] .lp-pcard::after,
-[data-season="chuseok"] .lp-fcard::after,
-[data-season="chuseok"] .lp-rcard::after,
-[data-season="chuseok"] .lp-faq-item::after,
-[data-season="chuseok"] .lp-cert-vis::after,
-[data-season="chuseok"] .side-ad::after,
-[data-season="chuseok"] .courses-page-inner .side-review::after {
-  content: ''; position: absolute; inset: 5px;
-  border: 1px solid rgba(184,137,46,.42);
-  border-radius: 5px;
-  pointer-events: none;
-}
 
 /* 모서리 완자무늬 — 두 줄 선 위에 걸쳐 놓는다 */
-/* 네 귀에 하나씩. 무늬의 팔이 늘 바깥 모서리를 향하도록 돌려 놓는다. */
-/* 무늬의 팔이 바깥 선까지 닿아야 이어져 보인다. 그래서 귀에 바짝 붙인다. */
-.sn-wanja {
-  position: absolute; width: 26px; height: 26px;
-  color: #B8892E; opacity: .9; pointer-events: none;
-}
-.sn-wanja-tl { left: -1px;  top: -1px; }
-.sn-wanja-tr { right: -1px; top: -1px;    transform: scaleX(-1); }
-.sn-wanja-br { right: -1px; bottom: -1px; transform: scale(-1, -1); }
-.sn-wanja-bl { left: -1px;  bottom: -1px; transform: scaleY(-1); }
-.sn-wanja svg { width: 100%; height: 100%; display: block; }
 [data-season="chuseok"] .lp-pcard:hover,
 [data-season="chuseok"] .lp-fcard:hover,
 [data-season="chuseok"] .lp-faq-item:hover { border-color: rgba(176,140,74,.62); }
@@ -579,8 +556,10 @@
 /* 후기 안내 카드는 원래 초록 그라디언트라 더 센 규칙으로 덮는다 */
 [data-season="chuseok"] .courses-page-inner .side-review {
   background: #FFFBF1;
-  border: 2px solid rgba(184,137,46,.72);
-  height: auto; padding: 16px 16px;
+  border: 16px solid transparent;
+  border-image: var(--sn-fret) 32 stretch;
+  border-radius: 0;
+  height: auto; padding: 8px 10px;
 }
 
 /* ── 강좌 목록 — 그룹 제목 앞에 금빛 표식, 인기 강좌 자리에 구름 ── */
