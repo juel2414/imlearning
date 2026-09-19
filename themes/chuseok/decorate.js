@@ -295,9 +295,10 @@
 
   function doSectionDeco() {
     // 칸 제목 아래에 구름 선 한 줄
+    var hi = 0;
     document.querySelectorAll('.lp-head').forEach(function (head) {
       if (!once(head, 'hcloud')) return;
-      head.appendChild(make('div', 'sn-head-cloud', M.cloudDivider()));
+      head.appendChild(make('div', 'sn-head-arch', M.archRow(hi++)));
     });
 
     DECO_SECS.forEach(function (sel, i) {
@@ -384,6 +385,7 @@
   function doFooter() {
     var f = document.querySelector('.footer');
     if (!f || !once(f, 'foot')) return;
+    f.appendChild(make('div', 'sn-footer-arch', M.archRow(3, null, { count: 12, w: 150 })));
     f.appendChild(make('div', 'sn-footer-band', M.reedBand()));
     f.appendChild(make('div', 'sn-footer-rabbit', M.rabbit()));
 

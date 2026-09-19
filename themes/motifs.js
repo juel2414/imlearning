@@ -310,6 +310,40 @@
     return '<span class="' + (cls || 'sn-reed-art') + '">' + out + '</span>';
   }
 
+  /* ── 겹아치 — 단청의 산·구름 무늬. 아치를 앞뒤로 포갠다.
+     앞 아치가 뒤를 가려야 겹쳐 보이므로 속을 바탕색으로 채운다. ── */
+  function archRow(seed, cls, opt) {
+    var o = opt || {};
+    var s = seed || 0;
+    var n = o.count || 5;
+    var base = 62, out = '', x = 4, maxX = 0;
+    for (var i = 0; i < n; i++) {
+      var t = Math.abs(i - (n - 1) / 2) / ((n - 1) / 2 || 1);   // 가운데가 가장 높다
+      var w = (o.w || 76) * (1 - t * 0.3);
+      var rr = w / 2;
+      var sh = rr * 0.16;                                        // 곧은 옆면은 짧게
+      var g = '<path class="sn-ar-fill" d="M' + r(x) + ' ' + base +
+              ' V ' + r(base - sh) +
+              ' A ' + r(rr) + ' ' + r(rr) + ' 0 0 1 ' + r(x + w) + ' ' + r(base - sh) +
+              ' V ' + base + ' Z"/>';
+      for (var k = 1; k <= 2; k++) {                             // 안쪽 겹선 둘
+        var d = k * 6.2, r2 = rr - d;
+        if (r2 < 5) break;
+        g += '<path class="sn-ar-line" d="M' + r(x + d) + ' ' + base +
+             ' V ' + r(base - sh) +
+             ' A ' + r(r2) + ' ' + r(r2) + ' 0 0 1 ' + r(x + w - d) + ' ' + r(base - sh) +
+             ' V ' + base + '"/>';
+      }
+      out += g;
+      maxX = x + w;
+      x += w * 0.64;                                             // 앞 아치가 뒤를 문다
+    }
+    out += '<path class="sn-ar-line sn-ar-thin" d="M0 ' + (base + 3) + ' H' + r(maxX + 4) +
+           ' M0 ' + (base + 7) + ' H' + r(maxX + 4) + '"/>';
+    return svg('0 0 ' + r(maxX + 4) + ' 72', out, cls || 'sn-m-arch',
+      o.stretch ? 'preserveAspectRatio="none"' : '');
+  }
+
   /* ── 전통 구름 — 뭉게진 몸체에 끝이 말린 꼬리 ────────────────────
      참고한 그림을 그대로 베끼지 않고 결만 따서 코드로 그린다.
      seed 를 바꾸면 봉우리 수와 꼬리 길이가 달라진다. */
@@ -655,6 +689,6 @@
     cloudDivider: cloudDivider, cornerOrnament: cornerOrnament,
     lantern: lantern, knot: knot,
     cloudKr: cloudKr,
-    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, cloudSilk: cloudSilk, pineKr: pineKr, sparkle: sparkle, starDust: starDust
+    norigae: norigae, soban: soban, flowerClump: flowerClump, reedsArt: reedsArt, cloudSilk: cloudSilk, archRow: archRow, pineKr: pineKr, sparkle: sparkle, starDust: starDust
   };
 })();

@@ -476,12 +476,23 @@
 }
 
 /* ── 칸 꾸밈 — 제목 아래 구름 선, 구석에 구름무늬와 낙엽 ── */
-.sn-head-cloud {
-  /* 문양 원본이 56 높이라 눌러 담으면 구름이 잘린다 */
-  margin: 10px auto 0; width: min(440px, 62%); height: 56px;
-  color: var(--sn-gold); opacity: .45; overflow: hidden; pointer-events: none;
+/* 칸 제목 아래 — 단청 겹아치 한 줄 */
+.sn-head-arch {
+  margin: 14px auto 0; width: min(320px, 56%);
+  color: var(--sn-gold); opacity: .6; pointer-events: none;
 }
-.sn-head-cloud svg { width: 100%; height: 100%; display: block; }
+.sn-head-arch svg { width: 100%; height: auto; display: block; }
+.sn-ar-fill { fill: var(--sn-arch-fill, #F6F1E4); stroke: currentColor; stroke-width: 2.1; }
+.sn-ar-line { fill: none; stroke: currentColor; stroke-width: 1.5; opacity: .85; }
+.sn-ar-thin { stroke-width: 1.2; opacity: .6; }
+
+/* 푸터 위 — 산처럼 두르는 겹아치 */
+.sn-footer-arch {
+  position: absolute; left: 0; right: 0; top: 0;
+  --sn-arch-fill: var(--gray-900, #111);
+  color: var(--sn-gold); opacity: .34; pointer-events: none;
+}
+.sn-footer-arch svg { width: 100%; height: auto; display: block; }
 
 .sn-wm { position: absolute; width: 300px; opacity: .1; pointer-events: none; z-index: 0; }
 .sn-wm svg { width: 100%; height: auto; }
@@ -795,7 +806,7 @@
   /* 375 과 768 사이에서 같이 늘어나게 폭을 비율로 잡는다 */
   .sn-wm { display: none; }
   .sn-still-2 { display: none; }
-  .sn-head-cloud { width: 78%; }
+  .sn-head-arch { width: 78%; }
 
   /* 좁은 화면에서는 구석 그림을 줄이고, 자리 없는 것은 덜어 낸다 */
   .sn-scene-rabbit   { width: 116px; }
