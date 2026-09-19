@@ -471,10 +471,15 @@
 }
 
 /* 모서리 완자무늬 — 두 줄 선 위에 걸쳐 놓는다 */
+/* 네 귀에 하나씩. 무늬의 팔이 늘 바깥 모서리를 향하도록 돌려 놓는다. */
 .sn-wanja {
-  position: absolute; left: 9px; top: 9px; width: 20px; height: 20px;
+  position: absolute; width: 20px; height: 20px;
   color: #B8892E; opacity: .85; pointer-events: none;
 }
+.sn-wanja-tl { left: 9px;  top: 9px; }
+.sn-wanja-tr { right: 9px; top: 9px;    transform: scaleX(-1); }
+.sn-wanja-br { right: 9px; bottom: 9px; transform: scale(-1, -1); }
+.sn-wanja-bl { left: 9px;  bottom: 9px; transform: scaleY(-1); }
 .sn-wanja svg { width: 100%; height: 100%; display: block; }
 [data-season="chuseok"] .lp-pcard:hover,
 [data-season="chuseok"] .lp-fcard:hover,

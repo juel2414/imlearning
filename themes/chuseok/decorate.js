@@ -227,7 +227,9 @@
     document.querySelectorAll(CARD_SEL).forEach(function (card) {
       if (!once(card, 'wanja')) return;
       if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
-      card.appendChild(make('span', 'sn-wanja', M.wanjaCorner()));
+      ['tl', 'tr', 'br', 'bl'].forEach(function (c) {
+        card.appendChild(make('span', 'sn-wanja sn-wanja-' + c, M.wanjaCorner()));
+      });
     });
 
     document.querySelectorAll('.course-card').forEach(function (card) {
