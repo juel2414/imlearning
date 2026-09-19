@@ -40,16 +40,6 @@
 
   var r = M.round;
 
-  /* ── 히어로 아래 — 돗자리에 윷판을 깔고 수확물을 쌓는다 ─────────
-     산·억새·담장을 코드로 그리던 것을 걷어 내고, 받은 그림으로 바꿨다. */
-  function ground() {
-    return make('div', 'sn-ground',
-      '<span class="sn-g sn-g-mat">'     + M.piece('mat')     + '</span>' +
-      '<span class="sn-g sn-g-pumpkin">' + M.piece('pumpkin') + '</span>' +
-      '<span class="sn-g sn-g-squash">'  + M.piece('squash')  + '</span>' +
-      '<span class="sn-g sn-g-chestnut">'+ M.piece('chestnut')+ '</span>' +
-      '<span class="sn-g sn-g-rabbit">'  + M.rabbit()         + '</span>');
-  }
 
   /* 별 — 오른쪽 위에서 왼쪽 아래로 물결처럼 차례로 반짝인다.
      자리에서 지연 시간을 뽑으므로 같은 대각선에 있는 별은 함께 빛난다.
@@ -201,12 +191,6 @@
       document.documentElement.classList.add('sn-framed');   // 화면 폭 계산에 쓴다
       if (h.full) h.el.appendChild(make('div', 'sn-shield', M.piece('shield')));
 
-      // 돗자리는 히어로 안에 두면 아래쪽 강좌 카드에 가린다.
-      // 히어로 다음 자리에 제 줄로 놓아 자리를 차지하게 한다.
-      if (h.full && h.el.parentNode) {
-        h.el.parentNode.insertBefore(ground(), h.el.nextSibling);
-      }
-
       // 인사말은 눈썹 문구 위에 놓는다
       var eyebrow = h.el.querySelector('.lp-eyebrow, .inst-hero-eye, .pass-eyebrow-text');
       if (eyebrow && eyebrow.parentNode && C.greet) {
@@ -299,6 +283,34 @@
       if (getComputedStyle(ct).position === 'static') ct.style.position = 'relative';
       ct.appendChild(make('span', 'sn-lantern-mark', M.lantern()));
     }
+  }
+
+  /* ══ 구석 그림 — 밋밋한 칸과 화면에 수확물을 하나씩 놓는다 ═══════
+     히어로 아래 돗자리 띠를 걷어 내고, 그 그림들을 여기로 흩어 놓았다.
+     글 위를 덮지 않도록 칸의 바깥 모서리에만 붙이고 뒤로 깐다. */
+  var SCENES = [
+    // [자리, 무엇, 표 이름]
+    ['[data-section="personas"]', function () { return M.rabbit(); },          'rabbit'],
+    ['[data-section="online"]',   function () {
+        return '<span class="sn-s-a">' + M.piece('pumpkin') + '</span>' +
+               '<span class="sn-s-b">' + M.piece('squash')  + '</span>'; },    'harvest'],
+    // 돗자리 그림에 윷판과 밤이 이미 들어 있다
+    ['[data-section="features"]', function () { return M.piece('mat'); },      'yutmat'],
+    ['[data-section="reviews"]',  function () { return M.piece('chestnut'); }, 'chestnut'],
+    ['.reviews-header',           function () { return M.piece('chestnut'); }, 'chestnut'],
+    ['.my-header',                function () { return M.rabbit(); },          'rabbit'],
+    ['.search-hero',              function () { return M.piece('pumpkin'); },  'harvest1'],
+    ['.pass-hero-inner',          function () { return M.piece('squash'); },   'harvest1']
+  ];
+
+  function doScenes() {
+    SCENES.forEach(function (row) {
+      var el = document.querySelector(row[0]);
+      if (!el || !once(el, 'scene')) return;
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      if (getComputedStyle(el).overflow === 'visible') el.style.overflow = 'hidden';
+      el.appendChild(make('span', 'sn-scene sn-scene-' + row[2], row[1]()));
+    });
   }
 
   /* ══ 시즌 CTA 배너 ════════════════════════════════════════════════ */
@@ -417,14 +429,6 @@
 
   // 랜딩은 섹션을 전부 떼었다 순서대로 다시 붙인다. 그때 섹션이 아닌
   // 돗자리 줄만 제자리에 남아 화면 맨 위로 밀린다. 매번 제자리로 되돌린다.
-  function keepGround() {
-    var g = document.querySelector('.sn-ground');
-    var hero = document.querySelector('[data-section="hero"]');
-    if (!g || !hero || !hero.parentNode) return;
-    if (hero.nextSibling === g) return;
-    hero.parentNode.insertBefore(g, hero.nextSibling);
-  }
-
   /* 억새·들꽃은 카드 판 안에 붙어 있어서, 화면이 넓으면 판 바깥 여백만큼
      가장자리가 빈다. 그 여백을 재서 그만큼 옆으로 늘려 화면 끝까지 채운다. */
   function placeReeds() {
@@ -475,13 +479,13 @@
   function scan() {
     try { doNav(); } catch (e) { warn('doNav', e); }
     try { doHero(); } catch (e) { warn('doHero', e); }
-    try { keepGround(); } catch (e) { warn('keepGround', e); }
     try { placeFlowers(); } catch (e) { warn('placeFlowers', e); }
     try { placeFrame(); } catch (e) { warn('placeFrame', e); }
     try { placeReeds(); } catch (e) { warn('placeReeds', e); }
     try { doDividers(); } catch (e) { warn('doDividers', e); }
     try { doCards(); } catch (e) { warn('doCards', e); }
     try { doLight(); } catch (e) { warn('doLight', e); }
+    try { doScenes(); } catch (e) { warn('doScenes', e); }
     try { doCta(); } catch (e) { warn('doCta', e); }
     try { doFooter(); } catch (e) { warn('doFooter', e); }
     try { doAuth(); } catch (e) { warn('doAuth', e); }
