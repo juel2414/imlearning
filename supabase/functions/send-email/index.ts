@@ -25,7 +25,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 // 도메인을 옮길 때는 SITE_URL 시크릿 하나만 바꾸면 된다.
 const SITE_URL = (Deno.env.get('SITE_URL') || 'https://imlearning.co.kr').replace(/\/+$/, '')
-const FROM = '아이엠러닝 <noreply@imlearning.co.kr>'
+const FROM = '아이엠러닝 <hello@imlearning.co.kr>'
 const BRAND = '#2D9B6F'
 const LOGO_URL = `${SITE_URL}/images/logo-horizontal.png`
 
