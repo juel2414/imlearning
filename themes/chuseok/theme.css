@@ -432,7 +432,8 @@
 
 /* 카드 액자 — 두 줄 선에 완자무늬 귀. 단청 액자에서 결만 따 왔다. */
 [data-season="chuseok"] {
-  --sn-fret: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'><g fill='none' stroke='%237A5A1C' stroke-linecap='square' stroke-linejoin='miter'><path d='M3.5 3.5 H124.5 V124.5 H3.5 Z' stroke-width='3'/><path d='M13 13 H115 V115 H13 Z' stroke-width='2'/><g stroke-width='2.4'><g transform='translate%280%2C0%29 rotate%280 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g><g transform='translate%2864%2C0%29 rotate%2890 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g><g transform='translate%2864%2C64%29 rotate%28180 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g><g transform='translate%280%2C64%29 rotate%28270 32 32%29'><path d='M21 3.5 V31'/><path d='M3.5 21 H31'/><path d='M13 13 H29 V29 H13 Z'/></g></g></g></svg>");
+  /* 받은 액자 그림에서 글자를 지우고 흰 바탕을 투명으로 만든 것 */
+  --sn-fret: url("/images/season/chuseok-card-frame.png");
 }
 
 /* 카드 — 흰색 대신 아이보리, 테두리는 두 줄 액자 */
@@ -444,10 +445,9 @@
 [data-season="chuseok"] .side-ad,
 [data-season="chuseok"] .side-review {
   background-color: #FFFBF1;
-  /* 두 줄 액자 — 선과 네 귀 완자무늬를 그림 한 장으로 두른다.
-     시안처럼 모서리는 각지게 두고, 무늬가 두 선과 맞물린다. */
-  border: 16px solid transparent;
-  border-image: var(--sn-fret) 32 stretch;
+  /* 받은 액자 그림을 9조각으로 잘라 두른다. 귀 무늬가 원본 그대로다. */
+  border: 17px solid transparent;
+  border-image: var(--sn-fret) 34 stretch;
   border-radius: 0;
   position: relative;
 }
@@ -556,8 +556,8 @@
 /* 후기 안내 카드는 원래 초록 그라디언트라 더 센 규칙으로 덮는다 */
 [data-season="chuseok"] .courses-page-inner .side-review {
   background: #FFFBF1;
-  border: 16px solid transparent;
-  border-image: var(--sn-fret) 32 stretch;
+  border: 17px solid transparent;
+  border-image: var(--sn-fret) 34 stretch;
   border-radius: 0;
   height: auto; padding: 8px 10px;
 }
