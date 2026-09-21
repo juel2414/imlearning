@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매출 관리 — 아이엠러닝 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-client.js?v=3"></script>
+<link rel="stylesheet" href="admin-common.css?v=2">
+<style>
+/* 결제 내역·환불 관리·결제 대사를 한 화면의 탭으로 모은다.
+   뒤 둘은 이미 있는 화면을 ?embed=1 로 끼워 넣는다. 코드를 복사하지 않는다. */
+body { background:#F8F9FA; }
+
+.sm-tabs { display:flex; gap:6px; margin-bottom:1.25rem; flex-wrap:wrap; }
+.sm-tab {
+  padding:8px 18px; border-radius:20px; border:1.5px solid rgba(0,0,0,.1);
+  background:#fff; font-size:13px; font-weight:600; color:#777; cursor:pointer;
+  transition:all .15s; font-family:inherit;
+}
+.sm-tab.active { background:#2D9B6F; border-color:#2D9B6F; color:#fff; }
+.sm-pane { display:none; }
+.sm-pane.show { display:block; }
+.sm-frame { width:100%; border:none; border-radius:14px; background:#fff; min-height:70vh; display:block; }
+
+/* ── 결제 내역 ── */
+.sm-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:1.25rem; }
+.sm-kpi { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.05); }
+.sm-kpi-label { font-size:12px; color:#888; font-weight:600; }
+.sm-kpi-value { font-size:24px; font-weight:900; color:#111; margin-top:6px; letter-spacing:-.5px; }
+.sm-kpi-sub { font-size:11px; color:#aaa; margin-top:4px; }
+.sm-kpi.warn .sm-kpi-value { color:#EF4444; }
+
+.sm-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:1rem; }
+.sm-chip {
+  padding:7px 14px; border-radius:20px; border:1.5px solid rgba(0,0,0,.1);
+  background:#fff; font-size:12.5px; font-weight:600; color:#777; cursor:pointer; font-family:inherit;
+}
+.sm-chip.active { background:#111318; border-color:#111318; color:#fff; }
+.sm-search {
+  flex:1; min-width:180px; padding:8px 14px; border:1.5px solid rgba(0,0,0,.1);
+  border-radius:10px; font-size:13px; font-family:inherit; outline:none;
+}
+.sm-search:focus { border-color:#2D9B6F; }
+.sm-btn {
+  padding:8px 16px; border-radius:10px; border:none; background:#2D9B6F; color:#fff;
+  font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;
+}
+
+.sm-table-wrap { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.05); overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:11px 14px; font-size:11px; font-weight:700; color:#888; border-bottom:2px solid rgba(0,0,0,.06); white-space:nowrap; }
+td { padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+.sm-amount { font-weight:800; color:#111; white-space:nowrap; }
+.sm-amount.zero { color:#bbb; font-weight:600; }
+.sm-amount.cut { color:#EF4444; }
+.sm-badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.b-paid { background:#E8F5EE; color:#1A7A4A; }
+.b-refund { background:#FEE2E2; color:#B91C1C; }
+.b-part { background:#FEF3C7; color:#92400E; }
+.b-free { background:#EEF2F7; color:#64748B; }
+.sm-empty { padding:3rem; text-align:center; color:#aaa; font-size:14px; }
+.sm-more { display:block; width:100%; padding:12px; border:none; background:#fff; border-top:1px solid rgba(0,0,0,.05); font-size:13px; font-weight:700; color:#2D9B6F; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body>
+<main class="admin-main">
+  <div class="admin-header">
+    <h1>💰 매출 관리</h1>
+  </div>
+
+  <div class="sm-tabs">
+    <button class="sm-tab active" data-pane="orders" onclick="showPane('orders', this)">결제 내역</button>
+    <button class="sm-tab" data-pane="refunds" onclick="showPane('refunds', this)">환불 관리</button>
+    <button class="sm-tab" data-pane="audit" onclick="showPane('audit', this)">결제 대사</button>
+  </div>
+
+  <!-- ── 결제 내역 ── -->
+  <section class="sm-pane show" id="pane-orders">
+    <div class="sm-kpis">
+      <div class="sm-kpi">
+        <div class="sm-kpi-label">순매출</div>
+        <div class="sm-kpi-value" id="k-net">-</div>
+        <div class="sm-kpi-sub" id="k-net-sub">환불 제외</div>
+      </div>
+      <div class="sm-kpi">
+        <div class="sm-kpi-label">결제 건수</div>
+        <div class="sm-kpi-value" id="k-cnt">-</div>
+        <div class="sm-kpi-sub" id="k-cnt-sub">유료 결제만</div>
+      </div>
+      <div class="sm-kpi warn">
+        <div class="sm-kpi-label">환불</div>
+        <div class="sm-kpi-value" id="k-refund">-</div>
+        <div class="sm-kpi-sub" id="k-refund-sub">건수 · 금액</div>
+      </div>
+      <div class="sm-kpi">
+        <div class="sm-kpi-label">무료·수동 부여</div>
+        <div class="sm-kpi-value" id="k-free">-</div>
+        <div class="sm-kpi-sub">0원 건</div>
+      </div>
+    </div>
+
+    <div class="sm-filters">
+      <button class="sm-chip" data-period="today" onclick="setPeriod('today', this)">오늘</button>
+      <button class="sm-chip" data-period="week" onclick="setPeriod('week', this)">이번주</button>
+      <button class="sm-chip active" data-period="month" onclick="setPeriod('month', this)">이번달</button>
+      <button class="sm-chip" data-period="all" onclick="setPeriod('all', this)">전체</button>
+      <span style="width:12px;"></span>
+      <button class="sm-chip active" data-kind="paid" onclick="setKind('paid', this)">유료만</button>
+      <button class="sm-chip" data-kind="all" onclick="setKind('all', this)">0원 포함</button>
+      <input class="sm-search" id="q" placeholder="강좌명 검색" oninput="renderOrders()">
+      <button class="sm-btn" onclick="exportCSV()">CSV 내보내기</button>
+    </div>
+
+    <div class="sm-table-wrap" id="orders-area">
+      <div class="sm-empty">불러오는 중...</div>
+    </div>
+  </section>
+
+  <!-- ── 환불 관리 · 결제 대사 — 기존 화면을 그대로 끼운다 ── -->
+  <section class="sm-pane" id="pane-refunds"></section>
+  <section class="sm-pane" id="pane-audit"></section>
+</main>
+
+<script>
+const sb = window.supabaseClient;
+let allOrders = [];
+let period = 'month';
+let kind = 'paid';
+let shown = 100;
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+/* 결제액에서 환불된 몫을 뺀 순매출. 환불 건을 그대로 더하면
+   전부 환불인 달에도 매출이 잡힌다. */
+function netAmount(o) {
+  if (o.refund_status === 'refunded') return 0;
+  return Math.max(0, (o.amount || 0) - (o.refund_amount || 0));
+}
+
+function periodStart() {
+  const now = new Date();
+  if (period === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === 'week')  { const d = new Date(now); d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d; }
+  if (period === 'month') return new Date(now.getFullYear(), now.getMonth(), 1);
+  return null;
+}
+
+function filtered(ignoreKind) {
+  const start = periodStart();
+  const q = (document.getElementById('q').value || '').trim().toLowerCase();
+  return allOrders.filter(o => {
+    if (o.status !== 'paid') return false;
+    if (start && new Date(o.created_at) < start) return false;
+    if (!ignoreKind && kind === 'paid' && !(o.amount > 0)) return false;
+    if (q && !String(o.course_name || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function setPeriod(p, el) {
+  period = p;
+  document.querySelectorAll('[data-period]').forEach(b => b.classList.toggle('active', b === el));
+  shown = 100; renderOrders();
+}
+function setKind(k, el) {
+  kind = k;
+  document.querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('active', b === el));
+  shown = 100; renderOrders();
+}
+
+function renderOrders() {
+  const rows = filtered().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const paidRows = rows.filter(o => o.amount > 0);
+
+  const net = paidRows.reduce((s, o) => s + netAmount(o), 0);
+  const refundAmt = paidRows.reduce((s, o) => s + ((o.amount || 0) - netAmount(o)), 0);
+  const refundCnt = paidRows.filter(o => (o.amount || 0) > netAmount(o)).length;
+  const freeCnt = filtered(true).filter(o => !(o.amount > 0)).length;
+
+  document.getElementById('k-net').textContent = '₩' + net.toLocaleString();
+  document.getElementById('k-net-sub').textContent = refundAmt > 0
+    ? '환불 ₩' + refundAmt.toLocaleString() + ' 제외' : '환불 제외';
+  document.getElementById('k-cnt').textContent = paidRows.length + '건';
+  document.getElementById('k-refund').textContent = refundCnt + '건';
+  document.getElementById('k-refund-sub').textContent = '₩' + refundAmt.toLocaleString();
+  document.getElementById('k-free').textContent = freeCnt + '건';
+
+  const el = document.getElementById('orders-area');
+  if (!rows.length) { el.innerHTML = '<div class="sm-empty">결제 내역이 없습니다</div>'; return; }
+
+  let html = '<table><thead><tr><th>일시</th><th>강좌명</th><th>결제액</th><th>실매출</th>'
+           + '<th>쿠폰</th><th>상태</th></tr></thead><tbody>';
+  rows.slice(0, shown).forEach(o => {
+    const d = new Date(o.created_at).toLocaleString('ko-KR',
+      { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const paid = o.amount || 0;
+    const net1 = netAmount(o);
+    let badge = '<span class="sm-badge b-paid">완료</span>';
+    if (paid === 0) badge = '<span class="sm-badge b-free">무료·부여</span>';
+    else if (o.refund_status === 'refunded') badge = '<span class="sm-badge b-refund">환불</span>';
+    else if (net1 < paid) badge = '<span class="sm-badge b-part">부분환불</span>';
+
+    html += '<tr>'
+      + '<td style="color:#888;white-space:nowrap;">' + d + '</td>'
+      + '<td>' + esc(o.course_name || '-') + '</td>'
+      + '<td class="sm-amount' + (paid ? '' : ' zero') + '">₩' + paid.toLocaleString() + '</td>'
+      + '<td class="sm-amount' + (net1 < paid ? ' cut' : '') + '">₩' + net1.toLocaleString() + '</td>'
+      + '<td style="font-size:11px;color:#888;">' + esc(o.coupon_code || '-') + '</td>'
+      + '<td>' + badge + '</td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  if (rows.length > shown) {
+    html += '<button class="sm-more" onclick="shown += 100; renderOrders();">'
+          + '더 보기 (' + (rows.length - shown) + '건 남음)</button>';
+  }
+  el.innerHTML = html;
+}
+
+function exportCSV() {
+  const rows = filtered().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const head = ['일시','강좌명','결제액','실매출','쿠폰','상태'];
+  const body = rows.map(o => [
+    new Date(o.created_at).toLocaleString('ko-KR'),
+    o.course_name || '',
+    o.amount || 0,
+    netAmount(o),
+    o.coupon_code || '',
+    o.refund_status === 'refunded' ? '환불' : (netAmount(o) < (o.amount||0) ? '부분환불' : '완료'),
+  ]);
+  const csv = [head, ...body]
+    .map(r => r.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8;' }));
+  Object.assign(document.createElement('a'),
+    { href:url, download:'매출_' + new Date().toISOString().slice(0,10) + '.csv' }).click();
+}
+
+/* 탭 — 뒤 두 개는 처음 열 때 한 번만 불러온다 */
+const FRAMES = { refunds:'refunds.html?embed=1', audit:'payment-audit.html?embed=1' };
+function showPane(name, el) {
+  document.querySelectorAll('.sm-tab').forEach(b => b.classList.toggle('active', b === el));
+  document.querySelectorAll('.sm-pane').forEach(p => p.classList.remove('show'));
+  const pane = document.getElementById('pane-' + name);
+  pane.classList.add('show');
+  if (FRAMES[name] && !pane.querySelector('iframe')) {
+    const f = document.createElement('iframe');
+    f.className = 'sm-frame';
+    f.src = FRAMES[name];
+    f.onload = function () { fitFrame(f); setInterval(function () { fitFrame(f); }, 1200); };
+    pane.appendChild(f);
+  }
+}
+// 안쪽 내용 높이에 맞춰 늘린다. 스크롤이 두 겹으로 생기지 않게.
+function fitFrame(f) {
+  try {
+    const h = f.contentDocument.body.scrollHeight;
+    if (h > 200) f.style.height = (h + 24) + 'px';
+  } catch (e) { /* 아직 안 열렸으면 다음 차례에 */ }
+}
+
+(async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '../login.html?next=admin/sales.html'; return; }
+  const { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+  if (!p || p.role !== 'super_admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; return; }
+
+  const { data, error } = await sb.from('orders')
+    .select('id, course_name, amount, coupon_code, status, refund_status, refund_amount, created_at')
+    .order('created_at', { ascending: false })
+    .limit(5000);
+  if (error) {
+    document.getElementById('orders-area').innerHTML =
+      '<div class="sm-empty">불러오지 못했습니다: ' + esc(error.message) + '</div>';
+    return;
+  }
+  allOrders = data || [];
+  renderOrders();
+})();
+</script>
+<script src="../js/admin-nav.js?v=4"></script>
+</body>
+</html>

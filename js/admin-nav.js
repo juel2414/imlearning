@@ -3,6 +3,20 @@
 (function () {
   'use strict';
 
+  /* 매출 관리 탭처럼 iframe 으로 끼워 넣을 때(?embed=1)는 사이드바를 그리지 않는다.
+     부모 화면에 이미 있어서 두 겹으로 보이고, 왼쪽 여백만 220px 낭비된다. */
+  try {
+    if (new URLSearchParams(location.search).get('embed') === '1') {
+      var st = document.createElement('style');
+      st.textContent = 'body{padding-left:0!important;}' +
+        '.admin-main{margin-left:0!important;padding-top:8px!important;}' +
+        'aside.sidebar,aside.admin-sidebar,nav.sidebar,.menu-btn{display:none!important;}' +
+        '.admin-header{display:none!important;}';
+      document.head.appendChild(st);
+      return;
+    }
+  } catch (e) { /* 주소를 못 읽으면 그대로 진행 */ }
+
   var cur = window.location.pathname.split('/').pop() || 'index.html';
   if (cur && !cur.includes('.')) cur += '.html';
 
@@ -13,12 +27,13 @@
     { href: 'courses.html',     icon: '📚', label: '강좌 관리' },
     { href: 'lessons-audit.html', icon: '🔍', label: '강의 점검' },
     { href: 'instructors.html', icon: '👨‍🏫', label: '강사 관리' },
+    { type: 'section', label: '매출' },
+    { super: true, href: 'sales.html',       icon: '💰', label: '매출 관리' },
     { type: 'section', label: '수강생' },
     { super: true, href: 'students.html',    icon: '👥', label: '수강생 관리' },
     { super: true, href: 'merge.html',       icon: '🔗', label: '계정 합치기' },
     { super: true, href: 'learning.html',    icon: '📈', label: '학습 현황' },
-    { super: true, href: 'refunds.html',     icon: '💰', label: '환불 관리' },
-    { super: true, href: 'payment-audit.html', icon: '🧾', label: '결제 대사' },
+
     { href: 'contacts.html',    icon: '💬', label: '문의 관리' },
     { href: 'reviews.html',     icon: '⭐', label: '후기 관리' },
     { href: 'submissions.html', icon: '📝', label: '노트 제출 관리' },

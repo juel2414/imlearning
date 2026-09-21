@@ -328,6 +328,14 @@ async function setPeriod(period, btn) {
   renderAll();
 }
 
+/* 결제액에서 환불된 몫을 뺀 순매출.
+   환불 건을 그대로 더하면 이번달처럼 전부 환불인데도 매출이 잡힌다. */
+function netAmount(o) {
+  const paid = o.amount || 0;
+  if (o.refund_status === 'refunded') return 0;
+  return Math.max(0, paid - (o.refund_amount || 0));
+}
+
 // ── 전체 렌더 ──
 function renderAll() {
   const { start, end } = getPeriodRange(currentPeriod);
@@ -347,11 +355,15 @@ function renderAll() {
 
 // ── KPI ──
 function renderKPI(filtered) {
-  const revenue = filtered.reduce((s, o) => s + (o.amount || 0), 0);
+  const revenue = filtered.reduce((s, o) => s + netAmount(o), 0);
+  const refunded = filtered.reduce((s, o) => s + ((o.amount || 0) - netAmount(o)), 0);
+  const refundCnt = filtered.filter(o => (o.amount || 0) > netAmount(o)).length;
   const periodLabel = { today:'오늘', week:'이번주', month:'이번달', all:'전체' }[currentPeriod];
 
   document.getElementById('kpi-revenue').textContent = '₩' + revenue.toLocaleString();
-  document.getElementById('kpi-revenue-d').textContent = periodLabel + ' 총 매출';
+  document.getElementById('kpi-revenue-d').textContent = refunded > 0
+    ? periodLabel + ' 순매출 · 환불 ' + refundCnt + '건 ₩' + refunded.toLocaleString() + ' 제외'
+    : periodLabel + ' 총 매출';
   document.getElementById('kpi-revenue-d').className = 'kpi-delta ' + (revenue > 0 ? 'up' : 'neutral');
 
   document.getElementById('kpi-orders').textContent = filtered.length;
@@ -391,7 +403,7 @@ function renderGoal() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthRevenue = allOrders
     .filter(o => o.status === 'paid' && new Date(o.created_at) >= monthStart)
-    .reduce((s, o) => s + (o.amount || 0), 0);
+    .reduce((s, o) => s + netAmount(o), 0);
   const pct = Math.min(100, Math.round((monthRevenue / MONTHLY_GOAL) * 100));
   document.getElementById('goal-current').textContent = '₩' + monthRevenue.toLocaleString();
   document.getElementById('goal-pct').textContent = pct + '%';
@@ -465,7 +477,7 @@ function renderRevenueChart(filtered) {
     values = Array(24).fill(0);
     filtered.forEach(o => {
       const h = new Date(o.created_at).getHours();
-      values[h] += (o.amount || 0);
+      values[h] += netAmount(o);
     });
     // 최근 12시간만 표시
     const curH = new Date().getHours();
@@ -478,7 +490,7 @@ function renderRevenueChart(filtered) {
     values = Array(7).fill(0);
     filtered.forEach(o => {
       const d = new Date(o.created_at).getDay();
-      values[d] += (o.amount || 0);
+      values[d] += netAmount(o);
     });
   } else {
     // month / all: 날짜별 (최근 30일)
@@ -493,7 +505,7 @@ function renderRevenueChart(filtered) {
     filtered.forEach(o => {
       const d = new Date(o.created_at);
       const key = (d.getMonth()+1) + '/' + d.getDate();
-      if (key in map) map[key] += (o.amount || 0);
+      if (key in map) map[key] += netAmount(o);
     });
     labels = Object.keys(map).filter((_, i) => i % 3 === 0 || Object.keys(map).length <= 10);
     values = labels.map(k => map[k]);
@@ -745,7 +757,7 @@ async function loadAll() {
 
 loadAll();
 </script>
-<script src="../js/admin-nav.js?v=3"></script>
+<script src="../js/admin-nav.js?v=4"></script>
 <script>
 // ── 슈퍼관리자 전용 메뉴 숨김 ─────────────────────────────
 // .super-only 가 붙은 요소는 슈퍼관리자에게만 보인다.
