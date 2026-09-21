@@ -8,7 +8,10 @@
      들고 재설정 화면으로 넘겨 준다. */
   try {
     var h = location.hash || '';
-    if (h.indexOf('type=recovery') > -1 && !/reset-password\.html$/.test(location.pathname)) {
+    // 만료되거나 이미 쓴 링크는 Supabase 가 기본 주소(홈)로 떨궈 놓는다.
+    // 그것도 재설정 화면으로 데려가 사정을 알려 준다.
+    var bad = h.indexOf('error_code=') > -1 || h.indexOf('error=access_denied') > -1;
+    if ((h.indexOf('type=recovery') > -1 || bad) && !/reset-password\.html$/.test(location.pathname)) {
       var dir = location.pathname.replace(/\/[^/]*$/, '/');
       location.replace(location.origin + dir + 'reset-password.html' + h);
       return;
