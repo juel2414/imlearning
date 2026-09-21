@@ -1073,7 +1073,7 @@ window.formatNoticeText = function (raw) {
    꺼져 있으면 설정 한 줄만 읽고 끝난다. */
 (function () {
   var s = document.createElement('script');
-  s.src = 'themes/loader.js?v=86';
+  s.src = 'themes/loader.js?v=87';
   s.defer = true;
   document.head.appendChild(s);
 })();

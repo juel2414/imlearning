@@ -365,10 +365,17 @@ function renderKPI(filtered) {
   document.getElementById('kpi-users-d').textContent = periodLabel + ' 신규 가입';
   document.getElementById('kpi-users-d').className = 'kpi-delta ' + (newUsers > 0 ? 'up' : 'neutral');
 
+  /* 전환율은 '몇 명이 샀는가' 다. 건수로 세면 한 사람이 여러 개 살 때
+     100% 를 넘어 버린다(회원 1,319명에 결제 2,485건이라 188% 가 나왔다). */
+  const paidOrders = allOrders.filter(o => o.status === 'paid');
+  const buyers = new Set(paidOrders.map(o => o.user_id).filter(Boolean)).size;
   const convRate = allProfiles.length > 0
-    ? Math.round((allOrders.filter(o=>o.status==='paid').length / allProfiles.length) * 100)
+    ? Math.round((buyers / allProfiles.length) * 100)
     : 0;
   document.getElementById('kpi-conv').textContent = convRate + '%';
+  document.getElementById('kpi-conv-d').textContent = allProfiles.length > 0
+    ? '가입 대비 결제 · 1인 평균 ' + (paidOrders.length / allProfiles.length).toFixed(1) + '건'
+    : '가입 대비 결제';
 
   const totalStudents = allCourses.reduce((s, c) => s + (c.students || 0), 0);
   document.getElementById('kpi-students').textContent = totalStudents.toLocaleString();

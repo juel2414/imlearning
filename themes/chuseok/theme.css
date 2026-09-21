@@ -720,6 +720,13 @@
   position: absolute; right: 18px; top: 8px; width: 82px;
   opacity: .8; pointer-events: none;
 }
+/* 골카드 머리글은 오른쪽에 버튼이 있다. 윷을 그 위에 얹으면 버튼을 덮는다.
+   제목 왼쪽 여백으로 보낸다. */
+[data-season="chuseok"] .gc-header { padding-left: 74px; }
+[data-season="chuseok"] .gc-header .sn-yut-mark {
+  right: auto; left: -4px; top: 50%; width: 64px;
+  transform: translateY(-50%) rotate(-8deg);
+}
 .sn-knot-mark svg, .sn-lantern-mark svg, .sn-yut-mark svg { width: 100%; height: auto; }
 
 /* 색동 선은 탭 아래에 가늘게 */
