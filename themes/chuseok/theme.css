@@ -63,7 +63,9 @@
 /* ══ 1. 헤더 ══════════════════════════════════════════════════════════
    아래에 색동 선을 한 줄 깔고, 로고 옆에 작은 달을 띄운다. */
 
-[data-season="chuseok"] .navbar { position: relative; }
+/* 메뉴바에 position 을 건드리면 안 된다. 원래 sticky 라 그대로 두면
+   붙어 있고, sticky 도 자리를 잡아 주므로 ::after 는 그대로 얹힌다.
+   relative 로 바꿨더니 메뉴바가 안 붙고, 공지 띠가 있을 때 아래 글을 덮었다. */
 [data-season="chuseok"] .navbar::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
   background-image: var(--sn-saekdong);

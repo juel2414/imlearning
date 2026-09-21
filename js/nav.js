@@ -2,6 +2,19 @@
 (function () {
   'use strict';
 
+  /* 비밀번호 재설정 링크가 엉뚱한 화면으로 떨어질 때의 안전장치.
+     Supabase 허용 주소 목록에 reset-password.html 이 없으면 기본 주소(홈)로
+     보내 버린다. 그때도 주소 뒤에 recovery 토큰이 붙어 오므로, 토큰을 그대로
+     들고 재설정 화면으로 넘겨 준다. */
+  try {
+    var h = location.hash || '';
+    if (h.indexOf('type=recovery') > -1 && !/reset-password\.html$/.test(location.pathname)) {
+      var dir = location.pathname.replace(/\/[^/]*$/, '/');
+      location.replace(location.origin + dir + 'reset-password.html' + h);
+      return;
+    }
+  } catch (e) { /* 주소를 못 읽으면 그냥 진행 */ }
+
   // iframe 으로 끼워 넣은 화면(?embed=1)에서는 네비와 안내 배너를 그리지 않는다.
   // 부모 화면에 이미 있어서 두 겹으로 보이기 때문이다.
   try {
@@ -1057,7 +1070,7 @@ window.formatNoticeText = function (raw) {
    꺼져 있으면 설정 한 줄만 읽고 끝난다. */
 (function () {
   var s = document.createElement('script');
-  s.src = 'themes/loader.js?v=85';
+  s.src = 'themes/loader.js?v=86';
   s.defer = true;
   document.head.appendChild(s);
 })();
