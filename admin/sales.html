@@ -24,6 +24,19 @@ body { background:#F8F9FA; }
 .sm-pane.show { display:block; }
 .sm-frame { width:100%; border:none; border-radius:14px; background:#fff; min-height:70vh; display:block; }
 
+/* ── 매출 목표 ── */
+.sm-goal { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,.05); padding:20px 24px; margin-bottom:1.25rem; }
+.sm-goal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.sm-goal-title { font-size:14px; font-weight:700; color:#111; }
+.sm-goal-pct { font-size:26px; font-weight:900; color:#2D9B6F; }
+.sm-goal-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; margin-bottom:8px; }
+.sm-goal-now { font-size:15px; font-weight:800; color:#111; }
+.sm-goal-target { color:#888; display:flex; align-items:center; gap:8px; }
+.sm-goal-edit { padding:3px 10px; border-radius:8px; border:1.5px solid rgba(0,0,0,.1); background:#fff; font-size:11px; font-weight:700; color:#777; cursor:pointer; font-family:inherit; }
+.sm-goal-edit:hover { border-color:#2D9B6F; color:#2D9B6F; }
+.sm-goal-bg { background:#f0f0f0; border-radius:20px; height:14px; overflow:hidden; }
+.sm-goal-fill { background:linear-gradient(90deg,#2D9B6F,#5cbf8a); border-radius:20px; height:14px; transition:width .8s ease; }
+
 /* ── 결제 내역 ── */
 .sm-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:1.25rem; }
 .sm-kpi { background:#fff; border-radius:14px; padding:18px 20px; border:1px solid rgba(0,0,0,.05); }
@@ -79,6 +92,21 @@ tr:last-child td { border-bottom:none; }
 
   <!-- ── 결제 내역 ── -->
   <section class="sm-pane show" id="pane-orders">
+    <div class="sm-goal">
+      <div class="sm-goal-head">
+        <span class="sm-goal-title">🎯 이번달 매출 목표</span>
+        <span class="sm-goal-pct" id="g-pct">0%</span>
+      </div>
+      <div class="sm-goal-row">
+        <span class="sm-goal-now" id="g-now">₩0</span>
+        <span class="sm-goal-target">
+          목표: <b id="g-target">₩1,000,000</b>
+          <button class="sm-goal-edit" onclick="editGoal()">수정</button>
+        </span>
+      </div>
+      <div class="sm-goal-bg"><div class="sm-goal-fill" id="g-bar" style="width:0%"></div></div>
+    </div>
+
     <div class="sm-kpis">
       <div class="sm-kpi">
         <div class="sm-kpi-label">순매출</div>
@@ -172,6 +200,41 @@ function setKind(k, el) {
   kind = k;
   document.querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('active', b === el));
   shown = 100; renderOrders();
+}
+
+/* 목표 금액은 landing_config 의 monthly_goal 에 둔다.
+   대시보드도 같은 값을 읽으므로 한 곳만 고치면 둘 다 바뀐다. */
+let monthlyGoal = 1000000;
+
+async function loadGoal() {
+  const { data } = await sb.from('landing_config').select('value').eq('key', 'monthly_goal').maybeSingle();
+  if (data && data.value && data.value.amount > 0) monthlyGoal = data.value.amount;
+  renderGoal();
+}
+
+function renderGoal() {
+  // 목표는 이번달 기준이다. 화면 위 기간 필터와 무관하게 늘 이번달을 본다.
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const net = allOrders
+    .filter(o => o.status === 'paid' && new Date(o.created_at) >= monthStart)
+    .reduce((s, o) => s + netAmount(o), 0);
+  const pct = monthlyGoal > 0 ? Math.min(100, Math.round((net / monthlyGoal) * 100)) : 0;
+  document.getElementById('g-now').textContent = '₩' + net.toLocaleString();
+  document.getElementById('g-target').textContent = '₩' + monthlyGoal.toLocaleString();
+  document.getElementById('g-pct').textContent = pct + '%';
+  document.getElementById('g-bar').style.width = pct + '%';
+}
+
+async function editGoal() {
+  const input = prompt('이번달 매출 목표를 원 단위로 넣어 주세요.', monthlyGoal);
+  if (input === null) return;
+  const amount = Math.round(Number(String(input).replace(/[^0-9]/g, '')));
+  if (!amount || amount < 0) { alert('숫자만 넣어 주세요.'); return; }
+  const { error } = await sb.from('landing_config')
+    .upsert({ key: 'monthly_goal', value: { amount } }, { onConflict: 'key' });
+  if (error) { alert('저장하지 못했습니다: ' + error.message); return; }
+  monthlyGoal = amount;
+  renderGoal();
 }
 
 function renderOrders() {
@@ -281,6 +344,7 @@ function fitFrame(f) {
   }
   allOrders = data || [];
   renderOrders();
+  loadGoal();
 })();
 </script>
 <script src="../js/admin-nav.js?v=4"></script>

@@ -296,7 +296,9 @@ let currentPeriod = 'today';
 let allOrders = [];
 let allCourses = [];
 let allProfiles = [];
-const MONTHLY_GOAL = 1000000; // 월 목표 매출 (원)
+/* 월 목표 매출. 매출 관리 화면에서 고치면 landing_config 에 저장되고
+   여기서도 같은 값을 읽는다. 못 읽으면 아래 기본값을 쓴다. */
+let MONTHLY_GOAL = 1000000;
 
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -398,6 +400,19 @@ function renderKPI(filtered) {
 }
 
 // ── 목표 달성률 ──
+async function loadGoal() {
+  try {
+    const { data } = await sb.from('landing_config')
+      .select('value').eq('key', 'monthly_goal').maybeSingle();
+    if (data && data.value && data.value.amount > 0) {
+      MONTHLY_GOAL = data.value.amount;
+      document.getElementById('goal-target').textContent =
+        '목표: ₩' + MONTHLY_GOAL.toLocaleString();
+      renderGoal();
+    }
+  } catch (e) { /* 못 읽으면 기본값 그대로 */ }
+}
+
 function renderGoal() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -744,6 +759,7 @@ async function loadAll() {
 
     renderLearningKPI(vpTodayRes.data || [], studyLogsRes.data || [], allOrders, vpAllRes.data || [], opensRes.data || []);
     renderAll();
+    loadGoal();
 
     // 30초마다 자동 갱신
     setInterval(async () => {
