@@ -2406,9 +2406,11 @@ function extractVimeoId(url) {
 class VimeoTracker {
   // 이 비율을 넘기면 그 강의를 다 들은 것으로 본다.
   static DONE_PCT = 50;
-  // 직전 위치와 이만큼까지 벌어진 것은 '이어서 재생'으로 보고 사이를 채운다.
-  // 2배속이면 2초씩 벌어진다. 10초 건너뛰기는 넘어서므로 채우지 않는다.
-  static MAX_GAP  = 8;
+  // 이어서 재생으로 볼 최소 간격. 배속·경과시간으로 계산한 값이 이보다 작아도
+  // 이만큼은 허용한다(타이머가 살짝 흔들려도 한 칸씩 빠지지 않게).
+  static MIN_GAP  = 2;
+  // 계산한 간격에 주는 여유. 타이머 흔들림과 배속 전환 시점을 감당한다.
+  static GAP_SLACK = 1.3;
 
   constructor(player, userId, courseId, lessonNum, lessonTitle, totalSecs) {
     this.player      = player;
@@ -2420,6 +2422,9 @@ class VimeoTracker {
     this.watchedSet  = new Set();
     this.lastPos     = 0;
     this._prevT      = null;   // 직전에 찍은 재생 위치. 그 사이 구간을 채우는 데 쓴다
+    this._prevWall   = 0;      // 그때의 현실 시각. 얼마나 흘렀는지 재는 데 쓴다
+    this._rate       = 1;      // 현재 배속. playbackratechange 로 따라간다
+    this._onRate     = null;
     this._tick       = null;
     this._saver      = null;
     this._onPlay     = null;
@@ -2433,18 +2438,29 @@ class VimeoTracker {
         const paused = await this.player.getPaused();
         if (paused) { this._prevT = null; return; }   // 멈춘 앞뒤는 이어진 구간이 아니다
 
-        const t = await this.player.getCurrentTime();
+        const t    = await this.player.getCurrentTime();
+        const now  = Date.now();
+        const prev = this._prevT;
+
         // 위치는 1초에 한 번만 찍는데, 2배속이면 그동안 영상은 2초를 간다.
         // 찍힌 점만 담으면 홀수 초가 영영 안 담겨, 끝까지 봐도 50%에서 멈춘다.
-        // 그래서 직전 위치부터 지금까지를 통째로 채운다. 건너뛰기로 안 본 구간까지
-        // 채워지지 않도록, MAX_GAP 을 넘는 점프는 이어붙이지 않는다.
-        const prev = this._prevT;
-        if (prev != null && t > prev && t - prev <= VimeoTracker.MAX_GAP) {
-          for (let s = Math.floor(prev); s < Math.floor(t); s++) this.watchedSet.add(s);
+        // 그래서 직전 위치부터 지금까지를 통째로 채운다.
+        //
+        // 어디까지를 '이어서 재생'으로 볼지 고정값으로 정하면 안 된다. 탭을 뒤로
+        // 돌려놓으면 브라우저가 타이머를 늦춰 간격이 한참 벌어지는데, 그 구간도
+        // 실제로 들은 것이기 때문이다. 흐른 시간에 배속을 곱하면 그사이 영상이
+        // 갈 수 있는 거리가 나온다. 그보다 더 뛴 것만 건너뛰기로 본다.
+        if (prev != null && t > prev) {
+          const realGap = (now - this._prevWall) / 1000;
+          const allowed = Math.max(VimeoTracker.MIN_GAP, realGap * this._rate * VimeoTracker.GAP_SLACK);
+          if (t - prev <= allowed) {
+            for (let s = Math.floor(prev); s < Math.floor(t); s++) this.watchedSet.add(s);
+          }
         }
         this.watchedSet.add(Math.floor(t));
-        this._prevT  = t;
-        this.lastPos = t;
+        this._prevT    = t;
+        this._prevWall = now;
+        this.lastPos   = t;
         this._refreshUI();
       } catch (_) {}
     }, 1000);
@@ -2456,6 +2472,12 @@ class VimeoTracker {
       if (!this._saver) this._saver = setInterval(() => this._persist(), 10000);
     };
     try { this.player.on('play', this._onPlay); } catch (_) {}
+
+    // 배속은 매 틱마다 묻지 않는다. 물으면 1초에 한 번 더 왕복이 생긴다.
+    // 바뀔 때만 받아 두고, 처음 값은 한 번 읽어 온다.
+    this._onRate = (d) => { this._rate = (d && d.playbackRate) || 1; };
+    try { this.player.on('playbackratechange', this._onRate); } catch (_) {}
+    try { this.player.getPlaybackRate().then(r => { this._rate = r || 1; }).catch(() => {}); } catch (_) {}
   }
 
   stop() {
@@ -2463,7 +2485,8 @@ class VimeoTracker {
     clearInterval(this._saver);
     this._tick = this._saver = null;
     try { if (this._onPlay) this.player.off('play', this._onPlay); } catch (_) {}
-    this._onPlay = null;
+    try { if (this._onRate) this.player.off('playbackratechange', this._onRate); } catch (_) {}
+    this._onPlay = this._onRate = null;
     this._persist();
   }
 
