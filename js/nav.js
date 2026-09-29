@@ -83,6 +83,11 @@
     '.navbar-inner{position:relative;}',
     '.navbar-menu{position:absolute;left:50%;transform:translateX(-50%);margin:0;}',
     '.nb-books{margin-left:auto;}',
+    /* 정가운데에 두면 로고나 아이엠북스 버튼을 덮는 경우가 있다. 메뉴 항목은
+       로그인·관리자 여부에 따라 늘어나므로 폭을 미리 정해 둘 수 없다.
+       fitMenu() 가 실제로 재 보고 겹칠 때만 이 클래스를 붙인다. */
+    '.navbar-inner.nb-nocenter .navbar-menu{position:static;transform:none;',
+    'margin-left:auto;margin-right:auto;}',
     '}',
     /* 아이엠북스 — 강의 메뉴가 아니라 바깥 서점이라 오른쪽에 따로 둔다 */
     '.nb-books{display:inline-flex;align-items:center;gap:4px;margin-right:14px;',
@@ -371,6 +376,37 @@
   } else {
     document.body.insertBefore(navEl, document.body.firstChild);
   }
+
+  // ── 메뉴가 양옆을 덮지 않게 ────────────────────────────────────────
+  /* 1260px 이상에서 메뉴를 절대 위치로 화면 정가운데에 둔다. 절대 위치는 흐름
+     밖이라 로고나 아이엠북스 버튼 위로 올라탈 수 있다. 관리자로 로그인하면
+     '어드민' 항목이 늘어 메뉴가 넓어지는데, 예전에는 그 경우를 못 보고 넘어가
+     아이엠북스 버튼이 어드민 글자를 덮었다. 폭이 상황마다 달라 값으로 못 박을
+     수 없으니, 그릴 때마다 실제로 재서 겹치면 가운데 정렬을 포기한다. */
+  var GAP = 12;   // 이만큼은 떨어져 있어야 붙어 보이지 않는다
+  function fitMenu() {
+    var inner = navEl.querySelector('.navbar-inner');
+    var menu  = navEl.querySelector('#nb-menu');
+    if (!inner || !menu) return;
+
+    inner.classList.remove('nb-nocenter');          // 원래 상태로 되돌리고 잰다
+    if (window.innerWidth < 1260) return;           // 그 아래는 애초에 흐름대로 놓인다
+
+    var logo  = navEl.querySelector('.navbar-logo');
+    var books = navEl.querySelector('#nb-books');
+    var m = menu.getBoundingClientRect();
+    var overlapsLeft  = logo  && m.left  < logo.getBoundingClientRect().right + GAP;
+    var overlapsRight = books && m.right > books.getBoundingClientRect().left  - GAP;
+    if (overlapsLeft || overlapsRight) inner.classList.add('nb-nocenter');
+  }
+  window.fitNavMenu = fitMenu;   // 메뉴 항목이 바뀌는 곳에서 부른다
+
+  fitMenu();
+  var _fitTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(_fitTimer);
+    _fitTimer = setTimeout(fitMenu, 120);
+  });
 
   // ── 스크롤 그림자 ─────────────────────────────────────────────────
   window.addEventListener('scroll', function () {
@@ -700,6 +736,9 @@
     // 권한이 없는 자료는 목록에 나오지 않는다.
     var resLi = document.getElementById('nb-res-li');
     if (resLi) resLi.style.display = user ? '' : 'none';
+
+    // 어드민·자료실이 들고 나면 메뉴 폭이 달라진다. 다시 재야 한다.
+    if (window.fitNavMenu) window.fitNavMenu();
 
     if (isAdmin) buildAdminBar();
     else destroyAdminBar();
@@ -1067,6 +1106,81 @@ window.formatNoticeText = function (raw) {
     .replace(/\*\*([^*\n]+)\*\*/g, '<strong class="nc-b">$1</strong>')
     .replace(/!!([^!\n]+)!!/g, '<mark class="nc-m">$1</mark>');
 };
+
+/* ── 새 버전 알림 ────────────────────────────────────────────────────────
+   강의실은 한 번 열면 페이지를 다시 읽지 않는다. 다른 강의를 눌러도 같은
+   페이지 안에서 영상만 갈아 끼우기 때문이다. 게다가 서버가 HTML 에 10분짜리
+   캐시를 걸어 둬서, 고친 코드가 올라가도 이미 열어 둔 화면에는 몇 시간이고
+   닿지 않는다. 진도 계산을 고쳤는데 계속 옛날 값이 찍히던 일이 실제로 있었다.
+
+   빌드 번호를 따로 심지 않는다. 지금 보고 있는 페이지 파일이 서버에서 언제
+   바뀌었는지를 직접 물어보고, 내가 받아 둔 것보다 새것이면 알려 준다.
+   손으로 번호를 올려야 하는 방식은 언젠가 빠뜨리게 된다.
+
+   보던 것을 끊지 않는다. 띠만 띄우고, 새로고침은 누를 때 한다. */
+(function () {
+  var loadedAt = Date.parse(document.lastModified);
+  if (!loadedAt) return;                 // 수정 시각을 모르면 비교할 수가 없다
+
+  var SLACK   = 2000;                    // 초 단위 반올림 차이를 오해하지 않게
+  var EVERY   = 10 * 60 * 1000;          // 10분마다
+  var MIN_GAP = 2 * 60 * 1000;           // 탭을 자주 옮겨도 2분에 한 번만 묻는다
+  var lastAsk = 0;
+  var shown   = false;
+
+  async function check() {
+    if (shown) return;
+    var now = Date.now();
+    if (now - lastAsk < MIN_GAP) return;
+    lastAsk = now;
+    try {
+      var res = await fetch(location.pathname, { method: 'HEAD', cache: 'no-store' });
+      var h = res.headers.get('last-modified');
+      if (!h) return;
+      if (Date.parse(h) > loadedAt + SLACK) show();
+    } catch (_) {}      // 오프라인이면 조용히 넘어간다
+  }
+
+  function show() {
+    if (shown) return;
+    shown = true;
+    var bar = document.createElement('div');
+    bar.id = 'nb-update-bar';
+    bar.innerHTML =
+      '<span>새 버전이 올라왔습니다. 새로고침하면 적용됩니다.</span>' +
+      '<button type="button" id="nb-update-go">새로고침</button>' +
+      '<button type="button" id="nb-update-x" aria-label="닫기">\u2715</button>';
+    var css = document.createElement('style');
+    css.textContent =
+      '#nb-update-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);' +
+      'z-index:9999;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);' +
+      'padding:11px 14px 11px 18px;border-radius:12px;background:#1f2430;color:#fff;' +
+      'font-size:13.5px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.28);' +
+      'animation:nbUpIn .28s ease-out;}' +
+      '@keyframes nbUpIn{from{opacity:0;transform:translate(-50%,10px)}' +
+      'to{opacity:1;transform:translate(-50%,0)}}' +
+      '#nb-update-bar span{word-break:keep-all;}' +
+      '#nb-update-go{flex-shrink:0;padding:7px 14px;border:none;border-radius:8px;' +
+      'background:#2D9B6F;color:#fff;font-size:13px;font-weight:700;cursor:pointer;' +
+      'font-family:inherit;}' +
+      '#nb-update-go:hover{background:#25835d;}' +
+      '#nb-update-x{flex-shrink:0;padding:4px 6px;border:none;background:none;' +
+      'color:rgba(255,255,255,.55);font-size:14px;cursor:pointer;line-height:1;}' +
+      '#nb-update-x:hover{color:#fff;}' +
+      '@media(max-width:520px){#nb-update-bar{left:16px;right:16px;transform:none;' +
+      'bottom:16px;animation:none;}}';
+    document.head.appendChild(css);
+    document.body.appendChild(bar);
+    document.getElementById('nb-update-go').onclick = function () { location.reload(); };
+    document.getElementById('nb-update-x').onclick  = function () { bar.remove(); };
+  }
+
+  setInterval(check, EVERY);
+  // 다른 일 하다 돌아왔을 때가 새 버전을 만나기 쉬운 시점이다
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) check();
+  });
+})();
 
 /* ── 시즌 테마 ──────────────────────────────────────────────────────────
    themes/loader.js 가 설정을 읽고, 켜져 있을 때만 테마 파일을 불러온다.
