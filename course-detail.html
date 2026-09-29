@@ -2404,6 +2404,12 @@ function extractVimeoId(url) {
 }
 
 class VimeoTracker {
+  // 이 비율을 넘기면 그 강의를 다 들은 것으로 본다.
+  static DONE_PCT = 50;
+  // 직전 위치와 이만큼까지 벌어진 것은 '이어서 재생'으로 보고 사이를 채운다.
+  // 2배속이면 2초씩 벌어진다. 10초 건너뛰기는 넘어서므로 채우지 않는다.
+  static MAX_GAP  = 8;
+
   constructor(player, userId, courseId, lessonNum, lessonTitle, totalSecs) {
     this.player      = player;
     this.userId      = userId;
@@ -2413,6 +2419,7 @@ class VimeoTracker {
     this.totalSecs   = totalSecs || 0;
     this.watchedSet  = new Set();
     this.lastPos     = 0;
+    this._prevT      = null;   // 직전에 찍은 재생 위치. 그 사이 구간을 채우는 데 쓴다
     this._tick       = null;
     this._saver      = null;
     this._onPlay     = null;
@@ -2424,12 +2431,21 @@ class VimeoTracker {
     this._tick = setInterval(async () => {
       try {
         const paused = await this.player.getPaused();
-        if (!paused) {
-          const t = await this.player.getCurrentTime();
-          this.watchedSet.add(Math.floor(t));
-          this.lastPos = t;
-          this._refreshUI();
+        if (paused) { this._prevT = null; return; }   // 멈춘 앞뒤는 이어진 구간이 아니다
+
+        const t = await this.player.getCurrentTime();
+        // 위치는 1초에 한 번만 찍는데, 2배속이면 그동안 영상은 2초를 간다.
+        // 찍힌 점만 담으면 홀수 초가 영영 안 담겨, 끝까지 봐도 50%에서 멈춘다.
+        // 그래서 직전 위치부터 지금까지를 통째로 채운다. 건너뛰기로 안 본 구간까지
+        // 채워지지 않도록, MAX_GAP 을 넘는 점프는 이어붙이지 않는다.
+        const prev = this._prevT;
+        if (prev != null && t > prev && t - prev <= VimeoTracker.MAX_GAP) {
+          for (let s = Math.floor(prev); s < Math.floor(t); s++) this.watchedSet.add(s);
         }
+        this.watchedSet.add(Math.floor(t));
+        this._prevT  = t;
+        this.lastPos = t;
+        this._refreshUI();
       } catch (_) {}
     }, 1000);
 
@@ -2471,7 +2487,7 @@ class VimeoTracker {
     const pct = this.pct;
     if (p) p.textContent = pct + '%';
     if (b) b.style.width = pct + '%';
-    if (c) c.style.display = pct >= 80 ? '' : 'none';
+    if (c) c.style.display = pct >= VimeoTracker.DONE_PCT ? '' : 'none';
   }
 
   seed(existingData) {
@@ -2489,7 +2505,7 @@ class VimeoTracker {
     // 강의 이동·페이지 이탈)가 여기를 지나므로 여기서 한 번만 막으면 된다.
     if (actual === 0) return;
     const pct    = this.pct;
-    const done   = pct >= 80;
+    const done   = pct >= VimeoTracker.DONE_PCT;
     try {
       // last_position·total_seconds 는 integer 칼럼이다. Vimeo 의 getCurrentTime()·
       // getDuration() 은 소수를 주므로 반드시 반올림해서 보내야 한다. 그냥 보내면

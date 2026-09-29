@@ -770,7 +770,7 @@ function renderWatchDetail(uid) {
       .map(function(v) {
         var course = allCourses.find(function(c){ return String(c.id) === String(v.course_id); });
         var pct = v.total_seconds ? Math.min(100, Math.round((v.actual_watched_seconds/v.total_seconds)*100)) : null;
-        var cls = pct === null ? '' : pct >= 80 ? 'wd-pct-high' : pct >= 40 ? 'wd-pct-mid' : 'wd-pct-low';
+        var cls = pct === null ? '' : pct >= 50 ? 'wd-pct-high' : pct >= 25 ? 'wd-pct-mid' : 'wd-pct-low';
         // 한 칸 안에 여러 날이 섞이므로 줄마다 날짜를 적는다
         var wdn = ['일','월','화','수','목','금','토'];
         var dt  = new Date(v.updated_at);
@@ -923,7 +923,7 @@ function renderModalBody(uid) {
       it.vp.sort(function(a,b){ return a.lesson_number - b.lesson_number; });
       it.vp.forEach(function(vp) {
         var pct      = vp.watch_percentage || 0;
-        var barColor = pct >= 80 ? '#2D9B6F' : pct >= 50 ? '#F59E0B' : '#aaa';
+        var barColor = pct >= 50 ? '#2D9B6F' : pct >= 25 ? '#F59E0B' : '#aaa';
         var doneText = vp.completed ? '<span class="lesson-done-badge">✅ 완료</span>' : '';
         var totalTxt = vp.total_seconds ? ' (전체 ' + fmtSecs(vp.total_seconds) + ')' : '';
         html += '<div class="lesson-card">' +
