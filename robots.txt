@@ -1,0 +1,12 @@
+# 아이엠러닝 — https://imlearning.co.kr
+#
+# 검색에 안 나와야 할 페이지는 Disallow 로 막지 않는다. Disallow 는 "읽지 마라"라
+# 크롤러가 그 페이지의 <meta name="robots" content="noindex"> 표시를 볼 수가 없고,
+# 다른 데서 링크가 걸리면 주소만 검색 결과에 남는 일이 생긴다. 게다가 robots.txt 는
+# 누구나 열어볼 수 있어서, 관리자 주소를 여기 적으면 오히려 알려주는 꼴이 된다.
+# 그래서 여기서는 전부 허용하고, 가려야 할 페이지에는 각각 noindex 를 붙여 둔다.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://imlearning.co.kr/sitemap.xml
