@@ -10,7 +10,9 @@ images/*-utc.JPG
 images/강사 프로필/
 
 # Claude Code 에디터 설정
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/skills/
 
 # Supabase Edge Functions 로컬 환경 변수
 supabase/.env
