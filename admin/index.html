@@ -118,6 +118,7 @@ tr:last-child td { border-bottom:none; }
       <div class="period-btns">
         <button class="period-btn active" onclick="setPeriod('today',this)">오늘</button>
         <button class="period-btn" onclick="setPeriod('week',this)">이번주</button>
+        <button class="period-btn" onclick="setPeriod('lastweek',this)">지난주</button>
         <button class="period-btn" onclick="setPeriod('month',this)">이번달</button>
         <button class="period-btn" onclick="setPeriod('all',this)">전체</button>
       </div>
@@ -318,12 +319,29 @@ function getPeriodRange(period) {
     const day = start.getDay();
     start.setDate(start.getDate() - day);
     start.setHours(0,0,0,0);
+  } else if (period === 'lastweek') {
+    /* 지난주는 끝이 '지금'이 아니다. 이번주 일요일 0시 직전까지만 센다.
+       끝을 안 막으면 이번주 것까지 섞여 '이번주'와 같은 값이 나온다. */
+    const thisWeek = new Date(now);
+    thisWeek.setDate(thisWeek.getDate() - thisWeek.getDay());
+    thisWeek.setHours(0,0,0,0);
+    const s = new Date(thisWeek);
+    s.setDate(s.getDate() - 7);
+    return { start: s, end: thisWeek };
   } else if (period === 'month') {
     start.setDate(1); start.setHours(0,0,0,0);
   } else {
-    return { start: null, end: now };
+    return { start: null, end: null };
   }
-  return { start, end: now };
+  return { start, end: null };   // 끝이 지금인 기간은 end 를 두지 않는다
+}
+
+/* 기간 안에 드는지. end 가 있는 기간(지난주)만 뒤쪽도 막는다. */
+function inPeriod(when, start, end) {
+  const t = new Date(when);
+  if (start && t < start) return false;
+  if (end && t >= end) return false;
+  return true;
 }
 
 // ── 기간 필터 ──
@@ -345,9 +363,7 @@ function netAmount(o) {
 // ── 전체 렌더 ──
 function renderAll() {
   const { start, end } = getPeriodRange(currentPeriod);
-  const filtered = start
-    ? allOrders.filter(o => new Date(o.created_at) >= start && o.status === 'paid')
-    : allOrders.filter(o => o.status === 'paid');
+  const filtered = allOrders.filter(o => o.status === 'paid' && inPeriod(o.created_at, start, end));
 
   renderKPI(filtered);
   renderGoal();
@@ -364,7 +380,7 @@ function renderKPI(filtered) {
   const revenue = filtered.reduce((s, o) => s + netAmount(o), 0);
   const refunded = filtered.reduce((s, o) => s + ((o.amount || 0) - netAmount(o)), 0);
   const refundCnt = filtered.filter(o => (o.amount || 0) > netAmount(o)).length;
-  const periodLabel = { today:'오늘', week:'이번주', month:'이번달', all:'전체' }[currentPeriod];
+  const periodLabel = { today:'오늘', week:'이번주', lastweek:'지난주', month:'이번달', all:'전체' }[currentPeriod];
 
   document.getElementById('kpi-revenue').textContent = '₩' + revenue.toLocaleString();
   document.getElementById('kpi-revenue-d').textContent = refunded > 0
@@ -375,10 +391,8 @@ function renderKPI(filtered) {
   document.getElementById('kpi-orders').textContent = filtered.length;
   document.getElementById('kpi-orders-d').textContent = periodLabel + ' 결제 ' + filtered.length + '건';
 
-  const { start } = getPeriodRange(currentPeriod);
-  const newUsers = start
-    ? allProfiles.filter(p => new Date(p.created_at) >= start).length
-    : allProfiles.length;
+  const { start, end } = getPeriodRange(currentPeriod);
+  const newUsers = allProfiles.filter(p => inPeriod(p.created_at, start, end)).length;
   document.getElementById('kpi-users').textContent = newUsers;
   document.getElementById('kpi-users-d').textContent = periodLabel + ' 신규 가입';
   document.getElementById('kpi-users-d').className = 'kpi-delta ' + (newUsers > 0 ? 'up' : 'neutral');
@@ -502,8 +516,9 @@ function renderRevenueChart(filtered) {
     const curH = new Date().getHours();
     labels = labels.slice(Math.max(0, curH - 11), curH + 1);
     values = values.slice(Math.max(0, curH - 11), curH + 1);
-  } else if (currentPeriod === 'week') {
-    document.getElementById('chart-period-label').textContent = '이번주 요일별';
+  } else if (currentPeriod === 'week' || currentPeriod === 'lastweek') {
+    document.getElementById('chart-period-label').textContent =
+      (currentPeriod === 'lastweek' ? '지난주' : '이번주') + ' 요일별';
     const days = ['일','월','화','수','목','금','토'];
     labels = days;
     values = Array(7).fill(0);
@@ -659,8 +674,8 @@ function makeCSV(headers, rows) {
 }
 
 function exportCSV() {
-  const { start } = getPeriodRange(currentPeriod);
-  const filtered = start ? allOrders.filter(o => new Date(o.created_at) >= start && o.status === 'paid') : allOrders.filter(o => o.status === 'paid');
+  const { start, end } = getPeriodRange(currentPeriod);
+  const filtered = allOrders.filter(o => o.status === 'paid' && inPeriod(o.created_at, start, end));
   const url = makeCSV(['일시','강좌명','금액','쿠폰','상태'], filtered.map(o => [
     new Date(o.created_at).toLocaleString('ko-KR'), o.course_name||'', o.amount||0, o.coupon_code||'', o.status
   ]));
