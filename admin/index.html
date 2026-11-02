@@ -504,18 +504,24 @@ function renderRevenueChart(filtered) {
   let labels = [], values = [];
 
   if (currentPeriod === 'today') {
-    // 시간별 (0~23시)
-    document.getElementById('chart-period-label').textContent = '오늘 시간별';
-    labels = Array.from({ length: 24 }, (_, i) => i + '시');
-    values = Array(24).fill(0);
-    filtered.forEach(o => {
-      const h = new Date(o.created_at).getHours();
-      values[h] += netAmount(o);
+    /* 제목이 '일별 매출 추이'인데 시간별로 그려서 말이 안 맞았다. 게다가 하루치는
+       점이 하나라 추이가 보이지 않는다. 최근 7일을 날짜별로 그린다.
+       넘겨받은 filtered 는 오늘 것뿐이라 지난 엿새를 못 그린다. 전체에서 다시 센다. */
+    document.getElementById('chart-period-label').textContent = '최근 7일';
+    const keyOf = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    const map = {}, slots = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = keyOf(d);
+      map[k] = 0;
+      slots.push({ k, label: (d.getMonth() + 1) + '/' + d.getDate() });
+    }
+    allOrders.filter(o => o.status === 'paid').forEach(o => {
+      const k = keyOf(new Date(o.created_at));
+      if (k in map) map[k] += netAmount(o);
     });
-    // 최근 12시간만 표시
-    const curH = new Date().getHours();
-    labels = labels.slice(Math.max(0, curH - 11), curH + 1);
-    values = values.slice(Math.max(0, curH - 11), curH + 1);
+    labels = slots.map(x => x.label);
+    values = slots.map(x => map[x.k]);
   } else if (currentPeriod === 'week' || currentPeriod === 'lastweek') {
     document.getElementById('chart-period-label').textContent =
       (currentPeriod === 'lastweek' ? '지난주' : '이번주') + ' 요일별';
