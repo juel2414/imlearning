@@ -142,7 +142,7 @@ tr:last-child td { border-bottom:none; }
       <span style="width:12px;"></span>
       <button class="sm-chip active" data-kind="paid" onclick="setKind('paid', this)">유료만</button>
       <button class="sm-chip" data-kind="all" onclick="setKind('all', this)">0원 포함</button>
-      <input class="sm-search" id="q" placeholder="강좌명 검색" oninput="renderOrders()">
+      <input class="sm-search" id="q" placeholder="강좌명·구매자 검색" oninput="renderOrders()">
       <button class="sm-btn" onclick="exportCSV()">CSV 내보내기</button>
     </div>
 
@@ -183,6 +183,16 @@ function periodStart() {
   return null;
 }
 
+const buyerById = {};
+
+/* 표와 검색, CSV 가 같은 이름을 쓰도록 한 곳에서 만든다. */
+function buyerOf(o) {
+  const u = buyerById[o.user_id];
+  if (!u) return { name: '-', email: '', text: '' };
+  const name = u.name || (u.email ? u.email.split('@')[0] : '(이름 없음)');
+  return { name, email: u.email || '', text: (name + ' ' + (u.email || '')).toLowerCase() };
+}
+
 function filtered(ignoreKind) {
   const start = periodStart();
   const q = (document.getElementById('q').value || '').trim().toLowerCase();
@@ -190,7 +200,10 @@ function filtered(ignoreKind) {
     if (o.status !== 'paid') return false;
     if (start && new Date(o.created_at) < start) return false;
     if (!ignoreKind && kind === 'paid' && !(o.amount > 0)) return false;
-    if (q && !String(o.course_name || '').toLowerCase().includes(q)) return false;
+    if (q) {
+      const hay = String(o.course_name || '').toLowerCase() + ' ' + buyerOf(o).text;
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
 }
@@ -261,7 +274,7 @@ function renderOrders() {
   const el = document.getElementById('orders-area');
   if (!rows.length) { el.innerHTML = '<div class="sm-empty">결제 내역이 없습니다</div>'; return; }
 
-  let html = '<table><thead><tr><th>일시</th><th>강좌명</th><th>결제액</th><th>실매출</th>'
+  let html = '<table><thead><tr><th>일시</th><th>구매자</th><th>강좌명</th><th>결제액</th><th>실매출</th>'
            + '<th>쿠폰</th><th>상태</th></tr></thead><tbody>';
   rows.slice(0, shown).forEach(o => {
     const d = new Date(o.created_at).toLocaleString('ko-KR',
@@ -273,8 +286,12 @@ function renderOrders() {
     else if (o.refund_status === 'refunded') badge = '<span class="sm-badge b-refund">환불</span>';
     else if (net1 < paid) badge = '<span class="sm-badge b-part">부분환불</span>';
 
+    const b = buyerOf(o);
     html += '<tr>'
       + '<td style="color:#888;white-space:nowrap;">' + d + '</td>'
+      + '<td><div>' + esc(b.name) + '</div>'
+      +   (b.email ? '<div style="font-size:11px;color:#999;">' + esc(b.email) + '</div>' : '')
+      + '</td>'
       + '<td>' + esc(o.course_name || '-') + '</td>'
       + '<td class="sm-amount' + (paid ? '' : ' zero') + '">₩' + paid.toLocaleString() + '</td>'
       + '<td class="sm-amount' + (net1 < paid ? ' cut' : '') + '">₩' + net1.toLocaleString() + '</td>'
@@ -292,9 +309,11 @@ function renderOrders() {
 
 function exportCSV() {
   const rows = filtered().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  const head = ['일시','강좌명','결제액','실매출','쿠폰','상태'];
+  const head = ['일시','구매자','이메일','강좌명','결제액','실매출','쿠폰','상태'];
   const body = rows.map(o => [
     new Date(o.created_at).toLocaleString('ko-KR'),
+    buyerOf(o).name,
+    buyerOf(o).email,
     o.course_name || '',
     o.amount || 0,
     netAmount(o),
@@ -338,7 +357,7 @@ function fitFrame(f) {
   if (!p || p.role !== 'super_admin') { alert('관리자 권한이 없습니다.'); window.location.href = '../index.html'; return; }
 
   const { data, error } = await sb.from('orders')
-    .select('id, course_name, amount, coupon_code, status, refund_status, refund_amount, created_at')
+    .select('id, user_id, course_name, amount, coupon_code, status, refund_status, refund_amount, created_at')
     .order('created_at', { ascending: false })
     .limit(5000);
   if (error) {
@@ -347,6 +366,19 @@ function fitFrame(f) {
     return;
   }
   allOrders = data || [];
+
+  /* 주문에는 user_id 만 있다. 누가 샀는지 보려면 회원 표를 따로 읽어 붙인다.
+     주문마다 조회하면 수천 번이 되므로 한 번에 받아 사전으로 만든다.
+     한 번에 1000행까지만 오므로 쪽을 나눠 받는다. 회원이 1300명이 넘어
+     그냥 받으면 뒤쪽 회원의 결제가 구매자 '-' 로 보인다. */
+  for (let from = 0; ; from += 1000) {
+    const { data: profs, error: pe } =
+      await sb.from('profiles').select('id, name, email').range(from, from + 999);
+    if (pe || !profs || !profs.length) break;
+    profs.forEach(u => { buyerById[u.id] = u; });
+    if (profs.length < 1000) break;
+  }
+
   renderOrders();
   loadGoal();
 })();
