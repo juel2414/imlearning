@@ -12,21 +12,28 @@
    ──────────────────────────────────────────────────────────────────── */
 
 [data-season="winter"] {
-  /* 겨울 밤하늘 */
-  --sn-night-top:   #0E2A46;   /* 짙은 청남 */
-  --sn-night-mid:   #15405F;   /* 별 둘레 */
-  --sn-night-deep:  #061726;
+  /* ── 시즌 토큰 — 이 다섯이 겨울의 기준색이다 ── */
+  --winter-navy-deep: #101C33;   /* 섹션 배경 / 테마 기준색 */
+  --winter-navy:      #1B2A4A;
+  --winter-ice:       #C8DCEF;   /* 서리, 보조 텍스트 */
+  --winter-snow:      #FFFFFF;
+  --winter-amber:     #F3C87A;   /* 전구 빛, 글로우 */
 
-  /* 별빛과 눈빛 */
+  /* 브랜드 그린은 건드리지 않는다. 겨울 배경 위에서 오히려 포인트가 된다. */
+
+  /* ── 아래는 장식이 쓰는 이름. 위 다섯에 맞춰 둔다. ── */
+  --sn-night-top:   var(--winter-navy);
+  --sn-night-mid:   #24395F;
+  --sn-night-deep:  var(--winter-navy-deep);
+
   --sn-star:        #FFE7A8;
   --sn-star-core:   #FFFBEC;
-  --sn-snow:        #F4F9FD;
+  --sn-snow:        var(--winter-snow);
   --sn-snow-dim:    #DDEBF7;
-  --sn-frost:       #D8E9F6;
+  --sn-frost:       var(--winter-ice);
   --sn-lit:         #FFF3D4;
 
-  /* 전구 불빛 */
-  --sn-bulb:        #FFC861;
+  --sn-bulb:        var(--winter-amber);
 
   /* 호랑가시 열매 — 버튼 바탕. 흰 글자로 6.03:1 */
   --sn-berry:       #B3362E;
@@ -66,10 +73,12 @@
 
 /* 메뉴바에 position 을 건드리면 안 된다. 원래 sticky 라 그대로 두면
    붙어 있고, sticky 도 자리를 잡아 주므로 ::after 는 그대로 얹힌다. */
+/* 메뉴바 아래에는 아주 얇은 서리 선 한 줄만. 니트 띠는 여기 쓰기엔 시끄럽다. */
 [data-season="winter"] .navbar::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-  background-image: var(--sn-saekdong);
-  opacity: .78;
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(90deg,
+    rgba(200,220,239,0) 0%, rgba(200,220,239,.55) 18%,
+    rgba(243,200,122,.5) 50%, rgba(200,220,239,.55) 82%, rgba(200,220,239,0) 100%);
   pointer-events: none;
 }
 .sn-nav-flake {
@@ -80,267 +89,260 @@
   animation: snTurn 24s linear infinite;
 }
 .sn-nav-flake svg { width: 100%; height: 100%; }
-@keyframes snTurn { to { transform: rotate(360deg); } }
 
-/* ══ 2. 눈 내리는 밤하늘 히어로 ═══════════════════════════════════════
-   원래 어두웠던 히어로만 겨울밤으로 바꾼다. 흰 바탕 히어로는 건드리지 않고
-   글자 대비를 지킨다. */
+/* 눈송이 — 선과 가운데 알. color 를 물려받아 어디서든 같은 그림을 쓴다. */
+.sn-fl-line { fill: none; stroke: currentColor; stroke-width: 2.6;
+              stroke-linecap: round; stroke-linejoin: round; }
+.sn-fl-core { fill: currentColor; }
 
-[data-season="winter"] .lp-hero .hero-overlay,
-[data-season="winter"] .inst-hero,
-[data-season="winter"] .pass-hero {
-  background:
-    radial-gradient(56% 50% at 82% 16%, rgba(31,86,124,.60) 0%, rgba(31,86,124,0) 70%),
-    linear-gradient(168deg,
-      var(--sn-night-top) 0%,
-      #0C2C48 56%,
-      var(--sn-night-deep) 100%);
+/* ── 전나무 — 실루엣을 채우고 그 위에 눈을 가늘게 얹는다 ──
+   겨울밤(#101C33) 위에 놓이므로 나무가 바탕보다 밝아야 보인다.
+   레퍼런스의 어두운 나무를 그대로 쓰면 배경에 묻힌다. */
+.sn-fr-trunk { fill: #2A3F5C; }
+.sn-fr-body  { fill: #27416A; stroke: #27416A; stroke-width: 2.4;
+               stroke-linejoin: round; }
+.sn-fr-sn    { fill: none; stroke: #EDF6FF; stroke-width: 2.4;
+               stroke-linecap: round; opacity: .85; }
+.sn-fr-far   { opacity: .5; }
+.sn-fr-far .sn-fr-body { fill: #1C3153; stroke: #1C3153; }
+.sn-fr-far .sn-fr-sn   { stroke: #B9D2E8; }
+
+/* ── 눈 둔덕과 고드름 ── */
+.sn-ic-snow { fill: #F7FCFF; }
+.sn-ic-lit  { fill: none; stroke: rgba(255,255,255,.9); stroke-width: 3; opacity: .5; }
+.sn-ic-ice  { fill: #DCEEFB; opacity: .72; }
+.sn-ic-ices { filter: drop-shadow(0 2px 3px rgba(16,28,51,.25)); }
+
+/* ── 전구 — 유리알 안에 밝은 심지, 그 둘레로 따뜻한 빛무리 ── */
+.sn-lt-cord  { fill: none; stroke: #2A3A4E; stroke-width: 2.2; }
+.sn-lt-cap   { fill: #6B5438; }
+.sn-lt-glass { fill: #FFDE9C; opacity: .92; }
+.sn-lt-core  { fill: #FFFBEC; }
+.sn-lt-halo  { filter: blur(5px); }
+/* 알까지 흐려지면 색이 빠져 회색으로 보인다. 빛무리만 숨 쉬게 한다. */
+.sn-lt-b .sn-lt-halo {
+  animation: snBulb 3.4s ease-in-out infinite;
+  animation-delay: inherit;
 }
-/* 사진이 빠진 자리에 겨울밤을 깐다 */
-[data-season="winter"] .lp-hero .hero-overlay {
-  background:
-    radial-gradient(56% 50% at 82% 16%, rgba(46,106,150,.58) 0%, rgba(46,106,150,0) 70%),
-    linear-gradient(168deg,
-      #10304E 0%,
-      #0B2A46 56%,
-      var(--sn-night-deep) 100%);
-}
-[data-season="winter"] .lp-hero,
-[data-season="winter"] .inst-hero,
-[data-season="winter"] .pass-hero { position: relative; overflow: hidden; }
+@keyframes snBulb { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
 
-/* 장식 층이 2번이라, 글이 1번에 있던 화면은 위로 올려 준다 */
-[data-season="winter"] .inst-hero-content,
-[data-season="winter"] .pass-hero-inner { position: relative; z-index: 3; }
-
-/* 강사 소개 히어로는 사진이 위에 한 겹 더 있다. 밤이 되게 더 눌러 준다 */
-[data-season="winter"] .inst-hero-bg { opacity: .13; }
-
-/* ── 겨울 별 ──────────────────────────────────────────────────────
-   빛무리까지 한 그림에 들어 있어 후광을 따로 두지 않는다.
-   좁은 화면에서는 줄이고 오른쪽으로 민다. 밝은 심지(그림 폭의 50% 자리)가
-   가운데 글줄(좌우 250px) 안으로 들어오지 않게 자리를 계산한다. */
-[data-season="winter"] .lp-hero,
-[data-season="winter"] .inst-hero,
-[data-season="winter"] .pass-hero {
-  --sn-frame-w: 12px;
-  --sn-star-w: clamp(400px, 39vw, 560px);
-  --sn-star-r: min(-30px, calc(50% - 250px - 0.78 * var(--sn-star-w)));
-}
-.sn-star-big {
-  position: absolute; top: 34px; width: var(--sn-star-w); right: var(--sn-star-r);
-  animation: snRise 2.2s cubic-bezier(.22,.7,.3,1) both;
-}
-.sn-star-big svg { width: 100%; height: auto; display: block; }
-/* 심지가 천천히 숨 쉰다 */
-.sn-star-big::after {
-  content: ''; position: absolute; left: 50%; top: 50%;
-  width: 34%; height: 34%; transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,251,236,.55), rgba(255,251,236,0) 70%);
-  animation: snGlow 6s ease-in-out infinite;
-}
-
-/* ── 별 ── */
-.sn-star {
-  position: absolute; border-radius: 50%; background: #FFFFFF;
-  box-shadow: 0 0 7px rgba(226,242,255,.95);
-  /* 주기와 지연은 자리마다 달라서 decorate.js 가 직접 넣는다 */
-  animation-name: snTwinkle;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
-/* ── 겨울 오로라 — 오른쪽 위에서 왼쪽 아래로 비스듬히 흐른다 ── */
-.sn-aurora {
-  position: absolute; top: -14%; left: -18%; width: 136%; height: 92%;
-  background:
-    radial-gradient(58% 24% at 52% 50%, rgba(150,224,208,.26) 0%, rgba(150,224,208,0) 72%),
-    radial-gradient(40% 14% at 36% 44%, rgba(190,222,255,.24) 0%, rgba(190,222,255,0) 74%),
-    radial-gradient(26% 9% at 64% 56%, rgba(214,196,255,.16) 0%, rgba(214,196,255,0) 76%);
-  transform: rotate(-22deg);
-  filter: blur(7px);
-  pointer-events: none;
-}
-
-/* ── 별자리 — 가는 선으로 몇 개만 잇는다 ── */
-.sn-consts {
-  position: absolute; inset: 0; width: 100%; height: 62%;
-  opacity: .24; pointer-events: none;
-}
-.sn-consts path   { fill: none; stroke: #CFE6FF; stroke-width: .09; }
-.sn-consts circle { fill: #EEF7FF; }
-
-/* ── 눈구름 — 별 둘레와 양쪽 가장자리에 떠 있다 ── */
-.sn-cl { position: absolute; pointer-events: none; }
-.sn-cl svg { width: 100%; height: auto; }
-.sn-cl { filter: blur(.4px); }
+/* ── 눈구름 ── */
 .sn-cl-body { fill: #DCEAF6; fill-opacity: .82; stroke: #8FB0C8; stroke-width: 2;
               stroke-opacity: .55; stroke-linejoin: round; }
 .sn-cl-line { fill: none; stroke: #AFC9DC; stroke-width: 2; stroke-opacity: .5;
               stroke-linecap: round; }
+@keyframes snTurn { to { transform: rotate(360deg); } }
 
-/* 구름은 화면을 가로지르지 않고 제자리에서 살짝만 떠다닌다.
-   흰 제목 뒤로 흰 구름이 지나가면 글이 묻힌다. 가로 자리도 min() 으로 묶어,
-   화면이 좁아져도 가운데 글줄(좌우 270px)에 들어오지 않게 한다. */
-.sn-cl-1 { top: 15%; left: min(-4%, calc(50% - 530px));  width: 250px; opacity: .72;
-           animation: snBob 15s ease-in-out infinite; }
-.sn-cl-2 { top: calc(34px + 0.40 * var(--sn-star-w));
-           right: calc(var(--sn-star-r) + 0.14 * var(--sn-star-w)); width: 180px; opacity: .6;
-           animation: snBob 18s ease-in-out infinite -6s; }
-.sn-cl-3 { top: 37%; right: min(3%, calc(50% - 490px));  width: 210px; opacity: .62;
-           animation: snBob 20s ease-in-out infinite -11s; }
-.sn-cl-4 { top: 32%; left: min(9%, calc(50% - 420px));   width: 145px; opacity: .56;
-           animation: snBob 16s ease-in-out infinite -3s; }
-@keyframes snBob { 0%,100% { transform: translateX(0); } 50% { transform: translateX(16px); } }
+/* ══ 2. 히어로 — 여섯 겹 ══════════════════════════════════════════════
+   1 설경 사진 · 2 아래 경계 녹임 · 3 뒤쪽 눈 · 4 학사모 ·
+   5 전구 줄 · 6 앞쪽 눈 · 7 원래 글
 
-/* 제목 뒤 — 오로라가 지나가는 자리라 밝다. 글 뒤만 살짝 눌러 대비를 지킨다. */
-[data-season="winter"] .lp-hero .sn-deco::after {
-  content: ''; position: absolute; left: 50%; top: 34%;
-  width: min(940px, 98%); height: 560px; transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side, rgba(6,23,38,.78), rgba(6,23,38,.46) 52%, rgba(6,23,38,0));
+   글이 가장 위다. 장식은 어느 것도 글을 덮지 않는다. */
+
+[data-season="winter"] .lp-hero {
+  position: relative; overflow: hidden;
+  /* 사진이 늦게 와도 글이 흰 바탕에 흰 글씨로 보이지 않게 바탕을 먼저 깐다 */
+  background: linear-gradient(170deg, #17294A 0%, var(--winter-navy-deep) 100%) !important;
+}
+
+/* ── 1 설경 사진 ──
+   히어로가 화면 한 장을 넘게 길어서 사진을 통째로 깔면 2배로 늘어나 뭉갠다.
+   위쪽에만 깔고 아래는 남색으로 흘려보낸다.
+   세로 위치를 62% 로 잡아, 사진에 이미 그려져 있는 전구 줄을 화면 밖으로 밀어낸다.
+   우리가 코드로 그린 전구와 겹쳐 두 줄로 보이기 때문이다. */
+.sn-hero-photo {
+  position: absolute; inset: 0 0 auto 0; z-index: 1;
+  height: min(880px, 74%);
+  background-size: cover; background-position: center 64%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%);
+}
+/* 사진 위에 옅은 남색 막 — 글자 대비를 지킨다 */
+.sn-hero-photo::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(80% 60% at 50% 40%, rgba(16,28,51,.42) 0%, rgba(16,28,51,.66) 62%,
+                    rgba(16,28,51,.78) 100%);
+}
+
+/* ── 2 아래 경계 — 다음 칸 색으로 완전히 녹인다 ──
+   한 픽셀이라도 색이 다르면 가로줄이 보인다. 끝을 #101C33 으로 정확히 맞춘다. */
+[data-season="winter"] .lp-hero::after {
+  content: ''; position: absolute; inset: auto 0 -1px 0; height: 30%;
+  z-index: 2; pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(16,28,51,0) 0%,
+    rgba(16,28,51,.55) 55%,
+    rgba(16,28,51,.92) 85%,
+    #101C33 100%);
+}
+
+/* ── 3·6 눈 ── */
+.sn-snow-back, .sn-snow-front {
+  position: absolute; inset: 0; pointer-events: none;
+  width: 100%; height: 100%;
+}
+.sn-snow-back  { z-index: 3; }
+.sn-snow-front { z-index: 6; }
+
+/* ── 4 학사모 ── */
+/* 학사모는 글 뒤에 놓인다. 글을 가리지 않도록 조금 눌러 둔다. */
+.sn-cap {
+  position: absolute; z-index: 4; pointer-events: none;
+  /* 글줄(약 500px)보다 넓어야 판의 양 끝이 글 밖으로 나와 모자로 보인다.
+     좁으면 흰 테두리와 금색 술만 떠 있는 것처럼 된다. */
+  left: 50%; top: 30%;
+  width: clamp(360px, 54vw, 780px);
+  opacity: .95;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  filter: drop-shadow(0 20px 40px rgba(16,28,51,.55))
+          drop-shadow(0 0 60px rgba(243,200,122,.12));
+  animation: snCapIn 1.6s cubic-bezier(.22,.7,.3,1) both;
+}
+.sn-cap svg { width: 100%; height: auto; display: block; }
+@keyframes snCapIn {
+  from { opacity: 0; transform: translate(-50%, -42%) rotate(-7deg) scale(.96); }
+  to   { opacity: 1; transform: translate(-50%, -50%) rotate(-4deg) scale(1); }
+}
+
+/* ── 5 전구 줄 — 가로로 이어 붙여 폭이 아무리 넓어도 끊기지 않게 ── */
+.sn-garland {
+  position: absolute; z-index: 5; pointer-events: none;
+  top: calc(var(--sn-nav, 0px) - 6px); left: -40px; right: -40px;
+  display: flex; align-items: flex-start;
+}
+.sn-garland > span { display: block; flex: 1 1 0; min-width: 0; }
+.sn-garland svg { width: 100%; height: auto; display: block; overflow: visible; }
+.sn-garland-b { transform: scaleX(-1); }
+.sn-garland-sm { top: -4px; }
+/* 넓은 화면에서만 세 가닥. 좁으면 한 가닥이면 충분하다. */
+@media (max-width: 1100px) { .sn-garland-c { display: none; } }
+
+/* 글은 어느 장식보다 위 */
+[data-season="winter"] .lp-hero-inner { position: relative; z-index: 7; }
+
+/* ── 글자 대비 (WCAG AA) ──
+   사진에서 가장 밝은 눈밭을 최악으로 놓고 재서, 아래 셋만 기본값보다
+   또렷하게 올린다. 색은 그대로 두고 흐림만 걷는다. */
+[data-season="winter"] .hero-friction { color: rgba(255,255,255,.74); }
+[data-season="winter"] .lp-hstat-lbl  { color: rgba(255,255,255,.76); }
+/* 눈썹 알약 — 초록 글씨를 살리려면 알약 속이 어두워야 한다.
+   브랜드 초록 자체는 그대로 둔다. */
+[data-season="winter"] .lp-eyebrow {
+  background: rgba(10,20,38,.62);
+  border-color: rgba(78,200,140,.5);
+}
+
+/* 글 뒤에만 아주 옅은 남색 막. 학사모와 눈 위에서도 글이 또렷해야 한다. */
+[data-season="winter"] .lp-hero-center { position: relative; }
+[data-season="winter"] .lp-hero-center::before {
+  content: ''; position: absolute; z-index: -1;
+  left: 50%; top: 46%; transform: translate(-50%, -50%);
+  width: min(1000px, 104%); height: 86%;
+  background: radial-gradient(closest-side,
+    rgba(16,28,51,.52) 0%, rgba(16,28,51,.34) 56%, rgba(16,28,51,0) 100%);
   pointer-events: none;
 }
 
+/* ── 강사·패스 히어로 — 사진 없이 겨울 하늘만 ── */
+[data-season="winter"] .inst-hero,
+[data-season="winter"] .pass-hero {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(56% 50% at 82% 16%, rgba(36,57,95,.60) 0%, rgba(36,57,95,0) 70%),
+    linear-gradient(168deg, var(--winter-navy) 0%, var(--winter-navy-deep) 100%);
+}
+[data-season="winter"] .inst-hero-content,
+[data-season="winter"] .pass-hero-inner { position: relative; z-index: 7; }
+[data-season="winter"] .inst-hero-bg { opacity: .13; }
+
 /* 인사말 한 줄이 늘었으니 글줄 사이를 조금 넓혀 빽빽해 보이지 않게 한다 */
-[data-season="winter"] .lp-hero-center   { padding: 6.5rem 0 5.5rem; }
 [data-season="winter"] .sn-greet         { margin-bottom: 1.1rem; }
 [data-season="winter"] .lp-eyebrow       { margin-bottom: 2.2rem; }
 [data-season="winter"] .lp-hero-headline { line-height: 1.22; margin-bottom: 1.9rem; }
 [data-season="winter"] .lp-hero-sub      { margin-bottom: 3.1rem; }
-[data-season="winter"] .hero-friction    { margin-bottom: 2.6rem; }
-[data-season="winter"] .lp-hero-stats    { padding-top: 2.6rem; }
 
-/* ── 눈가루 — 바닥에서 아주 천천히 떠오르는 작은 빛 ── */
-.sn-mote {
-  position: absolute; border-radius: 50%;
-  background: radial-gradient(circle at 36% 34%, #FFFFFF, rgba(214,238,255,.1) 72%);
-  box-shadow: 0 0 9px rgba(205,235,255,.85);
-  animation-name: snFloat;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  pointer-events: none;
+/* ── 인사말 ── */
+.sn-greet {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 14px; font-weight: 700; letter-spacing: .02em;
+  color: var(--sn-star);
 }
-@keyframes snFloat {
-  0%   { transform: translate(0, 0);      opacity: 0; }
-  18%  { opacity: .9; }
-  72%  { opacity: .55; }
-  100% { transform: translate(22px, -84px); opacity: 0; }
+.sn-greet-dot {
+  display: block; width: 9px; height: 9px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 32%, #FFFBEC, var(--winter-amber) 72%);
+  box-shadow: 0 0 9px rgba(243,200,122,.85);
+  animation: snGlow 4.5s ease-in-out infinite;
 }
 
-/* ── 네 갈래 반짝임 ── */
-.sn-spark {
-  position: absolute; color: #FFF4D6; pointer-events: none;
-  animation-name: snSpark;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-.sn-spark svg { width: 100%; height: 100%; display: block; overflow: visible;
-                fill: currentColor; filter: drop-shadow(0 0 7px currentColor); }
-@keyframes snSpark {
-  0%,100% { opacity: .18; transform: scale(.72) rotate(0deg); }
-  50%     { opacity: 1;   transform: scale(1)   rotate(12deg); }
-}
+/* ══ 카드 판 — 서리 유리 ══════════════════════════════════════════════
+   그림 대신 CSS 로 만든다. backdrop-filter 와 반투명 그라디언트면
+   이미지 한 장 없이 서리 낀 유리가 된다. */
 
-/* ── 별가루 ── */
-.sn-dust { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.sn-dust circle { fill: #EAF5FF; }
-
-/* ── 전구 줄 — 액자 윗변에서 늘어진다 ── */
-.sn-garland {
-  position: absolute; top: calc(var(--sn-nav, 40px) + 6px);
-  left: min(2%, calc(50% - 560px)); width: 330px; pointer-events: none; z-index: 5;
-}
-.sn-garland-2 { left: auto; right: min(2%, calc(50% - 560px)); transform: scaleX(-1); width: 280px; }
-.sn-garland svg { width: 100%; height: auto; display: block; overflow: visible; }
-.sn-lt-cord { fill: none; stroke: #2F4A5E; stroke-width: 2.4; }
-.sn-lt-cap  { fill: #45586A; }
-.sn-lt-bulb { stroke: rgba(255,255,255,.4); stroke-width: 1; }
-.sn-lt-halo { filter: blur(7px); opacity: .55; }
-.sn-lt-b {
-  animation: snBulb 3.4s ease-in-out infinite;
-  transform-box: fill-box; transform-origin: top center;
-}
-@keyframes snBulb { 0%,100% { opacity: .62; } 50% { opacity: 1; } }
-
-/* ── 히어로의 겨울 것들 ── */
-.sn-hero-holly {
-  position: absolute; top: calc(var(--sn-nav, 40px) + 54px);
-  left: min(5%, calc(50% - 470px)); width: 74px; pointer-events: none;
-  transform: rotate(-12deg);
-}
-/* 눈사람은 카드 판 안 전나무 숲 곁에 세운다. 히어로에 그냥 띄우면
-   숫자 카드 위를 덮는다. 판 안에 넣으면 흰 카드가 늘 앞에 선다. */
-.sn-hero-man {
-  position: absolute; right: 12px; bottom: -6px; width: 128px;
-  z-index: 2; pointer-events: none;
-  filter: drop-shadow(0 8px 18px rgba(4,18,32,.45));
-}
-.sn-hero-holly svg, .sn-hero-man svg { width: 100%; height: auto; display: block; }
-
-/* 카드 판 — 흰 종이 위에 서리가 앉은 결 */
 [data-season="winter"] .lp-hero-img {
-  background-image:
-    radial-gradient(rgba(120,160,195,.18) 1px, transparent 1px);
-  background-size: 18px 18px;
+  background:
+    linear-gradient(150deg, rgba(255,255,255,.17) 0%, rgba(200,220,239,.07) 46%,
+                    rgba(255,255,255,.12) 100%) !important;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgba(200,220,239,.26);
+  box-shadow: 0 30px 70px rgba(6,14,28,.45),
+              inset 0 1px 0 rgba(255,255,255,.26) !important;
+}
+[data-season="winter"] .lp-hero-showcase { position: relative; }
+
+/* 판 윗변에 얹힌 눈 + 고드름. 이 판 한 곳에만 단다. */
+.sn-cap-big {
+  position: absolute; left: -10px; right: -10px; top: -26px;
+  height: 92px; z-index: 4; pointer-events: none;
+}
+.sn-cap-big svg { width: 100%; height: 100%; display: block; }
+
+/* 작은 카드와 안내 바 — 눈만 조금, 고드름은 없다 */
+.sn-cap-sm {
+  position: absolute; left: -4px; right: -4px; top: -11px;
+  height: 26px; z-index: 2; pointer-events: none; overflow: hidden;
+}
+.sn-cap-sm svg { width: 100%; height: 100%; display: block; }
+
+[data-season="winter"] .lp-scard {
+  background: rgba(255,255,255,.95) !important;
+  overflow: visible;
+}
+[data-season="winter"] .lp-hero-showcase .hero-steps-card {
+  background: linear-gradient(150deg, rgba(255,255,255,.15), rgba(200,220,239,.07)) !important;
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  border: 1px solid rgba(200,220,239,.24);
+  color: #EAF2FB;
+  overflow: visible;
+}
+[data-season="winter"] .hero-steps-title,
+[data-season="winter"] .hero-step-text { color: #EAF2FB; }
+[data-season="winter"] .hero-steps-card .hero-step-num {
+  background: rgba(255,255,255,.16); color: #fff;
 }
 
-/* 흰 카드와 글은 장식보다 앞에 둔다 */
-[data-season="winter"] .lp-scard,
-[data-season="winter"] .lp-feat-body { z-index: 5; }
-[data-season="winter"] .lp-hero-showcase .hero-steps-card { position: relative; z-index: 5; }
-
-/* 내리는 눈은 카드 앞을 지나간다 */
-[data-season="winter"] .lp-hero .sn-deco-front { z-index: 7; }
-
-/* ── 전나무 숲 — 카드 판 양옆에 세운다 ── */
-.sn-firs {
-  position: absolute; bottom: -14px; width: 200px; height: 210px;
-  pointer-events: none; z-index: 1; overflow: hidden;
+/* 서리 — 어두운 귀퉁이에만 낀다.
+   흰 강좌 카드 위에 올리면 흰색이라 보이지 않아서, 히어로의 아래 두 귀와
+   로그인 카드처럼 바탕이 어두운/밝은 자리에만 쓴다. */
+.sn-frost {
+  position: absolute; width: 170px; height: 170px;
+  z-index: 2; pointer-events: none; opacity: .3;
 }
-.sn-firs svg { width: 100%; height: 100%; display: block; }
-.sn-firs-l { left: -44px; }
-.sn-firs-r { right: -44px; transform: scaleX(-1); }
+.sn-frost svg { width: 100%; height: 100%; display: block; }
+.sn-frost-tl { left: 4px;   top: 4px; }
+.sn-frost-tr { right: 4px;  top: 4px;    transform: scaleX(-1); }
+.sn-frost-bl { left: 4px;   bottom: 4px; transform: scaleY(-1); }
+.sn-frost-br { right: 4px;  bottom: 4px; transform: scale(-1); }
 
-.sn-fr-trunk { fill: #46301F; }
-.sn-fr-tier  { fill: #1C5141; }
-.sn-fr-snow  { fill: #EFF8FF; opacity: .88; }
-.sn-fr-far   { opacity: .45; }
-.sn-fr-far .sn-fr-tier { fill: #163F38; }
-.sn-fr-far .sn-fr-snow { fill: #CFE5F5; }
-
-/* ── 니트 액자 — 화면 가장자리를 두른다 ── */
-.sn-frame {
-  /* 히어로 위쪽은 네비가 덮는다. 공지 띠가 있으면 40px, 닫으면 0 이라
-     decorate.js 가 재서 --sn-nav 로 넣는다.
-     윗변은 메뉴바 바로 아래에 붙인다. 사이를 띄우면 메뉴바 니트 선과
-     따로 놀아 띠가 둘로 보인다. */
-  position: absolute; inset: var(--sn-nav, 40px) 0 0; z-index: 6; pointer-events: none;
-  background-image:
-    var(--sn-saekdong), var(--sn-saekdong),
-    var(--sn-saekdong-v), var(--sn-saekdong-v);
-  background-size:
-    100% var(--sn-frame-w), 100% var(--sn-frame-w),
-    var(--sn-frame-w) 100%, var(--sn-frame-w) 100%;
-  background-position: left top, left bottom, left top, right top;
-  background-repeat: no-repeat;
-  box-shadow: inset 0 0 0 1px rgba(6,23,38,.35);
+/* ══ 다음 칸 — 히어로가 녹아드는 곳 ═══════════════════════════════════
+   히어로 아래 그라디언트의 끝 색과 정확히 같아야 가로줄이 안 보인다. */
+[data-season="winter"] .lp-trust {
+  background: #101C33;
 }
-/* 안쪽 가장자리에 가는 서리선 — 액자처럼 보이게 */
-.sn-frame::after {
-  content: ''; position: absolute;
-  inset: var(--sn-frame-w);
-  border: 1px solid rgba(216,233,246,.30);
-}
-/* 윗변 안쪽에 고드름이 매달린다 */
-.sn-frame-ice {
-  position: absolute; left: var(--sn-frame-w); right: var(--sn-frame-w);
-  top: var(--sn-frame-w); height: 52px; overflow: hidden;
-}
-.sn-frame-ice svg { width: 100%; height: 100%; display: block; }
-.sn-ic-ledge { fill: #EFF8FF; opacity: .86; }
-.sn-ic       { fill: #DCEEFB; opacity: .72; }
-.sn-frame-ice { opacity: .8; }
 
 /* ══ 랜딩의 밋밋한 칸들 — 흰 바탕을 설지로 바꾼다 ══════════════════
    글자색은 그대로 두고 바탕과 테두리만 손댄다. 먹빛 글자/설지 11.1:1. */
@@ -416,12 +418,6 @@
   background-size: auto;
 }
 
-/* 수치 띠는 겨울밤으로 — 검정 그대로 두면 계절이 끊긴다 */
-[data-season="winter"] .lp-trust {
-  background:
-    radial-gradient(60% 70% at 78% 20%, rgba(36,92,132,.52) 0%, rgba(36,92,132,0) 70%),
-    linear-gradient(150deg, var(--sn-night-top) 0%, var(--sn-night-deep) 100%);
-}
 
 /* ── 칸 꾸밈 — 제목 아래 무늬, 구석에 눈송이 ── */
 .sn-head-orn {
@@ -521,33 +517,11 @@
 .sn-scene-firs   { left: 2%;   bottom: 0;    width: 210px; height: 160px; }
 .sn-scene-firs .sn-s-a { left: 0;    bottom: -10px; width: 118px; }
 .sn-scene-firs .sn-s-b { left: 86px; bottom: -10px; width: 98px; }
-.sn-scene-firs .sn-fr-tier { fill: #2A6A55; }
+.sn-scene-firs .sn-fr-body { fill: #2E4D7A; stroke: #2E4D7A; }
 
 /* 겨울밤 띠 위에 놓이는 것은 조금 눌러 둔다 */
 [data-season="winter"] .lp-trust .sn-scene { opacity: .72; }
 
-/* ── 내리는 눈 ── */
-.sn-snow   { position: absolute; top: -60px; color: #FFFFFF;
-             animation: snFall 18s linear infinite; }
-.sn-snow-i { display: block; animation: snWaft 5s ease-in-out infinite; }
-.sn-snow svg { width: 100%; height: auto; filter: drop-shadow(0 1px 4px rgba(10,34,58,.3)); }
-@keyframes snWaft {
-  0%,100% { transform: translateX(-20px) rotate(-16deg); }
-  50%     { transform: translateX(20px)  rotate(18deg); }
-}
-
-/* ── 인사말 ── */
-.sn-greet {
-  display: inline-flex; align-items: center; gap: 9px;
-  font-size: 14px; font-weight: 700; letter-spacing: .02em;
-  color: var(--sn-star);
-}
-.sn-greet-dot {
-  display: block; width: 9px; height: 9px; border-radius: 50%;
-  background: radial-gradient(circle at 34% 32%, #FFFBEC, #FFC861 72%);
-  box-shadow: 0 0 9px rgba(255,200,97,.85);
-  animation: snGlow 4.5s ease-in-out infinite;
-}
 
 /* ══ 3. 밝은 면 ═══════════════════════════════════════════════════════ */
 
@@ -653,6 +627,26 @@
                transform-box: fill-box; transform-origin: bottom center; }
 .sn-cd-core  { fill: #FFF3D4; }
 
+/* 눈 쌓인 학사모 — 히어로의 주인공 */
+.sn-gc-body   { fill: #1E3156; }
+.sn-gc-rim    { fill: none; stroke: rgba(210,230,250,.5); stroke-width: 2.6;
+                stroke-linejoin: round; }
+.sn-gc-grain  { fill: none; stroke: rgba(200,220,239,.16); stroke-width: 2;
+                stroke-linecap: round; }
+.sn-gc-snow   { fill: #F7FCFF; }
+.sn-gc-cord   { fill: none; stroke: #C9A24E; stroke-width: 4.2;
+                stroke-linecap: round; stroke-linejoin: round; }
+.sn-gc-fringe { fill: none; stroke: #C9A24E; stroke-width: 3.4; stroke-linecap: round; }
+.sn-gc-knot   { fill: #B88C3A; }
+.sn-gc-btn    { fill: #C9A24E; }
+
+/* 서리 고사리 — 유리에 낀 성에 */
+.sn-fc-line { fill: none; stroke: #DCEBF8; stroke-linecap: round; }
+
+/* 눈 언덕 */
+.sn-bank-far  { fill: #FFFFFF; opacity: .55; }
+.sn-bank-near { fill: #FFFFFF; }
+
 /* ══ 4. 시즌 버튼과 배너 ══════════════════════════════════════════════
    열매빨강 바탕에 흰 글자 — 6.03:1 */
 
@@ -690,9 +684,11 @@
    이 칸의 색은 랜딩 설정이 style 속성으로 직접 박는다. 그래서 여기만
    !important 를 쓴다. 테마를 끄면 설정한 색이 그대로 돌아온다. */
 [data-season="winter"] .lp-cta {
+  /* 받은 네이비 보케 사진을 여기 한 장 깐다. 위에 남색을 겹쳐 글자 대비를 지킨다. */
   background:
-    radial-gradient(52% 64% at 84% 20%, rgba(36,92,132,.52) 0%, rgba(36,92,132,0) 70%),
-    linear-gradient(160deg, var(--sn-night-top) 0%, var(--sn-night-deep) 100%) !important;
+    linear-gradient(160deg, rgba(27,42,74,.86) 0%, rgba(16,28,51,.94) 100%),
+    url('../../images/season/winter/section-bg-navy.jpg') center/cover no-repeat,
+    var(--winter-navy-deep) !important;
 }
 [data-season="winter"] .lp-cta::before { display: none; }
 [data-season="winter"] .lp-cta .sn-cta {
@@ -717,13 +713,13 @@
 }
 .sn-footer-ice svg { width: 100%; height: 100%; }
 .sn-footer-firs {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 108px;
-  z-index: 0; pointer-events: none; opacity: .42;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 140px;
+  z-index: 0; pointer-events: none; opacity: .5;
 }
 /* 푸터는 바탕이 어두워서 숲도 한 단계 밝게 들어가야 보인다 */
-.sn-footer-firs .sn-fr-tier  { fill: #27624E; }
-.sn-footer-firs .sn-fr-snow  { fill: #CFE3F2; }
-.sn-footer-firs .sn-fr-trunk { fill: #35251A; }
+.sn-footer-firs .sn-fr-body  { fill: #2B4675; stroke: #2B4675; }
+.sn-footer-firs .sn-fr-sn    { stroke: #D4E6F6; }
+.sn-footer-firs .sn-fr-trunk { fill: #35507C; }
 .sn-footer-firs svg { width: 100%; height: 100%; }
 .sn-footer-man {
   position: absolute; right: 34px; bottom: 6px; width: 66px;
@@ -782,29 +778,15 @@
 /* ══ 8. 좁은 화면 ═════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  [data-season="winter"] .lp-hero,
-  [data-season="winter"] .inst-hero,
-  [data-season="winter"] .pass-hero { --sn-frame-w: 8px; }
+  /* 좁은 화면에서는 학사모를 글 뒤에 두면 술이 버튼을 가로지른다.
+     작게 줄여 글 위쪽 빈 하늘로 올린다. */
+  .sn-cap { width: 168px; top: 15%; }
+  /* 전구 가랜드는 한 가닥만 */
+  .sn-garland-b, .sn-garland-c { display: none; }
+  .sn-garland { left: -20px; right: -20px; }
 
-  .sn-star-big { width: 240px; top: 26px; right: -56px; }
-  .sn-firs { width: 124px; height: 150px; bottom: -16px; }
-  .sn-firs-l { left: -20px; }
-  .sn-firs-r { right: -20px; }
-  .sn-spark:nth-of-type(3n) { display: none; }
-  .sn-aurora { filter: blur(4px); }
-
-  /* 제목을 가리지 않게 구름을 버튼 옆으로 내린다 */
-  .sn-cl-1 { width: 100px; top: 452px; left: -32px; }
-  .sn-cl-2 { width: 92px;  top: 292px; right: -18px; }
-  .sn-cl-3, .sn-cl-4 { display: none; }
-
-  .sn-garland   { width: 190px; left: -24px; }
-  .sn-garland-2 { display: none; }
-  .sn-hero-holly { width: 48px; left: 4px; }
-  .sn-hero-man { width: 104px; right: 4%; }
-
-  .sn-frame { inset: var(--sn-nav, 40px) 0 0; }
-  .sn-frame-ice { height: 34px; }
+  .sn-cap-big { top: -18px; height: 60px; }
+  .sn-frost { width: 92px; height: 92px; opacity: .24; }
 
   .sn-wm { display: none; }
   .sn-still-2 { display: none; }
@@ -812,40 +794,18 @@
   .sn-ho-drift { width: 80%; }
   .sn-ho-flakes span:nth-child(3) { display: none; }
   .sn-ho-bar { width: 58px; }
-
-  .sn-scene-man    { width: 104px; }
-  .sn-scene-cone   { width: 46px; }
-  .sn-scene-wreath { display: none; }
-  .sn-scene-holly  { width: 64px; }
-  .sn-scene-firs   { width: 150px; height: 112px; }
-  .sn-scene-firs .sn-s-a { width: 84px; }
-  .sn-scene-firs .sn-s-b { left: 62px; width: 70px; }
-
-  /* 눈송이 크기는 decorate.js 가 inline 으로 넣는다. 좁은 화면에서는
-     너무 커서 글을 가리므로 여기서 위를 막고 수도 줄인다. */
-  .sn-snow { max-width: 17px; max-height: 17px; }
-  .sn-snow:nth-of-type(3n) { display: none; }
-
-  .sn-cta { padding: 26px 22px; }
-  .sn-cta-title { font-size: 18px; }
-  .sn-cta-art { width: 44px; height: 44px; }
-  .sn-cta .sn-btn { width: 100%; text-align: center; }
-
-  .sn-head-flake { width: 40px; height: 40px; right: 14px; top: 12px; }
-  .sn-wreath-mark, .sn-candle-mark, .sn-cone-mark { display: none; }
-  .sn-footer-man { width: 52px; right: 16px; }
-  .sn-footer-firs { height: 80px; }
 }
 
 @media (max-width: 480px) {
-  .sn-hero-man, .sn-hero-holly { display: none; }   /* 아주 좁으면 덜어 낸다 */
+  .sn-cap { width: 190px; }                  /* 아주 좁으면 덜어 낸다 */
   .sn-footer-man { width: 46px; }
+  .sn-footer-firs { height: 66px; }
 }
 
 /* ── 움직임을 줄인 설정 ──────────────────────────────────────────────
    base.css 가 sn- 로 시작하는 것의 움직임을 모두 멈춘다. 멈추면 허공에
    박혀 보이는 눈만 여기서 따로 감춘다. */
 @media (prefers-reduced-motion: reduce) {
-  .sn-snow { display: none !important; }
-  .sn-mote { display: none !important; }
+  /* 눈은 decorate.js 가 아예 안 켠다. 캔버스만 치워 둔다. */
+  .sn-snow-back, .sn-snow-front { display: none !important; }
 }

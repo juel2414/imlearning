@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- 겨울 모티프를 한눈에 보려고 쓰는 작업용 쪽. 커밋하지 않는다. -->
+<html lang="ko"><head><meta charset="utf-8"><title>겨울 모티프</title>
+<style>
+  body { margin:0; background:#101C33; color:#C8DCEF; font:14px/1.6 system-ui, sans-serif; }
+  h2 { margin:0 0 10px; font-size:13px; letter-spacing:.08em; text-transform:uppercase;
+       color:#8FA8C6; font-weight:600; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+          gap:22px; padding:24px; }
+  .cell { background:rgba(255,255,255,.04); border:1px solid rgba(200,220,239,.14);
+          border-radius:14px; padding:16px; }
+  .wide { grid-column:1/-1; }
+  .box { display:flex; align-items:center; justify-content:center; min-height:150px; }
+  .box.h { display:block; }
+  .box.h svg { width:100%; }
+  .box svg { max-width:100%; height:auto; display:block; }
+</style></head><body>
+<div class="grid" id="g"></div>
+<script src="../motifs.js"></script>
+<script src="motifs.js"></script>
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="theme.css">
+<script>
+var W = window.SeasonMotifsWinter;
+var items = [
+  ['눈송이 (잔가지 있음)', '<div style="width:150px;color:#C8DCEF">' + W.flake(2) + '</div>'],
+  ['눈송이 (가벼운 것)',  '<div style="width:150px;color:#C8DCEF">' + W.flake(5, null, false) + '</div>'],
+  ['겨울 별',            '<div style="width:220px">' + W.star() + '</div>'],
+  ['전나무 한 그루',      '<div style="width:150px">' + W.fir(3, null, 18) + '</div>'],
+  ['학사모',             '<div style="width:300px">' + W.gradCap() + '</div>'],
+  ['서리 고사리',         '<div style="width:190px">' + W.frostCorner() + '</div>'],
+  ['눈사람',             '<div style="width:170px">' + W.snowman() + '</div>'],
+  ['리스',               '<div style="width:150px">' + W.wreath() + '</div>'],
+  ['호랑가시',           '<div style="width:120px">' + W.holly() + '</div>'],
+  ['솔방울',             '<div style="width:80px">'  + W.pinecone() + '</div>'],
+  ['촛불',               '<div style="width:90px">'  + W.candle() + '</div>'],
+  ['눈구름',             '<div style="width:260px">' + W.snowCloud() + '</div>']
+];
+var wides = [
+  ['전구 줄',   '<div style="width:100%">' + W.lights(11) + '</div>'],
+  ['눈 둔덕 + 고드름', '<div style="width:100%">' +
+      W.snowCap({ width: 900, rise: 26, hang: 16, ice: 34, seed: 4 }) + '</div>', 'h'],
+  ['눈 둔덕 (고드름 없음)', '<div style="width:100%">' +
+      W.snowCap({ width: 900, rise: 16, hang: 10, ice: 0, seed: 9 }) + '</div>', 'h'],
+  ['전나무 숲',  '<div style="width:100%">' +
+      W.firRow({ width: 1440, height: 180, minS: .5, spread: .45, step: 70, levels: 14 }) + '</div>'],
+  ['눈 언덕',    '<div style="width:100%">' + W.snowBank() + '</div>'],
+  ['니트 띠',    '<div style="width:360px">' + W.knitRow(0) + '</div>'],
+  ['눈더미 구분선', '<div style="width:100%;height:56px">' + W.drift() + '</div>']
+];
+var g = document.getElementById('g');
+function add(list, cls) {
+  list.forEach(function (it) {
+    var d = document.createElement('div');
+    d.className = 'cell' + (cls || '');
+    d.innerHTML = '<h2>' + it[0] + '</h2><div class="box ' + (it[2]||'') + '">' + it[1] + '</div>';
+    g.appendChild(d);
+  });
+}
+add(wides, ' wide');
+add(items, '');
+document.documentElement.setAttribute('data-season', 'winter');
+document.body.style.cssText += ';background:#101C33 !important;background-image:none !important;';
+</script>
+</body></html>
