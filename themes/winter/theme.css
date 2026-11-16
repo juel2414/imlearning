@@ -193,7 +193,7 @@
   position: absolute; z-index: 4; pointer-events: none;
   /* 글줄(약 500px)보다 한참 넓어야 모자로 읽힌다. 좁으면 술만 글 위를
      가로지르는 노란 줄로 보인다. 글은 판의 어두운 면 위에 앉는다. */
-  left: 45%; top: 30%;
+  left: 54%; top: 45%;
   width: min(64vw, 820px);
   opacity: .82;
   transform: translate(-50%, -50%);
