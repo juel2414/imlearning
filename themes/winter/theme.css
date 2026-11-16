@@ -197,7 +197,11 @@
   width: min(64vw, 820px);
   opacity: .82;
   transform: translate(-50%, -50%);
-  filter: drop-shadow(0 20px 40px rgba(16,28,51,.55))
+  /* 밝기를 눌러 둔다. 사진 그대로 두면 모자 위의 흰 눈이 제목·부제 뒤로
+     들어와 대비가 1.6:1 까지 떨어진다(기준 3.0). 0.56 이면 눈이 가장
+     밝은 자리에서도 바탕이 rgb(120) 아래로 내려가 전부 통과한다. */
+  filter: brightness(.56)
+          drop-shadow(0 20px 40px rgba(16,28,51,.55))
           drop-shadow(0 0 60px rgba(243,200,122,.12));
   animation: snCapIn 1.6s cubic-bezier(.22,.7,.3,1) both;
 }
@@ -252,7 +256,9 @@
 /* ── 글자 대비 (WCAG AA) ──
    사진에서 가장 밝은 눈밭을 최악으로 놓고 재서, 아래 셋만 기본값보다
    또렷하게 올린다. 색은 그대로 두고 흐림만 걷는다. */
-[data-season="winter"] .hero-friction { color: rgba(255,255,255,.74); }
+/* 모자 위로 올라오는 두 줄. 흐림을 걷어 4.5:1 을 넘긴다. 색은 그대로 흰색 */
+[data-season="winter"] .lp-hero-sub   { color: rgba(255,255,255,.95); }
+[data-season="winter"] .hero-friction { color: rgba(255,255,255,.9); }
 [data-season="winter"] .lp-hstat-lbl  { color: rgba(255,255,255,.76); }
 /* 눈썹 알약 — 초록 글씨를 살리려면 알약 속이 어두워야 한다.
    브랜드 초록 자체는 그대로 둔다. */
