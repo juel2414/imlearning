@@ -21,3 +21,6 @@ migration_data_final.json
 
 # 시즌 일러스트 원본 (누끼 딴 chuseok-*.png 만 커밋한다)
 images/season/Gemini_Generated_Image_*.png
+
+# 테마 작업용 미리보기 쪽 (모티프를 한눈에 보려고 쓴다. 사이트에는 안 쓴다)
+themes/*/_preview.html
