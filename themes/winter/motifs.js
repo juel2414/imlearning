@@ -518,25 +518,47 @@
     return svg('-34 -56 68 112', out, cls || 'sn-m-candle');
   }
 
-  /* ── 니트 무늬 띠 ──────────────────────────────────────────────── */
+  /* ── 니트 무늬 띠 ──────────────────────────────────────────────── 
+     북유럽 배색뜨개(Fair Isle) 테두리. 밑줄 위에 톱니를 올리고,
+     톱니가 만나는 골마다 여덟모 별을 둔다.
+
+     실제로 놓일 자리가 300px 남짓이다. 겹선을 쓰면 그 크기에서
+     회색 덩어리로 뭉개진다 — 모두 한 겹으로만 긋는다.
+     양끝은 별을 비워 좌우가 같게 끝난다. */
+
+  function star8(cx, cy, R) {
+    var inner = R * 0.32, d = '', i, a, rr;
+    for (i = 0; i < 16; i++) {
+      a = Math.PI / 8 * i - Math.PI / 2;
+      rr = i % 2 ? inner : R;
+      d += (i ? ' L' : 'M') + r(cx + Math.cos(a) * rr) + ' ' + r(cy + Math.sin(a) * rr);
+    }
+    return d + ' Z';
+  }
 
   function knitRow(seed, cls, opt) {
-    var o = opt || {}, n = o.count || 7, w = o.w || 36, out = '';
-    for (var i = 0; i < n; i++) {
-      var x = i * w;
-      if ((i + (seed || 0)) % 2) {
-        out += '<g transform="translate(' + r(x + w / 2) + ',17)">' +
-          '<path class="sn-kn-line" d="M0 -9.5 L0 9.5 M-9.5 0 L9.5 0 ' +
-          'M-6.5 -6.5 L6.5 6.5 M-6.5 6.5 L6.5 -6.5"/>' +
-          '<path class="sn-kn-line" d="M-4 -7 L4 -7 M-4 7 L4 7 ' +
-          'M-7 -4 L-7 4 M7 -4 L7 4"/></g>';
-      } else {
-        out += '<path class="sn-kn-line" d="M' + r(x) + ' 26 L' + r(x + w * 0.25) +
-          ' 9 L' + r(x + w * 0.5) + ' 26 L' + r(x + w * 0.75) + ' 9 L' +
-          r(x + w) + ' 26"/>';
-      }
+    var o = opt || {}, n = o.count || 6, u = o.w || 52;
+    var H = 50, base = 48, apex = 38, W = n * u, out = '', i, x, cx;
+
+    /* 윗줄 — 여덟모 별. 서로 닿지 않게 띄운다 */
+    for (i = 0; i < n; i++) {
+      cx = i * u + u / 2;
+      out += '<path class="sn-kn-line" d="M' + r(cx) + ' 1' +
+        ' L' + r(cx + 17) + ' 18 L' + r(cx) + ' 35 L' + r(cx - 17) + ' 18 Z"/>';
+      out += '<path class="sn-kn-line" d="' + star8(cx, 18, 14) + '"/>';
     }
-    return svg('0 0 ' + (n * w) + ' 34', out, cls || 'sn-m-knit');
+
+    /* 아랫줄 — 톱니와 밑줄. 톱니 꼭대기를 별 아래에 맞춘다 */
+    var saw = '';
+    for (i = 0; i < n; i++) {
+      x = i * u;
+      saw += 'M' + r(x) + ' ' + base + ' L' + r(x + u / 2) + ' ' + apex +
+             ' L' + r(x + u) + ' ' + base;
+    }
+    out += '<path class="sn-kn-line" d="' + saw + '"/>';
+    out += '<path class="sn-kn-line" d="M0 ' + base + ' H' + W + '"/>';
+
+    return svg('0 0 ' + W + ' ' + H, out, cls || 'sn-m-knit');
   }
 
   /* ── 눈구름 ────────────────────────────────────────────────────── */

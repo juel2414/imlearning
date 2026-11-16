@@ -32,9 +32,11 @@
   // 나머지 장식은 전부 코드로 그려서 받을 것이 없다.
   (function () {
     if (!document.querySelector('[data-section="hero"], .lp-hero')) return;
-    var l = document.createElement('link');
-    l.rel = 'preload'; l.as = 'image'; l.href = PHOTO + 'hero-bg.jpg';
-    document.head.appendChild(l);
+    ['hero-bg.jpg', 'grad-cap.webp'].forEach(function (f) {
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image'; l.href = PHOTO + f;
+      document.head.appendChild(l);
+    });
   })();
 
   // 한 번만 — 이미 손댄 자리면 false
@@ -54,6 +56,20 @@
 
   function rel(el) {
     if (el && getComputedStyle(el).position === 'static') el.style.position = 'relative';
+  }
+
+  /* 사진으로 받은 장식 한 조각. 체커무늬를 걷어내고 투명도를 되살린
+     WebP 를 쓴다. 눈·고드름·학사모처럼 코드로 그리면 가늘어지는 것만
+     사진을 쓰고, 나머지는 그대로 SVG 다. */
+  function piece(cls, file) {
+    var e = make('span', cls);
+    var i = document.createElement('img');
+    i.src = PHOTO + file;
+    i.alt = '';
+    i.setAttribute('aria-hidden', 'true');
+    i.draggable = false;
+    e.appendChild(i);
+    return e;
   }
 
   /* ══ 내리는 눈 — 캔버스 한 장에 rAF ═══════════════════════════════
@@ -181,6 +197,15 @@
     logo.appendChild(make('span', 'sn-nav-flake', W.flake(3, null, false)));
   }
 
+  /* 큰 눈결정이 앉을 자리. 가운데 28~72% 는 글줄이라 비워 둔다.
+     좁은 화면에서는 theme.css 가 뒤쪽 넷을 숨긴다. */
+  var FLAKES = [
+    { i: 1, x:  6, y: 14, w: 92 }, { i: 5, x: 17, y: 46, w: 58 },
+    { i: 3, x:  9, y: 72, w: 74 }, { i: 7, x: 23, y: 88, w: 46 },
+    { i: 2, x: 88, y: 17, w: 86 }, { i: 6, x: 76, y: 42, w: 54 },
+    { i: 4, x: 91, y: 69, w: 70 }, { i: 8, x: 74, y: 86, w: 44 }
+  ];
+
   /* ══ 히어로 — 여섯 겹 ═════════════════════════════════════════════ */
 
   function doHero() {
@@ -196,8 +221,17 @@
       // 3 뒤쪽 눈
       startSnow(hero, 'sn-snow-back', snowCount(false), snowSize(false));
 
-      // 4 학사모 — 기존 배경 사진의 학사모를 겨울 모습으로 옮긴 것
-      hero.appendChild(make('div', 'sn-cap', W.gradCap()));
+      // 4 학사모 — 눈이 얹힌 사진. 그려서는 이만큼 두껍게 나오지 않는다
+      hero.appendChild(piece('sn-cap', 'grad-cap.webp'));
+
+      // 4-b 큰 눈결정 — 글줄을 피해 좌우에 흩뿌린다
+      var fl = make('div', 'sn-flakes');
+      FLAKES.forEach(function (f) {
+        var e = piece('sn-fl sn-fl-' + f.i, 'flake-' + f.i + '.webp');
+        e.style.cssText = 'left:' + f.x + '%;top:' + f.y + '%;width:' + f.w + 'px';
+        fl.appendChild(e);
+      });
+      hero.appendChild(fl);
 
       // 5 전구 줄 — 위쪽에 가로로 반복
       var g = make('div', 'sn-garland');
@@ -208,6 +242,9 @@
 
       // 6 앞쪽 눈 — 조금만, 크게
       startSnow(hero, 'sn-snow-front', snowCount(true), snowSize(true));
+
+      // 6-b 아래 눈 둔덕 — 히어로가 다음 칸으로 넘어가는 자리를 덮는다
+      hero.appendChild(piece('sn-bank', 'snow-bank.webp'));
 
       // 서리 — 어두운 아래 귀퉁이에 끼게 둔다. 흰 카드 위에 올리면 안 보인다.
       hero.appendChild(make('span', 'sn-frost sn-frost-bl', W.frostCorner()));
@@ -264,24 +301,24 @@
 
     // 판 윗변에 얹힌 눈 + 고드름. 이 판 한 곳에만 단다.
     if (!show.querySelector('.sn-cap-big')) {
-      show.appendChild(make('span', 'sn-cap-big',
-        W.snowCap({ width: 1200, rise: 24, hang: 15, ice: 32, seed: 4 })));
+      // 눈과 고드름은 theme.css 가 배경으로 깔아 가로로 반복한다.
+      // <img> 로 넣으면 판 너비에 맞춰 늘어나 고드름이 뭉툭해진다.
+      show.appendChild(make('span', 'sn-ice-big'));
+      show.appendChild(make('span', 'sn-cap-big'));
     }
 
     // 떠 있는 작은 통계 카드 — 눈만 조금, 고드름은 없다
     show.querySelectorAll('.lp-scard').forEach(function (c) {
       if (c.querySelector('.sn-cap-sm')) return;
       rel(c);
-      c.appendChild(make('span', 'sn-cap-sm',
-        W.snowCap({ width: 260, rise: 11, hang: 7, ice: 0, seed: 7 })));
+      c.appendChild(make('span', 'sn-cap-sm'));
     });
 
     // 아래 단계 안내 바도 같은 유리로
     var steps = show.querySelector('.hero-steps-card');
     if (steps && !steps.querySelector('.sn-cap-sm')) {
       rel(steps);
-      steps.appendChild(make('span', 'sn-cap-sm',
-        W.snowCap({ width: 1000, rise: 12, hang: 8, ice: 0, seed: 2 })));
+      steps.appendChild(make('span', 'sn-cap-sm sn-cap-sm-wide'));
     }
   }
 
@@ -374,7 +411,7 @@
 
   function doSectionDeco() {
     var HEAD_ORN = [
-      function (i) { return ['sn-ho-knit',  W.knitRow(i, null, { count: 7, w: 36 })]; },
+      function (i) { return ['sn-ho-knit',  W.knitRow(i, null, { count: 7 })]; },
       function ()  { return ['sn-ho-drift', W.drift()]; },
       function (i) { return ['sn-ho-flakes',
         '<span>' + W.flake(i + 2, null, false) + '</span>' +
